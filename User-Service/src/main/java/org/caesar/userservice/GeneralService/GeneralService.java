@@ -1,4 +1,4 @@
-package com.example.userservice.GeneralService;
+package org.caesar.userservice.GeneralService;
 
 public class GeneralService {
 }
