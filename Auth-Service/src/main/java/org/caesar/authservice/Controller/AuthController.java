@@ -1,7 +1,5 @@
 package org.caesar.authservice.Controller;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +12,7 @@ public class AuthController {
 
 
     @PostMapping(value = "/login")
-    public String login(HttpServletRequest request) {
+    public String login() {
         return "Aidi";
     }
 
