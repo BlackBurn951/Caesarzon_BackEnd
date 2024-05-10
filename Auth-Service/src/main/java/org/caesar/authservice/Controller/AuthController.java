@@ -1,19 +1,20 @@
 package org.caesar.authservice.Controller;
-
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.caesar.authservice.Config.JwtUtil;
+import org.caesar.authservice.Entity.Tokens;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/auth-api")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class AuthController {
 
 
     @PostMapping(value = "/login")
-    public String login() {
-        return "Aidi";
+    public String login(@RequestBody Tokens tokens) throws Exception {
+        return JwtUtil.parseToken(tokens.getAccess());
     }
 
 }
