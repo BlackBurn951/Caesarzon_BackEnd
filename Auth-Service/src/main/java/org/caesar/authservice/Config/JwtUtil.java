@@ -44,8 +44,6 @@ public abstract class JwtUtil {
                 .setSkipSignatureVerification()
                 .build();
         JwtClaims claims = consumer.processToClaims(token);
-        List<String> tokens = new ArrayList<>();
-        tokens.add(claims.getRawJson());
 
         System.out.println("* Parsed token: "+ claims.getRawJson() );
         System.out.println("* Roles: "+ claims.getClaimValue("roles").toString());
