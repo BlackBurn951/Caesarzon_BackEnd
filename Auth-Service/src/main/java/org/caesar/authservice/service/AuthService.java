@@ -45,7 +45,7 @@ public class AuthService {
                                                    .map(role -> "ROLE_" + role)// oppure salvare "ROLE_" nel db
                                                    .collect(Collectors.toList());
 
-            return new AuthResponse("Ciao", "Ciao");
+            return new AuthResponse("Ciao");
         }
 
         throw new RuntimeException("Bad credential");

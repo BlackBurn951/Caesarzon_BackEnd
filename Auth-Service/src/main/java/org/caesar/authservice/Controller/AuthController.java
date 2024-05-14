@@ -19,9 +19,10 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping(value = "/login")
-    public String login(HttpServletRequest request) {
+    public ResponseEntity<AuthResponse> login(HttpServletRequest request) {
         System.out.println("Ciao test");
-        return "Ciao";
+        AuthResponse response = new AuthResponse("Login effettuato con successo");
+        return ResponseEntity.ok(response);
     }
 
 }
