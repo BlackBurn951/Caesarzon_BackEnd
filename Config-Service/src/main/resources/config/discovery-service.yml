@@ -1,0 +1,28 @@
+server:
+  port: 8067
+
+eureka:
+  instance:
+    hostname: localhost   #INDICAZIONE SU DOVE GIRA IL SERVER EUREKA E I CLIENT CHE CI SI REGISTRERANNO
+  client:
+    registerWithEureka: false  #INDICA SE DEVE REGISTRARSI AD EUREKA
+    fetchRegistry: false  #INDICA SE IL SERVIZIO CHE FA CAPO A QUESTA CONFIGURAZIONE DEVE OTTENERE IL REGISTRO DEI SERVIZI DA QUALC'ALTRO
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/  #INDICA L'URL DOVE I CLIENT SI DOVRANNO REGISTRARE
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+spring:   #CONFIGURAZIONE PER LO STILE DEI LOG
+  application:
+    name: discovery-service
+    cloud:
+      service-registry:
+        auto-registration:
+          enabled: false
+  output:
+    ansi:
+      enabled: always
