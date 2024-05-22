@@ -15,10 +15,10 @@ spring:
       discovery:
         locator:
           enabled: true #INDICA LE IMPOSTAZIONE PER IL ROUTER, CON ENABLED SI INDICA SE SI ABBILITA O MENO LA SCOPERTA DEI SERVIZI IN MODO DINAMICO
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Origin
-        - AddResponseHeader=Access-Control-Allow-Origin, http://localhost:4200
-      globals:
+#      default-filters:
+#        - DedupeResponseHeader=Access-Control-Allow-Origin
+#        - AddResponseHeader=Access-Control-Allow-Origin, http://localhost:4200   DA CHIEDERE A SCALZO QUALE CORS POLICY SAREBBE PIù PULITA COSì OPPURE CON QUESTI ATTIVI E SENZA LA SEZIONE SOTTOSTANTE PRECEDUTA DA GLOBAL E NON GLOBALCORS
+      globalcors:
         corsConfigurations:
           '[/**]':
             allowedOrigins: "http://localhost:4200"
