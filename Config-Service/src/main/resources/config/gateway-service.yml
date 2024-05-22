@@ -15,6 +15,15 @@ spring:
       discovery:
         locator:
           enabled: true #INDICA LE IMPOSTAZIONE PER IL ROUTER, CON ENABLED SI INDICA SE SI ABBILITA O MENO LA SCOPERTA DEI SERVIZI IN MODO DINAMICO
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin
+        - AddResponseHeader=Access-Control-Allow-Origin, http://localhost:4200
+      globals:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:4200"
+            allowedMethods: "*"
+            allowedHeaders: "*"
       routes:
         - id: auth-service
           uri: lb://auth-service
