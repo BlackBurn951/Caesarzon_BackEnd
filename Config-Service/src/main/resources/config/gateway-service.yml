@@ -16,12 +16,12 @@ spring:
         locator:
           enabled: true #INDICA LE IMPOSTAZIONE PER IL ROUTER, CON ENABLED SI INDICA SE SI ABBILITA O MENO LA SCOPERTA DEI SERVIZI IN MODO DINAMICO
       routes:
-        - id: simple-service
-          uri: lb://simple-service
+        - id: auth-service
+          uri: lb://auth-service
           predicates:
-            - Path=/simple-api/**
+            - Path=/auth-api/**
           filters:
-            - RewritePath=/simple-api/(?<path>.*), /simple-api/$\{path}   #CHIEDERE A SCALZO SE IL "SIMPLE-API" DEVE RIMANERE O BISOGNA ASTRARRE LA CHIAMATA AL CLIENT
+            - RewritePath=/auth-api/(?<path>.*), /auth-api/$\{path}   #CHIEDERE A SCALZO SE IL "SIMPLE-API" DEVE RIMANERE O BISOGNA ASTRARRE LA CHIAMATA AL CLIENT
 
 logging:
   pattern:
