@@ -12,4 +12,9 @@ public class AuthController {
         System.out.println(tokens.getAccess());
         return tokens.getAccess();
     }
+
+    @GetMapping("/join")
+    public String join() {
+        return "Ho avuto accesso";
+    }
 }
