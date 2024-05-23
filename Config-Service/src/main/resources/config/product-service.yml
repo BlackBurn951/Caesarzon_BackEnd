@@ -1,0 +1,18 @@
+server:
+  port: 0
+
+eureka:
+  #  instance:                  #NELLA CONFIGURAZIONE N2 DEL CORS QUESTI VANNO OMESSI
+  #    prefer-ip-address: true  #DICE AD EUREKA CHE PER ESSERE CONTATTATO (DA ALTRI SERVIZI) DI PREFERIRE IL SUO IP PIù TOSTO CHE IL SUO NOME [IN AMBIENTE DOCKER DOVREBBE ESSERE DI PREGIO]
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8067/eureka/
+
+spring:
+  output:
+    ansi:
+      enabled: always
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId:-},%X{spanId:-}] ${LOG_LEVEL_PATTERN:-%5p} %m%n"
