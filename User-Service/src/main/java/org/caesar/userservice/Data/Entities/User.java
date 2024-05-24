@@ -8,7 +8,7 @@ import jakarta.persistence.*;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    //@GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
     private Long id;
 
@@ -27,8 +27,8 @@ public class User {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "foto_profilo")
-    private Byte profilePic;
+//    @Column(name = "foto_profilo")
+//    private Byte profilePic;
 
 
 

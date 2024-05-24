@@ -10,27 +10,47 @@ spring:
   output:
     ansi:
       enabled: always
+
   cloud:
     gateway:
       discovery:
         locator:
-          enabled: true #INDICA LE IMPOSTAZIONE PER IL ROUTER, CON ENABLED SI INDICA SE SI ABBILITA O MENO LA SCOPERTA DEI SERVIZI IN MODO DINAMICO
-#      default-filters:
-#        - DedupeResponseHeader=Access-Control-Allow-Origin
-#        - AddResponseHeader=Access-Control-Allow-Origin, http://localhost:4200   DA CHIEDERE A SCALZO QUALE CORS POLICY SAREBBE PIù PULITA COSì OPPURE CON QUESTI ATTIVI E SENZA LA SEZIONE SOTTOSTANTE PRECEDUTA DA GLOBAL E NON GLOBALCORS
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins: "http://localhost:4200"
-            allowedMethods: "*"
-            allowedHeaders: "*"
+          enabled: true # INDICA LE IMPOSTAZIONE PER IL ROUTER, CON ENABLED SI INDICA SE SI ABBILITA O MENO LA SCOPERTA DEI SERVIZI IN MODO DINAMICO
+      #      default-filters:
+      #        - DedupeResponseHeader=Access-Control-Allow-Origin
+      #        - AddResponseHeader=Access-Control-Allow-Origin, http://localhost:4200   DA CHIEDERE A SCALZO QUALE CORS POLICY SAREBBE PIù PULITA COSì OPPURE CON QUESTI ATTIVI E SENZA LA SEZIONE SOTTOSTANTE PRECEDUTA DA GLOBAL E NON GLOBALCORS
+#      globalcors:
+#        corsConfigurations:
+#          '[/**]':
+#            allowedOrigins: "http://localhost:4200"
+#            allowedMethods: "*"
+#            allowedHeaders: "*"
       routes:
-        - id: auth-service
+        - id: user-service
           uri: lb://auth-service
           predicates:
             - Path=/auth-api/**
           filters:
-            - RewritePath=/auth-api/(?<path>.*), /auth-api/$\{path}   #CHIEDERE A SCALZO SE IL "SIMPLE-API" DEVE RIMANERE O BISOGNA ASTRARRE LA CHIAMATA AL CLIENT
+            - RewritePath=/auth-api/(?<path>.*), /auth-api/$\{path}
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user-api/**
+          filters:
+            - RewritePath=/user-api/(?<path>.*), /user-api/$\{path}   # CHIEDERE A SCALZO SE IL "SIMPLE-API" DEVE RIMANERE O BISOGNA ASTRARRE LA CHIAMATA AL CLIENT
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/CaesarRealm
+          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+
+jwt:
+  auth:
+    converter:
+      resource-id: login-app
+      principal-attribute: admin
 
 logging:
   pattern:

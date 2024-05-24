@@ -23,8 +23,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((authorize) -> authorize
-                        //.requestMatchers(HttpMethod.POST, "/aidi").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/auth-api/join").hasRole(ADMIN)
+                        //.requestMatchers(HttpMethod.POST, "/auth-api/test").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/auth-api/join").hasRole(ADMIN) //Se cambio in BASIC ricevo l'errore "Forbidden"
                         .requestMatchers(HttpMethod.GET, "/products/random").hasAnyRole(ADMIN, BASIC)
                         .requestMatchers(HttpMethod.GET, "/products/{id}").hasRole(BASIC)
                  .anyRequest().authenticated());

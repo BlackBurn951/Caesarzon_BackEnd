@@ -9,7 +9,7 @@ import java.util.List;
 @Table(name= "admin")
 public class Admin {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    //@GeneratedValue(strategy = GenerationType.UUID)
     private Long id;
 
     @Column(name= "nome")
@@ -27,9 +27,9 @@ public class Admin {
     @Column(name= "username")
     private String username;
 
-    @Column(name= "foto_profilo")
-    private byte profilePic;
+//    @Column(name= "foto_profilo")
+//    private byte profilePic;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Ban> bannedUsers = new ArrayList<>();
+//    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Ban> bannedUsers = new ArrayList<>();
 }

@@ -1,14 +1,18 @@
 package org.caesar.userservice.Data.Entities;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
+
+import java.util.UUID;
 
 @Entity
 @Table(name= "dati_comune")
 public class CityData {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+//  @GeneratedValue(strategy = GenerationType.UUID)
     private Long id;
+
 
     @Column(name= "citta")
     private String city;

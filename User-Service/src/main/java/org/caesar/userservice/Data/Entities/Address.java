@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 @Table(name= "indirizzo")
 public class Address {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    //@GeneratedValue(strategy = GenerationType.UUID)
     private Long id;
 
     @Column(name= "nome_strada")
