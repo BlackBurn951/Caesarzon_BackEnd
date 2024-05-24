@@ -26,12 +26,12 @@ spring:
 #            allowedMethods: "*"
 #            allowedHeaders: "*"
       routes:
-        - id: user-service
-          uri: lb://auth-service
+        - id: product-service
+          uri: lb://product-service
           predicates:
-            - Path=/auth-api/**
+            - Path=/product-api/**
           filters:
-            - RewritePath=/auth-api/(?<path>.*), /auth-api/$\{path}
+            - RewritePath=/product-api/(?<path>.*), /product-api/$\{path}
         - id: user-service
           uri: lb://user-service
           predicates:

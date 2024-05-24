@@ -20,6 +20,7 @@ public class SecurityConfig {
     public static final String ADMIN = "admin";
     public static final String BASIC = "basic";
 
+    @Autowired
     private JwtConverter jwtConverter;
 
     @Bean
