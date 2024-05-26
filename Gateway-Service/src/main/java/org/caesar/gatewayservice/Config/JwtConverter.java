@@ -50,7 +50,6 @@ public class JwtConverter implements Converter<Jwt, Mono<AbstractAuthenticationT
         Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
         Map<String, Object> resource;
         Collection<String> resourceRoles;
-        System.out.println("Resource access (STEP 1): " + resourceAccess);
 
         if (resourceAccess == null
                 || (resource = (Map<String, Object>) resourceAccess.get(properties.getResourceId())) == null
@@ -58,9 +57,7 @@ public class JwtConverter implements Converter<Jwt, Mono<AbstractAuthenticationT
 
             return Set.of();
         }
-        System.out.println("Resource access: " + resourceAccess);
-        System.out.println("Resource: " + resource);
-        System.out.println("ResourceRoles: " + resourceRoles);
+
         return resourceRoles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                 .collect(Collectors.toSet());

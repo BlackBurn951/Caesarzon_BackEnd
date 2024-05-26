@@ -13,6 +13,10 @@ public class UserController {
     @Autowired
     private RestTemplate restTemplate;
 
+//    @RequestMapping("/users")
+//    public String users() {
+//        return "Aidi";
+//    }
 
     @RequestMapping("/users")
     public String users() {
