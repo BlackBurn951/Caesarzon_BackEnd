@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/user-api")
+@RequiredArgsConstructor
 public class UserController {
 
     //Servizio per la comunicazione con la logica di buisiness
