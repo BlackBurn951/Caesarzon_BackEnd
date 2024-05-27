@@ -27,7 +27,7 @@ public class SecurityConfig {
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http.addFilterBefore(corsWebFilter(), SecurityWebFiltersOrder.CORS)
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers(HttpMethod.GET, "/user-api/users").hasRole(ADMIN)
+                        .pathMatchers(HttpMethod.POST, "/user-api/user").permitAll()
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));
