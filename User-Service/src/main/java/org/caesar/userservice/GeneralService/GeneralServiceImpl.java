@@ -11,7 +11,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value;
 
 
-
 @Service
 @RequiredArgsConstructor
 public class GeneralServiceImpl implements GeneralService {
@@ -39,28 +38,22 @@ public class GeneralServiceImpl implements GeneralService {
         System.out.println("Ho creato l'header!!!");
         //Creazione del body della chiamata http
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        map.add("grant_type","password");
         map.add("client_id","login-app");
+        map.add("grant_type","password");
+        map.add("client_secret","GvSvJDfrTVmBNe8kTupPFF16f5cuquKS");
         map.add("username",adminUser);
         map.add("password",adminPassword);
+
+
 
         System.out.println("Ho creato il body: "+ map.get("grant_type")+ "\n"+ map.get("client_id")+ "\n"+ map.get("username")+ "\n"+ map.get("password"));
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
         System.out.println("Request: " + request.getBody());
 
-        // Eseguire la richiesta POST e ottenere la risposta
         ResponseEntity<TokenDTO> response = restTemplate.postForEntity(tokenUrl, request, TokenDTO.class);
 
-        if (response.getStatusCode() == HttpStatus.OK) {
-            // Ritorna il token DTO ottenuto dalla risposta
-            return response.getBody();
-        } else {
-            // Gestisci eventuali errori di richiesta
-            // Puoi lanciare un'eccezione o gestire diversamente l'errore
-            return null; // o gestisci l'errore in base alle tue esigenze
-        }
-        
+        return response.getBody();
     }
 
     @Override
