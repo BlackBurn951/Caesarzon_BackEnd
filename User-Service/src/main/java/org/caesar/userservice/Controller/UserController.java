@@ -3,7 +3,6 @@ package org.caesar.userservice.Controller;
 import lombok.RequiredArgsConstructor;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.GeneralService.GeneralService;
-import org.caesar.userservice.GeneralService.GeneralServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,7 +31,14 @@ public class UserController {
         }
     }
 
+    /*aggiungere i seguenti end-point:
 
+        1) aggiunta numero telefono(da aggiungere come campo su keycloak)
+        2) aggiunta indrizzo(da fare sul nostro db)
+        3) aggiunta carta(da fare sul nostro db)
+        4) DA GUARDARE IMPLEMENTAZIONE PAYPAL
+        5) aggiunta foto profilo(da fare sul nostro db)
+     */
 
 }
 
