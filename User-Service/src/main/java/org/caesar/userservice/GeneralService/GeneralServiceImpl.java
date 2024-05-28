@@ -1,82 +1,60 @@
 package org.caesar.userservice.GeneralService;
 
 import lombok.RequiredArgsConstructor;
-import org.caesar.userservice.Dto.TokenDTO;
 import org.caesar.userservice.Dto.UserDTO;
-import org.springframework.http.*;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.beans.factory.annotation.Value;
 
+import javax.ws.rs.core.Response;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @Service
 @RequiredArgsConstructor
 public class GeneralServiceImpl implements GeneralService {
 
-    private final RestTemplate restTemplate;
+    private final Keycloak keycloak;
 
-    //Indirizzo per la registrazione dell'utente su keycloak
-    private String tokenUrl= "http://localhost:8080/admin/realms/CaesarRealm/users";
-    private String registrationUrl= "http://localhost:8080/admin/realms/CaesarRealm/users";
-
-    //Dati di accesso per prendere il token keycloak
-    @Value("${ADMIN_USER}")
-    private String adminUser;
-
-    @Value("${ADMIN_PASSWORD}")
-    private String adminPassword;
-
-    //{baseUrl}/admin/realms/{realm}/users/{userId} URI PER FARE LA CHIAMATA AL DB KEYCLOAK
-
-    private TokenDTO getAdminToken() {
-        //Creazione dell'header della chiamata http
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        System.out.println("Ho creato l'header!!!");
-        //Creazione del body della chiamata http
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        map.add("grant_type","password");
-        map.add("client_id","login-app");
-        map.add("username",adminUser);
-        map.add("password",adminPassword);
-
-        System.out.println("Ho creato il body: "+ map.get("grant_type")+ "\n"+ map.get("client_id")+ "\n"+ map.get("username")+ "\n"+ map.get("password"));
-
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
-        System.out.println("Request: " + request.getBody());
-
-        // Eseguire la richiesta POST e ottenere la risposta
-        ResponseEntity<TokenDTO> response = restTemplate.postForEntity(tokenUrl, request, TokenDTO.class);
-
-        if (response.getStatusCode() == HttpStatus.OK) {
-            // Ritorna il token DTO ottenuto dalla risposta
-            return response.getBody();
-        } else {
-            // Gestisci eventuali errori di richiesta
-            // Puoi lanciare un'eccezione o gestire diversamente l'errore
-            return null; // o gestisci l'errore in base alle tue esigenze
-        }
-        
-    }
 
     @Override
     public boolean saveUser(UserDTO userData) {
-        TokenDTO adminToken= getAdminToken();
-        if(adminToken!=null) {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(adminToken.getAccess_token());
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+        UsersResource usersResource = realmResource.users();
+
+        UserRepresentation user = new UserRepresentation();
+        user.setUsername(userData.getUsername());
+        user.setFirstName(userData.getFirstName());
+        user.setLastName(userData.getLastName());
+        user.setEmail(userData.getEmail());
+        user.setEnabled(true);
 
 
-            HttpEntity<UserDTO> request = new HttpEntity<UserDTO>(userData, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(registrationUrl, request, String.class);
 
-            return response.getStatusCode() == HttpStatusCode.valueOf(200);
-        } else  {
+        Map<String, List<String>> attributes = new HashMap<>();
+        attributes.put("numeroTelefono", Collections.singletonList("3497276241"));
+        user.setAttributes(attributes);
+
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(userData.getCredentialValue());
+        credential.setTemporary(false);
+
+        user.setCredentials(Collections.singletonList(credential));
+
+
+        Response response = usersResource.create(user);
+        if (response.getStatus() == 201) {
+            System.out.println("User created successfully");
+            return true;
+        } else {
+            System.out.println("Error creating user: " + response.getStatusInfo().getReasonPhrase());
             return false;
         }
     }

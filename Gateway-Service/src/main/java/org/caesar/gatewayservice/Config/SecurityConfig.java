@@ -36,6 +36,7 @@ public class SecurityConfig {
     }
 
 
+
     @Bean
     CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
