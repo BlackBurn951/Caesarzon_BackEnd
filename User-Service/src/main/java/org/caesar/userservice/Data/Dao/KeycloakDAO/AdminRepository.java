@@ -6,8 +6,7 @@ import org.caesar.userservice.Data.Entities.User;
 import java.util.List;
 
 public interface AdminRepository {
-    Admin findUserById(String id);
-    List<Admin> findAllUsers();
+    Admin findAdminById(String id);
     Admin findAdminByEmail(String email);
     Admin findAdminByUsername(String username);
 }

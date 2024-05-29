@@ -1,13 +1,17 @@
 package org.caesar.userservice.Data.Entities;
 
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class User {
 
-    private Long id;
+    private String id;
 
-    private String name;
+    private String firstName;
 
-    private String surname;
+    private String lastName;
 
     private String username;
 
@@ -18,4 +22,12 @@ public class User {
     public User() {
     }
 
+    public User(String id, String firstName, String lastName, String username, String phoneNumber, String email) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.username = username;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+    }
 }

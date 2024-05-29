@@ -9,37 +9,86 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.RolesRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
-import java.util.List;
+import javax.ws.rs.core.Response;
+import java.util.*;
 
 @RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
 
     //Oggetti per la comunicazione con keycloak
     private final Keycloak keycloak;
+
+    //Definizione del Realm su cui operare
     private final RealmResource realmResource = keycloak.realm("CaesarRealm");
-    private final UsersResource usersResource = realmResource.users();
-    private final UserRepresentation user = new UserRepresentation();
+
 
     @Override
-    User findUserById(String id) {
+    public User findUserById(String id) {
+        UserResource userResource = realmResource.users().get(id);
 
+        UserRepresentation userRepresentation = userResource.toRepresentation();
+
+        User user = new User();
+
+        user.setId(userRepresentation.getId());
+        user.setFirstName(userRepresentation.getFirstName());
+        user.setLastName(userRepresentation.getLastName());
+        user.setUsername(userRepresentation.getUsername());
+        user.setEmail(userRepresentation.getEmail());
+        user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
+
+        return user;
+    }
+
+    public List<User> findAllUsers() {
+        List<User> result = new ArrayList<>();
+
+        //Prendiamo tutti gli utenti del realm (CaesarzonRealm)
+        UsersResource usersResource = realmResource.users();
+
+        //Convertiamo tutti gli utenti in UserRepresentation per accedere ai dati dei singoli utenti
+        List<UserRepresentation> users = usersResource.list();
+
+        //Foreach sugli utenti, filtriamo per id e raccogliamo tutti i ruoli dei singoli utenti
+        for (UserRepresentation userRepresentation : users) {
+            UserResource userResource = usersResource.get(userRepresentation.getId());
+
+            //Raccolta della lista di ruoli dell'utente
+            List<RoleRepresentation> roles = userResource.roles().clientLevel("caesar-app").listEffective();
+
+            //Se l'utente possiede il ruolo "basic" lo aggiungiamo alla nostra lista di utenti (mappando)
+            for (RoleRepresentation role : roles) {
+                if (role.getName().equals("basic")) {
+                    User user = new User();
+                    user.setId(userRepresentation.getId());
+                    user.setFirstName(userRepresentation.getFirstName());
+                    user.setLastName(userRepresentation.getLastName());
+                    user.setUsername(userRepresentation.getUsername());
+                    user.setEmail(userRepresentation.getEmail());
+                    user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
+                    result.add(user);
+                    break;
+                }
+            }
+
+        }
+
+        return result;
     }
 
     @Override
-    List<User> findAllUsers() {
-
+    public User findUserByEmail(String email) {
+        return setUser(true, email);
     }
 
     @Override
-    User findUserByEmail(String email) {
-
-    }
-
-    @Override
-    User findUserByUsername(String username) {
-
+    public User findUserByUsername(String username) {
+        return setUser(false, username);
     }
 
     public User setUser(boolean type, String field) {
