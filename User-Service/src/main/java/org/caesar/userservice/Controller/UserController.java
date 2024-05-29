@@ -1,10 +1,9 @@
 package org.caesar.userservice.Controller;
 
 import lombok.RequiredArgsConstructor;
-import org.caesar.userservice.Config.JwtConverter;
+import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.UserDTO;
-import org.caesar.userservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,10 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
 
-    JwtConverter jwtConverter = new JwtConverter();
 
     //Servizio per la comunicazione con la logica di buisiness
-    private final GeneralService userService;
+    private UserService userService;
 
     @PostMapping("/user")
     public ResponseEntity<String> receiveData(@RequestBody UserDTO userData) {
@@ -37,17 +35,15 @@ public class UserController {
 
     @PostMapping("/phone-number")
     public ResponseEntity<String> receivePhoneNumber(@RequestBody PhoneNumberDTO phoneNumberDTO) {
+        ResponseEntity<String> response;
 
-        String username = jwtConverter.getUsernameFromToken();
-
-        if(userService.savePhoneNumber(phoneNumberDTO))
-
-
-        // PER AGGIUNGERE UN ATTRIBUTO PERSONALIZZATO
-//        Map<String, List<String>> attributes = new HashMap<>();
-//        attributes.put("numeroTelefono", Collections.singletonList("3497276241"));
-//        user.setAttributes(attributes);
-        return null;
+        if(userService.savePhoneNumber(phoneNumberDTO)){
+            response= new ResponseEntity<>("Numero di telefono caricato!", HttpStatus.OK);
+            return response;
+        }else{
+            response= new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return response;
+        }
     }
     /*aggiungere i seguenti end-point:
 
