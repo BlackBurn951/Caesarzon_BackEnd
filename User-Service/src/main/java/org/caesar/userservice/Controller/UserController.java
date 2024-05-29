@@ -1,6 +1,8 @@
 package org.caesar.userservice.Controller;
 
 import lombok.RequiredArgsConstructor;
+import org.caesar.userservice.Config.JwtConverter;
+import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/user-api")
 @RequiredArgsConstructor
 public class UserController {
+
+    JwtConverter jwtConverter = new JwtConverter();
 
     //Servizio per la comunicazione con la logica di buisiness
     private final GeneralService userService;
@@ -31,6 +35,20 @@ public class UserController {
         }
     }
 
+    @PostMapping("/phone-number")
+    public ResponseEntity<String> receivePhoneNumber(@RequestBody PhoneNumberDTO phoneNumberDTO) {
+
+        String username = jwtConverter.getUsernameFromToken();
+
+        if(userService.savePhoneNumber(phoneNumberDTO))
+
+
+        // PER AGGIUNGERE UN ATTRIBUTO PERSONALIZZATO
+//        Map<String, List<String>> attributes = new HashMap<>();
+//        attributes.put("numeroTelefono", Collections.singletonList("3497276241"));
+//        user.setAttributes(attributes);
+        return null;
+    }
     /*aggiungere i seguenti end-point:
 
         1) aggiunta numero telefono(da aggiungere come campo su keycloak)

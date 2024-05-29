@@ -1,14 +1,13 @@
-package org.caesar.userservice.Beans;
+package org.caesar.userservice.Config;
 
 import org.keycloak.OAuth2Constants;
-import org.keycloak.representations.AccessTokenResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.keycloak.admin.client.*;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class KeycloakBeans {
+public class KeycloakConfig {
 
     @Value("${ADMIN_USER}")
     private String adminUser;
@@ -21,7 +20,7 @@ public class KeycloakBeans {
         return KeycloakBuilder.builder()
                 .serverUrl("http://localhost:8080")
                 .realm("CaesarRealm")
-                .clientId("login-app")
+                .clientId("caesar-app")
                 .grantType(OAuth2Constants.PASSWORD)
                 .username(adminUser)
                 .password(adminPassword)

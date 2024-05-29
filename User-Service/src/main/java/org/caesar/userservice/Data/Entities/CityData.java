@@ -13,7 +13,6 @@ public class CityData {
 //  @GeneratedValue(strategy = GenerationType.UUID)
     private Long id;
 
-
     @Column(name= "citta")
     private String city;
 

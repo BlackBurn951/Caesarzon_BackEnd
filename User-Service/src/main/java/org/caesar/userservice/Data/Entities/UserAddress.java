@@ -10,9 +10,8 @@ public class UserAddress {
     //@GeneratedValue(strategy = GenerationType.UUID)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name= "id_utente")
-    private User user;
+    @Column(name= "id_utente")
+    private String userId;
 
     @ManyToOne
     @JoinColumn(name= "id_indirizzo")

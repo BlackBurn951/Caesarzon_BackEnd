@@ -49,7 +49,7 @@ spring:
 jwt:
   auth:
     converter:
-      resource-id: login-app
+      resource-id: caesar-app
       principal-attribute: admin
 
 logging:

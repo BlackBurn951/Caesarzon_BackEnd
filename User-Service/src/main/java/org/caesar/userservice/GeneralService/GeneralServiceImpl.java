@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.caesar.userservice.Dto.UserDTO;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -35,11 +36,10 @@ public class GeneralServiceImpl implements GeneralService {
         user.setEmail(userData.getEmail());
         user.setEnabled(true);
 
-
-
-        Map<String, List<String>> attributes = new HashMap<>();
-        attributes.put("numeroTelefono", Collections.singletonList("3497276241"));
-        user.setAttributes(attributes);
+        // PER AGGIUNGERE UN ATTRIBUTO PERSONALIZZATO
+//        Map<String, List<String>> attributes = new HashMap<>();
+//        attributes.put("numeroTelefono", Collections.singletonList("3497276241"));
+//        user.setAttributes(attributes);
 
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setType(CredentialRepresentation.PASSWORD);
@@ -51,6 +51,9 @@ public class GeneralServiceImpl implements GeneralService {
 
         Response response = usersResource.create(user);
         if (response.getStatus() == 201) {
+            String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+            UserResource userResource = usersResource.get(userId);
+            userResource.sendVerifyEmail();
             System.out.println("User created successfully");
             return true;
         } else {

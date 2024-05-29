@@ -19,7 +19,6 @@ public class ConnectedDevices {
     @Column(name = "data_collegamento")
     private LocalDate connectionDate;
 
-    @ManyToOne
-    @JoinColumn(name = "id_utente")
-    private User user;
+    @Column(name = "id_utente")
+    private String userId;
 }

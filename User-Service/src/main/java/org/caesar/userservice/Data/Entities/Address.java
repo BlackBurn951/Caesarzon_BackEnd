@@ -21,4 +21,5 @@ public class Address {
     @ManyToOne
     @JoinColumn(name = "id_dati_comune")
     private CityData city;
+
 }
