@@ -22,13 +22,10 @@ public class Ban {
     @Column(name = "data_fine")
     private LocalDate endDate;
 
+    @Column(name= "id_utente")
+    private String userId;
 
-    @ManyToOne
-    @JoinColumn(name = "id_utente")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "id_admin")
-    private Admin admin;
+    @Column(name= "id_admin")
+    private String adminId;
 
 }

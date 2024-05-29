@@ -21,12 +21,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GeneralServiceImpl implements GeneralService {
 
+    //Oggetti per la comunicazione con keycloak
     private final Keycloak keycloak;
-
+    private final RealmResource realmResource = keycloak.realm("CaesarRealm");
 
     @Override
     public boolean saveUser(UserDTO userData) {
-        RealmResource realmResource = keycloak.realm("CaesarRealm");
         UsersResource usersResource = realmResource.users();
 
         UserRepresentation user = new UserRepresentation();
@@ -35,6 +35,7 @@ public class GeneralServiceImpl implements GeneralService {
         user.setLastName(userData.getLastName());
         user.setEmail(userData.getEmail());
         user.setEnabled(true);
+
 
         // PER AGGIUNGERE UN ATTRIBUTO PERSONALIZZATO
 //        Map<String, List<String>> attributes = new HashMap<>();
