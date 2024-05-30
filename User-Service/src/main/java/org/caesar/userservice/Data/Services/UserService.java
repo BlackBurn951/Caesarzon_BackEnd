@@ -6,6 +6,6 @@ import org.caesar.userservice.Dto.UserDTO;
 public interface UserService {
 
     UserDTO getUser();
-    boolean saveUser(UserDTO userData);
+    boolean saveUser(UserRegistrationDTO userData);
     boolean savePhoneNumber(PhoneNumberDTO phoneNumberDTO);
 }

@@ -2,10 +2,14 @@ package org.caesar.userservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
 import org.caesar.userservice.Data.Dao.UserCardRepository;
+import org.caesar.userservice.Data.Entities.UserAddress;
 import org.caesar.userservice.Data.Entities.UserCard;
 import org.caesar.userservice.Data.Services.UserCardService;
+import org.caesar.userservice.Dto.UserAddressDTO;
 import org.caesar.userservice.Dto.UserCardDTO;
 import org.modelmapper.ModelMapper;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 public class UserCardServiceImpl implements UserCardService {
@@ -27,5 +31,24 @@ public class UserCardServiceImpl implements UserCardService {
         }
 
         return true;
+    }
+
+    @Override
+    public UserCardDTO getUserCard(String userId, int cardNum) {
+        List<UserCard> userCardVector = userCardRepository.findByUserId(userId);
+
+        int count= 0;
+
+        UserCardDTO userCardDTO = null;
+        for(UserCard userCard : userCardVector){
+            count+=1;
+            if(count == cardNum){
+                userCardDTO= modelMapper.map(userCard, UserCardDTO.class);
+                break;
+            }
+        }
+
+
+        return userCardDTO;
     }
 }

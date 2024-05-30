@@ -7,22 +7,25 @@ import org.caesar.userservice.Data.Dao.CardRepository;
 import org.caesar.userservice.Data.Entities.Card;
 import org.caesar.userservice.Data.Services.CardService;
 import org.caesar.userservice.Data.Services.UserCardService;
-import org.caesar.userservice.Dto.CardDTO;
-import org.caesar.userservice.Dto.UserCardDTO;
+import org.caesar.userservice.Data.Services.UserService;
+import org.caesar.userservice.Dto.*;
 import org.modelmapper.ModelMapper;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 public class CardServiceImpl implements CardService {
 
     private final ModelMapper modelMapper;
 
-    //Converter per il token
-    private final JwtConverter jwtConverter = new JwtConverter();
-
     //Repository delle carte
     private final CardRepository cardRepository;
 
     private final UserCardService userCardService;
+
+    private final UserService userService;
+
 
     //I metodi CRUD delle repository hanno di base il @Transactional, ma bisogna fare il doppio passaggio
     @Transactional
@@ -43,4 +46,25 @@ public class CardServiceImpl implements CardService {
 
         return true;
     }
+
+    @Override
+    public CardDTO getCard(String cardName) {
+
+        UserIdDTO userId = userService.getUserId();
+
+        Pattern pattern = Pattern.compile("\\d+");
+        Matcher matcher = pattern.matcher(cardName);
+        StringBuilder numbers = new StringBuilder();
+        while (matcher.find()) {
+            numbers.append(matcher.group());
+        }
+
+        int cardNum = Integer.parseInt(numbers.toString());
+
+
+        UserCardDTO userCard= userCardService.getUserCard(userId.getUserId(), cardNum);
+
+        return modelMapper.map(cardRepository.findById(userCard.getCardId()), CardDTO.class);
+    }
+
 }

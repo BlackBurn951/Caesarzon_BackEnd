@@ -5,17 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AddressDTO {
+public class CityDataSuggestDTO {
 
-    private Long id;
-
-    private String street_name;
-    private String house_number;
-    private String street_type;
-
-    private String city;
     private String cap;
     private String region;
     private String province;
-
 }

@@ -2,11 +2,11 @@ package org.caesar.userservice.Data.Services.Impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Dao.AddressRepository;
 import org.caesar.userservice.Data.Entities.Address;
 import org.caesar.userservice.Data.Services.AddressService;
 import org.caesar.userservice.Data.Services.UserAddressService;
+import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.AddressDTO;
 import org.caesar.userservice.Dto.UserAddressDTO;
 import org.modelmapper.ModelMapper;
@@ -15,9 +15,6 @@ import org.modelmapper.ModelMapper;
 public class AddressServiceImpl implements AddressService {
 
     private final ModelMapper modelMapper;
-
-    //Converter per il token
-    private final JwtConverter jwtConverter = new JwtConverter();
 
     //Repository degli indirizzi
     private final AddressRepository addressRepository;
@@ -44,5 +41,29 @@ public class AddressServiceImpl implements AddressService {
         return true;
     }
 
+
+    //Metodo per ottenere il singolo indirizzo e restituirlo al client
+    @Override
+    public AddressDTO getAddress(String addressName) {
+
+        //Prendiamp l'id dell'utente attualmente attivo
+        UserIdDTO userId = userService.getUserId();
+
+        //Conversione della stringa mandata dal client in INT
+        Pattern pattern = Pattern.compile("\\d+");
+        Matcher matcher = pattern.matcher(addressName);
+        StringBuilder numbers = new StringBuilder();
+        while (matcher.find()) {
+            numbers.append(matcher.group());
+        }
+
+        int addressNum = Integer.parseInt(numbers.toString());
+
+        //Prendiamo l'indirizzo in posizione addressNum nel database nella tabella della relazione utente-indirizzo
+        UserAddressDTO userAddress= userAddressService.getUserAddress(userId.getUserId(), addressNum);
+
+        //Prendiamo il singolo indirizzo in base all'id dell'indirizzo della tupla restituita sopra (mappando nel DTO)
+        return modelMapper.map(addressRepository.findById(userAddress.getAddressId()), AddressDTO.class);
+    }
 
 }

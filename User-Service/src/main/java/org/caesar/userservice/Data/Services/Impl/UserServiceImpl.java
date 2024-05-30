@@ -20,13 +20,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO getUser() {
         String username= jwtConverter.getUsernameFromToken();
-
         return modelMapper.map(userRepository.findUserByUsername(username), UserDTO.class);
     }
 
     @Override
-    public boolean saveUser(UserDTO userData) {
-        return userRepository.saveUser(userData);
+    public boolean saveUser(UserRegistrationDTO userRegistrationDTO) {
+        return userRepository.saveUser(userRegistrationDTO);
     }
 
     @Override

@@ -4,14 +4,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.caesar.userservice.Data.Services.AddressService;
 import org.caesar.userservice.Data.Services.CardService;
+import org.caesar.userservice.Data.Services.CityDataService;
 import org.caesar.userservice.Data.Services.UserService;
-import org.caesar.userservice.Dto.AddressDTO;
-import org.caesar.userservice.Dto.CardDTO;
-import org.caesar.userservice.Dto.PhoneNumberDTO;
-import org.caesar.userservice.Dto.UserDTO;
+import org.caesar.userservice.Dto.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Vector;
 
 
 @RestController
@@ -24,9 +25,10 @@ public class UserController {
     private UserService userService;
     private AddressService addressService;
     private CardService cardService;
+    private CityDataService cityDataService;
 
     @RequestMapping("/user")
-    public ResponseEntity<String> manageUserData(@RequestBody UserDTO userData, HttpServletRequest request) {
+    public ResponseEntity<String> manageUserData(@RequestBody UserRegistrationDTO userData, HttpServletRequest request) {
         ResponseEntity<String> response;
 
         if(userService.saveUser(userData)) {
@@ -40,7 +42,7 @@ public class UserController {
 
     @GetMapping("/user")
     public ResponseEntity<UserDTO> getUserData() {
-
+        return new ResponseEntity<UserDTO>(userService.getUser(), HttpStatus.OK);
     }
 
 
@@ -61,6 +63,11 @@ public class UserController {
 
     }
 
+    @GetMapping("/address")
+    public ResponseEntity<AddressDTO> getAddressData(@RequestParam String addressName) {
+        return new ResponseEntity<AddressDTO>(addressService.getAddress(addressName), HttpStatus.OK);
+    }
+
     @RequestMapping("/card")
     public ResponseEntity<String> manageUserCardData(@RequestBody CardDTO cardDTO, HttpServletRequest request) {
         ResponseEntity<String> response;
@@ -77,6 +84,11 @@ public class UserController {
         return response;
     }
 
+    @GetMapping("/card")
+    public ResponseEntity<CardDTO> getCardData(@RequestParam String cardName) {
+        return new ResponseEntity<CardDTO>(cardService.getCard(cardName), HttpStatus.OK);
+    }
+
 
     @PostMapping("/phone-number")
     public ResponseEntity<String> receivePhoneNumber(@RequestBody PhoneNumberDTO phoneNumberDTO) {
@@ -88,6 +100,17 @@ public class UserController {
             response= new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return response;
+    }
+
+
+    @GetMapping("/city")
+    public List<String> getSuggerimentoCitta(@RequestParam("sugg") String sugg) {
+        return cityDataService.getCities(sugg);
+    }
+
+    @GetMapping("/city-data")
+    public CityDataSuggestDTO getDatiCitta(@RequestParam("city") String city) {
+        return cityDataService.getCityData(city);
     }
 
 

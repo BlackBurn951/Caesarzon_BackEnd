@@ -5,6 +5,7 @@ import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.UserDTO;
+import org.caesar.userservice.Dto.UserRegistrationDTO;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
@@ -118,7 +119,7 @@ public class UserRepositoryImpl implements UserRepository {
 
 
     @Override
-    public boolean saveUser(UserDTO userData) {
+    public boolean saveUser(UserRegistrationDTO userData) {
         UsersResource usersResource = realmResource.users();
 
         UserRepresentation user = new UserRepresentation();
