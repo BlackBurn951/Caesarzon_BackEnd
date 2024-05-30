@@ -11,7 +11,6 @@ import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
-import org.keycloak.representations.idm.RolesRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
 import javax.ws.rs.core.Response;
@@ -19,6 +18,11 @@ import java.util.*;
 
 @RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
+
+    //Converter per il token
+    private final JwtConverter jwtConverter = new JwtConverter();
+
+    private UserRepository userRepository;
 
     //Oggetti per la comunicazione con keycloak
     private final Keycloak keycloak;
@@ -112,11 +116,6 @@ public class UserRepositoryImpl implements UserRepository {
         return user;
     }
 
-    //Converter per il token
-    private final JwtConverter jwtConverter = new JwtConverter();
-
-
-    private UserRepository userRepository;
 
     @Override
     public boolean saveUser(UserDTO userData) {

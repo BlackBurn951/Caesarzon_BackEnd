@@ -8,6 +8,7 @@ import org.caesar.userservice.Dto.UserDTO;
 import java.util.List;
 
 public interface UserRepository {
+
     User findUserById(String id);
     List<User> findAllUsers();
     User findUserByEmail(String email);

@@ -1,15 +1,17 @@
 package org.caesar.userservice.Controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.caesar.userservice.Data.Services.AddressService;
+import org.caesar.userservice.Data.Services.CardService;
 import org.caesar.userservice.Data.Services.UserService;
+import org.caesar.userservice.Dto.AddressDTO;
+import org.caesar.userservice.Dto.CardDTO;
 import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -18,20 +20,63 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
 
-    //Servizio per la comunicazione con la logica di buisiness
+    //Servizi per la comunicazione con la logica di buisiness
     private UserService userService;
+    private AddressService addressService;
+    private CardService cardService;
 
-    @PostMapping("/user")
-    public ResponseEntity<String> receiveData(@RequestBody UserDTO userData) {
+    @RequestMapping("/user")
+    public ResponseEntity<String> manageUserData(@RequestBody UserDTO userData, HttpServletRequest request) {
         ResponseEntity<String> response;
+
         if(userService.saveUser(userData)) {
             response= new ResponseEntity<>("User registrato!", HttpStatus.OK);
-            return response;
         } else{
             response= new ResponseEntity<>("Problemi nella registrazione...", HttpStatus.INTERNAL_SERVER_ERROR);
-            return response;
         }
+
+        return response;
     }
+
+    @GetMapping("/user")
+    public ResponseEntity<UserDTO> getUserData() {
+
+    }
+
+
+    @RequestMapping("/address")
+    public ResponseEntity<String> manageUserAddressData(@RequestBody AddressDTO addressDTO, HttpServletRequest request) {
+        ResponseEntity<String> response;
+
+        boolean isUpdate;
+        isUpdate = !request.getMethod().equals("POST");
+
+        if(addressService.saveOrUpdateAddress(addressDTO, isUpdate)){
+            response= new ResponseEntity<>("Indirizzo salvato!", HttpStatus.OK);
+        }else{
+            response= new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return response;
+
+    }
+
+    @RequestMapping("/card")
+    public ResponseEntity<String> manageUserCardData(@RequestBody CardDTO cardDTO, HttpServletRequest request) {
+        ResponseEntity<String> response;
+
+        boolean isUpdate;
+        isUpdate = !request.getMethod().equals("POST");
+
+        if (cardService.saveOrUpdateCard(cardDTO, isUpdate)) {
+            response = new ResponseEntity<>("Carta salvata!", HttpStatus.OK);
+        } else {
+            response = new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return response;
+    }
+
 
     @PostMapping("/phone-number")
     public ResponseEntity<String> receivePhoneNumber(@RequestBody PhoneNumberDTO phoneNumberDTO) {
@@ -39,12 +84,13 @@ public class UserController {
 
         if(userService.savePhoneNumber(phoneNumberDTO)){
             response= new ResponseEntity<>("Numero di telefono caricato!", HttpStatus.OK);
-            return response;
         }else{
             response= new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
-            return response;
         }
+        return response;
     }
+
+
     /*aggiungere i seguenti end-point:
 
         1) aggiunta numero telefono(da aggiungere come campo su keycloak)

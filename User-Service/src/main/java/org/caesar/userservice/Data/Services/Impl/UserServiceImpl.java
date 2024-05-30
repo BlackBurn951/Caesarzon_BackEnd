@@ -5,6 +5,7 @@ import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.UserDTO;
+import org.modelmapper.ModelMapper;
 
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
