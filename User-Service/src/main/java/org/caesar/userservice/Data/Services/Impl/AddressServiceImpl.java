@@ -9,7 +9,11 @@ import org.caesar.userservice.Data.Services.UserAddressService;
 import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.AddressDTO;
 import org.caesar.userservice.Dto.UserAddressDTO;
+import org.caesar.userservice.Dto.UserIdDTO;
 import org.modelmapper.ModelMapper;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 public class AddressServiceImpl implements AddressService {
@@ -20,6 +24,9 @@ public class AddressServiceImpl implements AddressService {
     private final AddressRepository addressRepository;
 
     private final UserAddressService userAddressService;
+
+    private final UserService userService;
+
 
     //I metodi CRUD delle repository hanno di base il @Transactional, ma bisogna fare il doppio passaggio
     @Transactional

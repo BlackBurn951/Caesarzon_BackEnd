@@ -2,6 +2,8 @@ package org.caesar.userservice.Controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.caesar.userservice.Data.Dao.CityDataRepository;
+import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.AddressService;
 import org.caesar.userservice.Data.Services.CardService;
 import org.caesar.userservice.Data.Services.CityDataService;

@@ -7,6 +7,8 @@ import org.caesar.userservice.Data.Services.UserAddressService;
 import org.caesar.userservice.Dto.UserAddressDTO;
 import org.modelmapper.ModelMapper;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 public class UserAddressServiceImpl implements UserAddressService {
 
@@ -26,5 +28,24 @@ public class UserAddressServiceImpl implements UserAddressService {
         }
 
         return true;
+    }
+
+    @Override
+    public UserAddressDTO getUserAddress(String userId, int addressNum) {
+        List<UserAddress> userAddressVector = userAddressRepository.findByUserId(userId);
+
+        int count= 0;
+
+        UserAddressDTO userAddressDTO = null;
+        for(UserAddress userAddress : userAddressVector){
+            count+=1;
+            if(count == addressNum){
+                userAddressDTO= modelMapper.map(userAddress, UserAddressDTO.class);
+                break;
+            }
+        }
+
+
+        return userAddressDTO;
     }
 }

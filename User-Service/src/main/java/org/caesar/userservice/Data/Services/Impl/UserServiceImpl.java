@@ -6,6 +6,8 @@ import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.UserDTO;
+import org.caesar.userservice.Dto.UserIdDTO;
+import org.caesar.userservice.Dto.UserRegistrationDTO;
 import org.modelmapper.ModelMapper;
 
 @RequiredArgsConstructor
@@ -21,6 +23,12 @@ public class UserServiceImpl implements UserService {
     public UserDTO getUser() {
         String username= jwtConverter.getUsernameFromToken();
         return modelMapper.map(userRepository.findUserByUsername(username), UserDTO.class);
+    }
+
+    @Override
+    public UserIdDTO getUserId() {
+        String username= jwtConverter.getUsernameFromToken();
+        return modelMapper.map(userRepository.findUserByUsername(username), UserIdDTO.class);
     }
 
     @Override
