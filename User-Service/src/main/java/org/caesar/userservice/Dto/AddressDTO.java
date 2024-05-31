@@ -8,14 +8,10 @@ import lombok.Setter;
 public class AddressDTO {
 
     private Long id;
+    private String streetName;
+    private String houseNumber;
+    private String streetType;
 
-    private String street_name;
-    private String house_number;
-    private String street_type;
-
-    private String city;
-    private String cap;
-    private String region;
-    private String province;
+    private CityDataDTO city;
 
 }

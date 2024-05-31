@@ -29,6 +29,7 @@ public class SecurityConfig {
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.GET, "/user-api/city").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/city-data").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/user-api/address").permitAll()
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));

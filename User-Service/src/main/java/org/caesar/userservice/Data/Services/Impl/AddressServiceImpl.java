@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AddressServiceImpl implements AddressService {
 
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
     //Repository degli indirizzi
     private final AddressRepository addressRepository;
@@ -36,7 +36,6 @@ public class AddressServiceImpl implements AddressService {
     public boolean saveOrUpdateAddress(AddressDTO addressDTO, boolean isUpdate) {
         try{
             Address address = modelMapper.map(addressDTO, Address.class);
-
             addressRepository.save(address); // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
 
             if(!isUpdate)
@@ -44,6 +43,8 @@ public class AddressServiceImpl implements AddressService {
 
         }catch(RuntimeException | Error e){
             //LOG DA IMPLEMENTARE //TODO
+            e.printStackTrace(); // You should replace this with a proper logging mechanism
+
             return false;
         }
 
