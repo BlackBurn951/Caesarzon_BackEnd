@@ -30,12 +30,11 @@ public class UserRepositoryImpl implements UserRepository {
     //Oggetti per la comunicazione con keycloak
     private final Keycloak keycloak;
 
-    //Definizione del Realm su cui operare
-    private final RealmResource realmResource = keycloak.realm("CaesarRealm");
-
 
     @Override
     public User findUserById(String id) {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+
         UserResource userResource = realmResource.users().get(id);
 
         UserRepresentation userRepresentation = userResource.toRepresentation();
@@ -53,6 +52,8 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     public List<User> findAllUsers() {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+
         List<User> result = new ArrayList<>();
 
         //Prendiamo tutti gli utenti del realm (CaesarzonRealm)

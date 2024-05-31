@@ -9,12 +9,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Vector;
 
-import java.util.List;
 
 @Repository
 public interface CityDataRepository extends JpaRepository<CityData, Long> {
 
-    List<CityData> findByNomeComuneIgnoreCaseStartingWith(@Param("citta") String citta);
+    Vector<CityData> findByCityIgnoreCaseStartingWith(@Param("citta") String citta, Pageable pageable);
 
     CityData findByCity(@Param("citta") String citta);
 

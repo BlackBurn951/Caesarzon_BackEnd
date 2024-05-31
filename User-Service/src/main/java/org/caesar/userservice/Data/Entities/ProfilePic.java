@@ -17,5 +17,5 @@ public class ProfilePic {
     private String userId;
 
     @Column(name = "foto_profilo")
-    private Byte profilePic;
+    private byte[] profilePic;
 }

@@ -2,8 +2,7 @@ package org.caesar.userservice.Controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.caesar.userservice.Data.Dao.CityDataRepository;
-import org.caesar.userservice.Data.Entities.User;
+import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.AddressService;
 import org.caesar.userservice.Data.Services.CardService;
 import org.caesar.userservice.Data.Services.CityDataService;
@@ -19,14 +18,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/user-api")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
 
     //Servizi per la comunicazione con la logica di buisiness
-    private UserService userService;
-    private AddressService addressService;
-    private CardService cardService;
-    private CityDataService cityDataService;
+    private final UserService userService;
+    private final AddressService addressService;
+    private final CardService cardService;
+    private final CityDataService cityDataService;
 
     @RequestMapping("/user")
     public ResponseEntity<String> manageUserData(@RequestBody UserRegistrationDTO userData, HttpServletRequest request) {
@@ -106,11 +106,15 @@ public class UserController {
 
     @GetMapping("/city")
     public List<String> getSuggerimentoCitta(@RequestParam("sugg") String sugg) {
+        log.debug("ENTRATO NELL'END-POINT DEL /city");
+        System.out.println("ENTRATO NELL'END-POINT DEL /city");
         return cityDataService.getCities(sugg);
     }
 
     @GetMapping("/city-data")
     public CityDataSuggestDTO getDatiCitta(@RequestParam("city") String city) {
+        log.debug("ENTRATO NELL'END-POINT DEL /city-data");
+        System.out.println("ENTRATO NELL'END-POINT DEL /city-data");
         return cityDataService.getCityData(city);
     }
 

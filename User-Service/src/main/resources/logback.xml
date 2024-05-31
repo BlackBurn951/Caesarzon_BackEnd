@@ -1,35 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration debug="true">
-    <root>
-        <level value="INFO" />  <!-- INFORMAZIONI SULLO SVOLGIMENTO DEL CICLO DI VITA DELL'APPLICAZIONE (CHI FA COSA ECC...)  -->
+    <root level="info">     <!-- INFORMAZIONI SULLO SVOLGIMENTO DEL CICLO DI VITA DELL'APPLICAZIONE (CHI FA COSA ECC...)  -->
         <appender-ref ref="infoLog" />
-
-        <level value="SEVERE" />  <!-- ERRORI GRAVI CHE INFLUENZANO L'ESECUZIONE DELL'APPLICAZIONE -->
-        <appender-ref ref="fileAppender" />
-
-        <level value="DEBUG" />
-        <appender-ref ref="tester" />
     </root>
+        <!--   <level value="SEVERE" />  ERRORI GRAVI CHE INFLUENZANO L'ESECUZIONE DELL'APPLICAZIONE
+        <appender-ref ref="fileAppender" /> -->
+<!--    <root level="fine">-->
+<!--        <appender-ref ref="debugLog" />-->
+<!--    </root>-->
 
-    <appender name="infoLog" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="debugLog" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <Pattern>%d{dd:MM:yyyy ss:mm:hh} %orange(%-5level) %blue(%logger{36}) - %msg %n</Pattern>
+            <Pattern>%d{dd:MM:yyyy ss:mm:hh} %yellow(%-5level) %green(%logger{36}) - %msg %n</Pattern>
         </encoder>
-    </appender>     <!-- LOGGER PER LE INFO -->
+    </appender>     <!-- LOGGER PER IL DEBUGGING -->
 
     <appender name="infoLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>src/main/resources/log-files/test.log</file>
+        <file>src/main/resources/log-files/info-log.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <!-- rollover daily -->
-            <fileNamePattern>src/main/resources/log-files/test-%d{dd-MM-yy}.%i.log</fileNamePattern>
+            <fileNamePattern>src/main/resources/log-files/info-log-num-%i-%d{dd-MM-yy}.log</fileNamePattern>
             <!-- each file should be at most 100MB, keep 60 days worth of history, but at most 20GB -->
-            <maxFileSize>5KB</maxFileSize>
+            <maxFileSize>100MB</maxFileSize>
             <maxHistory>60</maxHistory>
             <totalSizeCap>20GB</totalSizeCap>
         </rollingPolicy>
         <append>true</append>
         <encoder>
-            <Pattern>%d{dd:MM:yyyy ss:mm:hh} %orange(%-5level) %blue(%logger{36}) - %msg %n</Pattern>
+            <Pattern>%d{dd:MM:yyyy ss:mm:hh} %blue(%-5level) %blue(%logger{36}) - %msg %n</Pattern>
         </encoder>
     </appender>     <!-- LOGGER PER LE INFO -->
 </configuration>
