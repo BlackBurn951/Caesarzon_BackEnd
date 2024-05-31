@@ -8,13 +8,15 @@ import org.caesar.userservice.Dto.UserAddressDTO;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
+import org.springframework.stereotype.Service;
 
+@Service
 @RequiredArgsConstructor
 public class UserAddressServiceImpl implements UserAddressService {
 
     private final UserAddressRepository userAddressRepository;
 
-    private final ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     @Override
     public boolean addUserAddreses(UserAddressDTO userAddress) {

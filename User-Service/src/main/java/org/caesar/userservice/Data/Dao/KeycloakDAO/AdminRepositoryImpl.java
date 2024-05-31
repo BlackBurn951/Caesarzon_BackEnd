@@ -17,12 +17,12 @@ public class AdminRepositoryImpl implements AdminRepository {
     //Oggetto per la comunicazione con keycloak
     private final Keycloak keycloak;
 
-    //Definizione del Realm su cui operare
-    private final RealmResource realmResource = keycloak.realm("CaesarRealm");
+
 
 
     @Override
     public Admin findAdminById(String id) {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
         UserResource userResource = realmResource.users().get(id);
 
         UserRepresentation userRepresentation = userResource.toRepresentation();
@@ -49,6 +49,7 @@ public class AdminRepositoryImpl implements AdminRepository {
     }
 
     public Admin setAdmin(boolean type, String field) {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
         List<UserRepresentation> usersResource;
 
         if(type){

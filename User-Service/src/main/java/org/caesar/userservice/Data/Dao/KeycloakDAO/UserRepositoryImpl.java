@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Dto.PhoneNumberDTO;
-import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
+import org.hibernate.annotations.Comment;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
@@ -13,10 +13,12 @@ import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.stereotype.Component;
 
 import javax.ws.rs.core.Response;
 import java.util.*;
 
+@Component
 @RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
 
@@ -97,6 +99,8 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     public User setUser(boolean type, String field) {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+
         List<UserRepresentation> usersResource;
 
         if(type){
@@ -120,6 +124,8 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public boolean saveUser(UserRegistrationDTO userData) {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+
         UsersResource usersResource = realmResource.users();
 
         UserRepresentation user = new UserRepresentation();
@@ -154,6 +160,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public boolean savePhoneNumber(PhoneNumberDTO phoneNumberDTO) {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
         String username = jwtConverter.getUsernameFromToken();
         UsersResource usersResource = realmResource.users();
 

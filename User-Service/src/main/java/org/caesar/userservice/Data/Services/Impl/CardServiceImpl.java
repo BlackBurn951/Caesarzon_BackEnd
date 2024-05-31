@@ -13,11 +13,13 @@ import org.modelmapper.ModelMapper;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Service;
 
+@Service
 @RequiredArgsConstructor
 public class CardServiceImpl implements CardService {
 
-    private final ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     //Repository delle carte
     private final CardRepository cardRepository;

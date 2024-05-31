@@ -9,7 +9,9 @@ import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserIdDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
 import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
 
+@Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
@@ -17,7 +19,8 @@ public class UserServiceImpl implements UserService {
 
     private final JwtConverter jwtConverter;
 
-    private final ModelMapper modelMapper;
+    private ModelMapper modelMapper;
+
 
     @Override
     public UserDTO getUser() {

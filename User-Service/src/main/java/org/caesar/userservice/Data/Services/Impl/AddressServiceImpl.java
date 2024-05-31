@@ -14,11 +14,13 @@ import org.modelmapper.ModelMapper;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Service;
 
+@Service
 @RequiredArgsConstructor
 public class AddressServiceImpl implements AddressService {
 
-    private final ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     //Repository degli indirizzi
     private final AddressRepository addressRepository;

@@ -9,9 +9,12 @@ import org.caesar.userservice.Dto.CityDataSuggestDTO;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+@Service
 @RequiredArgsConstructor
 public class CityDataServiceimpl implements CityDataService {
 
@@ -21,16 +24,16 @@ public class CityDataServiceimpl implements CityDataService {
 
     @Override
     public List<String> getCities(String sugg) {
-       List<CityData> cities = cityDataRepository.findByNomeComuneIgnoreCaseStartingWith(sugg);
-       List<CityDataDTO> citiesDTO= cities.stream().map(a -> modelMapper.map(a, CityDataDTO.class)).toList();
-       return citiesDTO.stream().map(CityDataDTO::getCity).toList();
+        List<CityData> cities = cityDataRepository.findByCityIgnoreCaseStartingWith(sugg, PageRequest.of(0, 20));
+        List<CityDataDTO> citiesDTO= cities.stream().map(a -> modelMapper.map(a, CityDataDTO.class)).toList();
 
-
+        return citiesDTO.stream().map(CityDataDTO::getCity).toList();
     }
+
 
     @Override
     public CityDataSuggestDTO getCityData(String city){
-        return modelMapper.map(cityDataRepository.findByNomeComune(city), CityDataSuggestDTO.class);
+        return modelMapper.map(cityDataRepository.findByCity(city), CityDataSuggestDTO.class);
     }
 
 }

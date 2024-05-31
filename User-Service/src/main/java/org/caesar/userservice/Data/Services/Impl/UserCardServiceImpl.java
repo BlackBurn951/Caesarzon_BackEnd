@@ -5,19 +5,20 @@ import org.caesar.userservice.Data.Dao.UserCardRepository;
 import org.caesar.userservice.Data.Entities.UserAddress;
 import org.caesar.userservice.Data.Entities.UserCard;
 import org.caesar.userservice.Data.Services.UserCardService;
-import org.caesar.userservice.Dto.UserAddressDTO;
 import org.caesar.userservice.Dto.UserCardDTO;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
+import org.springframework.stereotype.Service;
 
+@Service
 @RequiredArgsConstructor
 public class UserCardServiceImpl implements UserCardService {
 
 
     private final UserCardRepository userCardRepository;
 
-    private final ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     @Override
     public boolean addUserCards(UserCardDTO userCard) {

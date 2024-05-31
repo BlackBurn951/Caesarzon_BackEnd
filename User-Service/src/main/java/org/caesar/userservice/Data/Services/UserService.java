@@ -5,7 +5,9 @@ import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserIdDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
 
+
 public interface UserService {
+
 
     UserIdDTO getUserId();
     UserDTO getUser();

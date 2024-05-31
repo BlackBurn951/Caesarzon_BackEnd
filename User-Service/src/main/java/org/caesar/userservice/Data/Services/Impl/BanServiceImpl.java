@@ -1,7 +1,8 @@
 package org.caesar.userservice.Data.Services.Impl;
 
-import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
 
+@Service
 public class BanServiceImpl {
 
 }

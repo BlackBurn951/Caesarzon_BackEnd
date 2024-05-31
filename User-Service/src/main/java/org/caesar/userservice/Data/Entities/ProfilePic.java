@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 public class ProfilePic {
 
     @Id
-    @Column(name = "id", nullable = false)
+    @Column(name = "id")
     private Long id;
 
     @Column(name = "id_utente")
