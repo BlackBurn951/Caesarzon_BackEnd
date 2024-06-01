@@ -24,10 +24,9 @@ public class Address {
     @Column(name = "tipo_strada")
     private String roadType;
 
-    @OneToOne(cascade = CascadeType.PERSIST) // Cascade to save city if not already saved
+    @OneToOne
     @JoinColumn(name = "id_dati_comune")
     private CityData city;
 
 
-    // other fields and methods
 }

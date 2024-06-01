@@ -35,7 +35,19 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public boolean saveOrUpdateAddress(AddressDTO addressDTO, boolean isUpdate) {
         try{
+            System.out.println("Param ID DTO: " + addressDTO.getId());
+            System.out.println("Param NUM CIVICO DTO: " + addressDTO.getHouseNumber());
+            System.out.println("Param CITTA DTO: " + addressDTO.getCity().getCity());
+            System.out.println("Param NOME STRADA DTO: " + addressDTO.getRoadName());
+            System.out.println("Param TIPO STRADA DTO: " + addressDTO.getRoadType());
             Address address = modelMapper.map(addressDTO, Address.class);
+
+            System.out.println("Param ID: " + address.getId());
+            System.out.println("Param NUM CIVICO: " + address.getHouseNumber());
+            System.out.println("Param CITTA: " + address.getCity());
+            System.out.println("Param NOME STRADA: " + address.getRoadName());
+            System.out.println("Param TIPO STRADA: " + address.getRoadType());
+
             addressRepository.save(address); // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
 
             if(!isUpdate)

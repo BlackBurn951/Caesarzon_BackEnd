@@ -8,9 +8,9 @@ import lombok.Setter;
 public class AddressDTO {
 
     private Long id;
-    private String streetName;
+    private String roadName;
     private String houseNumber;
-    private String streetType;
+    private String roadType;
 
     private CityDataDTO city;
 
