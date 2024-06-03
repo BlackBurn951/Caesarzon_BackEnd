@@ -2,10 +2,13 @@ package org.caesar.userservice.Dto;
 
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public class UserCardDTO {
-    private Long id;
+
+    private UUID id;
     private String userId;
-    private Long cardId;
+    private UUID cardId;
 }

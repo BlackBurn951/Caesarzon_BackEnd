@@ -18,7 +18,7 @@ public class UserCardServiceImpl implements UserCardService {
 
     private final UserCardRepository userCardRepository;
 
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
     @Override
     public boolean addUserCards(UserCardDTO userCard) {

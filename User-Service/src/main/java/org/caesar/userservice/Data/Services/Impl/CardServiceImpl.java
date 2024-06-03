@@ -2,7 +2,6 @@ package org.caesar.userservice.Data.Services.Impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Dao.CardRepository;
 import org.caesar.userservice.Data.Entities.Card;
 import org.caesar.userservice.Data.Services.CardService;
@@ -11,6 +10,7 @@ import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.*;
 import org.modelmapper.ModelMapper;
 
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CardServiceImpl implements CardService {
 
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
     //Repository delle carte
     private final CardRepository cardRepository;
@@ -36,13 +36,23 @@ public class CardServiceImpl implements CardService {
         try{
             Card card = modelMapper.map(cardDTO, Card.class);
 
-            cardRepository.save(card); // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
+            UUID cardID = cardRepository.save(card).getId(); // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
 
-            if(!isUpdate)
-                return userCardService.addUserCards(new UserCardDTO());
+            String userID = userService.getUserId().getUserId();
 
+
+            if(!isUpdate) {
+                UserCardDTO userCardDTO = new UserCardDTO();
+
+                userCardDTO.setCardId(cardID);
+                userCardDTO.setUserId(userID);
+
+                return userCardService.addUserCards(userCardDTO);
+            }
         }catch(RuntimeException | Error e){
             //LOG DA IMPLEMENTARE //TODO
+            e.printStackTrace(); // You should replace this with a proper logging mechanism
+
             return false;
         }
 

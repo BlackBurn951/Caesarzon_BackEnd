@@ -74,7 +74,7 @@ public class UserController {
         ResponseEntity<String> response;
 
         boolean isUpdate;
-        isUpdate = !request.getMethod().equals("PUT");
+        isUpdate = !request.getMethod().equals("POST");
 
         if (cardService.saveOrUpdateCard(cardDTO, isUpdate)) {
             response = new ResponseEntity<>("Carta salvata!", HttpStatus.OK);

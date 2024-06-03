@@ -53,9 +53,6 @@ public class AddressServiceImpl implements AddressService {
                 userAddressDTO.setAddressId(addressID);
                 userAddressDTO.setUserId(userID);
 
-                System.out.println("Address ID: "+ addressID);
-                System.out.println("User ID: "+ userID);
-
                 return userAddressService.addUserAddreses(userAddressDTO);
             }
         }catch(RuntimeException | Error e){
