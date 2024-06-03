@@ -2,7 +2,9 @@ package org.caesar.userservice.Data.Services.Impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Dao.AddressRepository;
+import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Entities.Address;
 import org.caesar.userservice.Data.Services.AddressService;
 import org.caesar.userservice.Data.Services.UserAddressService;
@@ -12,6 +14,7 @@ import org.caesar.userservice.Dto.UserAddressDTO;
 import org.caesar.userservice.Dto.UserIdDTO;
 import org.modelmapper.ModelMapper;
 
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
@@ -30,29 +33,31 @@ public class AddressServiceImpl implements AddressService {
     private final UserService userService;
 
 
+
+
     //I metodi CRUD delle repository hanno di base il @Transactional, ma bisogna fare il doppio passaggio
     @Transactional
     @Override
     public boolean saveOrUpdateAddress(AddressDTO addressDTO, boolean isUpdate) {
         try{
-            System.out.println("Param ID DTO: " + addressDTO.getId());
-            System.out.println("Param NUM CIVICO DTO: " + addressDTO.getHouseNumber());
-            System.out.println("Param CITTA DTO: " + addressDTO.getCity().getCity());
-            System.out.println("Param NOME STRADA DTO: " + addressDTO.getRoadName());
-            System.out.println("Param TIPO STRADA DTO: " + addressDTO.getRoadType());
             Address address = modelMapper.map(addressDTO, Address.class);
 
-            System.out.println("Param ID: " + address.getId());
-            System.out.println("Param NUM CIVICO: " + address.getHouseNumber());
-            System.out.println("Param CITTA: " + address.getCity());
-            System.out.println("Param NOME STRADA: " + address.getRoadName());
-            System.out.println("Param TIPO STRADA: " + address.getRoadType());
 
-            addressRepository.save(address); // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
+            UUID addressID = addressRepository.save(address).getId(); // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
 
-            if(!isUpdate)
-                return userAddressService.addUserAddreses(new UserAddressDTO());
+            String userID = userService.getUserId().getUserId();
 
+            if(!isUpdate) {
+                UserAddressDTO userAddressDTO= new UserAddressDTO();
+
+                userAddressDTO.setAddressId(addressID);
+                userAddressDTO.setUserId(userID);
+
+                System.out.println("Address ID: "+ addressID);
+                System.out.println("User ID: "+ userID);
+
+                return userAddressService.addUserAddreses(userAddressDTO);
+            }
         }catch(RuntimeException | Error e){
             //LOG DA IMPLEMENTARE //TODO
             e.printStackTrace(); // You should replace this with a proper logging mechanism

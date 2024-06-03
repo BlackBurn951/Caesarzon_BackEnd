@@ -16,7 +16,7 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     private final UserAddressRepository userAddressRepository;
 
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
     @Override
     public boolean addUserAddreses(UserAddressDTO userAddress) {
