@@ -13,7 +13,7 @@ import java.util.UUID;
 public class UserAddress {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID) // Assuming auto-generation
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "id_utente")

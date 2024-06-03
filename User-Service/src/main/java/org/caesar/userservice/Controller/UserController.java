@@ -21,7 +21,6 @@ import java.util.List;
 @Slf4j
 public class UserController {
 
-
     //Servizi per la comunicazione con la logica di buisiness
     private final UserService userService;
     private final AddressService addressService;
