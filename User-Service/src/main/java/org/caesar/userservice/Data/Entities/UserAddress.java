@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "indirizzi_utente")
 @Getter
@@ -11,8 +13,8 @@ import lombok.Setter;
 public class UserAddress {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Assuming auto-generation
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID) // Assuming auto-generation
+    private UUID id;
 
     @Column(name = "id_utente")
     private String userId;

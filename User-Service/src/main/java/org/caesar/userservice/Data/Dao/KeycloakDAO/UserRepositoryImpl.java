@@ -117,7 +117,8 @@ public class UserRepositoryImpl implements UserRepository {
         user.setLastName(usersResource.getFirst().getLastName());
         user.setUsername(usersResource.getFirst().getUsername());
         user.setEmail(usersResource.getFirst().getEmail());
-        user.setPhoneNumber(String.valueOf(usersResource.getFirst().getAttributes().get("phoneNumber")));
+        if(usersResource.getFirst().getAttributes() != null)
+            user.setPhoneNumber(String.valueOf(usersResource.getFirst().getAttributes().get("phoneNumber")));
 
         return user;
     }

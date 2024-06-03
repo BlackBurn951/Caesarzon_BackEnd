@@ -19,7 +19,7 @@ public class UserServiceImpl implements UserService {
 
     private final JwtConverter jwtConverter;
 
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
 
     @Override
