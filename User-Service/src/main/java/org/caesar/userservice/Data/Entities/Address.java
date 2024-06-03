@@ -1,24 +1,35 @@
 package org.caesar.userservice.Data.Entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.UUID;
+
 
 @Entity
-@Table(name= "indirizzo")
+@Table(name = "indirizzo")
+@Getter
+@Setter
 public class Address {
-    @Id
-    //@GeneratedValue(strategy = GenerationType.UUID)
-    private Long id;
 
-    @Column(name= "nome_strada")
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id")
+    private UUID id;
+
+    @Column(name = "nome_strada")
     private String roadName;
 
-    @Column(name= "num_civico")
+    @Column(name = "num_civico")
     private String houseNumber;
 
-    @Column(name= "tipo_strada")
+    @Column(name = "tipo_strada")
     private String roadType;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "id_dati_comune")
     private CityData city;
+
+
 }

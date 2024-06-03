@@ -1,28 +1,29 @@
 package org.caesar.userservice.Data.Entities;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
+import lombok.Getter;
 
-import java.util.UUID;
 
 @Entity
-@Table(name= "dati_comune")
+@Table(name = "dati_comune")
+@Getter
 public class CityData {
 
     @Id
-//  @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id_comune")
     private Long id;
 
-
-    @Column(name= "citta")
+    @Column(name = "nome_comune")
     private String city;
 
-    @Column(name= "cap")
+    @Column(name = "cap")
     private String cap;
 
-    @Column(name= "regione")
+    @Column(name = "regione")
     private String region;
 
-    @Column(name= "provincia")
+    @Column(name = "provincia")
     private String province;
+
+
 }

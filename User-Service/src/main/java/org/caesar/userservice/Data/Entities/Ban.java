@@ -3,15 +3,16 @@ package org.caesar.userservice.Data.Entities;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name ="ban")
 public class Ban {
 
     @Id
-    //@GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
-    private Long id;
+    private UUID id;
 
     @Column(name = "motivo")
     private String reason;
@@ -22,13 +23,10 @@ public class Ban {
     @Column(name = "data_fine")
     private LocalDate endDate;
 
+    @Column(name= "id_utente")
+    private String userId;
 
-    @ManyToOne
-    @JoinColumn(name = "id_utente")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "id_admin")
-    private Admin admin;
+    @Column(name= "id_admin")
+    private String adminId;
 
 }
