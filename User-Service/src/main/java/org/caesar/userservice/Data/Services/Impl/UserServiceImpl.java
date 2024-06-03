@@ -11,7 +11,10 @@ import org.caesar.userservice.Dto.UserRegistrationDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.regex.Pattern;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -38,494 +41,88 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean saveUser(UserRegistrationDTO userRegistrationDTO) {
+        //Controllo che i valori mandati da front non siano nulli
         if(userRegistrationDTO.getUsername()!= null &&
                 userRegistrationDTO.getEmail()!= null &&
                 userRegistrationDTO.getFirstName()!= null &&
                 userRegistrationDTO.getLastName()!= null &&
                 userRegistrationDTO.getCredentialValue()!= null) {
 
+            //Controllo dei formati dei singoli dati
+            if(checkUsername(userRegistrationDTO.getUsername()) &&
+                checkEmail(userRegistrationDTO.getEmail()) &&
+                checkFirstName(userRegistrationDTO.getFirstName()) &&
+                checkLastName(userRegistrationDTO.getLastName()) &&
+                checkCredentialValue(userRegistrationDTO.getCredentialValue()))
+                return userRepository.saveUser(userRegistrationDTO);
         }
-        return userRepository.saveUser(userRegistrationDTO);
+        return false;
     }
 
     @Override
     public boolean savePhoneNumber(PhoneNumberDTO phoneNumberDTO) {
-        return userRepository.savePhoneNumber(phoneNumberDTO);
+        //Controllo del formato del cellulare
+        if(checkPhoneNumber(phoneNumberDTO.getPhoneNumber()))
+            return userRepository.savePhoneNumber(phoneNumberDTO);
+        return false;
     }
 
 
 
     //Metodi per la convalida dei dati
     private boolean checkUsername(String username) {
+        //Controllo che l'username non sia meno lungo di 5 caratteri e non più lungo di 20 contenente solo caratteri e numeri
         return (username.length()>=5 && username.length()<=20) &&
-                (Pattern.matches("^(?=.*[a-zA-Z].*[a-zA-Z].*[a-zA-Z].*[a-zA-Z])[a-zA-Z0-9]{5,20}$", username));
+                (username.matches("^(?=.*[a-zA-Z].*[a-zA-Z].*[a-zA-Z].*[a-zA-Z])[a-zA-Z0-9]{5,20}$"));
     }
 
     private boolean checkEmail(String email) {
-        String[] domains= {'virgilio.it',
-                'yahoo.it',
-                'libero.it',
-                'tim.it',
-                'tiscali.it',
-                'aruba.it',
-                'hotmail.it',
-                'live.it',
-                'iol.it',
-                'inwind.it',
-                'fastweb.it',
-                'vodafone.it',
-                'studenti.unical.it',
-                'wind.it',
-                'supereva.it',
-                'katamail.it',
-                'infinito.it',
-                'mynet.it',
-                'tin.it',
-                'lycos.it',
-                'email.it',
-                'siciliamail.it',
-                'gmx.it',
-                'teletu.it',
-                'google.it',
-                'microsoft.it',
-                'apple.it',
-                'register.it',
-                'poste.it',
-                'telecomitalia.it',
-                'panservice.it',
-                'outlook.it',
-                'ovh.it',
-                'btitalia.it',
-                'italiaonline.it',
-                'aliceposta.it',
-                'tiscali.it',
-                'hotmail.it',
-                'libero.it',
-                'inwind.it',
-                'iol.it',
-                'supereva.it',
-                'katamail.it',
-                'teletu.it',
-                'tin.it',
-                'email.it',
-                'lycos.it',
-                'infinito.it',
-                'virgilio.it',
-                'gmx.it',
-                'mynet.it',
-                'siciliamail.it',
-                'google.it',
-                'microsoft.it',
-                'apple.it',
-                'register.it',
-                'poste.it',
-                'telecomitalia.it',
-                'panservice.it',
-                'outlook.it',
-                'ovh.it',
-                'btitalia.it',
-                'italiaonline.it',
-                'fastwebnet.it',
-                'intesasanpaolo.it',
-                'ing.it',
-                'bancaintesa.it',
-                'intesasanpaoloassistance.it',
-                'bancapopolare.it',
-                'mediolanum.it',
-                'bper.it',
-                'unicredit.it',
-                'poste.it',
-                'fineco.it',
-                'bancaditalia.it',
-                'intesa.it',
-                'enel.it',
-                'trenitalia.it',
-                'rai.it',
-                'mediaset.it',
-                'sky.it',
-                'windtre.it',
-                'vodafone.it',
-                'tim.it',
-                'tre.it',
-                'coop.it',
-                'conad.it',
-                'esselunga.it',
-                'unieuro.it',
-                'trony.it',
-                'euronics.it',
-                'amazon.it',
-                'ebay.it',
-                'zalando.it',
-                'yoox.it',
-                'asos.it',
-                'netflix.it',
-                'spotify.it',
-                'youtube.it',
-                'facebook.it',
-                'instagram.it',
-                'twitter.it',
-                'linkedin.it',
-                'whatsapp.it',
-                'telegram.it',
-                'gmail.it',
-                'outlook.it',
-                'yahoo.it',
-                'hotmail.it',
-                'libero.it',
-                'tin.it',
-                'iol.it',
-                'aruba.it',
-                'register.it',
-                'fastweb.it',
-                'vodafone.it',
-                'wind.it',
-                'supereva.it',
-                'katamail.it',
-                'infinito.it',
-                'mynet.it',
-                'lycos.it',
-                'email.it',
-                'siciliamail.it',
-                'gmx.it',
-                'teletu.it',
-                'google.it',
-                'microsoft.it',
-                'apple.it',
-                'aliceposta.it',
-                'tiscali.it',
-                'hotmail.it',
-                'libero.it',
-                'inwind.it',
-                'iol.it',
-                'supereva.it',
-                'katamail.it',
-                'teletu.it',
-                'tin.it',
-                'email.it',
-                'lycos.it',
-                'infinito.it',
-                'virgilio.it',
-                'gmx.it',
-                'mynet.it',
-                'siciliamail.it',
-                'google.it',
-                'microsoft.it',
-                'apple.it',
-                'register.it',
-                'poste.it',
-                'telecomitalia.it',
-                'panservice.it',
-                'outlook.it',
-                'ovh.it',
-                'btitalia.it',
-                'italiaonline.it',
-                'fastwebnet.it',
-                'intesasanpaolo.it',
-                'ing.it',
-                'bancaintesa.it',
-                'intesasanpaoloassistance.it',
-                'bancapopolare.it',
-                'mediolanum.it',
-                'bper.it',
-                'unicredit.it',
-                'poste.it',
-                'fineco.it',
-                'bancaditalia.it',
-                'intesa.it',
-                'enel.it',
-                'trenitalia.it',
-                'rai.it',
-                'mediaset.it',
-                'sky.it',
-                'windtre.it',
-                'vodafone.it',
-                'tim.it',
-                'tre.it',
-                'coop.it',
-                'conad.it',
-                'esselunga.it',
-                'unieuro.it',
-                'trony.it',
-                'euronics.it',
-                'amazon.it',
-                'ebay.it',
-                'zalando.it',
-                'yoox.it',
-                'asos.it',
-                'netflix.it',
-                'spotify.it',
-                'youtube.it',
-                'facebook.it',
-                'instagram.it',
-                'twitter.it',
-                'linkedin.it',
-                'whatsapp.it',
-                'telegram.it',
-                'gmail.it',
-                'outlook.it',
-                'yahoo.it',
-                'hotmail.it',
-                'libero.it',
-                'tin.it',
-                'iol.it',
-                'aruba.it',
-                'register.it',
-                'fastweb.it',
-                'vodafone.it',
-                'wind.it',
-                'supereva.it',
-                'katamail.it',
-                'infinito.it',
-                'mynet.it',
-                'lycos.it',
-                'email.it',
-                'siciliamail.it',
-                'gmx.it',
-                'teletu.it',
-                'google.it',
-                'microsoft.it',
-                'apple.it',
-                'register.it',
-                'poste.it',
-                'telecomitalia.it',
-                'panservice.it',
-                'outlook.it',
-                'ovh.it',
-                'btitalia.it',
-                'italiaonline.it',
-                'aliceposta.it',
-                'tiscali.it',
-                'hotmail.it',
-                'libero.it',
-                'inwind.it',
-                'iol.it',
-                'supereva.it',
-                'katamail.it',
-                'teletu.it',
-                'tin.it',
-                'email.it',
-                'lycos.it',
-                'infinito.it',
-                'virgilio.it',
-                'gmx.it',
-                'mynet.it',
-                'siciliamail.it',
-                'google.it',
-                'microsoft.it',
-                'apple.it',
-                'register.it',
-                'poste.it',
-                'telecomitalia.it',
-                'panservice.it',
-                'outlook.it',
-                'ovh.it',
-                'btitalia.it',
-                'italiaonline.it',
-                'fastwebnet.it',
-                'intesasanpaolo.it',
-                'ing.it',
-                'bancaintesa.it',
-                'intesasanpaoloassistance.it',
-                'bancapopolare.it',
-                'mediolanum.it',
-                'bper.it',
-                'unicredit.it',
-                'poste.it',
-                'fineco.it',
-                'bancaditalia.it',
-                'intesa.it',
-                'enel.it',
-                'trenitalia.it',
-                'rai.it',
-                'mediaset.it',
-                'sky.it',
-                'windtre.it',
-                'vodafone.it',
-                'tim.it',
-                'tre.it',
-                'coop.it',
-                'conad.it',
-                'esselunga.it',
-                'unieuro.it',
-                'trony.it',
-                'euronics.it',
-                'amazon.it',
-                'ebay.it',
-                'zalando.it',
-                'yoox.it',
-                'asos.it',
-                'netflix.it',
-                'spotify.it',
-                'youtube.it',
-                'facebook.it',
-                'instagram.it',
-                'twitter.it',
-                'linkedin.it',
-                'whatsapp.it',
-                'telegram.it',
-                'gmail.it',
-                'outlook.it',
-                'yahoo.it',
-                'hotmail.it',
-                'libero.it',
-                'tin.it',
-                'iol.it',
-                'aruba.it',
-                'register.it',
-                'fastweb.it',
-                'vodafone.it',
-                'wind.it',
-                'supereva.it',
-                'katamail.it',
-                'infinito.it',
-                'mynet.it',
-                'lycos.it',
-                'email.it',
-                'siciliamail.it',
-                'gmx.it',
-                'teletu.it',
-                'google.it',
-                'microsoft.it',
-                'apple.it',
-                'aliceposta.it',
-                'tiscali.it',
-                'hotmail.it',
-                'libero.it',
-                'inwind.it',
-                'iol.it',
-                'supereva.it',
-                'katamail.it',
-                'teletu.it',
-                'tin.it',
-                'email.it',
-                'lycos.it',
-                'infinito.it',
-                'virgilio.it',
-                'gmx.it',
-                'mynet.it',
-                'siciliamail.it',
-                'google.it',
-                'microsoft.it',
-                'apple.it',
-                'register.it',
-                'poste.it',
-                'telecomitalia.it',
-                'panservice.it',
-                'outlook.it',
-                'ovh.it',
-                'btitalia.it',
-                'italiaonline.it',
-                'fastwebnet.it',
-                'intesasanpaolo.it',
-                'ing.it',
-                'bancaintesa.it',
-                'intesasanpaoloassistance.it',
-                'bancapopolare.it',
-                'mediolanum.it',
-                'bper.it',
-                'unicredit.it',
-                'poste.it',
-                'fineco.it',
-                'bancaditalia.it',
-                'intesa.it',
-                'enel.it',
-                'trenitalia.it',
-                'rai.it',
-                'mediaset.it',
-                'sky.it',
-                'windtre.it',
-                'vodafone.it',
-                'tim.it',
-                'tre.it',
-                'coop.it',
-                'conad.it',
-                'esselunga.it',
-                'unieuro.it',
-                'trony.it',
-                'euronics.it',
-                'amazon.it',
-                'ebay.it',
-                'zalando.it',
-                'yoox.it',
-                'asos.it',
-                'netflix.it',
-                'spotify.it',
-                'youtube.it',
-                'facebook.it',
-                'instagram.it',
-                'twitter.it',
-                'linkedin.it',
-                'whatsapp.it',
-                'telegram.it',
-                'gmail.it',
-                'outlook.it',
-                'yahoo.it',
-                'hotmail.it',
-                'gmail.com',
-                'yahoo.com',
-                'hotmail.com',
-                'outlook.com',
-                'icloud.com',
-                'aol.com',
-                'live.com',
-                'mail.com',
-                'protonmail.com',
-                'fastmail.com',
-                'zoho.com',
-                'yandex.com',
-                'gmx.com',
-                'rocketmail.com',
-                'mail.ru',
-                'tutanota.com',
-                'seznam.cz',
-                'inbox.lv',
-                'mailinator.com',
-                'outlook.es',
-                'office365.com',
-                'apple.com',
-                'google.com',
-                'yahoo.co.jp',
-                'qq.com',
-                '163.com',
-                'sina.com',
-                'aliyun.com',
-                'naver.com',
-                'daum.net',
-                'naver.com',
-                'yahoo.co.uk',
-                'msn.com',
-                'btinternet.com',
-                'bluewin.ch',
-                'web.de',
-                't-online.de',
-                'orange.fr',
-                'free.fr',
-                'wanadoo.fr',
-                'laposte.net',
-                'sfr.fr',
-                'example.org',
-                'organization.org',
-                'nonprofit.org'}
-        int atIndex= email.indexOf("@");
+        try {
+            //Lettura da file dei domini prefissati
+            List<String> domains = Files.readAllLines(Path.of("static/domains.txt"));
+            int atIndex = email.indexOf("@");
 
-        String beforeAt= email.substring(0, atIndex);
-        String afterAt= email.substring(atIndex+1);
+            //Suddivisione in pre e post @ dell'email per controllare i due singoli pezzi
+            String beforeAt = email.substring(0, atIndex);
+            String afterAt = email.substring(atIndex + 1);
 
 
+            //Check del before per fare in modo che non sia piùlungo di 64 caratteri e non contenga caratteri speciali
+            boolean checkBefore= beforeAt.matches("^[^\\w_](?!.*[^\\w\\d]).{0,64}$"), checkDomains= true;
+
+            if(checkBefore) {
+                for(String domain : domains) {
+                    if(afterAt.contains(domain)) {
+                        return true;
+                    }
+                }
+            }
+        } catch(IOException e) {
+            //TODO Log da implementare
+        }
+        return false;
     }
 
     private boolean checkFirstName(String firstName) {
+        //Controllo che il nome  non sia meno lungo di 2 caratteri e non più lungo di 30 contenente solo caratteri e numeri
         return (firstName.length()>=2 && firstName.length()<=30) &&
-                (Pattern.matches("^[a-zA-Z]{2,}( [a-zA-Z]{2,30})?$", firstName));
+                (firstName.matches("^[a-zA-Z]{2,}( [a-zA-Z]{2,30})?$"));
     }
 
     private boolean checkLastName(String lastName) {
+        //Controllo che il nome  non sia meno lungo di 2 caratteri e non più lungo di 30 contenente solo caratteri e numeri
         return (lastName.length()>=2 && lastName.length()<=30) &&
-                (Pattern.matches("^[a-zA-Z]{2,}( [a-zA-Z]{2,30})?$", lastName));
+                (lastName.matches("^[a-zA-Z]{2,}( [a-zA-Z]{2,30})?$"));
     }
 
     private boolean checkCredentialValue(String credentialvalue) {
+        //Controllo che la password non sia meno lunga di 8 caratteri e non più lunga di 20 contenente caratteri speciali e numeri
         return (credentialvalue.length()>=8 && credentialvalue.length()<=20) &&
-                (Pattern.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+])[A-Za-z\\d!@#$%^?&*()_+]{8,20}$", credentialvalue));
+                (credentialvalue.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+])[A-Za-z\\d!@#$%^?&*()_+]{8,20}$"));
+    }
+
+    private boolean checkPhoneNumber(String phoneNumber) {
+        //Controllo che il numero di telefono contenga solo numeri e sia lungo esattamente 10 caratteri
+        return phoneNumber.matches("[0-9]{10}");
     }
 }

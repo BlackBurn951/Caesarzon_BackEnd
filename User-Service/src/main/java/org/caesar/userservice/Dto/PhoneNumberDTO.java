@@ -7,6 +7,6 @@ import lombok.Setter;
 @Setter
 public class PhoneNumberDTO {
 
-    private String phone_number;
+    private String phoneNumber;
 
 }
