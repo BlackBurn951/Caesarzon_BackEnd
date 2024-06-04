@@ -5,7 +5,6 @@ import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
-import org.hibernate.annotations.Comment;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
@@ -176,7 +175,7 @@ public class UserRepositoryImpl implements UserRepository {
 
             //Impostazione dell'attributo phoneNumber
             Map<String, List<String>> attributes = new HashMap<>();
-            attributes.put("phoneNumber", Collections.singletonList(phoneNumberDTO.getPhone_number()));
+            attributes.put("phoneNumber", Collections.singletonList(phoneNumberDTO.getPhoneNumber()));
             user.setAttributes(attributes);
 
             //Verifica se l'attributo è stato impostato correttamente

@@ -49,7 +49,7 @@ public class UserController {
     @RequestMapping("/address")
     public ResponseEntity<String> manageUserAddressData(@RequestBody AddressDTO addressDTO, HttpServletRequest request) {
         ResponseEntity<String> response;
-
+        //TODO  Convalida dei campi
         boolean isUpdate;
         isUpdate = !request.getMethod().equals("POST");
 
@@ -71,7 +71,7 @@ public class UserController {
     @RequestMapping("/card")
     public ResponseEntity<String> manageUserCardData(@RequestBody CardDTO cardDTO, HttpServletRequest request) {
         ResponseEntity<String> response;
-
+        //TODO  Convalida dei campi
         boolean isUpdate;
         isUpdate = !request.getMethod().equals("POST");
 
@@ -120,10 +120,6 @@ public class UserController {
 
     /*aggiungere i seguenti end-point:
 
-        1) aggiunta numero telefono(da aggiungere come campo su keycloak)
-        2) aggiunta indrizzo(da fare sul nostro db)
-        3) aggiunta carta(da fare sul nostro db)
-        4) DA GUARDARE IMPLEMENTAZIONE PAYPAL
         5) aggiunta foto profilo(da fare sul nostro db)
      */
 
