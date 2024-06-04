@@ -1,35 +1,32 @@
 package org.caesar.userservice.Data.Entities;
 
-import jakarta.persistence.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
-@Entity
-@Table(name= "admin")
+@Getter
+@Setter
 public class Admin {
-    @Id
-    //@GeneratedValue(strategy = GenerationType.UUID)
-    private Long id;
 
-    @Column(name= "nome")
-    private String name;
+    private String id;
 
-    @Column(name= "cognome")
-    private String surname;
+    private String firstName;
 
-    @Column(name= "email")
+    private String lastName;
+
     private String email;
 
-    @Column(name= "password")
     private String password;
 
-    @Column(name= "username")
     private String username;
 
-//    @Column(name= "foto_profilo")
-//    private byte profilePic;
+    public Admin() {}
 
-//    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Ban> bannedUsers = new ArrayList<>();
+    public Admin(String id, String firstName, String lastName, String email, String password, String username) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.username = username;
+        this.email = email;
+    }
 }

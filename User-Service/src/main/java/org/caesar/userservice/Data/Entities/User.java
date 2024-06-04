@@ -1,38 +1,33 @@
 package org.caesar.userservice.Data.Entities;
 
+import lombok.Getter;
+import lombok.Setter;
 
-import jakarta.persistence.*;
-
-@Entity
-@Table(name ="utente")
+@Getter
+@Setter
 public class User {
 
-    @Id
-    //@GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false)
-    private Long id;
+    private String id;
 
-    @Column(name = "nome")
-    private String name;
+    private String firstName;
 
-    @Column(name = "cognome")
-    private String surname;
+    private String lastName;
 
-    @Column(name = "username")
     private String username;
 
-    @Column(name = "num_telefono")
     private String phoneNumber;
 
-    @Column(name = "email")
     private String email;
 
-//    @Column(name = "foto_profilo")
-//    private Byte profilePic;
+    public User() {
+    }
 
-
-
-
-
-
+    public User(String id, String firstName, String lastName, String username, String phoneNumber, String email) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.username = username;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+    }
 }
