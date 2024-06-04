@@ -2,6 +2,7 @@ package org.caesar.userservice.Data.Services.Impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Dao.AddressRepository;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AddressServiceImpl implements AddressService {
 
     private final ModelMapper modelMapper;
@@ -39,6 +41,13 @@ public class AddressServiceImpl implements AddressService {
     @Transactional
     @Override
     public boolean saveOrUpdateAddress(AddressDTO addressDTO, boolean isUpdate) {
+        log.debug("Entrato nel save or update prima della convalida dei dati");
+        if(!checkRoadName(addressDTO.getRoadName()) ||
+                !checkHouseNumber(addressDTO.getHouseNumber()) ||
+                !checkRoadType(addressDTO.getRoadType()))
+            return false;
+
+        log.debug("save or update post convalida dei dati");
         try{
             Address address = modelMapper.map(addressDTO, Address.class);
 
@@ -90,4 +99,21 @@ public class AddressServiceImpl implements AddressService {
         return modelMapper.map(addressRepository.findById(userAddress.getAddressId()), AddressDTO.class);
     }
 
+
+
+    //Metodi per la convalida
+    private boolean checkRoadName(String roadName) {
+        return roadName!=null && (roadName.length()>=2 && roadName.length()<=30) &&
+                roadName.matches("^(?=(?:.*[a-zA-Z]){2,})[a-zA-Z0-9 ]{2,30}$");
+    }
+
+    private boolean checkHouseNumber(String houseNumber) {
+        return houseNumber!=null && (!houseNumber.isEmpty() && houseNumber.length()<=8) &&
+                houseNumber.matches("^[0-9a-zA-Z]{1,8}$");
+    }
+
+    private boolean checkRoadType(String roadType) {
+        return roadType!=null && (roadType.length()>=3 && roadType.length()<=8) &&
+                roadType.matches("");
+    }
 }
