@@ -32,7 +32,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO getUser() {
         String username= jwtConverter.getUsernameFromToken();
-        return modelMapper.map(userRepository.findUserByUsername(username), UserDTO.class);
+
+        UserDTO userDTO= modelMapper.map(userRepository.findUserByUsername(username), UserDTO.class);
+        userDTO.setId("");
+
+        return userDTO;
     }
 
     @Override
@@ -51,12 +55,12 @@ public class UserServiceImpl implements UserService {
             checkLastName(userRegistrationDTO.getLastName()) &&
             checkCredentialValue(userRegistrationDTO.getCredentialValue()))
                 return userRepository.saveUser(userRegistrationDTO);
+
         return false;
     }
 
     @Override
     public boolean updateUser(UserDTO userDTO) {
-        System.out.println("Dentro il updateUser prima della convalida");
         log.debug("Dentro il updateUser prima della convalida");
 
         //Controllo che i campi mandati da fornt non siano null e che rispettino il formato richiesto
@@ -99,7 +103,7 @@ public class UserServiceImpl implements UserService {
             String afterAt = email.substring(atIndex + 1);
 
             //Check del before per fare in modo che non sia piùlungo di 64 caratteri e non contenga caratteri speciali
-            boolean checkBefore= beforeAt.matches("^[^\\w_](?!.*[^\\w\\d]).{0,64}$"), checkDomains= true;
+            boolean checkBefore= beforeAt.matches("^[a-zA-Z0-9 ]{1,64}$"), checkDomains= true;
 
             if(checkBefore) {
                 for(String domain : domains) {

@@ -31,6 +31,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/user-api/city-data").permitAll()
                         .pathMatchers(HttpMethod.POST, "/user-api/address").permitAll()
                         .pathMatchers(HttpMethod.PUT, "/user-api/user").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/user-api/user").permitAll()
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));

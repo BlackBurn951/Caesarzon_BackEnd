@@ -48,8 +48,7 @@ public class UserController {
     @PutMapping("/user")
     public ResponseEntity<String> putUserData(@RequestBody UserDTO userData) {
         ResponseEntity<String> response;
-        System.out.println("Dati in ingresso"+ userData.getUsername()+" "+ userData.getFirstName());
-        log.debug("Dati in ingresso"+ userData.getUsername()+" "+ userData.getFirstName());
+        log.debug("Dati in ingresso {} {}", userData.getUsername(), userData.getFirstName());
         if(userService.updateUser(userData))
             response= new ResponseEntity<>("User registrato!", HttpStatus.OK);
         else
@@ -85,7 +84,7 @@ public class UserController {
     @RequestMapping("/card")
     public ResponseEntity<String> manageUserCardData(@RequestBody CardDTO cardDTO, HttpServletRequest request) {
         ResponseEntity<String> response;
-        //TODO  Convalida dei campi
+
         boolean isUpdate;
         isUpdate = !request.getMethod().equals("POST");
 
@@ -120,14 +119,12 @@ public class UserController {
     @GetMapping("/city")
     public List<String> getSuggerimentoCitta(@RequestParam("sugg") String sugg) {
         log.debug("ENTRATO NELL'END-POINT DEL /city");
-        System.out.println("ENTRATO NELL'END-POINT DEL /city");
         return cityDataService.getCities(sugg);
     }
 
     @GetMapping("/city-data")
     public CityDataSuggestDTO getDatiCitta(@RequestParam("city") String city) {
         log.debug("ENTRATO NELL'END-POINT DEL /city-data");
-        System.out.println("ENTRATO NELL'END-POINT DEL /city-data");
         return cityDataService.getCityData(city);
     }
 

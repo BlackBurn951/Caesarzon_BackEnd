@@ -1,15 +1,18 @@
 package org.caesar.userservice.Data.Dao.KeycloakDAO;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -20,12 +23,11 @@ import java.util.*;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class UserRepositoryImpl implements UserRepository {
 
     //Converter per il token
     private final JwtConverter jwtConverter = new JwtConverter();
-
-    private UserRepository userRepository;
 
     //Oggetti per la comunicazione con keycloak
     private final Keycloak keycloak;
@@ -34,7 +36,6 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public User findUserById(String id) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
-
         UserResource userResource = realmResource.users().get(id);
 
         UserRepresentation userRepresentation = userResource.toRepresentation();
@@ -139,6 +140,8 @@ public class UserRepositoryImpl implements UserRepository {
         user.setEnabled(true);
 
 
+
+
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setType(CredentialRepresentation.PASSWORD);
         credential.setValue(userData.getCredentialValue());
@@ -151,20 +154,25 @@ public class UserRepositoryImpl implements UserRepository {
             String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
             UserResource userResource = usersResource.get(userId);
             userResource.sendVerifyEmail();
-            System.out.println("User created successfully");
+
+            ClientRepresentation clientRepresentation= realmResource.clients().findByClientId("caesar-app").getFirst();
+            ClientResource clientResource = realmResource.clients().get(clientRepresentation.getId());
+
+            RoleRepresentation role = clientResource.roles().get("basic").toRepresentation();
+            userResource.roles().clientLevel(clientRepresentation.getId()).add(Collections.singletonList(role));
+
+
             return true;
-        } else {
-            System.out.println("Error creating user: " + response.getStatusInfo().getReasonPhrase());
+        } else
             return false;
-        }
     }
 
     @Override
     public boolean updateUser(UserDTO userData) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
 
-        String id= findUserById(jwtConverter.getUsernameFromToken()).getId();
-        UserResource userResource = realmResource.users().get(id);
+        User userKeycloak= findUserByUsername(jwtConverter.getUsernameFromToken());
+        UserResource userResource = realmResource.users().get(userKeycloak.getId());
 
         UserRepresentation user = new UserRepresentation();
         user.setUsername(userData.getUsername());
@@ -174,6 +182,9 @@ public class UserRepositoryImpl implements UserRepository {
 
 
         userResource.update(user);
+
+        if(!userKeycloak.getEmail().equals(userData.getEmail()))
+            userResource.sendVerifyEmail();
 
         return true;
     }
@@ -200,7 +211,6 @@ public class UserRepositoryImpl implements UserRepository {
             //Verifica se l'attributo è stato impostato correttamente
             response =  user.getAttributes() != null && user.getAttributes().containsKey("phoneNumber");
 
-            System.out.println("Attributi:" + user.getAttributes());
         } catch (Exception e) {
             e.printStackTrace();
             response = false;
