@@ -55,6 +55,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean updateUser(UserDTO userDTO) {
+        System.out.println("Dentro il updateUser prima della convalida");
+        log.debug("Dentro il updateUser prima della convalida");
+
+        //Controllo che i campi mandati da fornt non siano null e che rispettino il formato richiesto
+        if(checkUsername(userDTO.getUsername()) &&
+                checkEmail(userDTO.getEmail()) &&
+                checkFirstName(userDTO.getFirstName()) &&
+                checkLastName(userDTO.getLastName()))
+            return userRepository.updateUser(userDTO);
+        return false;
+    }
+
+    @Override
     public boolean savePhoneNumber(PhoneNumberDTO phoneNumberDTO) {
         //Controllo del formato del cellulare
         if(checkPhoneNumber(phoneNumberDTO.getPhoneNumber()))

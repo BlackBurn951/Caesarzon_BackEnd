@@ -28,23 +28,36 @@ public class UserController {
     private final CityDataService cityDataService;
 
 
-    @RequestMapping("/user")
-    public ResponseEntity<String> manageUserData(@RequestBody UserRegistrationDTO userData, HttpServletRequest request) {
-        ResponseEntity<String> response;
-
-        if(userService.saveUser(userData)) {
-            response= new ResponseEntity<>("User registrato!", HttpStatus.OK);
-        } else{
-            response= new ResponseEntity<>("Problemi nella registrazione...", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        return response;
-    }
-
     @GetMapping("/user")
     public ResponseEntity<UserDTO> getUserData() {
         return new ResponseEntity<UserDTO>(userService.getUser(), HttpStatus.OK);
     }
+
+    @PostMapping("/user")
+    public ResponseEntity<String> postUserData(@RequestBody UserRegistrationDTO userData) {
+        ResponseEntity<String> response;
+
+        if(userService.saveUser(userData))
+            response= new ResponseEntity<>("User registrato!", HttpStatus.OK);
+        else
+            response= new ResponseEntity<>("Problemi nella registrazione...", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        return response;
+    }
+
+    @PutMapping("/user")
+    public ResponseEntity<String> putUserData(@RequestBody UserDTO userData) {
+        ResponseEntity<String> response;
+        System.out.println("Dati in ingresso"+ userData.getUsername()+" "+ userData.getFirstName());
+        log.debug("Dati in ingresso"+ userData.getUsername()+" "+ userData.getFirstName());
+        if(userService.updateUser(userData))
+            response= new ResponseEntity<>("User registrato!", HttpStatus.OK);
+        else
+            response= new ResponseEntity<>("Problemi nell'aggiornamento...", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        return response;
+    }
+
 
 
     @RequestMapping("/address")

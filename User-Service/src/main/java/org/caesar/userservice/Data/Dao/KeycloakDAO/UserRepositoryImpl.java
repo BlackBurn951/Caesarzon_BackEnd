@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Dto.PhoneNumberDTO;
+import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -145,7 +146,6 @@ public class UserRepositoryImpl implements UserRepository {
 
         user.setCredentials(Collections.singletonList(credential));
 
-
         Response response = usersResource.create(user);
         if (response.getStatus() == 201) {
             String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
@@ -157,6 +157,25 @@ public class UserRepositoryImpl implements UserRepository {
             System.out.println("Error creating user: " + response.getStatusInfo().getReasonPhrase());
             return false;
         }
+    }
+
+    @Override
+    public boolean updateUser(UserDTO userData) {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+
+        String id= findUserById(jwtConverter.getUsernameFromToken()).getId();
+        UserResource userResource = realmResource.users().get(id);
+
+        UserRepresentation user = new UserRepresentation();
+        user.setUsername(userData.getUsername());
+        user.setFirstName(userData.getFirstName());
+        user.setLastName(userData.getLastName());
+        user.setEmail(userData.getEmail());
+
+
+        userResource.update(user);
+
+        return true;
     }
 
     @Override
