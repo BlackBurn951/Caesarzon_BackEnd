@@ -5,7 +5,27 @@
     </root>     <!-- LOGGER ROOT PER GESTIRE IL LOGGING BASE DI SPRING-->
 
     <!-- LOGGERS-->
-    <logger name="org.caesar.userservice" level="debug">
+    <logger name="org.caesar.userservice.Annotations" level="debug">
+        <appender-ref ref="debugLog"/>
+    </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
+
+    <logger name="org.caesar.userservice.Config" level="debug">
+        <appender-ref ref="debugLog"/>
+    </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
+
+    <logger name="org.caesar.userservice.Controller" level="debug">
+        <appender-ref ref="debugLog"/>
+    </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
+
+    <logger name="org.caesar.userservice.Data" level="debug">
+        <appender-ref ref="debugLog"/>
+    </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
+
+    <logger name="org.caesar.userservice.Dto" level="debug">
+        <appender-ref ref="debugLog"/>
+    </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
+
+    <logger name="org.caesar.userservice.Exception" level="debug">
         <appender-ref ref="debugLog"/>
     </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
 

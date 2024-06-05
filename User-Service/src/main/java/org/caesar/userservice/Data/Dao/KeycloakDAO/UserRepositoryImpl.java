@@ -119,7 +119,7 @@ public class UserRepositoryImpl implements UserRepository {
         user.setUsername(usersResource.getFirst().getUsername());
         user.setEmail(usersResource.getFirst().getEmail());
         if(usersResource.getFirst().getAttributes() != null)
-            user.setPhoneNumber(String.valueOf(usersResource.getFirst().getAttributes().get("phoneNumber")));
+            user.setPhoneNumber(usersResource.getFirst().getAttributes().get("phoneNumber").get(0));
 
         return user;
     }
@@ -180,12 +180,15 @@ public class UserRepositoryImpl implements UserRepository {
         user.setLastName(userData.getLastName());
         user.setEmail(userData.getEmail());
 
+        Map<String, List<String>> attributes = user.getAttributes() != null
+                ? user.getAttributes() : new HashMap<>();
+        attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
+        user.setAttributes(attributes);
 
         userResource.update(user);
 
         if(!userKeycloak.getEmail().equals(userData.getEmail()))
             userResource.sendVerifyEmail();
-
         return true;
     }
 

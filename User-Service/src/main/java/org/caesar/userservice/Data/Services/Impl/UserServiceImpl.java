@@ -67,19 +67,11 @@ public class UserServiceImpl implements UserService {
         if(checkUsername(userDTO.getUsername()) &&
                 checkEmail(userDTO.getEmail()) &&
                 checkFirstName(userDTO.getFirstName()) &&
-                checkLastName(userDTO.getLastName()))
+                checkLastName(userDTO.getLastName()) &&
+                checkPhoneNumber(userDTO.getPhoneNumber()))
             return userRepository.updateUser(userDTO);
         return false;
     }
-
-    @Override
-    public boolean savePhoneNumber(PhoneNumberDTO phoneNumberDTO) {
-        //Controllo del formato del cellulare
-        if(checkPhoneNumber(phoneNumberDTO.getPhoneNumber()))
-            return userRepository.savePhoneNumber(phoneNumberDTO);
-        return false;
-    }
-
 
 
     //Metodi per la convalida dei dati
@@ -138,6 +130,6 @@ public class UserServiceImpl implements UserService {
 
     private boolean checkPhoneNumber(String phoneNumber) {
         //Controllo che il numero di telefono contenga solo numeri e sia lungo esattamente 10 caratteri
-        return phoneNumber!=null && phoneNumber.matches("[0-9]{10}");
+        return phoneNumber==null || phoneNumber.matches("[0-9]{10}");
     }
 }

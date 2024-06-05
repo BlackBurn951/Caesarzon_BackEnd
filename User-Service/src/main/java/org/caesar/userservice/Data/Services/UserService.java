@@ -13,5 +13,4 @@ public interface UserService {
     UserDTO getUser();
     boolean saveUser(UserRegistrationDTO userData);
     boolean updateUser(UserDTO userData);
-    boolean savePhoneNumber(PhoneNumberDTO phoneNumberDTO);
 }

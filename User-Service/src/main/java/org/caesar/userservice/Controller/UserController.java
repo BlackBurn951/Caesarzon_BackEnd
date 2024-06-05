@@ -102,20 +102,6 @@ public class UserController {
         return new ResponseEntity<CardDTO>(cardService.getCard(cardName), HttpStatus.OK);
     }
 
-
-    @PostMapping("/phone-number")
-    public ResponseEntity<String> receivePhoneNumber(@RequestBody PhoneNumberDTO phoneNumberDTO) {
-        ResponseEntity<String> response;
-
-        if(userService.savePhoneNumber(phoneNumberDTO)){
-            response= new ResponseEntity<>("Numero di telefono caricato!", HttpStatus.OK);
-        }else{
-            response= new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        return response;
-    }
-
-
     @GetMapping("/city")
     public List<String> getSuggerimentoCitta(@RequestParam("sugg") String sugg) {
         log.debug("ENTRATO NELL'END-POINT DEL /city");
