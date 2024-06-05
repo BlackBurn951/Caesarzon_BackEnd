@@ -27,6 +27,7 @@ public class UserController {
     private final CardService cardService;
     private final CityDataService cityDataService;
 
+
     @RequestMapping("/user")
     public ResponseEntity<String> manageUserData(@RequestBody UserRegistrationDTO userData, HttpServletRequest request) {
         ResponseEntity<String> response;
@@ -49,7 +50,7 @@ public class UserController {
     @RequestMapping("/address")
     public ResponseEntity<String> manageUserAddressData(@RequestBody AddressDTO addressDTO, HttpServletRequest request) {
         ResponseEntity<String> response;
-        //TODO  Convalida dei campi
+
         boolean isUpdate;
         isUpdate = !request.getMethod().equals("POST");
 
