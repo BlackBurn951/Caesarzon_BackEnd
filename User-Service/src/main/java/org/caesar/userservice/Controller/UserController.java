@@ -28,6 +28,7 @@ public class UserController {
     private final CityDataService cityDataService;
 
 
+    //End-point per i dati anagrafici
     @GetMapping("/user")
     public ResponseEntity<UserDTO> getUserData() {
         return new ResponseEntity<UserDTO>(userService.getUser(), HttpStatus.OK);
@@ -35,83 +36,64 @@ public class UserController {
 
     @PostMapping("/user")
     public ResponseEntity<String> postUserData(@RequestBody UserRegistrationDTO userData) {
-        ResponseEntity<String> response;
-
         if(userService.saveUser(userData))
-            response= new ResponseEntity<>("User registrato!", HttpStatus.OK);
+            return new ResponseEntity<>("User registrato!", HttpStatus.OK);
         else
-            response= new ResponseEntity<>("Problemi nella registrazione...", HttpStatus.INTERNAL_SERVER_ERROR);
-
-        return response;
+            return new ResponseEntity<>("Problemi nella registrazione...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PutMapping("/user")
     public ResponseEntity<String> putUserData(@RequestBody UserDTO userData) {
-        ResponseEntity<String> response;
-        log.debug("Dati in ingresso {} {}", userData.getUsername(), userData.getFirstName());
         if(userService.updateUser(userData))
-            response= new ResponseEntity<>("User registrato!", HttpStatus.OK);
+            return new ResponseEntity<>("User registrato!", HttpStatus.OK);
         else
-            response= new ResponseEntity<>("Problemi nell'aggiornamento...", HttpStatus.INTERNAL_SERVER_ERROR);
-
-        return response;
+            return new ResponseEntity<>("Problemi nell'aggiornamento...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
-
-    @RequestMapping("/address")
-    public ResponseEntity<String> manageUserAddressData(@RequestBody AddressDTO addressDTO, HttpServletRequest request) {
-        ResponseEntity<String> response;
-
-        boolean isUpdate;
-        isUpdate = !request.getMethod().equals("POST");
-
-        if(addressService.saveOrUpdateAddress(addressDTO, isUpdate)){
-            response= new ResponseEntity<>("Indirizzo salvato!", HttpStatus.OK);
-        }else{
-            response= new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        return response;
-
-    }
-
+    //End-point per gli indirizzi
     @GetMapping("/address")
     public ResponseEntity<AddressDTO> getAddressData(@RequestParam String addressName) {
         return new ResponseEntity<AddressDTO>(addressService.getAddress(addressName), HttpStatus.OK);
     }
 
-    @RequestMapping("/card")
-    public ResponseEntity<String> manageUserCardData(@RequestBody CardDTO cardDTO, HttpServletRequest request) {
-        ResponseEntity<String> response;
-
+    @RequestMapping("/address")
+    public ResponseEntity<String> manageUserAddressData(@RequestBody AddressDTO addressDTO, HttpServletRequest request) {
         boolean isUpdate;
         isUpdate = !request.getMethod().equals("POST");
 
-        if (cardService.saveOrUpdateCard(cardDTO, isUpdate)) {
-            response = new ResponseEntity<>("Carta salvata!", HttpStatus.OK);
-        } else {
-            response = new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        return response;
-    }
-
-    @GetMapping("/card")
-    public ResponseEntity<CardDTO> getCardData(@RequestParam String cardName) {
-        return new ResponseEntity<CardDTO>(cardService.getCard(cardName), HttpStatus.OK);
+        if(addressService.saveOrUpdateAddress(addressDTO, isUpdate))
+            return new ResponseEntity<>("Indirizzo salvato!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @GetMapping("/city")
     public List<String> getSuggerimentoCitta(@RequestParam("sugg") String sugg) {
-        log.debug("ENTRATO NELL'END-POINT DEL /city");
         return cityDataService.getCities(sugg);
     }
 
     @GetMapping("/city-data")
     public CityDataSuggestDTO getDatiCitta(@RequestParam("city") String city) {
-        log.debug("ENTRATO NELL'END-POINT DEL /city-data");
         return cityDataService.getCityData(city);
+    }
+
+
+    //End-point per le carte
+    @GetMapping("/card")
+    public ResponseEntity<CardDTO> getCardData(@RequestParam String cardName) {
+        return new ResponseEntity<CardDTO>(cardService.getCard(cardName), HttpStatus.OK);
+    }
+
+    @RequestMapping("/card")
+    public ResponseEntity<String> manageUserCardData(@RequestBody CardDTO cardDTO, HttpServletRequest request) {
+        boolean isUpdate;
+        isUpdate = !request.getMethod().equals("POST");
+
+        if (cardService.saveOrUpdateCard(cardDTO, isUpdate))
+            return new ResponseEntity<>("Carta salvata!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 

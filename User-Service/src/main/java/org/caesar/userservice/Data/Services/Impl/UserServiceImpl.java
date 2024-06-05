@@ -23,9 +23,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-
     private final JwtConverter jwtConverter;
-
     private final ModelMapper modelMapper;
 
 
@@ -61,9 +59,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean updateUser(UserDTO userDTO) {
-        log.debug("Dentro il updateUser prima della convalida");
 
-        //Controllo che i campi mandati da fornt non siano null e che rispettino il formato richiesto
+        //Controllo che i campi mandati da front non siano null e che rispettino il formato richiesto
         if(checkUsername(userDTO.getUsername()) &&
                 checkEmail(userDTO.getEmail()) &&
                 checkFirstName(userDTO.getFirstName()) &&
@@ -72,6 +69,7 @@ public class UserServiceImpl implements UserService {
             return userRepository.updateUser(userDTO);
         return false;
     }
+
 
 
     //Metodi per la convalida dei dati
@@ -111,7 +109,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private boolean checkFirstName(String firstName) {
-        //Controllo che il nome  non sia meno lungo di 2 caratteri e non più lungo di 30 contenente solo caratteri e numeri
+        //Controllo che il nome non sia meno lungo di 2 caratteri e non più lungo di 30 contenente solo caratteri e numeri
         return firstName!=null && (firstName.length()>=2 && firstName.length()<=30) &&
                 (firstName.matches("^[a-zA-Z]{2,}( [a-zA-Z]{2,30})?$"));
     }
