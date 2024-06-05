@@ -91,13 +91,12 @@ public class UserServiceImpl implements UserService {
 
         try {
             //Lettura da file dei domini prefissati
-            List<String> domains = Files.readAllLines(Path.of("static/domains.txt"));
+            List<String> domains = Files.readAllLines(Path.of("User-Service/src/main/resources/static/domains.txt"));
             int atIndex = email.indexOf("@");
 
             //Suddivisione in pre e post @ dell'email per controllare i due singoli pezzi
             String beforeAt = email.substring(0, atIndex);
             String afterAt = email.substring(atIndex + 1);
-
 
             //Check del before per fare in modo che non sia piùlungo di 64 caratteri e non contenga caratteri speciali
             boolean checkBefore= beforeAt.matches("^[^\\w_](?!.*[^\\w\\d]).{0,64}$"), checkDomains= true;
