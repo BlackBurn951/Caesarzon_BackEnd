@@ -45,7 +45,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean saveUser(UserRegistrationDTO userRegistrationDTO) {
-        log.debug("Dentro il saveUser prima della convalida");
         //Controllo che i campi mandati da fornt non siano null e che rispettino il formato richiesto
         if(checkUsername(userRegistrationDTO.getUsername()) &&
             checkEmail(userRegistrationDTO.getEmail()) &&

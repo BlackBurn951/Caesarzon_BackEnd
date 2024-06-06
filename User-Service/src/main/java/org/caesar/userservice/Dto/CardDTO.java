@@ -5,13 +5,14 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Getter
 @Setter
 @ToString
 public class CardDTO {
 
-    private Long id;
+    private UUID id;
     private String cardNumber;
     private String owner;
     private String cvv;

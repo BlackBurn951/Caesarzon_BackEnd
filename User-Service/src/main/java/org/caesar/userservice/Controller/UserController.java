@@ -3,10 +3,7 @@ package org.caesar.userservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Data.Services.AddressService;
-import org.caesar.userservice.Data.Services.CardService;
-import org.caesar.userservice.Data.Services.CityDataService;
-import org.caesar.userservice.Data.Services.UserService;
+import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +23,8 @@ public class UserController {
     private final AddressService addressService;
     private final CardService cardService;
     private final CityDataService cityDataService;
+    private final UserAddressService userAddressService;
+    private final UserCardService userCardService;
 
 
     //End-point per i dati anagrafici
@@ -53,18 +52,14 @@ public class UserController {
 
     //End-point per gli indirizzi
     @GetMapping("/address")
-    public ResponseEntity<AddressDTO> getAddressData(@RequestParam String addressName) {
+    public ResponseEntity<AddressDTO> getAddressData(@RequestParam("nameLista") String addressName) {
         AddressDTO addressDTO= addressService.getAddress(addressName);
 
-        log.debug("Sono nell'end-point del get address");
-        if(addressDTO!=null) {
-            log.debug("AddressDTO not null {}", addressDTO);
-            return new ResponseEntity<>(addressService.getAddress(addressName), HttpStatus.OK);
-        }else {
-            log.debug("AddressDTO null");
+        if(addressDTO!=null)
+            return new ResponseEntity<>(addressDTO, HttpStatus.OK);
+        else
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
-    }  //Check eseguito
+    }
 
     @PostMapping("/address")
     public ResponseEntity<String> manageUserAddressData(@RequestBody AddressDTO addressDTO) {
@@ -84,32 +79,40 @@ public class UserController {
         return cityDataService.getCityData(city);
     }
 
+    @GetMapping("/addresses-names")
+    public List<String> getAddressesNames() {
+        log.debug("Sono nella chiamata get address");
+        return userAddressService.getAddresses();
+    }
+
 
     //End-point per le carte
     @GetMapping("/card")
-    public ResponseEntity<CardDTO> getCardData(@RequestParam String cardName) {
+    public ResponseEntity<CardDTO> getCardData(@RequestParam("nameLista") String cardName) {
         CardDTO cardDTO = cardService.getCard(cardName);
 
         log.debug("Sono nell'end-point del get card");
         if(cardDTO!=null) {
             log.debug("CardDTO not null {}", cardDTO);
-            return new ResponseEntity<>(cardService.getCard(cardName), HttpStatus.OK);
+            return new ResponseEntity<>(cardDTO, HttpStatus.OK);
         }else {
             log.debug("CardDTO null");
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
     }  //Check fatto
 
-    @RequestMapping("/card")
-    public ResponseEntity<String> manageUserCardData(@RequestBody CardDTO cardDTO, HttpServletRequest request) {
-        boolean isUpdate;
-        isUpdate = !request.getMethod().equals("POST");
-
+    @PostMapping("/card")
+    public ResponseEntity<String> manageUserCardData(@RequestBody CardDTO cardDTO) {
         log.debug("dati in arrivo dal front {}", cardDTO);
         if (cardService.saveCard(cardDTO))
             return new ResponseEntity<>("Carta salvata!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @GetMapping("/cards-names")
+    public List<String> getCardsNames() {
+        return userCardService.getCards();
     }
 
 
@@ -119,13 +122,3 @@ public class UserController {
      */
 
 }
-
-
-
-
-
-
-
-
-
-

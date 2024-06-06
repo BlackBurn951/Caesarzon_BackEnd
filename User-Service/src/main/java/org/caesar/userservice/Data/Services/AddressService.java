@@ -5,6 +5,6 @@ import org.caesar.userservice.Dto.AddressDTO;
 
 public interface AddressService {
 
-    boolean saveOrUpdateAddress(AddressDTO addressDTO, boolean isUpdate);
+    boolean saveAddress(AddressDTO addressDTO);
     AddressDTO getAddress(String addressName);
 }

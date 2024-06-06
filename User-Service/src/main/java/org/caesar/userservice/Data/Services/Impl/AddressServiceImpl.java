@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
@@ -42,14 +43,12 @@ public class AddressServiceImpl implements AddressService {
     //I metodi CRUD delle repository hanno di base il @Transactional, ma bisogna fare il doppio passaggio
     @Transactional
     @Override
-    public boolean saveOrUpdateAddress(AddressDTO addressDTO, boolean isUpdate) {
-        log.debug("Entrato nel save or update prima della convalida dei dati");
+    public boolean saveAddress(AddressDTO addressDTO) {
         if(!checkRoadName(addressDTO.getRoadName()) ||
                 !checkHouseNumber(addressDTO.getHouseNumber()) ||
                 !checkRoadType(addressDTO.getRoadType()))
             return false;
 
-        log.debug("save or update post convalida dei dati");
         try{
             Address address = modelMapper.map(addressDTO, Address.class);
 
@@ -58,14 +57,12 @@ public class AddressServiceImpl implements AddressService {
 
             String userID = userService.getUserId().getUserId();
 
-            if(!isUpdate) {
-                UserAddressDTO userAddressDTO= new UserAddressDTO();
+            UserAddressDTO userAddressDTO= new UserAddressDTO();
 
-                userAddressDTO.setAddressId(addressID);
-                userAddressDTO.setUserId(userID);
+            userAddressDTO.setAddressId(addressID);
+            userAddressDTO.setUserId(userID);
 
-                return userAddressService.addUserAddreses(userAddressDTO);
-            }
+            return userAddressService.addUserAddreses(userAddressDTO);
         }catch(RuntimeException | Error e){
             //LOG DA IMPLEMENTARE //TODO
             e.printStackTrace(); // You should replace this with a proper logging mechanism
@@ -84,7 +81,7 @@ public class AddressServiceImpl implements AddressService {
         UserIdDTO userId = userService.getUserId();
 
         //Creazione della regex per prendersi il numero dell'indirizzo mandato dall'utente
-        Pattern pattern = Pattern.compile("([0-9]+)");
+        Pattern pattern = Pattern.compile(".*([0-9]+)");
         Matcher matcher = pattern.matcher(addressName);
 
         int addressNum;
@@ -93,7 +90,6 @@ public class AddressServiceImpl implements AddressService {
         else
             return null;
 
-        log.debug("Sono dopo la presa del numero dell'indirizzo desiderato numero indirizzo {}", addressNum);
         //Prendiamo l'indirizzo in posizione addressNum nel database nella tabella della relazione utente-indirizzo
         UserAddressDTO userAddress= userAddressService.getUserAddress(userId.getUserId(), addressNum);
 
@@ -104,7 +100,6 @@ public class AddressServiceImpl implements AddressService {
         //Prendiamo il singolo indirizzo in base all'id dell'indirizzo della tupla restituita sopra (mappando nel DTO)
         return modelMapper.map(addressRepository.findById(userAddress.getAddressId()), AddressDTO.class);
     }
-
 
 
     //Metodi per la convalida
@@ -119,7 +114,22 @@ public class AddressServiceImpl implements AddressService {
     }
 
     private boolean checkRoadType(String roadType) {
-        return roadType!=null && (roadType.length()>=3 && roadType.length()<=8) &&
-                roadType.matches("");
+        if(roadType == null)
+            return false;
+
+        try {
+            List<String> roadTypes = Files.readAllLines(Path.of("User-Service/src/main/resources/static/road-types.txt"));
+
+            for(String types: roadTypes) {
+                if(roadType.equals(types))
+                    return true;
+            }
+
+            return false;
+        } catch (IOException e) {
+            //TODO LOG GESTIONE ERRORE
+        }
+
+        return false;
     }
 }

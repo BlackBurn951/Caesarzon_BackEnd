@@ -13,5 +13,5 @@ import java.util.UUID;
 public interface UserCardRepository extends JpaRepository<UserCard, UUID> {
 
     List<UserCard> findByUserId(String userId);
-
+    int countByUserId(String userId);
 }

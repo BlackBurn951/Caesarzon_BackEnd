@@ -18,11 +18,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserAddressServiceImpl implements UserAddressService {
 
     private final UserAddressRepository userAddressRepository;
 
     private final ModelMapper modelMapper;
+
+    private final UserRepository userRepository;
 
     @Override
     public boolean addUserAddreses(UserAddressDTO userAddress) {
@@ -57,5 +60,27 @@ public class UserAddressServiceImpl implements UserAddressService {
         }
 
         return userAddressDTO;
+    }
+
+    @Override
+    public List<String> getAddresses() {
+        String userId= userRepository.getUserIdFromToken();
+
+        int num= userAddressRepository.countByUserId(userId);
+
+        log.debug("Numero di tuple tornato {}", num);
+
+        List<String> result= new Vector<>();
+        for(int i=0; i<num; i++)
+            result.add("Indirizzo "+ (i+1));
+
+        if (result.isEmpty())
+            result.add("");
+
+
+        for (String a: result)
+            log.debug("Elemento nella lista {}", a);
+
+        return result;
     }
 }

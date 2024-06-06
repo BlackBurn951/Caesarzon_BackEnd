@@ -3,7 +3,7 @@ package org.caesar.userservice.Data.Services;
 import org.caesar.userservice.Dto.CardDTO;
 
 public interface CardService {
-    boolean saveOrUpdateCard(CardDTO cardDTO, boolean isUpdate);
+    boolean saveCard(CardDTO cardDTO);
     CardDTO getCard(String cardName);
 
 }

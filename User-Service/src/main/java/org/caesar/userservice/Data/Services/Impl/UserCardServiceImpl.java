@@ -1,6 +1,8 @@
 package org.caesar.userservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Dao.UserCardRepository;
 import org.caesar.userservice.Data.Entities.UserAddress;
 import org.caesar.userservice.Data.Entities.UserCard;
@@ -9,16 +11,21 @@ import org.caesar.userservice.Dto.UserCardDTO;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
+import java.util.Vector;
+
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserCardServiceImpl implements UserCardService {
 
 
     private final UserCardRepository userCardRepository;
 
     private final ModelMapper modelMapper;
+
+    private final UserRepository userRepository;
 
     @Override
     public boolean addUserCards(UserCardDTO userCard) {
@@ -53,5 +60,27 @@ public class UserCardServiceImpl implements UserCardService {
         }
 
         return userCardDTO;
+    }
+
+    @Override
+    public List<String> getCards() {
+        String userId= userRepository.getUserIdFromToken();
+
+        int num= userCardRepository.countByUserId(userId);
+
+        log.debug("Numero di tuple tornato {}", num);
+
+        List<String> result= new Vector<>();
+        for(int i=0; i<num; i++)
+            result.add("Carta "+ (i+1));
+
+        if (result.isEmpty())
+            result.add("");
+
+
+        for (String a: result)
+            log.debug("Elemento nella lista {}", a);
+
+        return result;
     }
 }

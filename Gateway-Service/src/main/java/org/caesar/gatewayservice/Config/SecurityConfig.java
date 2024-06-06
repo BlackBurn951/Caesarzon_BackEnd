@@ -7,7 +7,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
@@ -27,6 +26,8 @@ public class SecurityConfig {
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http.addFilterBefore(corsWebFilter(), SecurityWebFiltersOrder.CORS)
                 .authorizeExchange(exchange -> exchange
+                        .pathMatchers(HttpMethod.PUT, "/user-api/user").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/user-api/user").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/city").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/city-data").permitAll()
                         .pathMatchers(HttpMethod.POST, "/user-api/address").permitAll()

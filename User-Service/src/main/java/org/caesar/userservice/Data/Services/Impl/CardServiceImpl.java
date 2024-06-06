@@ -37,7 +37,7 @@ public class CardServiceImpl implements CardService {
     //I metodi CRUD delle repository hanno di base il @Transactional, ma bisogna fare il doppio passaggio
     @Transactional
     @Override
-    public boolean saveOrUpdateCard(CardDTO cardDTO, boolean isUpdate) {
+    public boolean saveCard(CardDTO cardDTO) {
         if(!checkCardNumber(cardDTO.getCardNumber()) || !checkOwner(cardDTO.getOwner()) ||
             !checkCvv(cardDTO.getCvv()) || !checkExpiryDate(cardDTO.getExpiryDate()))
             return false;
@@ -50,22 +50,19 @@ public class CardServiceImpl implements CardService {
             String userID = userService.getUserId().getUserId();
 
 
-            if(!isUpdate) {
-                UserCardDTO userCardDTO = new UserCardDTO();
 
-                userCardDTO.setCardId(cardID);
-                userCardDTO.setUserId(userID);
+            UserCardDTO userCardDTO = new UserCardDTO();
 
-                return userCardService.addUserCards(userCardDTO);
-            }
+            userCardDTO.setCardId(cardID);
+            userCardDTO.setUserId(userID);
+
+            return userCardService.addUserCards(userCardDTO);
         }catch(RuntimeException | Error e){
             //LOG DA IMPLEMENTARE //TODO
             e.printStackTrace(); // You should replace this with a proper logging mechanism
 
             return false;
         }
-
-        return true;
     }
 
     @Override
@@ -74,7 +71,7 @@ public class CardServiceImpl implements CardService {
         UserIdDTO userId = userService.getUserId();
 
         //Scrittura della regex per prendere il numero della carta desiderata
-        Pattern pattern = Pattern.compile("([0-9]+)");
+        Pattern pattern = Pattern.compile(".*([0-9]+)");
         Matcher matcher = pattern.matcher(cardName);
 
         int cardNumber;
