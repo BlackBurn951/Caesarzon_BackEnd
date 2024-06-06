@@ -15,6 +15,10 @@ import org.caesar.userservice.Dto.UserAddressDTO;
 import org.caesar.userservice.Dto.UserIdDTO;
 import org.modelmapper.ModelMapper;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,8 +37,6 @@ public class AddressServiceImpl implements AddressService {
     private final UserAddressService userAddressService;
 
     private final UserService userService;
-
-
 
 
     //I metodi CRUD delle repository hanno di base il @Transactional, ma bisogna fare il doppio passaggio
@@ -71,7 +73,6 @@ public class AddressServiceImpl implements AddressService {
             return false;
         }
 
-        return true;
     }
 
 

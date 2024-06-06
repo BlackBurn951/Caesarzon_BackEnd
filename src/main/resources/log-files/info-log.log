@@ -25,3 +25,5 @@
 05:06:2024 27:54:05 [34mDEBUG[0;39m [33mo.c.u.D.S.Impl.UserServiceImpl[0;39m - Dentro il updateUser prima della convalida 
 05:06:2024 31:07:06 [34mDEBUG[0;39m [33mo.c.u.Controller.UserController[0;39m - Dati in ingresso alduzzo Aldoddasdasd 
 05:06:2024 31:07:06 [34mDEBUG[0;39m [33mo.c.u.D.S.Impl.UserServiceImpl[0;39m - Dentro il updateUser prima della convalida 
+05:06:2024 29:27:06 [34mDEBUG[0;39m [33mo.c.u.D.S.Impl.UserServiceImpl[0;39m - Dentro il saveUser prima della convalida 
+05:06:2024 58:27:06 [34mDEBUG[0;39m [33mo.c.u.D.S.Impl.UserServiceImpl[0;39m - Dentro il saveUser prima della convalida 

@@ -1,13 +1,19 @@
 package org.caesar.userservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.caesar.userservice.Config.JwtConverter;
+import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Dao.UserAddressRepository;
 import org.caesar.userservice.Data.Entities.UserAddress;
 import org.caesar.userservice.Data.Services.UserAddressService;
 import org.caesar.userservice.Dto.UserAddressDTO;
 import org.modelmapper.ModelMapper;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,7 +40,7 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     @Override
     public UserAddressDTO getUserAddress(String userId, int addressNum) {
-        
+
         //Presa della lista degli inidirizzi del singolo utente
         List<UserAddress> userAddresses = userAddressRepository.findByUserId(userId);
 

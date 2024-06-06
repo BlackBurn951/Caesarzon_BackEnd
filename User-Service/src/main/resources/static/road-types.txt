@@ -1,0 +1,9 @@
+Via
+Vicolo
+Viale
+Traversa
+Borgo
+Piazzale
+Piazza
+Largo
+Lungarno

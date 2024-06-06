@@ -66,12 +66,9 @@ public class UserController {
         }
     }  //Check eseguito
 
-    @RequestMapping("/address")
-    public ResponseEntity<String> manageUserAddressData(@RequestBody AddressDTO addressDTO, HttpServletRequest request) {
-        boolean isUpdate;
-        isUpdate = !request.getMethod().equals("POST");
-
-        if(addressService.saveOrUpdateAddress(addressDTO, isUpdate))
+    @PostMapping("/address")
+    public ResponseEntity<String> manageUserAddressData(@RequestBody AddressDTO addressDTO) {
+        if(addressService.saveAddress(addressDTO))
             return new ResponseEntity<>("Indirizzo salvato!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -109,7 +106,7 @@ public class UserController {
         isUpdate = !request.getMethod().equals("POST");
 
         log.debug("dati in arrivo dal front {}", cardDTO);
-        if (cardService.saveOrUpdateCard(cardDTO, isUpdate))
+        if (cardService.saveCard(cardDTO))
             return new ResponseEntity<>("Carta salvata!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);

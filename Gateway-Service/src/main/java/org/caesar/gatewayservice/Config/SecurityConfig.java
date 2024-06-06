@@ -30,8 +30,12 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/user-api/city").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/city-data").permitAll()
                         .pathMatchers(HttpMethod.POST, "/user-api/address").permitAll()
-                        .pathMatchers(HttpMethod.PUT, "/user-api/user").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/user-api/user").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/user-api/address").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/user-api/addresses-names").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/user-api/card").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/user-api/card").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/user-api/cards-name").permitAll()
+
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));

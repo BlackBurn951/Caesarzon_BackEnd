@@ -220,4 +220,11 @@ public class UserRepositoryImpl implements UserRepository {
         }
         return response;
     }
+
+    @Override
+    public String getUserIdFromToken() {
+        return this.findUserByUsername(jwtConverter.getUsernameFromToken()).getId();
+    }
+
+
 }
