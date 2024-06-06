@@ -94,7 +94,7 @@ public class CardServiceImpl implements CardService {
         return modelMapper.map(cardRepository.findById(userCard.getCardId()), CardDTO.class);
     }
 
-ao
+
     //Metodi per la convalida
     private boolean checkCardNumber(String cardNumber) {
         return cardNumber!=null && cardNumber.matches("[0-9]{16}");
