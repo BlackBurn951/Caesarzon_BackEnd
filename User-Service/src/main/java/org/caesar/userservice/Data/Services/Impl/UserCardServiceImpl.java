@@ -36,10 +36,13 @@ public class UserCardServiceImpl implements UserCardService {
 
     @Override
     public UserCardDTO getUserCard(String userId, int cardNum) {
+
+        //Presa della lista delle carte associate all'utente
         List<UserCard> userCardVector = userCardRepository.findByUserId(userId);
 
         int count= 0;
 
+        //Presa della carta registrata in posizione cardNum
         UserCardDTO userCardDTO = null;
         for(UserCard userCard : userCardVector){
             count+=1;
@@ -48,7 +51,6 @@ public class UserCardServiceImpl implements UserCardService {
                 break;
             }
         }
-
 
         return userCardDTO;
     }

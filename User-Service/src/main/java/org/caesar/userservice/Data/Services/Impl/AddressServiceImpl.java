@@ -82,18 +82,23 @@ public class AddressServiceImpl implements AddressService {
         //Prendiamp l'id dell'utente attualmente attivo
         UserIdDTO userId = userService.getUserId();
 
-        //Conversione della stringa mandata dal client in INT
-        Pattern pattern = Pattern.compile("\\d+");
+        //Creazione della regex per prendersi il numero dell'indirizzo mandato dall'utente
+        Pattern pattern = Pattern.compile("([0-9]+)");
         Matcher matcher = pattern.matcher(addressName);
-        StringBuilder numbers = new StringBuilder();
-        while (matcher.find()) {
-            numbers.append(matcher.group());
-        }
 
-        int addressNum = Integer.parseInt(numbers.toString());
+        int addressNum;
+        if(matcher.matches())
+            addressNum = Integer.parseInt(matcher.group(1));
+        else
+            return null;
 
+        log.debug("Sono dopo la presa del numero dell'indirizzo desiderato numero indirizzo {}", addressNum);
         //Prendiamo l'indirizzo in posizione addressNum nel database nella tabella della relazione utente-indirizzo
         UserAddressDTO userAddress= userAddressService.getUserAddress(userId.getUserId(), addressNum);
+
+        //Ritorno valore null nel caso ci sia un problema nella ricerca degli indirizzi dell'utente
+        if(userAddress==null)
+            return null;
 
         //Prendiamo il singolo indirizzo in base all'id dell'indirizzo della tupla restituita sopra (mappando nel DTO)
         return modelMapper.map(addressRepository.findById(userAddress.getAddressId()), AddressDTO.class);

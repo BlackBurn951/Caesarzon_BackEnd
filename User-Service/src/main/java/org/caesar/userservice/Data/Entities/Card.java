@@ -3,6 +3,7 @@ package org.caesar.userservice.Data.Entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Table(name ="carte")
 @Getter
 @Setter
+@ToString
 public class Card {
 
     @Id
@@ -28,8 +30,5 @@ public class Card {
     private String cvv;
 
     @Column(name = "data_scadenza")
-    private LocalDate expirationDate;
-
-
-
+    private String expiryDate;
 }

@@ -38,7 +38,6 @@ public class CardServiceImpl implements CardService {
     @Transactional
     @Override
     public boolean saveOrUpdateCard(CardDTO cardDTO, boolean isUpdate) {
-        log.debug("Dentro il save or update prima della convalida");
         if(!checkCardNumber(cardDTO.getCardNumber()) || !checkOwner(cardDTO.getOwner()) ||
             !checkCvv(cardDTO.getCvv()) || !checkExpiryDate(cardDTO.getExpiryDate()))
             return false;
@@ -74,17 +73,23 @@ public class CardServiceImpl implements CardService {
 
         UserIdDTO userId = userService.getUserId();
 
-        Pattern pattern = Pattern.compile("\\d+");
+        //Scrittura della regex per prendere il numero della carta desiderata
+        Pattern pattern = Pattern.compile("([0-9]+)");
         Matcher matcher = pattern.matcher(cardName);
-        StringBuilder numbers = new StringBuilder();
-        while (matcher.find()) {
-            numbers.append(matcher.group());
-        }
 
-        int cardNum = Integer.parseInt(numbers.toString());
+        int cardNumber;
+        if(matcher.matches())
+            cardNumber = Integer.parseInt(matcher.group(1));
+        else
+            return null;
 
+        log.debug("Sono dopo la presa del numero della carta desiderata numero carta {}", cardNumber);
 
-        UserCardDTO userCard= userCardService.getUserCard(userId.getUserId(), cardNum);
+        UserCardDTO userCard= userCardService.getUserCard(userId.getUserId(), cardNumber);
+
+        //Ritorno di un valore null in caso di problemi nella presa della carta desiderata
+        if(userCard==null)
+            return null;
 
         return modelMapper.map(cardRepository.findById(userCard.getCardId()), CardDTO.class);
     }
@@ -92,7 +97,7 @@ public class CardServiceImpl implements CardService {
 
     //Metodi per la convalida
     private boolean checkCardNumber(String cardNumber) {
-        return cardNumber!=null && cardNumber.length()==10 && cardNumber.matches("[0-9]{10}");
+        return cardNumber!=null && cardNumber.matches("[0-9]{16}");
     }
 
     private boolean checkOwner(String owner) {
@@ -104,8 +109,27 @@ public class CardServiceImpl implements CardService {
         return cvv!=null && cvv.matches("[0-9]{3}$");
     }
 
-    private boolean checkExpiryDate(LocalDate expiryDate) {
-        log.debug("Data mandata da front: "+expiryDate+"\nData del local date"+LocalDate.now());
-        return expiryDate!=null && expiryDate.isAfter(LocalDate.now());
+    private boolean checkExpiryDate(String expiryDate) {
+
+        //Controllo che la variabile della data non sia nulla o di lunghezza 0
+        if(expiryDate==null || expiryDate.isEmpty())
+            return false;
+
+        //Regex per separare l'anno dal mese
+        Pattern pattern = Pattern.compile("([0-9]+)-([0-9]+)");
+        Matcher matcher = pattern.matcher(expiryDate);
+
+        int month=0, year=0;
+        if(matcher.matches()) {
+            month = Integer.parseInt(matcher.group(2));
+            year = Integer.parseInt(matcher.group(1));
+        }
+
+        //Presa della data attuale e separazione tra mese e anno
+        LocalDate date = LocalDate.now();
+
+        int actualMonth = date.getMonthValue(), actualYear = date.getYear();
+
+        return month>=actualMonth && year>=actualYear;
     }
 }

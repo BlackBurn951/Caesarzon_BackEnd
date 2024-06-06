@@ -34,19 +34,21 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     @Override
     public UserAddressDTO getUserAddress(String userId, int addressNum) {
-        List<UserAddress> userAddressVector = userAddressRepository.findByUserId(userId);
+        
+        //Presa della lista degli inidirizzi del singolo utente
+        List<UserAddress> userAddresses = userAddressRepository.findByUserId(userId);
 
         int count= 0;
 
+        //Scorrimento della lista degli indirizzi ricercando quello in posizione addressNum
         UserAddressDTO userAddressDTO = null;
-        for(UserAddress userAddress : userAddressVector){
+        for(UserAddress userAddress : userAddresses){
             count+=1;
             if(count == addressNum){
                 userAddressDTO= modelMapper.map(userAddress, UserAddressDTO.class);
                 break;
             }
         }
-
 
         return userAddressDTO;
     }

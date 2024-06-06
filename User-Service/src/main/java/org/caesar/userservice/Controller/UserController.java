@@ -54,8 +54,17 @@ public class UserController {
     //End-point per gli indirizzi
     @GetMapping("/address")
     public ResponseEntity<AddressDTO> getAddressData(@RequestParam String addressName) {
-        return new ResponseEntity<AddressDTO>(addressService.getAddress(addressName), HttpStatus.OK);
-    }
+        AddressDTO addressDTO= addressService.getAddress(addressName);
+
+        log.debug("Sono nell'end-point del get address");
+        if(addressDTO!=null) {
+            log.debug("AddressDTO not null {}", addressDTO);
+            return new ResponseEntity<>(addressService.getAddress(addressName), HttpStatus.OK);
+        }else {
+            log.debug("AddressDTO null");
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+    }  //Check eseguito
 
     @RequestMapping("/address")
     public ResponseEntity<String> manageUserAddressData(@RequestBody AddressDTO addressDTO, HttpServletRequest request) {
@@ -82,14 +91,24 @@ public class UserController {
     //End-point per le carte
     @GetMapping("/card")
     public ResponseEntity<CardDTO> getCardData(@RequestParam String cardName) {
-        return new ResponseEntity<CardDTO>(cardService.getCard(cardName), HttpStatus.OK);
-    }
+        CardDTO cardDTO = cardService.getCard(cardName);
+
+        log.debug("Sono nell'end-point del get card");
+        if(cardDTO!=null) {
+            log.debug("CardDTO not null {}", cardDTO);
+            return new ResponseEntity<>(cardService.getCard(cardName), HttpStatus.OK);
+        }else {
+            log.debug("CardDTO null");
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+    }  //Check fatto
 
     @RequestMapping("/card")
     public ResponseEntity<String> manageUserCardData(@RequestBody CardDTO cardDTO, HttpServletRequest request) {
         boolean isUpdate;
         isUpdate = !request.getMethod().equals("POST");
 
+        log.debug("dati in arrivo dal front {}", cardDTO);
         if (cardService.saveOrUpdateCard(cardDTO, isUpdate))
             return new ResponseEntity<>("Carta salvata!", HttpStatus.OK);
         else
