@@ -17,4 +17,5 @@ public interface UserRepository {
     boolean updateUser(UserDTO userDTO);
     boolean savePhoneNumber(PhoneNumberDTO phoneNumberDTO);
     String getUserIdFromToken();
+    boolean deleteUser(String username);
 }

@@ -8,10 +8,12 @@ import org.caesar.userservice.Data.Dao.UserAddressRepository;
 import org.caesar.userservice.Data.Entities.UserAddress;
 import org.caesar.userservice.Data.Services.UserAddressService;
 import org.caesar.userservice.Dto.UserAddressDTO;
+import org.caesar.userservice.Dto.UserCardDTO;
 import org.modelmapper.ModelMapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.Vector;
 
 import org.springframework.stereotype.Service;
@@ -33,7 +35,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         try{
             UserAddress userAddressEntity = modelMapper.map(userAddress, UserAddress.class);
             userAddressRepository.save(userAddressEntity);
-        } catch (RuntimeException | Error e){
+        } catch (Exception e){
             //TODO Log
             return false;
         }
@@ -68,8 +70,6 @@ public class UserAddressServiceImpl implements UserAddressService {
 
         int num= userAddressRepository.countByUserId(userId);
 
-        log.debug("Numero di tuple tornato {}", num);
-
         List<String> result= new Vector<>();
         for(int i=0; i<num; i++)
             result.add("Indirizzo "+ (i+1));
@@ -77,10 +77,47 @@ public class UserAddressServiceImpl implements UserAddressService {
         if (result.isEmpty())
             result.add("");
 
+        return result;
+    }
 
-        for (String a: result)
-            log.debug("Elemento nella lista {}", a);
+    @Override
+    public List<UserAddressDTO> getUserAddresses(String userId) {
+        List<UserAddressDTO> result= new Vector<>();
+
+        List<UserAddress> userAddresses = userAddressRepository.findByUserId(userId);
+
+        for(UserAddress ut: userAddresses) {
+            result.add(modelMapper.map(ut, UserAddressDTO.class));
+        }
 
         return result;
+    }
+
+    @Override
+    public boolean deleteUserAddress(UserAddressDTO userAddressDTO) {
+        try {
+            userAddressRepository.deleteById(userAddressDTO.getId());
+            return true;
+        } catch (Exception e) {
+            log.debug("Problemi nella cancellazione della tupla  di relazione indirizzo utente");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean deleteUserAddresses(List<UserAddressDTO> userAddresses) {
+        try {
+            List<UUID> ids= new Vector<>();
+
+            for(UserAddressDTO userAddress : userAddresses) {
+                ids.add(userAddress.getId());
+            }
+
+            userAddressRepository.deleteAllById(ids);
+            return true;
+        } catch (Exception e) {
+            log.debug("Errore nella cancellazione di tutte le tuple nella abella di relazione utente indirizzi");
+            return false;
+        }
     }
 }

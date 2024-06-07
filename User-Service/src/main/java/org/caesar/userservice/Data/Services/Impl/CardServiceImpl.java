@@ -12,11 +12,12 @@ import org.caesar.userservice.Dto.*;
 import org.modelmapper.ModelMapper;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -71,14 +72,8 @@ public class CardServiceImpl implements CardService {
         UserIdDTO userId = userService.getUserId();
 
         //Scrittura della regex per prendere il numero della carta desiderata
-        Pattern pattern = Pattern.compile(".*([0-9]+)");
-        Matcher matcher = pattern.matcher(cardName);
 
-        int cardNumber;
-        if(matcher.matches())
-            cardNumber = Integer.parseInt(matcher.group(1));
-        else
-            return null;
+        int cardNumber= getCardName(cardName);
 
         log.debug("Sono dopo la presa del numero della carta desiderata numero carta {}", cardNumber);
 
@@ -91,6 +86,51 @@ public class CardServiceImpl implements CardService {
         return modelMapper.map(cardRepository.findById(userCard.getCardId()), CardDTO.class);
     }
 
+    @Override
+    @Transactional
+    public boolean deleteCard(String cardName) {
+        UserIdDTO userId = userService.getUserId();
+
+        int cardNumber= getCardName(cardName);
+
+        if(cardNumber == 0)
+            return false;
+
+        UserCardDTO userCard= userCardService.getUserCard(userId.getUserId(), cardNumber);
+
+        try {
+            if(userCardService.deleteUserCard(userCard)) {
+                cardRepository.deleteById(userCard.getCardId());
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            log.debug("Errore nella cancellazione della carta");
+            return false;
+        }
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteUserCards(String userId) {
+        List<UserCardDTO> userCards= userCardService.getUserCards(userId);
+
+        List<UUID> cardId= new Vector<>();
+        for(UserCardDTO userAddress: userCards) {
+            cardId.add(userAddress.getCardId());
+        }
+
+        try {
+            if(userCardService.deleteUserCards(userCards)) {
+                cardRepository.deleteAllById(cardId);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            log.debug("Problemi nell'eliminazione di tutti gli indirizzi");
+            return false;
+        }
+    }
 
     //Metodi per la convalida
     private boolean checkCardNumber(String cardNumber) {
@@ -128,5 +168,16 @@ public class CardServiceImpl implements CardService {
         int actualMonth = date.getMonthValue(), actualYear = date.getYear();
 
         return month>=actualMonth && year>=actualYear;
+    }
+
+    private int getCardName(String cardName) {
+        Pattern pattern = Pattern.compile(".*([0-9]+)");
+        Matcher matcher = pattern.matcher(cardName);
+
+        int cardNumber=0;
+        if(matcher.matches())
+            cardNumber = Integer.parseInt(matcher.group(1));
+
+        return cardNumber;
     }
 }

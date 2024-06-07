@@ -33,6 +33,7 @@ public class UserRepositoryImpl implements UserRepository {
     private final Keycloak keycloak;
 
 
+    //Metodi per la ricerca dell'utente
     @Override
     public User findUserById(String id) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
@@ -52,6 +53,7 @@ public class UserRepositoryImpl implements UserRepository {
         return user;
     }
 
+    @Override
     public List<User> findAllUsers() {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
 
@@ -100,31 +102,13 @@ public class UserRepositoryImpl implements UserRepository {
         return setUser(false, username);
     }
 
-    public User setUser(boolean type, String field) {
-        RealmResource realmResource = keycloak.realm("CaesarRealm");
-
-        List<UserRepresentation> usersResource;
-
-        if(type){
-            usersResource = realmResource.users().searchByEmail(field, true);
-        }else{
-            usersResource = realmResource.users().searchByUsername(field, true);
-        }
-
-        User user = new User();
-
-        user.setId(usersResource.getFirst().getId());
-        user.setFirstName(usersResource.getFirst().getFirstName());
-        user.setLastName(usersResource.getFirst().getLastName());
-        user.setUsername(usersResource.getFirst().getUsername());
-        user.setEmail(usersResource.getFirst().getEmail());
-        if(usersResource.getFirst().getAttributes() != null)
-            user.setPhoneNumber(usersResource.getFirst().getAttributes().get("phoneNumber").get(0));
-
-        return user;
+    @Override
+    public String getUserIdFromToken() {
+        return this.findUserByUsername(jwtConverter.getUsernameFromToken()).getId();
     }
 
 
+    //Metodi per la gestione dell'utente
     @Override
     public boolean saveUser(UserRegistrationDTO userData) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
@@ -175,7 +159,6 @@ public class UserRepositoryImpl implements UserRepository {
         UserResource userResource = realmResource.users().get(userKeycloak.getId());
 
         UserRepresentation user = new UserRepresentation();
-        user.setUsername(userData.getUsername());
         user.setFirstName(userData.getFirstName());
         user.setLastName(userData.getLastName());
         user.setEmail(userData.getEmail());
@@ -222,9 +205,46 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public String getUserIdFromToken() {
-        return this.findUserByUsername(jwtConverter.getUsernameFromToken()).getId();
+    public boolean deleteUser(String username) {
+        String userId= findUserByUsername(username).getId();
+
+        UserResource userResource= keycloak.realm("CaesarRealm").users().get(userId);
+
+        log.debug("Nella repository user prima del delete");
+        try {
+            userResource.remove();
+        } catch (Exception e) {
+            log.debug("Errore nella cancellazione dell'utente");
+            return false;
+        }
+        log.debug("Nella repository user dopo la delete");
+
+        return true;
     }
 
 
+    //Metodi di servizio
+    private User setUser(boolean type, String field) {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+
+        List<UserRepresentation> usersResource;
+
+        if(type){
+            usersResource = realmResource.users().searchByEmail(field, true);
+        }else{
+            usersResource = realmResource.users().searchByUsername(field, true);
+        }
+
+        User user = new User();
+
+        user.setId(usersResource.getFirst().getId());
+        user.setFirstName(usersResource.getFirst().getFirstName());
+        user.setLastName(usersResource.getFirst().getLastName());
+        user.setUsername(usersResource.getFirst().getUsername());
+        user.setEmail(usersResource.getFirst().getEmail());
+        if(usersResource.getFirst().getAttributes() != null)
+            user.setPhoneNumber(usersResource.getFirst().getAttributes().get("phoneNumber").get(0));
+
+        return user;
+    }
 }

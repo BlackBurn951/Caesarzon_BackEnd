@@ -3,9 +3,7 @@ package org.caesar.userservice.Data.Services.Impl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Dao.AddressRepository;
-import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Entities.Address;
 import org.caesar.userservice.Data.Services.AddressService;
 import org.caesar.userservice.Data.Services.UserAddressService;
@@ -72,7 +70,6 @@ public class AddressServiceImpl implements AddressService {
 
     }
 
-
     //Metodo per ottenere il singolo indirizzo e restituirlo al client
     @Override
     public AddressDTO getAddress(String addressName) {
@@ -80,14 +77,9 @@ public class AddressServiceImpl implements AddressService {
         //Prendiamp l'id dell'utente attualmente attivo
         UserIdDTO userId = userService.getUserId();
 
-        //Creazione della regex per prendersi il numero dell'indirizzo mandato dall'utente
-        Pattern pattern = Pattern.compile(".*([0-9]+)");
-        Matcher matcher = pattern.matcher(addressName);
+        int addressNum= getAddressNumber(addressName);
 
-        int addressNum;
-        if(matcher.matches())
-            addressNum = Integer.parseInt(matcher.group(1));
-        else
+        if(addressNum == 0)
             return null;
 
         //Prendiamo l'indirizzo in posizione addressNum nel database nella tabella della relazione utente-indirizzo
@@ -99,6 +91,52 @@ public class AddressServiceImpl implements AddressService {
 
         //Prendiamo il singolo indirizzo in base all'id dell'indirizzo della tupla restituita sopra (mappando nel DTO)
         return modelMapper.map(addressRepository.findById(userAddress.getAddressId()), AddressDTO.class);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteAddress(String addressName) {
+        UserIdDTO userId = userService.getUserId();
+
+        int addressNum= getAddressNumber(addressName);
+
+        if(addressNum == 0)
+            return false;
+
+        UserAddressDTO userAddress= userAddressService.getUserAddress(userId.getUserId(), addressNum);
+
+        try {
+            if(userAddressService.deleteUserAddress(userAddress)) {
+                addressRepository.deleteById(userAddress.getAddressId());
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            log.debug("Errore nella cancellazione dell'indirizzo");
+            return false;
+        }
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteAllUserAddresses(String userId) {
+        List<UserAddressDTO> userAddresses= userAddressService.getUserAddresses(userId);
+
+        List<UUID> addressId= new Vector<>();
+        for(UserAddressDTO userAddress: userAddresses) {
+            addressId.add(userAddress.getAddressId());
+        }
+
+        try {
+            if(userAddressService.deleteUserAddresses(userAddresses)) {
+                addressRepository.deleteAllById(addressId);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            log.debug("Problemi nell'eliminazione di tutti gli indirizzi");
+            return false;
+        }
     }
 
 
@@ -131,5 +169,17 @@ public class AddressServiceImpl implements AddressService {
         }
 
         return false;
+    }
+
+    private int getAddressNumber(String addressName) {
+        //Creazione della regex per prendersi il numero dell'indirizzo mandato dall'utente
+        Pattern pattern = Pattern.compile(".*([0-9]+)");
+        Matcher matcher = pattern.matcher(addressName);
+
+        int addressNum= 0;
+        if(matcher.matches())
+            addressNum = Integer.parseInt(matcher.group(1));
+
+        return addressNum;
     }
 }

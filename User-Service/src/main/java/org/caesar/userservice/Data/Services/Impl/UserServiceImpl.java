@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
+import org.caesar.userservice.Data.Services.AddressService;
+import org.caesar.userservice.Data.Services.CardService;
 import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.UserDTO;
@@ -25,6 +27,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final JwtConverter jwtConverter;
     private final ModelMapper modelMapper;
+    private final AddressService addressService;
+    private final CardService cardService;
 
 
     @Override
@@ -69,6 +73,23 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
+    @Override
+    public boolean deleteUser() {
+        String userid= jwtConverter.getUsernameFromToken();
+
+        boolean userDelete, addressesDelete, cardsDelete;
+        //TODO CHIAMATA AI SERVIZI DI CARTE E INDIRIZZI(IN FUTURO TUTTO IL RESTO)
+        try {
+            userDelete= userRepository.deleteUser(userid);
+            addressesDelete= addressService.deleteAllUserAddresses(userid);
+            cardsDelete= cardService.deleteUserCards(userid);
+
+            return userDelete && addressesDelete && cardsDelete;
+        } catch (Exception e) {
+            log.debug("Errori nella cancellazione dell'utente");
+            return false;
+        }
+    }
 
 
     //Metodi per la convalida dei dati

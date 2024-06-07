@@ -3,6 +3,7 @@ package org.caesar.userservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.userservice.Data.Dao.CardRepository;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ public class UserController {
     private final UserCardService userCardService;
 
 
-    //End-point per i dati anagrafici
+    //End-point per gli utenti
     @GetMapping("/user")
     public ResponseEntity<UserDTO> getUserData() {
         return new ResponseEntity<UserDTO>(userService.getUser(), HttpStatus.OK);
@@ -47,6 +48,16 @@ public class UserController {
             return new ResponseEntity<>("User registrato!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'aggiornamento...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @DeleteMapping("/user")
+    public ResponseEntity<String> deleteUser() {
+        boolean result= userService.deleteUser();
+
+        if(result)
+            return new ResponseEntity<>("User eliminato", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nella cancellazione dell'user", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
@@ -85,6 +96,16 @@ public class UserController {
         return userAddressService.getAddresses();
     }
 
+    @DeleteMapping("/address")
+    public ResponseEntity<String> deleteAddress(@RequestParam("addr") String addressName) {
+        boolean result= addressService.deleteAddress(addressName);
+
+        if(result)
+            return new ResponseEntity<>("Indirizzo eliminato", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nell'eliminazione", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
     //End-point per le carte
     @GetMapping("/card")
@@ -115,6 +136,16 @@ public class UserController {
         return userCardService.getCards();
     }
 
+    @DeleteMapping("/card")
+    public ResponseEntity<String> deleteCard(@RequestParam("crd") String cardName) {
+        boolean result= cardService.deleteCard(cardName);
+
+        if(result)
+            return new ResponseEntity<>("Carta eliminata", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nell'eliminazione", HttpStatus.INTERNAL_SERVER_ERROR);
+
+    }
 
     /*aggiungere i seguenti end-point:
 
