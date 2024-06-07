@@ -1,5 +1,6 @@
 package org.caesar.userservice.Data.Dao.KeycloakDAO;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Config.JwtConverter;
@@ -110,6 +111,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     //Metodi per la gestione dell'utente
     @Override
+    @Transactional
     public boolean saveUser(UserRegistrationDTO userData) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
 
@@ -152,6 +154,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    @Transactional
     public boolean updateUser(UserDTO userData) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
 
@@ -176,6 +179,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    @Transactional
     public boolean savePhoneNumber(PhoneNumberDTO phoneNumberDTO) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
         String username = jwtConverter.getUsernameFromToken();
@@ -205,6 +209,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    @Transactional
     public boolean deleteUser(String username) {
         String userId= findUserByUsername(username).getId();
 
