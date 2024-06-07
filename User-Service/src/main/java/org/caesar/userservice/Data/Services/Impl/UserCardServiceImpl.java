@@ -7,8 +7,10 @@ import org.caesar.userservice.Data.Dao.UserCardRepository;
 import org.caesar.userservice.Data.Entities.UserAddress;
 import org.caesar.userservice.Data.Entities.UserCard;
 import org.caesar.userservice.Data.Services.UserCardService;
+import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.UserAddressDTO;
 import org.caesar.userservice.Dto.UserCardDTO;
+import org.caesar.userservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
@@ -29,10 +31,15 @@ public class UserCardServiceImpl implements UserCardService {
 
     private final UserRepository userRepository;
 
+    private final Utils utils;
+
     @Override
     public boolean addUserCards(UserCardDTO userCard) {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
+            String userId= utils.getUserId().getUserId();
+
+            userCard.setUserId(userId);
             UserCard userCardEntity = modelMapper.map(userCard, UserCard.class);
             userCardRepository.save(userCardEntity);
         } catch (RuntimeException | Error e){
@@ -44,8 +51,9 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public UserCardDTO getUserCard(String userId, int cardNum) {
+    public UserCardDTO getUserCard(int cardNum) {
 
+        String userId= utils.getUserId().getUserId();
         //Presa della lista delle carte associate all'utente
         List<UserCard> userCardVector = userCardRepository.findByUserId(userId);
 
