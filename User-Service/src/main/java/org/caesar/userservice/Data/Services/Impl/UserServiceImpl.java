@@ -33,17 +33,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO getUser() {
-        String username= jwtConverter.getUsernameFromToken();
+        try {
+            //Presa dell'username dell'utente dal token
+            String username = jwtConverter.getUsernameFromToken();
 
-        UserDTO userDTO= modelMapper.map(userRepository.findUserByUsername(username), UserDTO.class);
-        userDTO.setId("");
+            //Conversione dell'oggetto entity in un oggetto DTO per poi privarlo dell'id per non farlo girare sulla rete
+            UserDTO userDTO = modelMapper.map(userRepository.findUserByUsername(username), UserDTO.class);
+            userDTO.setId("");
 
-        return userDTO;
+            return userDTO;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella presa dei dati dell'utente");
+            return null;
+        }
     }
 
     @Override
     public boolean saveUser(UserRegistrationDTO userRegistrationDTO) {
-        //Controllo che i campi mandati da fornt non siano null e che rispettino il formato richiesto
+        //Controllo che i campi mandati da front non siano null e che rispettino il formato richiesto
         if(checkUsername(userRegistrationDTO.getUsername()) &&
             checkEmail(userRegistrationDTO.getEmail()) &&
             checkFirstName(userRegistrationDTO.getFirstName()) &&
@@ -56,7 +63,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean updateUser(UserDTO userDTO) {
-
         //Controllo che i campi mandati da front non siano null e che rispettino il formato richiesto
         if(checkUsername(userDTO.getUsername()) &&
                 checkEmail(userDTO.getEmail()) &&
@@ -106,8 +112,8 @@ public class UserServiceImpl implements UserService {
             String beforeAt = email.substring(0, atIndex);
             String afterAt = email.substring(atIndex + 1);
 
-            //Check del before per fare in modo che non sia piùlungo di 64 caratteri e non contenga caratteri speciali
-            boolean checkBefore= beforeAt.matches("^[a-zA-Z0-9 ]{1,64}$"), checkDomains= true;
+            //Check del before per fare in modo che non sia più lungo di 64 caratteri e non contenga caratteri speciali
+            boolean checkBefore= beforeAt.matches("^[a-zA-Z0-9]{1,64}$");
 
             if(checkBefore) {
                 for(String domain : domains) {
@@ -117,15 +123,16 @@ public class UserServiceImpl implements UserService {
                 }
             }
         } catch(IOException e) {
-            //TODO Log da implementare
+            log.debug("Errore nell'apertura del file dei domini accettati");
+            return false;
         }
         return false;
     }
 
     private boolean checkFirstName(String firstName) {
-        //Controllo che il nome non sia meno lungo di 2 caratteri e non più lungo di 30 contenente solo caratteri e numeri
+        //Controllo che il nome non nullo, sia meno lungo di 2 caratteri e non più lungo di 30 contenente solo caratteri e numeri
         return firstName!=null && (firstName.length()>=2 && firstName.length()<=30) &&
-                (firstName.matches("^[a-zA-Z]{2,}( [a-zA-Z]{2,30})?$"));
+                (firstName.matches("^[a-zA-Z]{2,}([a-zA-Z]{2,30})?$"));
     }
 
     private boolean checkLastName(String lastName) {
@@ -135,13 +142,13 @@ public class UserServiceImpl implements UserService {
     }
 
     private boolean checkCredentialValue(String credentialvalue) {
-        //Controllo che la password non sia meno lunga di 8 caratteri e non più lunga di 20 contenente caratteri speciali e numeri
+        //Controllo che la password non sia nulla, meno lunga di 8 caratteri e non più lunga di 20 contenente caratteri speciali e numeri
         return credentialvalue!=null && (credentialvalue.length()>=8 && credentialvalue.length()<=20) &&
                 (credentialvalue.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+])[A-Za-z\\d!@#$%^?&*()_+]{8,20}$"));
     }
 
     private boolean checkPhoneNumber(String phoneNumber) {
-        //Controllo che il numero di telefono contenga solo numeri e sia lungo esattamente 10 caratteri
-        return phoneNumber==null || phoneNumber.matches("[0-9]{10}");
+        //Controllo che il numero di telefono non sia nullo, contenga solo numeri e sia lungo esattamente 10 caratteri
+        return phoneNumber!=null && phoneNumber.matches("[0-9]{10}");
     }
 }

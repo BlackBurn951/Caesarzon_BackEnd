@@ -1,9 +1,8 @@
 package org.caesar.userservice.Controller;
 
-import jakarta.servlet.http.HttpServletRequest;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Data.Dao.CardRepository;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.springframework.http.HttpStatus;
@@ -33,7 +32,12 @@ public class UserController {
     //End-point per gli utenti
     @GetMapping("/user")
     public ResponseEntity<UserDTO> getUserData() {
-        return new ResponseEntity<UserDTO>(userService.getUser(), HttpStatus.OK);
+        UserDTO userDTO = userService.getUser();
+
+        if(userDTO != null)
+            return new ResponseEntity<>(userDTO, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @PostMapping("/user")
@@ -47,20 +51,21 @@ public class UserController {
     @PutMapping("/user")
     public ResponseEntity<String> putUserData(@RequestBody UserDTO userData) {
         if(userService.updateUser(userData))
-            return new ResponseEntity<>("User registrato!", HttpStatus.OK);
+            return new ResponseEntity<>("User aggiornato!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'aggiornamento...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @DeleteMapping("/user")
+    @DeleteMapping("/user") //FIXME aggiustare dipendenza circolare e gestione errori
     public ResponseEntity<String> deleteUser() {
         boolean result= userService.deleteUser();
 
         if(result)
             return new ResponseEntity<>("User eliminato con successo!", HttpStatus.OK);
         else
-            return new ResponseEntity<>("Errore nella cancellazione dell'user", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Errore nella cancellazione dell'user...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     @GetMapping("/image")
     public ResponseEntity<byte[]> uploadImage(){
@@ -75,7 +80,7 @@ public class UserController {
     }
 
     @GetMapping("/base-image")
-    public ResponseEntity<> getBaseImage() {
+    public ResponseEntity<byte[]> getBaseImage() {
         byte[] baseImageBytes = profilePicService.getBaseImageBytes(); // Metodo per ottenere l'immagine di base come array di byte dal servizio
         if (baseImageBytes != null) {
             HttpHeaders headers = new HttpHeaders();
