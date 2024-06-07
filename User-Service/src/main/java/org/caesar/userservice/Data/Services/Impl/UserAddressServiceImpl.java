@@ -10,6 +10,7 @@ import org.caesar.userservice.Data.Services.UserAddressService;
 import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.UserAddressDTO;
 import org.caesar.userservice.Dto.UserCardDTO;
+import org.caesar.userservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 
 import java.util.ArrayList;
@@ -30,10 +31,16 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     private final UserRepository userRepository;
 
+    private final Utils utils;
+
+
     @Override
     public boolean addUserAddreses(UserAddressDTO userAddress) {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
+            String userId= utils.getUserId().getUserId();
+
+            userAddress.setUserId(userId);
             UserAddress userAddressEntity = modelMapper.map(userAddress, UserAddress.class);
             userAddressRepository.save(userAddressEntity);
         } catch (Exception e){
@@ -45,8 +52,9 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public UserAddressDTO getUserAddress(String userId, int addressNum) {
+    public UserAddressDTO getUserAddress(int addressNum) {
 
+        String userId= utils.getUserId().getUserId();
         //Presa della lista degli inidirizzi del singolo utente
         List<UserAddress> userAddresses = userAddressRepository.findByUserId(userId);
 

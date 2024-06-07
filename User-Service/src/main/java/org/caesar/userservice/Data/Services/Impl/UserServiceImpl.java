@@ -42,12 +42,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserIdDTO getUserId() {
-        String username= jwtConverter.getUsernameFromToken();
-        return modelMapper.map(userRepository.findUserByUsername(username), UserIdDTO.class);
-    }
-
-    @Override
     public boolean saveUser(UserRegistrationDTO userRegistrationDTO) {
         //Controllo che i campi mandati da fornt non siano null e che rispettino il formato richiesto
         if(checkUsername(userRegistrationDTO.getUsername()) &&
