@@ -9,7 +9,9 @@ import org.caesar.userservice.Dto.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -26,7 +28,7 @@ public class UserController {
     private final CityDataService cityDataService;
     private final UserAddressService userAddressService;
     private final UserCardService userCardService;
-
+    private final ProfilePicService profilePicService;
 
     //End-point per gli utenti
     @GetMapping("/user")
@@ -100,9 +102,13 @@ public class UserController {
     public ResponseEntity<String> deleteAddress(@RequestParam("addr") String addressName) {
         boolean result= addressService.deleteAddress(addressName);
 
-        if(result)
-            return new ResponseEntity<>("Indirizzo eliminato", HttpStatus.OK);
-        else
+        log.debug("Sono nella chiamata dell'eliminazione dell'indirizzo");
+        if(result) {
+            log.debug("Sono prima della risposta affermativa");
+            return new ResponseEntity<>("Indirizzo eliminato correttamente!", HttpStatus.OK);
+        }
+        else {
+            log.debug("Sono prima della risposta negativa");
             return new ResponseEntity<>("Problemi nell'eliminazione", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -147,9 +153,5 @@ public class UserController {
 
     }
 
-    /*aggiungere i seguenti end-point:
-
-        5) aggiunta foto profilo(da fare sul nostro db)
-     */
 
 }

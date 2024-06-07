@@ -35,6 +35,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/user-api/address").permitAll()
                         .pathMatchers(HttpMethod.DELETE, "/user-api/address").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/addresses-names").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/user-api/upload").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/card").permitAll()
                         .pathMatchers(HttpMethod.POST, "/user-api/card").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/cards-name").permitAll()

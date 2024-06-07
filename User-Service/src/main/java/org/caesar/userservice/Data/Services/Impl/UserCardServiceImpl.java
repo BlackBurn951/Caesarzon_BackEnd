@@ -7,6 +7,7 @@ import org.caesar.userservice.Data.Dao.UserCardRepository;
 import org.caesar.userservice.Data.Entities.UserAddress;
 import org.caesar.userservice.Data.Entities.UserCard;
 import org.caesar.userservice.Data.Services.UserCardService;
+import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.UserAddressDTO;
 import org.caesar.userservice.Dto.UserCardDTO;
 import org.modelmapper.ModelMapper;

@@ -7,6 +7,7 @@ import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Dao.UserAddressRepository;
 import org.caesar.userservice.Data.Entities.UserAddress;
 import org.caesar.userservice.Data.Services.UserAddressService;
+import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.UserAddressDTO;
 import org.caesar.userservice.Dto.UserCardDTO;
 import org.modelmapper.ModelMapper;
