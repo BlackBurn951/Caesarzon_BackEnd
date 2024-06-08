@@ -19,7 +19,7 @@ public class KeycloakConfig {
     @Bean
     public Keycloak keycloak() {
         return KeycloakBuilder.builder()
-                .serverUrl("http://localhost:8080")
+                .serverUrl("http://25.24.244.170:8080")
                 .realm("CaesarRealm")
                 .clientId("caesar-app")
                 .grantType(OAuth2Constants.PASSWORD)

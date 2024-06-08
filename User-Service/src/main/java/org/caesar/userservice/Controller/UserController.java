@@ -67,7 +67,7 @@ public class UserController {
     }
 
 
-    @GetMapping("/image")
+    /*@GetMapping("/image")
     public ResponseEntity<byte[]> uploadImage(){
         byte[] image= profilePicService.getImage();
 
@@ -89,7 +89,7 @@ public class UserController {
         } else {
             return ResponseEntity.notFound().build();
         }
-    }
+    }*/
 
     @PostMapping("/image")
     public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file){

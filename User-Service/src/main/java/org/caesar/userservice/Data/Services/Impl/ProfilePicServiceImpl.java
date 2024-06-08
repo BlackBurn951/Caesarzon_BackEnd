@@ -38,8 +38,8 @@ public class ProfilePicServiceImpl implements ProfilePicService {
         return false;
     }
 
-    @Override
-    public byte[] getImage() {
-
-    }
+//    @Override
+//    public byte[] getImage() {
+//
+//    }
 }
