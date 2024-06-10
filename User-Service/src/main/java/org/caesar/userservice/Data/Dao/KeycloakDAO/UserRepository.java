@@ -15,7 +15,6 @@ public interface UserRepository {
     User findUserByUsername(String username);
     boolean saveUser(UserRegistrationDTO userRegistrationDTO);
     boolean updateUser(UserDTO userDTO);
-    boolean savePhoneNumber(PhoneNumberDTO phoneNumberDTO);
     String getUserIdFromToken();
     boolean deleteUser(String username);
 }

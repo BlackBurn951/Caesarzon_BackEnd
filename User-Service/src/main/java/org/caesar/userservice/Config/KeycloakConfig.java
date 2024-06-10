@@ -1,5 +1,6 @@
 package org.caesar.userservice.Config;
 
+import org.caesar.userservice.Dto.UserIdDTO;
 import org.keycloak.OAuth2Constants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +19,7 @@ public class KeycloakConfig {
     @Bean
     public Keycloak keycloak() {
         return KeycloakBuilder.builder()
-                .serverUrl("http://25.29.186.68:8080")
+                .serverUrl("http://25.24.244.170:8080")
                 .realm("CaesarRealm")
                 .clientId("caesar-app")
                 .grantType(OAuth2Constants.PASSWORD)
@@ -26,6 +27,5 @@ public class KeycloakConfig {
                 .password(adminPassword)
                 .build();
     }
-
 
 }

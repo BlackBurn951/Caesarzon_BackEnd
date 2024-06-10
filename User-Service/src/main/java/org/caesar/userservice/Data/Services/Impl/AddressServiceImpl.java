@@ -35,8 +35,6 @@ public class AddressServiceImpl implements AddressService {
 
     private final UserAddressService userAddressService;
 
-    private final UserService userService;
-
 
     //I metodi CRUD delle repository hanno di base il @Transactional, ma bisogna fare il doppio passaggio
     @Transactional
@@ -53,12 +51,10 @@ public class AddressServiceImpl implements AddressService {
 
             UUID addressID = addressRepository.save(address).getId(); // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
 
-            String userID = userService.getUserId().getUserId();
 
             UserAddressDTO userAddressDTO= new UserAddressDTO();
 
             userAddressDTO.setAddressId(addressID);
-            userAddressDTO.setUserId(userID);
 
             return userAddressService.addUserAddreses(userAddressDTO);
         }catch(RuntimeException | Error e){
@@ -74,16 +70,13 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public AddressDTO getAddress(String addressName) {
 
-        //Prendiamp l'id dell'utente attualmente attivo
-        UserIdDTO userId = userService.getUserId();
-
         int addressNum= getAddressNumber(addressName);
 
         if(addressNum == 0)
             return null;
 
         //Prendiamo l'indirizzo in posizione addressNum nel database nella tabella della relazione utente-indirizzo
-        UserAddressDTO userAddress= userAddressService.getUserAddress(userId.getUserId(), addressNum);
+        UserAddressDTO userAddress= userAddressService.getUserAddress(addressNum);
 
         //Ritorno valore null nel caso ci sia un problema nella ricerca degli indirizzi dell'utente
         if(userAddress==null)
@@ -96,17 +89,19 @@ public class AddressServiceImpl implements AddressService {
     @Override
     @Transactional
     public boolean deleteAddress(String addressName) {
-        UserIdDTO userId = userService.getUserId();
 
         int addressNum= getAddressNumber(addressName);
 
+        log.debug("AddressName dal front {} estratto dalla funzione", addressName, addressNum);
         if(addressNum == 0)
             return false;
 
-        UserAddressDTO userAddress= userAddressService.getUserAddress(userId.getUserId(), addressNum);
+        UserAddressDTO userAddress= userAddressService.getUserAddress(addressNum);
 
+        log.debug("userAddress {}", userAddress);
         try {
             if(userAddressService.deleteUserAddress(userAddress)) {
+                log.debug("Tupla di eliminazione eliminata");
                 addressRepository.deleteById(userAddress.getAddressId());
                 return true;
             }

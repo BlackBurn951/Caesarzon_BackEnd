@@ -32,7 +32,6 @@ public class CardServiceImpl implements CardService {
 
     private final UserCardService userCardService;
 
-    private final UserService userService;
 
 
     //I metodi CRUD delle repository hanno di base il @Transactional, ma bisogna fare il doppio passaggio
@@ -48,14 +47,9 @@ public class CardServiceImpl implements CardService {
 
             UUID cardID = cardRepository.save(card).getId(); // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
 
-            String userID = userService.getUserId().getUserId();
-
-
-
             UserCardDTO userCardDTO = new UserCardDTO();
 
             userCardDTO.setCardId(cardID);
-            userCardDTO.setUserId(userID);
 
             return userCardService.addUserCards(userCardDTO);
         }catch(RuntimeException | Error e){
@@ -69,15 +63,13 @@ public class CardServiceImpl implements CardService {
     @Override
     public CardDTO getCard(String cardName) {
 
-        UserIdDTO userId = userService.getUserId();
-
         //Scrittura della regex per prendere il numero della carta desiderata
 
         int cardNumber= getCardName(cardName);
 
         log.debug("Sono dopo la presa del numero della carta desiderata numero carta {}", cardNumber);
 
-        UserCardDTO userCard= userCardService.getUserCard(userId.getUserId(), cardNumber);
+        UserCardDTO userCard= userCardService.getUserCard(cardNumber);
 
         //Ritorno di un valore null in caso di problemi nella presa della carta desiderata
         if(userCard==null)
@@ -89,14 +81,13 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public boolean deleteCard(String cardName) {
-        UserIdDTO userId = userService.getUserId();
 
         int cardNumber= getCardName(cardName);
 
         if(cardNumber == 0)
             return false;
 
-        UserCardDTO userCard= userCardService.getUserCard(userId.getUserId(), cardNumber);
+        UserCardDTO userCard= userCardService.getUserCard(cardNumber);
 
         try {
             if(userCardService.deleteUserCard(userCard)) {
