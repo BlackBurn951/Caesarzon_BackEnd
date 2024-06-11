@@ -9,5 +9,5 @@ import java.util.UUID;
 @Repository
 public interface ProfilePicRepository extends JpaRepository<ProfilePic, UUID> {
 
-
+        ProfilePic findByUserId(String userId);
 }
