@@ -1,6 +1,7 @@
 package org.caesar.userservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.ProfilePicRepository;
 import org.caesar.userservice.Data.Entities.ProfilePic;
 import org.caesar.userservice.Data.Services.ProfilePicService;
@@ -14,6 +15,7 @@ import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProfilePicServiceImpl implements ProfilePicService {
 
     private final ProfilePicRepository profilePicRepository;
@@ -46,6 +48,7 @@ public class ProfilePicServiceImpl implements ProfilePicService {
 
     @Override
     public byte[] getImage() {
+        log.debug("ID CHE STO USANDO: " + utils.getUserId().getUserId());
         return profilePicRepository.findByUserId(utils.getUserId().getUserId()).getProfilePic();
     }
 

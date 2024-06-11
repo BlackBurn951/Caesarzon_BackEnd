@@ -75,7 +75,8 @@ public class UserController {
     }
 
     @GetMapping("/image")
-    public ResponseEntity<byte[]> loadImage(){
+    public ResponseEntity<byte[]> loadImage(HttpServletRequest request){
+        log.debug("TOKEN ARRIVATO: " + request.getHeader("Authorization"));
         byte[] img = profilePicService.getImage();
         if(img != null){
             log.debug("IMG: "+ img + "IN STRINGA: " + Arrays.toString(img));

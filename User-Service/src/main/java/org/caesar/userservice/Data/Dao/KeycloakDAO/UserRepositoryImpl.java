@@ -115,11 +115,14 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User findUserByUsername(String username) {
+//        log.debug("USERNAME CON METODO NUOVO" + jwtConverter.getUserInfo());
         return setUser(false, username);
     }
 
     @Override
     public String getUserIdFromToken() {
+
+//        log.debug("USERNAME PROVA: " + jwtConverter.getUserInfo());
         return this.findUserByUsername(jwtConverter.getUsernameFromToken()).getId();
     }
 
@@ -139,9 +142,6 @@ public class UserRepositoryImpl implements UserRepository {
         user.setEmail(userData.getEmail());
         user.setEnabled(true);
 
-
-
-
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setType(CredentialRepresentation.PASSWORD);
         credential.setValue(userData.getCredentialValue());
@@ -153,6 +153,7 @@ public class UserRepositoryImpl implements UserRepository {
         log.debug("Ho creato l'utente");
         if (response.getStatus() == 201) {
             String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+            log.debug("ID DEL NUOVO PROFILO: " + userId);
             UserResource userResource = usersResource.get(userId);
 
 
@@ -166,11 +167,11 @@ public class UserRepositoryImpl implements UserRepository {
                 MultipartFile multipartFile = new MockMultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
 
                 profilePic.setProfilePic(multipartFile.getBytes());
+                profilePic.setUserId(userId);
+
             }catch (IOException e){
                 e.printStackTrace();
             }
-
-            profilePic.setUserId(userId);
 
             profilePicRepository.save(modelMapper.map(profilePic, ProfilePic.class));
 
