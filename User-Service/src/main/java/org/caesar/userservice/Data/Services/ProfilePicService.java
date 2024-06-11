@@ -7,5 +7,5 @@ import java.io.IOException;
 public interface ProfilePicService {
 
     boolean saveImage(MultipartFile file);
-    byte[] getImage();
+//    MultipartFile getImage();
 }

@@ -24,18 +24,12 @@ public class ProfilePicServiceImpl implements ProfilePicService {
     @Override
     public boolean saveImage(MultipartFile file) {
         try {
-            ProfilePic profilePic = profilePicRepository.findByUserId(utils.getUserId().getUserId());
-            ProfilePicDTO imageProfile;
+            ProfilePicDTO imageProfile = new ProfilePicDTO();
+            imageProfile.setProfilePic(file.getBytes());
+            imageProfile.setUserId(utils.getUserId().getUserId());
 
-            if (profilePic == null) {
-                imageProfile = new ProfilePicDTO();
-                imageProfile.setProfilePic(file.getBytes());
-                imageProfile.setUserId(utils.getUserId().getUserId());
-                profilePicRepository.save(modelMapper.map(imageProfile, ProfilePic.class));
-            }else{
-                profilePic.setProfilePic(file.getBytes());
-                profilePicRepository.save(profilePic);
-            }
+            profilePicRepository.save(modelMapper.map(imageProfile, ProfilePic.class));
+
             return true;
 
         }catch (IOException e){
@@ -44,11 +38,8 @@ public class ProfilePicServiceImpl implements ProfilePicService {
         return false;
     }
 
-    @Override
-    public byte[] getImage() {
-        return profilePicRepository.findByUserId(utils.getUserId().getUserId()).getProfilePic();
-    }
-
-
+//    @Override
+//    public byte[] getImage() {
+//
+//    }
 }
-
