@@ -132,12 +132,14 @@ public class UserRepositoryImpl implements UserRepository {
         credential.setTemporary(false);
 
         user.setCredentials(Collections.singletonList(credential));
-
+        log.debug("Ho impostato i dati dell'utente");
         Response response = usersResource.create(user);
+        log.debug("Ho creato l'utente");
         if (response.getStatus() == 201) {
             String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
             UserResource userResource = usersResource.get(userId);
-            userResource.sendVerifyEmail();
+
+            //userResource.sendVerifyEmail();
 
             ClientRepresentation clientRepresentation= realmResource.clients().findByClientId("caesar-app").getFirst();
             ClientResource clientResource = realmResource.clients().get(clientRepresentation.getId());
@@ -145,6 +147,7 @@ public class UserRepositoryImpl implements UserRepository {
             RoleRepresentation role = clientResource.roles().get("basic").toRepresentation();
             userResource.roles().clientLevel(clientRepresentation.getId()).add(Collections.singletonList(role));
 
+            log.debug("Ho ricevuto risposta 200 da KEY");
 
             return true;
         } else
