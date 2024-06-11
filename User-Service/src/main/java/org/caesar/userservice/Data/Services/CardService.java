@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CardService {
-    boolean saveCard(CardDTO cardDTO);
-    CardDTO getCard(String cardName);
+    UUID addCard(CardDTO cardDTO);
+    CardDTO getCard(UUID cardId);
     boolean deleteCard(UUID cardId);
     boolean deleteUserCards(String userId, List<UserCardDTO> userCards);
 }

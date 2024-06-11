@@ -13,6 +13,7 @@ import org.caesar.userservice.Dto.UserCardDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,20 +31,84 @@ public class GeneralServiceImpl implements GeneralService {
     private final CardService cardService;
     private final UserCardService userCardService;
 
-    private final JwtConverter jwtConverter;
+
+
 
     //Metodi di inserimento dati con tabelle di relazione
     @Override
     @Transactional
     public boolean addAddress(AddressDTO addressDTO) {
+        UUID addressId= addressService.addAddress(addressDTO);
 
+        if(addressId == null)
+            return false;
+
+        UserAddressDTO userAddressDTO= new UserAddressDTO();
+
+        userAddressDTO.setAddressId(addressId);
+        userAddressDTO.setUserId(userService.getUserId().getUserId());
+
+        return userAddressService.addUserAddreses(userAddressDTO);
     }
 
     @Override
     @Transactional
     public boolean addCard(CardDTO cardDTO) {
+        UUID cardId= cardService.addCard(cardDTO);
 
+        if(cardId == null)
+            return false;
+
+        UserCardDTO userCardDTO= new UserCardDTO();
+
+        userCardDTO.setCardId(cardId);
+        userCardDTO.setUserId(userService.getUserId().getUserId());
+
+        return userCardService.addUserCards(userCardDTO);
     }
+
+
+    //Getters per prendere i dati dalle tabelle di relazione
+    @Override
+    public CardDTO getUserCard(String cardName) {
+        int cardNumber= getNumber(cardName);
+
+        if(cardNumber == 0)
+            return null;
+
+        UserCardDTO userCardDTO= userCardService.getUserCard(userService.getUserId().getUserId(), cardNumber);
+
+        if(userCardDTO == null)
+            return null;
+
+        return cardService.getCard(userCardDTO.getCardId());
+    }
+
+    @Override
+    public List<String> getUserCards() {
+        return userCardService.getCards(userService.getUserId().getUserId());
+    }
+
+    @Override
+    public AddressDTO getUserAddress(String addressName) {
+        int addressNumber= getNumber(addressName);
+
+        if(addressNumber == 0)
+            return null;
+
+        UserAddressDTO userAddressDTO= userAddressService.getUserAddress(userService.getUserId().getUserId(), addressNumber);
+
+        if(userAddressDTO == null)
+            return null;
+
+        return addressService.getAddress(userAddressDTO.getAddressId());
+    }
+
+    @Override
+    public List<String> getUserAddresses() {
+        return userAddressService.getAddresses(userService.getUserId().getUserId());
+    }
+
 
     //Metodi di cancellazione
     @Override

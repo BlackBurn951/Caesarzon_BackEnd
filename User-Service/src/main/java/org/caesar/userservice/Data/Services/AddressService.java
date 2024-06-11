@@ -9,8 +9,8 @@ import java.util.UUID;
 
 public interface AddressService {
 
-    boolean saveAddress(AddressDTO addressDTO);
-    AddressDTO getAddress(String addressName);
+    UUID addAddress(AddressDTO addressDTO);
+    AddressDTO getAddress(UUID addressId);
     boolean deleteAddress(UUID addressId);
     boolean deleteAllUserAddresses(String userId, List<UserAddressDTO> userAddresses);
 }

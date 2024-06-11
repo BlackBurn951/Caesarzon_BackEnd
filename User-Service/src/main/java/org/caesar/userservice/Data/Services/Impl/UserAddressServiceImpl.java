@@ -21,28 +21,21 @@ import org.springframework.stereotype.Service;
 public class UserAddressServiceImpl implements UserAddressService {
 
     private final UserAddressRepository userAddressRepository;
-
     private final ModelMapper modelMapper;
-
-    private final UserService userService;
-
 
 
     @Override
     public boolean addUserAddreses(UserAddressDTO userAddress) {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
-            String userId= userService.getUserId().getUserId();
-
-            userAddress.setUserId(userId);
             UserAddress userAddressEntity = modelMapper.map(userAddress, UserAddress.class);
             userAddressRepository.save(userAddressEntity);
+
+            return true;
         } catch (Exception e){
-            //TODO Log
+            log.debug("Errore nell'inserimento nella tabella di relazione utente indirizzo");
             return false;
         }
-
-        return true;
     }
 
     @Override
@@ -67,9 +60,7 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public List<String> getAddresses() {
-        String userId= userRepository.getUserIdFromToken();
-
+    public List<String> getAddresses(String userId) {
         int num= userAddressRepository.countByUserId(userId);
 
         List<String> result= new Vector<>();
