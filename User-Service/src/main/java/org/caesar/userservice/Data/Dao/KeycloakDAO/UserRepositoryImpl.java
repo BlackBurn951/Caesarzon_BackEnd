@@ -3,10 +3,15 @@ package org.caesar.userservice.Data.Dao.KeycloakDAO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Config.JwtConverter;
+import org.caesar.userservice.Data.Dao.ProfilePicRepository;
+import org.caesar.userservice.Data.Entities.ProfilePic;
 import org.caesar.userservice.Data.Entities.User;
+
 import org.caesar.userservice.Dto.PhoneNumberDTO;
+import org.caesar.userservice.Dto.ProfilePicDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
+import org.caesar.userservice.Utils.Utils;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -16,9 +21,15 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.modelmapper.ModelMapper;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 @Component
@@ -29,8 +40,13 @@ public class UserRepositoryImpl implements UserRepository {
     //Converter per il token
     private final JwtConverter jwtConverter = new JwtConverter();
 
+    private final ProfilePicRepository profilePicRepository;
+
+    private final ModelMapper modelMapper;
+
     //Oggetti per la comunicazione con keycloak
     private final Keycloak keycloak;
+
 
 
     //Metodi per la ricerca dell'utente
@@ -139,7 +155,24 @@ public class UserRepositoryImpl implements UserRepository {
             String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
             UserResource userResource = usersResource.get(userId);
 
+
             //userResource.sendVerifyEmail();
+
+
+            ProfilePicDTO profilePic = new ProfilePicDTO();
+            File file = new File("User-Service/src/main/resources/static/img/base_profile_pic.jpg");
+
+            try{
+                MultipartFile multipartFile = new MockMultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
+
+                profilePic.setProfilePic(multipartFile.getBytes());
+            }catch (IOException e){
+                e.printStackTrace();
+            }
+
+            profilePic.setUserId(userId);
+
+            profilePicRepository.save(modelMapper.map(profilePic, ProfilePic.class));
 
             ClientRepresentation clientRepresentation= realmResource.clients().findByClientId("caesar-app").getFirst();
             ClientResource clientResource = realmResource.clients().get(clientRepresentation.getId());
@@ -153,6 +186,9 @@ public class UserRepositoryImpl implements UserRepository {
         } else
             return false;
     }
+
+
+
 
     @Override
     public boolean updateUser(UserDTO userData) {
