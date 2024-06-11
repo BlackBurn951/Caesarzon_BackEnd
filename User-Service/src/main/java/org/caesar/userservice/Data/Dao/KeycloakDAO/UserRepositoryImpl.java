@@ -4,10 +4,15 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Config.JwtConverter;
+import org.caesar.userservice.Data.Dao.ProfilePicRepository;
+import org.caesar.userservice.Data.Entities.ProfilePic;
 import org.caesar.userservice.Data.Entities.User;
+
 import org.caesar.userservice.Dto.PhoneNumberDTO;
+import org.caesar.userservice.Dto.ProfilePicDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
+import org.caesar.userservice.Utils.Utils;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -17,9 +22,15 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.modelmapper.ModelMapper;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 @Component
@@ -30,8 +41,13 @@ public class UserRepositoryImpl implements UserRepository {
     //Converter per il token
     private final JwtConverter jwtConverter = new JwtConverter();
 
+    private final ProfilePicRepository profilePicRepository;
+
+    private final ModelMapper modelMapper;
+
     //Oggetti per la comunicazione con keycloak
     private final Keycloak keycloak;
+
 
 
     //Metodi per la ricerca dell'utente
@@ -113,59 +129,67 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     @Transactional
     public boolean saveUser(UserRegistrationDTO userData) {
-        try {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
 
-            //Presa del realm da keycloak per effettuare le operazioni in esso
-            RealmResource realmResource = keycloak.realm("CaesarRealm");
+        UsersResource usersResource = realmResource.users();
 
-            //Definizione oggwtto per la manipolazione degli utenti
-            UsersResource usersResource = realmResource.users();
+        UserRepresentation user = new UserRepresentation();
+
+        user.setUsername(userData.getUsername());
+        user.setFirstName(userData.getFirstName());
+        user.setLastName(userData.getLastName());
+        user.setEmail(userData.getEmail());
+        user.setEnabled(true);
 
 
-            //Oggetto per la creazione di un utente secondo l'interfaccia di keycloak
-            UserRepresentation user = new UserRepresentation();
 
-            user.setUsername(userData.getUsername());
-            user.setFirstName(userData.getFirstName());
-            user.setLastName(userData.getLastName());
-            user.setEmail(userData.getEmail());
-            user.setEnabled(true);
 
-            //Impostazione del tipo di verifica d'identità
-            CredentialRepresentation credential = new CredentialRepresentation();
-            credential.setType(CredentialRepresentation.PASSWORD);
-            credential.setValue(userData.getCredentialValue());
-            credential.setTemporary(false);
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(userData.getCredentialValue());
+        credential.setTemporary(false);
 
-            user.setCredentials(Collections.singletonList(credential));
+        user.setCredentials(Collections.singletonList(credential));
+        log.debug("Ho impostato i dati dell'utente");
+        Response response = usersResource.create(user);
+        log.debug("Ho creato l'utente");
+        if (response.getStatus() == 201) {
+            String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+            UserResource userResource = usersResource.get(userId);
 
-            //Chiamata al server keycloak per salvare l'utente
-            Response response = usersResource.create(user);
 
-            //Controllo dello stato della risposta del server keycloak
-            if (response.getStatus() == 201) {
-                String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+            //userResource.sendVerifyEmail();
 
-                //Invio della email di verifica all'utente
-                UserResource userResource = usersResource.get(userId);
-                userResource.sendVerifyEmail();
 
-                //Presa del client keycloak inerente all'applicazione
-                ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").getFirst();
-                ClientResource clientResource = realmResource.clients().get(clientRepresentation.getId());
+            ProfilePicDTO profilePic = new ProfilePicDTO();
+            File file = new File("User-Service/src/main/resources/static/img/base_profile_pic.jpg");
 
-                //Presa del ruolo basic presente nel client e assegnazione all'utente appena registrato
-                RoleRepresentation role = clientResource.roles().get("basic").toRepresentation();
-                userResource.roles().clientLevel(clientRepresentation.getId()).add(Collections.singletonList(role));
+            try{
+                MultipartFile multipartFile = new MockMultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
 
-                return true;
-            } else
-                return false;
-        } catch (Exception | Error e) {
-            log.debug("Errore nel salvataggio dell'utente su keycloak");
+                profilePic.setProfilePic(multipartFile.getBytes());
+            }catch (IOException e){
+                e.printStackTrace();
+            }
+
+            profilePic.setUserId(userId);
+
+            profilePicRepository.save(modelMapper.map(profilePic, ProfilePic.class));
+
+            ClientRepresentation clientRepresentation= realmResource.clients().findByClientId("caesar-app").getFirst();
+            ClientResource clientResource = realmResource.clients().get(clientRepresentation.getId());
+
+            RoleRepresentation role = clientResource.roles().get("basic").toRepresentation();
+            userResource.roles().clientLevel(clientRepresentation.getId()).add(Collections.singletonList(role));
+
+            log.debug("Ho ricevuto risposta 200 da KEY");
+
+            return true;
+        } else
             return false;
-        }
     }
+
+
 
     @Override
     @Transactional

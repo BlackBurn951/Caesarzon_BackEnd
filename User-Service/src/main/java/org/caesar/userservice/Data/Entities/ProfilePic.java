@@ -1,6 +1,7 @@
 package org.caesar.userservice.Data.Entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.util.UUID;
@@ -8,6 +9,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "foto_profilo")
 @Setter
+@Getter
 public class ProfilePic {
 
     @Id
