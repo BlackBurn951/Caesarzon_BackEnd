@@ -30,7 +30,6 @@ public class CardServiceImpl implements CardService {
     //Repository delle carte
     private final CardRepository cardRepository;
 
-    private final UserCardService userCardService;
 
 
 
@@ -79,22 +78,10 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    @Transactional
-    public boolean deleteCard(String cardName) {
-
-        int cardNumber= getCardName(cardName);
-
-        if(cardNumber == 0)
-            return false;
-
-        UserCardDTO userCard= userCardService.getUserCard(cardNumber);
-
+    public boolean deleteCard(UUID cardId) {
         try {
-            if(userCardService.deleteUserCard(userCard)) {
-                cardRepository.deleteById(userCard.getCardId());
-                return true;
-            }
-            return false;
+            cardRepository.deleteById(cardId);
+            return true;
         } catch (Exception e) {
             log.debug("Errore nella cancellazione della carta");
             return false;
@@ -102,23 +89,17 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    @Transactional
-    public boolean deleteUserCards(String userId) {
-        List<UserCardDTO> userCards= userCardService.getUserCards(userId);
-
+    public boolean deleteUserCards(String userId, List<UserCardDTO> userCards) {  //DONE
         List<UUID> cardId= new Vector<>();
-        for(UserCardDTO userAddress: userCards) {
-            cardId.add(userAddress.getCardId());
+        for(UserCardDTO userCard: userCards) {
+            cardId.add(userCard.getCardId());
         }
 
         try {
-            if(userCardService.deleteUserCards(userCards)) {
-                cardRepository.deleteAllById(cardId);
-                return true;
-            }
-            return false;
+            cardRepository.deleteAllById(cardId);
+            return true;
         } catch (Exception e) {
-            log.debug("Problemi nell'eliminazione di tutti gli indirizzi");
+            log.debug("Problemi nell'eliminazione di tutti le carte");
             return false;
         }
     }
@@ -159,16 +140,5 @@ public class CardServiceImpl implements CardService {
         int actualMonth = date.getMonthValue(), actualYear = date.getYear();
 
         return month>=actualMonth && year>=actualYear;
-    }
-
-    private int getCardName(String cardName) {
-        Pattern pattern = Pattern.compile(".*([0-9]+)");
-        Matcher matcher = pattern.matcher(cardName);
-
-        int cardNumber=0;
-        if(matcher.matches())
-            cardNumber = Integer.parseInt(matcher.group(1));
-
-        return cardNumber;
     }
 }

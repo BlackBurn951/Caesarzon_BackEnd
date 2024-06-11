@@ -2,18 +2,13 @@ package org.caesar.userservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Config.JwtConverter;
-import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Dao.UserAddressRepository;
 import org.caesar.userservice.Data.Entities.UserAddress;
 import org.caesar.userservice.Data.Services.UserAddressService;
 import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.UserAddressDTO;
-import org.caesar.userservice.Dto.UserCardDTO;
-import org.caesar.userservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -29,16 +24,15 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     private final ModelMapper modelMapper;
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    private final Utils utils;
 
 
     @Override
     public boolean addUserAddreses(UserAddressDTO userAddress) {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
-            String userId= utils.getUserId().getUserId();
+            String userId= userService.getUserId().getUserId();
 
             userAddress.setUserId(userId);
             UserAddress userAddressEntity = modelMapper.map(userAddress, UserAddress.class);
@@ -52,9 +46,8 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public UserAddressDTO getUserAddress(int addressNum) {
+    public UserAddressDTO getUserAddress(String userId, int addressNum) {
 
-        String userId= utils.getUserId().getUserId();
         //Presa della lista degli inidirizzi del singolo utente
         List<UserAddress> userAddresses = userAddressRepository.findByUserId(userId);
 
@@ -114,18 +107,20 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public boolean deleteUserAddresses(List<UserAddressDTO> userAddresses) {
+    public boolean deleteUserAddresses(String userId) { //DONE
         try {
+            List<UserAddress> userAddresses = userAddressRepository.findByUserId(userId);
+
             List<UUID> ids= new Vector<>();
 
-            for(UserAddressDTO userAddress : userAddresses) {
+            for(UserAddress userAddress : userAddresses) {
                 ids.add(userAddress.getId());
             }
 
             userAddressRepository.deleteAllById(ids);
             return true;
         } catch (Exception e) {
-            log.debug("Errore nella cancellazione di tutte le tuple nella abella di relazione utente indirizzi");
+            log.debug("Errore nella cancellazione di tutte le tuple nella tabella di relazione utente indirizzi");
             return false;
         }
     }

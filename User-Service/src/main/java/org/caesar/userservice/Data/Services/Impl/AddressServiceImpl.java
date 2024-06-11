@@ -33,8 +33,6 @@ public class AddressServiceImpl implements AddressService {
     //Repository degli indirizzi
     private final AddressRepository addressRepository;
 
-    private final UserAddressService userAddressService;
-
 
     //I metodi CRUD delle repository hanno di base il @Transactional, ma bisogna fare il doppio passaggio
     @Transactional
@@ -87,25 +85,10 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    @Transactional
-    public boolean deleteAddress(String addressName) {
-
-        int addressNum= getAddressNumber(addressName);
-
-        log.debug("AddressName dal front {} estratto dalla funzione", addressName, addressNum);
-        if(addressNum == 0)
-            return false;
-
-        UserAddressDTO userAddress= userAddressService.getUserAddress(addressNum);
-
-        log.debug("userAddress {}", userAddress);
+    public boolean deleteAddress(UUID addressId) {
         try {
-            if(userAddressService.deleteUserAddress(userAddress)) {
-                log.debug("Tupla di eliminazione eliminata");
-                addressRepository.deleteById(userAddress.getAddressId());
-                return true;
-            }
-            return false;
+            addressRepository.deleteById(addressId);
+            return true;
         } catch (Exception e) {
             log.debug("Errore nella cancellazione dell'indirizzo");
             return false;
@@ -113,21 +96,15 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    @Transactional
-    public boolean deleteAllUserAddresses(String userId) {
-        List<UserAddressDTO> userAddresses= userAddressService.getUserAddresses(userId);
-
+    public boolean deleteAllUserAddresses(String userId, List<UserAddressDTO> userAddresses) {  //DONE
         List<UUID> addressId= new Vector<>();
         for(UserAddressDTO userAddress: userAddresses) {
             addressId.add(userAddress.getAddressId());
         }
 
         try {
-            if(userAddressService.deleteUserAddresses(userAddresses)) {
-                addressRepository.deleteAllById(addressId);
-                return true;
-            }
-            return false;
+            addressRepository.deleteAllById(addressId);
+            return true;
         } catch (Exception e) {
             log.debug("Problemi nell'eliminazione di tutti gli indirizzi");
             return false;
@@ -166,15 +143,5 @@ public class AddressServiceImpl implements AddressService {
         return false;
     }
 
-    private int getAddressNumber(String addressName) {
-        //Creazione della regex per prendersi il numero dell'indirizzo mandato dall'utente
-        Pattern pattern = Pattern.compile(".*([0-9]+)");
-        Matcher matcher = pattern.matcher(addressName);
 
-        int addressNum= 0;
-        if(matcher.matches())
-            addressNum = Integer.parseInt(matcher.group(1));
-
-        return addressNum;
-    }
 }

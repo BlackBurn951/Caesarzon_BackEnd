@@ -8,9 +8,9 @@ import java.util.List;
 public interface UserAddressService {
 
     boolean addUserAddreses(UserAddressDTO userAddress);
-    UserAddressDTO getUserAddress(int addressNum);
+    UserAddressDTO getUserAddress(String userId, int addressNum);
     List<String> getAddresses();
     List<UserAddressDTO> getUserAddresses(String userId);
     boolean deleteUserAddress(UserAddressDTO userAddressDTO);
-    boolean deleteUserAddresses(List<UserAddressDTO> userAddresses);
+    boolean deleteUserAddresses(String userId);
 }

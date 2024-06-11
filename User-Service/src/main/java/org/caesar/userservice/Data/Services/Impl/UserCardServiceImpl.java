@@ -29,9 +29,6 @@ public class UserCardServiceImpl implements UserCardService {
 
     private final ModelMapper modelMapper;
 
-    private final UserRepository userRepository;
-
-    private final Utils utils;
 
     @Override
     public boolean addUserCards(UserCardDTO userCard) {
@@ -51,9 +48,8 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public UserCardDTO getUserCard(int cardNum) {
+    public UserCardDTO getUserCard(String userId, int cardNum) {
 
-        String userId= utils.getUserId().getUserId();
         //Presa della lista delle carte associate all'utente
         List<UserCard> userCardVector = userCardRepository.findByUserId(userId);
 
@@ -119,11 +115,13 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public boolean deleteUserCards(List<UserCardDTO> userCards) {
+    public boolean deleteUserCards(String userId) {
         try {
+            List<UserCard> userCards = userCardRepository.findByUserId(userId);
+
             List<UUID> ids= new Vector<>();
 
-            for(UserCardDTO userCard : userCards) {
+            for(UserCard userCard : userCards) {
                 ids.add(userCard.getId());
             }
 

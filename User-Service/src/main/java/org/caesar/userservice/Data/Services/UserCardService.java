@@ -7,10 +7,10 @@ import java.util.List;
 public interface UserCardService {
 
     boolean addUserCards(UserCardDTO userCardDTO);
-    UserCardDTO getUserCard(int addressNum);
+    UserCardDTO getUserCard(String userId, int addressNum);
     List<String> getCards();
     List<UserCardDTO> getUserCards(String userId);
     boolean deleteUserCard(UserCardDTO userCardDTO);
-    boolean deleteUserCards(List<UserCardDTO> userCardDTO);
+    boolean deleteUserCards(String userId);
 
 }

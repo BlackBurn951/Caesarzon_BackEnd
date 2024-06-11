@@ -27,9 +27,13 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final JwtConverter jwtConverter;
     private final ModelMapper modelMapper;
-    private final AddressService addressService;
-    private final CardService cardService;
 
+
+    @Override
+    public UserIdDTO getUserId() {
+        String username= jwtConverter.getUsernameFromToken();
+        return modelMapper.map(userRepository.findUserByUsername(username), UserIdDTO.class);
+    }
 
     @Override
     public UserDTO getUser() {
@@ -74,19 +78,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean deleteUser() {
-        String userid= jwtConverter.getUsernameFromToken();
-
-        boolean userDelete, addressesDelete, cardsDelete;
-        //TODO CHIAMATA AI SERVIZI DI CARTE E INDIRIZZI(IN FUTURO TUTTO IL RESTO)
+    public boolean deleteUser(String userId) {
         try {
-            userDelete= userRepository.deleteUser(userid);
-            addressesDelete= addressService.deleteAllUserAddresses(userid);
-            cardsDelete= cardService.deleteUserCards(userid);
-
-            return userDelete && addressesDelete && cardsDelete;
-        } catch (Exception e) {
-            log.debug("Errori nella cancellazione dell'utente");
+            return userRepository.deleteUser(userId);
+        } catch(Exception | Error e) {
+            log.debug("Errore nella cancellazione dell'utente");
             return false;
         }
     }

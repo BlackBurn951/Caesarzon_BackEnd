@@ -1,5 +1,6 @@
 package org.caesar.gatewayservice.Config;
 
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,13 +15,14 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebFluxSecurity
+@NoArgsConstructor(force = true)
 public class SecurityConfig {
 
     public static final String ADMIN = "admin";
     public static final String BASIC = "basic";
 
-    @Autowired
-    private JwtConverter jwtConverter;
+    //In caso di errore rimettere autowired
+    private final JwtConverter jwtConverter;
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
