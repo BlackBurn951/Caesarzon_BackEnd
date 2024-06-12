@@ -1,5 +1,6 @@
 package org.caesar.userservice.Data.Dao.KeycloakDAO;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Config.JwtConverter;
@@ -7,11 +8,9 @@ import org.caesar.userservice.Data.Dao.ProfilePicRepository;
 import org.caesar.userservice.Data.Entities.ProfilePic;
 import org.caesar.userservice.Data.Entities.User;
 
-import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.ProfilePicDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
-import org.caesar.userservice.Utils.Utils;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -22,7 +21,7 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.modelmapper.ModelMapper;
-import org.springframework.mock.web.MockMultipartFile;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,7 +37,7 @@ import java.util.*;
 public class UserRepositoryImpl implements UserRepository {
 
     //Converter per il token
-    private final JwtConverter jwtConverter = new JwtConverter();
+    private final JwtConverter jwtConverter;
 
     private final ProfilePicRepository profilePicRepository;
 
@@ -129,6 +128,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     //Metodi per la gestione dell'utente
     @Override
+    @Transactional
     public boolean saveUser(UserRegistrationDTO userData) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
 
@@ -163,15 +163,13 @@ public class UserRepositoryImpl implements UserRepository {
             ProfilePicDTO profilePic = new ProfilePicDTO();
             File file = new File("User-Service/src/main/resources/static/img/base_profile_pic.jpg");
 
-            try{
-                MultipartFile multipartFile = new MockMultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
-
-                profilePic.setProfilePic(multipartFile.getBytes());
-                profilePic.setUserId(userId);
-
-            }catch (IOException e){
-                e.printStackTrace();
-            }
+//            try{
+//                MultipartFile multipartFile = new MockMultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
+//
+//                profilePic.setProfilePic(multipartFile.getBytes());
+//            }catch (IOException e){
+//                e.printStackTrace();
+//            }
 
             profilePicRepository.save(modelMapper.map(profilePic, ProfilePic.class));
 
@@ -190,101 +188,100 @@ public class UserRepositoryImpl implements UserRepository {
 
 
 
-
     @Override
+    @Transactional
     public boolean updateUser(UserDTO userData) {
-        RealmResource realmResource = keycloak.realm("CaesarRealm");
-
-        User userKeycloak= findUserByUsername(jwtConverter.getUsernameFromToken());
-        UserResource userResource = realmResource.users().get(userKeycloak.getId());
-
-        UserRepresentation user = new UserRepresentation();
-        user.setFirstName(userData.getFirstName());
-        user.setLastName(userData.getLastName());
-        user.setEmail(userData.getEmail());
-
-        Map<String, List<String>> attributes = user.getAttributes() != null
-                ? user.getAttributes() : new HashMap<>();
-        attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
-        user.setAttributes(attributes);
-
-        userResource.update(user);
-
-        if(!userKeycloak.getEmail().equals(userData.getEmail()))
-            userResource.sendVerifyEmail();
-        return true;
-    }
-
-    @Override
-    public boolean savePhoneNumber(PhoneNumberDTO phoneNumberDTO) {
-        RealmResource realmResource = keycloak.realm("CaesarRealm");
-        String username = jwtConverter.getUsernameFromToken();
-        UsersResource usersResource = realmResource.users();
-
-        boolean response;
-
         try {
-            //Ricerca dell'utente tramite username
-            List<UserRepresentation> users =  usersResource.searchByUsername(username, true);
+            //Presa del realm da keycloak per effettuare le operazioni in esso
+            RealmResource realmResource = keycloak.realm("CaesarRealm");
 
-            UserRepresentation user = users.getFirst();
+            //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
+            User userKeycloak = findUserByUsername(jwtConverter.getUsernameFromToken());
+            UserResource userResource = realmResource.users().get(userKeycloak.getId());
 
-            //Impostazione dell'attributo phoneNumber
-            Map<String, List<String>> attributes = new HashMap<>();
-            attributes.put("phoneNumber", Collections.singletonList(phoneNumberDTO.getPhoneNumber()));
+            //Aggiornamento dei dati dell'utente ad eccezione dell'username (attributo unique e non modificabile)
+            UserRepresentation user = new UserRepresentation();
+            user.setFirstName(userData.getFirstName());
+            user.setLastName(userData.getLastName());
+            user.setEmail(userData.getEmail());
+
+            //Presa degli attributi personalizzati da keycloak
+            Map<String, List<String>> attributes = user.getAttributes();
+
+            if(attributes==null)
+                return false;
+
+            attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
             user.setAttributes(attributes);
 
-            //Verifica se l'attributo è stato impostato correttamente
-            response =  user.getAttributes() != null && user.getAttributes().containsKey("phoneNumber");
+            userResource.update(user);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            response = false;
+            //Controllo che il campo email sia cambiato, se si invio dell'email di verifica
+            if (!userKeycloak.getEmail().equals(userData.getEmail()))
+                userResource.sendVerifyEmail();
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella fase di aggiornamento dell'utente su keycloak");
+            return false;
         }
-        return response;
     }
 
     @Override
+    @Transactional
     public boolean deleteUser(String username) {
+
+        //Presa dell'id dell'utente
         String userId= findUserByUsername(username).getId();
 
+        //Presa dell'utente rappresentato attraverso l'interfaccia keycloak
         UserResource userResource= keycloak.realm("CaesarRealm").users().get(userId);
 
-        log.debug("Nella repository user prima del delete");
         try {
             userResource.remove();
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione dell'utente");
             return false;
         }
-        log.debug("Nella repository user dopo la delete");
 
         return true;
     }
 
 
     //Metodi di servizio
-    private User setUser(boolean type, String field) {
-        RealmResource realmResource = keycloak.realm("CaesarRealm");
+    private User setUser(boolean type, String field) {  //Metodo per costruire l'oggetto entity
+        try {
 
-        List<UserRepresentation> usersResource;
+            //Presa del realm da keycloak per effettuare le operazioni in esso
+            RealmResource realmResource = keycloak.realm("CaesarRealm");
 
-        if(type){
-            usersResource = realmResource.users().searchByEmail(field, true);
-        }else{
-            usersResource = realmResource.users().searchByUsername(field, true);
+            //Scaricamento dei singoli utenti presenti su keycloak
+            List<UserRepresentation> usersResource;
+
+            //Ricerca del singolo utente attraverso uno dei attributi scelti
+            if (type) {
+                usersResource = realmResource.users().searchByEmail(field, true);
+            } else {
+                usersResource = realmResource.users().searchByUsername(field, true);
+            }
+
+            //Creazione dell'ggetto entity
+            User user = new User();
+
+            user.setId(usersResource.getFirst().getId());
+            user.setFirstName(usersResource.getFirst().getFirstName());
+            user.setLastName(usersResource.getFirst().getLastName());
+            user.setUsername(usersResource.getFirst().getUsername());
+            user.setEmail(usersResource.getFirst().getEmail());
+
+            //Verifica ed eventuale aggiunta del campo inerente al numero di telefono
+            if (usersResource.getFirst().getAttributes() != null)
+                user.setPhoneNumber(usersResource.getFirst().getAttributes().get("phoneNumber").get(0));
+
+            return user;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella costruzione dell'user da keycloak");
+            return null;
         }
-
-        User user = new User();
-
-        user.setId(usersResource.getFirst().getId());
-        user.setFirstName(usersResource.getFirst().getFirstName());
-        user.setLastName(usersResource.getFirst().getLastName());
-        user.setUsername(usersResource.getFirst().getUsername());
-        user.setEmail(usersResource.getFirst().getEmail());
-        if(usersResource.getFirst().getAttributes() != null)
-            user.setPhoneNumber(usersResource.getFirst().getAttributes().get("phoneNumber").get(0));
-
-        return user;
     }
 }

@@ -12,3 +12,16 @@ spring:
   output:
     ansi:
       enabled: always
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://25.24.244.170:8080/realms/CaesarRealm
+          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+
+jwt:
+  auth:
+    converter:
+      resource-id: caesar-app
+      principal-attribute: admin
