@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO getUser() {
+    public Mono<UserDTO> getUser() {
         try {
             //Presa dell'username dell'utente dal token
             String username = jwtConverter.getUsernameFromToken();
