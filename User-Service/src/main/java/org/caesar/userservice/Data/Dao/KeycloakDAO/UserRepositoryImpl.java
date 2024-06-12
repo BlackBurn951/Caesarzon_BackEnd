@@ -8,11 +8,9 @@ import org.caesar.userservice.Data.Dao.ProfilePicRepository;
 import org.caesar.userservice.Data.Entities.ProfilePic;
 import org.caesar.userservice.Data.Entities.User;
 
-import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.ProfilePicDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
-import org.caesar.userservice.Utils.Utils;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -23,7 +21,7 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.modelmapper.ModelMapper;
-import org.springframework.mock.web.MockMultipartFile;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,7 +37,7 @@ import java.util.*;
 public class UserRepositoryImpl implements UserRepository {
 
     //Converter per il token
-    private final JwtConverter jwtConverter = new JwtConverter();
+    private final JwtConverter jwtConverter;
 
     private final ProfilePicRepository profilePicRepository;
 
@@ -164,13 +162,13 @@ public class UserRepositoryImpl implements UserRepository {
             ProfilePicDTO profilePic = new ProfilePicDTO();
             File file = new File("User-Service/src/main/resources/static/img/base_profile_pic.jpg");
 
-            try{
-                MultipartFile multipartFile = new MockMultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
-
-                profilePic.setProfilePic(multipartFile.getBytes());
-            }catch (IOException e){
-                e.printStackTrace();
-            }
+//            try{
+//                MultipartFile multipartFile = new MockMultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
+//
+//                profilePic.setProfilePic(multipartFile.getBytes());
+//            }catch (IOException e){
+//                e.printStackTrace();
+//            }
 
             profilePic.setUserId(userId);
 

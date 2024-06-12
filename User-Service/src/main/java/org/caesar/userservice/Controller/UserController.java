@@ -1,6 +1,7 @@
 package org.caesar.userservice.Controller;
 
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.*;
@@ -24,23 +25,26 @@ public class UserController {
 
     //Servizi per la comunicazione con la logica di buisiness
     private final UserService userService;
-    private final AddressService addressService;
-    private final CardService cardService;
     private final CityDataService cityDataService;
-    private final UserAddressService userAddressService;
-    private final UserCardService userCardService;
-    private final ProfilePicService profilePicService;
+//    private final ProfilePicService profilePicService;
     private final GeneralService generalService;
 
     //End-point per gli utenti
-    @GetMapping("/user")
-    public ResponseEntity<UserDTO> getUserData() {
-        UserDTO userDTO = userService.getUser();
+//    @GetMapping("/user")
+//    public ResponseEntity<UserDTO> getUserData(HttpServletRequest request) {
+//        UserDTO userDTO = userService.getUser();
+//
+//        if(userDTO != null)
+//            return new ResponseEntity<>(userDTO, HttpStatus.OK);
+//        else
+//            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+//    }
 
-        if(userDTO != null)
-            return new ResponseEntity<>(userDTO, HttpStatus.OK);
-        else
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    @GetMapping("/user")
+    public Mono<ResponseEntity<UserDTO>> getUserData() {
+        return userService.getUser()
+                .map(userDTO -> new ResponseEntity<>(userDTO, HttpStatus.OK))
+                .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping("/user")
@@ -70,40 +74,28 @@ public class UserController {
     }
 
 
-    @GetMapping("/image")
-    public ResponseEntity<byte[]> loadImage(){
-        byte[] img= profilePicService.getImage();
 
-        if(img!=null){
-            return new ResponseEntity<>(img, HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-
-    @PostMapping("/image")
-    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file){
-        if(profilePicService.saveImage(file)){
-            return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Errore nel caricamento dell'immagine", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping("/image")
-    public ResponseEntity<byte[]> loadImage(){
-        byte[] img = profilePicService.getImage();
-        if(img != null){
-            log.debug("IMG: "+ img + "IN STRINGA: " + Arrays.toString(img));
-            return new ResponseEntity<>(img, HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>(img, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+//    @PostMapping("/image")
+//    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file){
+//        if(profilePicService.saveImage(file)){
+//            return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
+//        }
+//        else{
+//            return new ResponseEntity<>("Errore nel caricamento dell'immagine", HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+//
+//    @GetMapping("/image")
+//    public ResponseEntity<byte[]> loadImage(){
+//        byte[] img = profilePicService.getImage();
+//        if(img != null){
+//            log.debug("IMG: "+ img + "IN STRINGA: " + Arrays.toString(img));
+//            return new ResponseEntity<>(img, HttpStatus.OK);
+//        }
+//        else{
+//            return new ResponseEntity<>(img, HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
 
     //End-point per gli indirizzi
