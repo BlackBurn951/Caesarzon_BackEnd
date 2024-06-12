@@ -1,6 +1,5 @@
 package org.caesar.userservice.Config;
 
-import org.caesar.userservice.Dto.UserIdDTO;
 import org.keycloak.OAuth2Constants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

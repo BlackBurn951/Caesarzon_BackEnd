@@ -4,15 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
-import org.caesar.userservice.Data.Services.AddressService;
-import org.caesar.userservice.Data.Services.CardService;
 import org.caesar.userservice.Data.Services.UserService;
-import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserIdDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,20 +33,19 @@ public class UserServiceImpl implements UserService {
         return modelMapper.map(userRepository.findUserByUsername(username), UserIdDTO.class);
     }
 
-    @Override
     public Mono<UserDTO> getUser() {
         try {
-            //Presa dell'username dell'utente dal token
+            // Presa dell'username dell'utente dal token
             String username = jwtConverter.getUsernameFromToken();
 
-            //Conversione dell'oggetto entity in un oggetto DTO per poi privarlo dell'id per non farlo girare sulla rete
+            // Conversione dell'oggetto entity in un oggetto DTO per poi privarlo dell'id per non farlo girare sulla rete
             UserDTO userDTO = modelMapper.map(userRepository.findUserByUsername(username), UserDTO.class);
             userDTO.setId("");
 
-            return userDTO;
+            return Mono.just(userDTO); // Wrappare l'UserDTO in un Mono
         } catch (Exception | Error e) {
             log.debug("Errore nella presa dei dati dell'utente");
-            return null;
+            return Mono.empty(); // Ritornare un Mono vuoto in caso di eccezione
         }
     }
 
