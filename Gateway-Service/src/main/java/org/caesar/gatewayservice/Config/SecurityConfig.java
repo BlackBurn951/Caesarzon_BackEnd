@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/user-api/card").permitAll()
                         .pathMatchers(HttpMethod.POST, "/user-api/card").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/cards-name").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/search-api/search/users").permitAll()
 
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

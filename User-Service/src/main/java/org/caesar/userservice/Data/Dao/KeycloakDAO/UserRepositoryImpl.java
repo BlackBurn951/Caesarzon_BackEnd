@@ -55,6 +55,26 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public List<String> findAllUsersByUsername(String username) {
+
+        List<String> usernames = new ArrayList<>();
+        try{
+            System.out.printf("sono nel findAllUsersByUsername: %s\n", username);
+            RealmResource realmResource = keycloak.realm("CaesarRealm");
+            List<UserRepresentation> users = realmResource.users().searchByUsername(username, false);
+
+            for (UserRepresentation user : users) {
+                usernames.add(user.getUsername());
+            }
+            return usernames;
+        }catch (Exception e) {
+            System.out.printf("Errore: %s\n", e.getMessage());
+            return null;
+        }
+    }
+
+
+    @Override
     public List<User> findAllUsers() {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
 

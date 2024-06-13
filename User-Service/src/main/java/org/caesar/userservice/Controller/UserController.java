@@ -3,14 +3,18 @@ package org.caesar.userservice.Controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -19,6 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {
+
 
     //Servizi per la comunicazione con la logica di buisiness
     private final UserService userService;
@@ -192,6 +197,24 @@ public class UserController {
             return new ResponseEntity<>("Problemi nell'eliminazione", HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
+    //Metodo di prova, fatto da ciccio, bifano e cesare <3
+    //prendere tutti gli utenti
+    @GetMapping("/usersByUsername")
+    public List<String> getUsernames(@RequestParam("username") String username) {
+        System.out.printf("oh dio mi hanno chiamato");
+        return (userService.getUsersByUsername(username));
+    }
 
-
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello World";
+    }
+    @GetMapping("/suca")
+    public Mono<List<String>> suca() {
+        List<String> suca = new ArrayList<>();
+        suca.add("Mammata");
+        suca.add("Dio cane");
+        suca.add("Coglione");
+        return Mono.just(suca);
+    }
 }
