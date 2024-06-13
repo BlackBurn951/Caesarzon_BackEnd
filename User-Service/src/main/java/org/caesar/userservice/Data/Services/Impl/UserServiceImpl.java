@@ -28,20 +28,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserIdDTO getUserId() {
-//        String username= jwtConverter.getUsernameFromToken();
         return modelMapper.map(userRepository.findUserByUsername("username"), UserIdDTO.class);
     }
 
-    public UserDTO getUser() {
+    public UserDTO getUser(String username) {
         try {
-            // Presa dell'username dell'utente dal token
-//            String username = jwtConverter.getUsernameFromToken();
-
             // Conversione dell'oggetto entity in un oggetto DTO per poi privarlo dell'id per non farlo girare sulla rete
-            UserDTO userDTO = modelMapper.map(userRepository.findUserByUsername("username"), UserDTO.class);
+            UserDTO userDTO = modelMapper.map(userRepository.findUserByUsername(username), UserDTO.class);
             userDTO.setId("");
 
-            return userDTO; // Wrappare l'UserDTO in un Mono
+            return userDTO;
         } catch (Exception | Error e) {
             log.debug("Errore nella presa dei dati dell'utente");
             return null; // Ritornare un Mono vuoto in caso di eccezione
@@ -49,11 +45,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<String> getUsersByUsername(String username) {
-        System.out.printf("sono nel getUsersByUsername: %s\n", username);
+    public List<String> getUsersByUsername(String username) {  //TODO FATTO DA CICCIO
         return userRepository.findAllUsersByUsername(username);
     }
-
 
     @Override
     public boolean saveUser(UserRegistrationDTO userRegistrationDTO) {
@@ -81,9 +75,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean deleteUser(String userId) {
+    public boolean deleteUser(String userUsername) {
         try {
-            return userRepository.deleteUser(userId);
+            return userRepository.deleteUser(userUsername);
         } catch(Exception | Error e) {
             log.debug("Errore nella cancellazione dell'utente");
             return false;

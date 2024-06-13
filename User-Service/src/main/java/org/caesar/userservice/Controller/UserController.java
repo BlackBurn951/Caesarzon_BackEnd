@@ -37,15 +37,14 @@ public class UserController {
     @GetMapping("/user")
     public ResponseEntity<UserDTO> getUserData() {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-        log.debug("Username all'interno del controller {}",username);
-        UserDTO userDTO = userService.getUser();
+
+        UserDTO userDTO = userService.getUser(username);
 
         if(userDTO != null)
             return new ResponseEntity<>(userDTO, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
-
 
     @PostMapping("/user")
     public ResponseEntity<String> postUserData(@RequestBody UserRegistrationDTO userData) {
@@ -57,6 +56,7 @@ public class UserController {
 
     @PutMapping("/user")
     public ResponseEntity<String> putUserData(@RequestBody UserDTO userData) {
+        log.debug("Username dal front {}", userData.getUsername());
         if(userService.updateUser(userData))
             return new ResponseEntity<>("User aggiornato!", HttpStatus.OK);
         else
@@ -65,7 +65,9 @@ public class UserController {
 
     @DeleteMapping("/user")
     public ResponseEntity<String> deleteUser() {
-        boolean result= generalService.deleteUser();
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result= generalService.deleteUser(username);
 
         if(result)
             return new ResponseEntity<>("User eliminato con successo!", HttpStatus.OK);
@@ -101,7 +103,10 @@ public class UserController {
     //End-point per gli indirizzi
     @GetMapping("/address")
     public ResponseEntity<AddressDTO> getAddressData(@RequestParam("nameLista") String addressName) {
-        AddressDTO addressDTO= generalService.getUserAddress(addressName);
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        log.debug("Sono nell'end-point");
+        AddressDTO addressDTO= generalService.getUserAddress(addressName, username);
 
         if(addressDTO!=null)
             return new ResponseEntity<>(addressDTO, HttpStatus.OK);
@@ -111,7 +116,9 @@ public class UserController {
 
     @PostMapping("/address")
     public ResponseEntity<String> saveUserAddressData(@RequestBody AddressDTO addressDTO) {
-        if(generalService.addAddress(addressDTO))
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        if(generalService.addAddress(username, addressDTO))
             return new ResponseEntity<>("Indirizzo salvato!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -129,12 +136,16 @@ public class UserController {
 
     @GetMapping("/addresses-names")
     public List<String> getAddressesNames() {
-        return generalService.getUserAddresses();
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        return generalService.getUserAddresses(username);
     }
 
     @DeleteMapping("/address")
     public ResponseEntity<String> deleteAddress(@RequestParam("addr") String addressName) {
-        boolean result= generalService.deleteUserAddress(addressName);
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result= generalService.deleteUserAddress(username, addressName);
 
         if(result)
             return new ResponseEntity<>("Indirizzo eliminato correttamente!", HttpStatus.OK);
@@ -146,7 +157,9 @@ public class UserController {
     //End-point per le carte
     @GetMapping("/card")
     public ResponseEntity<CardDTO> getCardData(@RequestParam("nameLista") String cardName) {
-        CardDTO cardDTO = generalService.getUserCard(cardName);
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        CardDTO cardDTO = generalService.getUserCard(username, cardName);
 
         if(cardDTO!=null)
             return new ResponseEntity<>(cardDTO, HttpStatus.OK);
@@ -156,7 +169,9 @@ public class UserController {
 
     @PostMapping("/card")
     public ResponseEntity<String> saveUserCardData(@RequestBody CardDTO cardDTO) {
-        if (generalService.addCard(cardDTO))
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        if (generalService.addCard(username, cardDTO))
             return new ResponseEntity<>("Carta salvata!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -164,12 +179,16 @@ public class UserController {
 
     @GetMapping("/cards-names")
     public List<String> getCardsNames() {
-        return generalService.getUserCards();
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        return generalService.getUserCards(username);
     }
 
     @DeleteMapping("/card")
     public ResponseEntity<String> deleteCard(@RequestParam("crd") String cardName) {
-        boolean result= generalService.deleteUserCard(cardName);
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result= generalService.deleteUserCard(username, cardName);
 
         if(result)
             return new ResponseEntity<>("Carta eliminata", HttpStatus.OK);

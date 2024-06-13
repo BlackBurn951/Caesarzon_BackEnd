@@ -39,10 +39,10 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public UserAddressDTO getUserAddress(String userId, int addressNum) {
+    public UserAddressDTO getUserAddress(String userUsername, int addressNum) {
 
         //Presa della lista degli inidirizzi del singolo utente
-        List<UserAddress> userAddresses = userAddressRepository.findByUserId(userId);
+        List<UserAddress> userAddresses = userAddressRepository.findByUserUsername(userUsername);
 
         int count= 0;
 
@@ -60,8 +60,8 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public List<String> getAddresses(String userId) {
-        int num= userAddressRepository.countByUserId(userId);
+    public List<String> getAddresses(String userUsername) {
+        int num= userAddressRepository.countByUserUsername(userUsername);
 
         List<String> result= new Vector<>();
         for(int i=0; i<num; i++)
@@ -74,10 +74,10 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public List<UserAddressDTO> getUserAddresses(String userId) {
+    public List<UserAddressDTO> getUserAddresses(String userUsername) {
         List<UserAddressDTO> result= new Vector<>();
 
-        List<UserAddress> userAddresses = userAddressRepository.findByUserId(userId);
+        List<UserAddress> userAddresses = userAddressRepository.findByUserUsername(userUsername);
 
         for(UserAddress ut: userAddresses) {
             result.add(modelMapper.map(ut, UserAddressDTO.class));
@@ -98,9 +98,9 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public boolean deleteUserAddresses(String userId) { //DONE
+    public boolean deleteUserAddresses(String userUsername) { //DONE
         try {
-            List<UserAddress> userAddresses = userAddressRepository.findByUserId(userId);
+            List<UserAddress> userAddresses = userAddressRepository.findByUserUsername(userUsername);
 
             List<UUID> ids= new Vector<>();
 

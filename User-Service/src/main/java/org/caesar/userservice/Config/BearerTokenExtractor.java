@@ -18,14 +18,14 @@ public class BearerTokenExtractor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String authorizationHeader = request.getHeader("Authorization");
-        System.out.println("Sono nel pre handle prima della verifica");
+
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String bearerToken = authorizationHeader.substring(7);
             try {
                 // Estrarre il nome utente preferito dal token bearer
                 String preferredUsername = extractPreferredUsernameFromToken(bearerToken);
                 // Impostare il nome utente preferito nella richiesta
-                System.out.println("Username estratto dal token "+preferredUsername);
+
                 request.setAttribute("preferred_username", preferredUsername);
             } catch (ParseException e) {
                 // Gestisci il token non valido
@@ -38,12 +38,9 @@ public class BearerTokenExtractor implements HandlerInterceptor {
 
     private String extractPreferredUsernameFromToken(String bearerToken) throws ParseException {
         // Decodifica il token JWT e ottieni il campo preferred_username
-        System.out.println("Sono nella funzione prima del parsing");
         JwtDecoder jwtDecoder= NimbusJwtDecoder.withJwkSetUri("http://25.24.244.170:8080/realms/CaesarRealm/protocol/openid-connect/certs").build(); // Sostituisci con il tuo issuer URI per JWK
         Jwt jwt = jwtDecoder.decode(bearerToken);
 
-        String preferredUsername = jwt.getClaim("preferred_username");
-        System.out.println("Username estratto dal token "+preferredUsername);
-        return preferredUsername;
+        return jwt.getClaim("preferred_username");
     }
 }

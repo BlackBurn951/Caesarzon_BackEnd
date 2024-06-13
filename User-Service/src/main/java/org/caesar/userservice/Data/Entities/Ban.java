@@ -23,10 +23,10 @@ public class Ban {
     @Column(name = "data_fine")
     private LocalDate endDate;
 
-    @Column(name= "id_utente")
-    private String userId;
+    @Column(name= "username_utente")
+    private String userUsername;
 
-    @Column(name= "id_admin")
-    private String adminId;
+    @Column(name= "username_admin")
+    private String adminUsername;
 
 }

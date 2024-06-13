@@ -33,6 +33,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.PUT, "/user-api/user").permitAll()
                         .pathMatchers(HttpMethod.POST, "/user-api/user").permitAll()
                         .pathMatchers(HttpMethod.DELETE, "/user-api/user").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/user-api/user").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/city").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/city-data").permitAll()
                         .pathMatchers(HttpMethod.POST, "/user-api/address").permitAll()

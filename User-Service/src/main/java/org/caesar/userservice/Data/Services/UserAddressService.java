@@ -9,8 +9,8 @@ public interface UserAddressService {
 
     boolean addUserAddreses(UserAddressDTO userAddress);
     UserAddressDTO getUserAddress(String userId, int addressNum);
-    List<String> getAddresses(String userId);
-    List<UserAddressDTO> getUserAddresses(String userId);
+    List<String> getAddresses(String userUsername);
+    List<UserAddressDTO> getUserAddresses(String userUsername);
     boolean deleteUserAddress(UserAddressDTO userAddressDTO);
-    boolean deleteUserAddresses(String userId);
+    boolean deleteUserAddresses(String userUsername);
 }

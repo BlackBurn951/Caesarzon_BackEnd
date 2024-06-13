@@ -38,10 +38,10 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public UserCardDTO getUserCard(String userId, int cardNum) {
+    public UserCardDTO getUserCard(String userUsername, int cardNum) {
 
         //Presa della lista delle carte associate all'utente
-        List<UserCard> userCardVector = userCardRepository.findByUserId(userId);
+        List<UserCard> userCardVector = userCardRepository.findByUserUsername(userUsername);
 
         int count= 0;
 
@@ -59,8 +59,8 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public List<String> getCards(String userId) {
-        int num= userCardRepository.countByUserId(userId);
+    public List<String> getCards(String userUsername) {
+        int num= userCardRepository.countByUserUsername(userUsername);
 
         log.debug("Numero di tuple tornato {}", num);
 
@@ -79,10 +79,10 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public List<UserCardDTO> getUserCards(String userId) {
+    public List<UserCardDTO> getUserCards(String userUsername) {
         List<UserCardDTO> result= new Vector<>();
 
-        List<UserCard> userCards = userCardRepository.findByUserId(userId);
+        List<UserCard> userCards = userCardRepository.findByUserUsername(userUsername);
 
         for(UserCard ut: userCards) {
             result.add(modelMapper.map(ut, UserCardDTO.class));
@@ -103,9 +103,9 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public boolean deleteUserCards(String userId) {
+    public boolean deleteUserCards(String userUsername) {
         try {
-            List<UserCard> userCards = userCardRepository.findByUserId(userId);
+            List<UserCard> userCards = userCardRepository.findByUserUsername(userUsername);
 
             List<UUID> ids= new Vector<>();
 

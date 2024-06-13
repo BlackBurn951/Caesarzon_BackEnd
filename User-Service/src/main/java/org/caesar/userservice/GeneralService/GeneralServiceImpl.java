@@ -36,23 +36,24 @@ public class GeneralServiceImpl implements GeneralService {
     //Metodi di inserimento dati con tabelle di relazione
     @Override
     @Transactional
-    public boolean addAddress(AddressDTO addressDTO) {
+    public boolean addAddress(String userUsername, AddressDTO addressDTO) {
         UUID addressId= addressService.addAddress(addressDTO);
 
+        log.debug("Nel general service dopo aver preso l'adddressssssss");
         if(addressId == null)
             return false;
 
         UserAddressDTO userAddressDTO= new UserAddressDTO();
 
         userAddressDTO.setAddressId(addressId);
-        userAddressDTO.setUserId(userService.getUserId().getUserId());
+        userAddressDTO.setUserUsername(userUsername);
 
         return userAddressService.addUserAddreses(userAddressDTO);
     }
 
     @Override
     @Transactional
-    public boolean addCard(CardDTO cardDTO) {
+    public boolean addCard(String userUsername, CardDTO cardDTO) {
         UUID cardId= cardService.addCard(cardDTO);
 
         if(cardId == null)
@@ -61,7 +62,7 @@ public class GeneralServiceImpl implements GeneralService {
         UserCardDTO userCardDTO= new UserCardDTO();
 
         userCardDTO.setCardId(cardId);
-        userCardDTO.setUserId(userService.getUserId().getUserId());
+        userCardDTO.setUserUsername(userUsername);
 
         return userCardService.addUserCards(userCardDTO);
     }
@@ -69,13 +70,14 @@ public class GeneralServiceImpl implements GeneralService {
 
     //Getters per prendere i dati dalle tabelle di relazione
     @Override
-    public CardDTO getUserCard(String cardName) {
+    public CardDTO getUserCard(String userUsername, String cardName) {
         int cardNumber= getNumber(cardName);
+
 
         if(cardNumber == 0)
             return null;
 
-        UserCardDTO userCardDTO= userCardService.getUserCard(userService.getUserId().getUserId(), cardNumber);
+        UserCardDTO userCardDTO= userCardService.getUserCard(userUsername, cardNumber);
 
         if(userCardDTO == null)
             return null;
@@ -84,18 +86,20 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public List<String> getUserCards() {
-        return userCardService.getCards(userService.getUserId().getUserId());
+    public List<String> getUserCards(String usernUsername) {
+        return userCardService.getCards(usernUsername);
     }
 
     @Override
-    public AddressDTO getUserAddress(String addressName) {
+    public AddressDTO getUserAddress(String addressName, String username) {
+        log.debug("uiwqdhqygdygqiqigQ");
         int addressNumber= getNumber(addressName);
 
+        log.debug("Numero preso dal front {}", addressNumber);
         if(addressNumber == 0)
             return null;
 
-        UserAddressDTO userAddressDTO= userAddressService.getUserAddress(userService.getUserId().getUserId(), addressNumber);
+        UserAddressDTO userAddressDTO= userAddressService.getUserAddress(username, addressNumber);
 
         if(userAddressDTO == null)
             return null;
@@ -104,30 +108,28 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public List<String> getUserAddresses() {
-        return userAddressService.getAddresses(userService.getUserId().getUserId());
+    public List<String> getUserAddresses(String userUsername) {
+        return userAddressService.getAddresses(userUsername);
     }
 
 
     //Metodi di cancellazione
     @Override
     @Transactional
-    public boolean deleteUser() {
+    public boolean deleteUser(String username) {
         try {
-            String userId = userService.getUserId().getUserId();
-
-            List<UserAddressDTO> userAddresses = userAddressService.getUserAddresses(userId);
-            List<UserCardDTO> userCards = userCardService.getUserCards(userId);
+            List<UserAddressDTO> userAddresses = userAddressService.getUserAddresses(username);
+            List<UserCardDTO> userCards = userCardService.getUserCards(username);
             if(userAddresses==null || userAddresses.isEmpty() || userCards==null || userCards.isEmpty())
                 return false;
 
-            boolean userDeleted = userService.deleteUser(userId);
+            boolean userDeleted = userService.deleteUser(username);
 
-            boolean userAddressesDeleted = userAddressService.deleteUserAddresses(userId);
-            boolean addressesDeleted = addressService.deleteAllUserAddresses(userId, userAddresses);
+            boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
+            boolean addressesDeleted = addressService.deleteAllUserAddresses(username, userAddresses);
 
-            boolean userCardsDeleted = userCardService.deleteUserCards(userId);
-            boolean cardDeleted = cardService.deleteUserCards(userId, userCards);
+            boolean userCardsDeleted = userCardService.deleteUserCards(username);
+            boolean cardDeleted = cardService.deleteUserCards(username, userCards);
 
             return userDeleted && addressesDeleted && userAddressesDeleted && cardDeleted && userCardsDeleted;
         } catch (Exception | Error e) {
@@ -138,14 +140,14 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-    public boolean deleteUserAddress(String addressName) {
+    public boolean deleteUserAddress(String userUsername, String addressName) {
         int addressNumber= getNumber(addressName);
 
         if(addressNumber==0)
             return false;
 
         try {
-            UserAddressDTO userAddressDTO= userAddressService.getUserAddress(userService.getUserId().getUserId(), addressNumber);
+            UserAddressDTO userAddressDTO= userAddressService.getUserAddress(userUsername, addressNumber);
 
             if(userAddressDTO!=null && userAddressService.deleteUserAddress(userAddressDTO))
                 return addressService.deleteAddress(userAddressDTO.getAddressId());
@@ -159,14 +161,14 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-    public boolean deleteUserCard(String cardName) {
+    public boolean deleteUserCard(String userUsername, String cardName) {
         int cardNumber= getNumber(cardName);
 
         if(cardNumber==0)
             return false;
 
         try {
-            UserCardDTO userCardDTO= userCardService.getUserCard(userService.getUserId().getUserId(), cardNumber);
+            UserCardDTO userCardDTO= userCardService.getUserCard(userUsername, cardNumber);
 
             if(userCardService.deleteUserCard(userCardDTO))
                 return cardService.deleteCard(userCardDTO.getCardId());

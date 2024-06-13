@@ -213,7 +213,7 @@ public class UserRepositoryImpl implements UserRepository {
             RealmResource realmResource = keycloak.realm("CaesarRealm");
 
             //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
-            User userKeycloak = findUserByUsername("jwtConverter.getUsernameFromToken()");
+            User userKeycloak = findUserByUsername(userData.getUsername());
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
 
             //Aggiornamento dei dati dell'utente ad eccezione dell'username (attributo unique e non modificabile)
@@ -223,10 +223,13 @@ public class UserRepositoryImpl implements UserRepository {
             user.setEmail(userData.getEmail());
 
             //Presa degli attributi personalizzati da keycloak
-            Map<String, List<String>> attributes = user.getAttributes();
+            Map<String, List<String>> attributes = new HashMap<>();  //FIXME controllare vecchia config
 
-            if(attributes==null)
-                return false;
+
+//            if(attributes==null) {
+//                log.debug("Attributi nulli");
+//                return false;
+//            }
 
             attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
             user.setAttributes(attributes);
