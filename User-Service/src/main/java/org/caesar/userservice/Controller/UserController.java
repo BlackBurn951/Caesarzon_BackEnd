@@ -4,6 +4,7 @@ package org.caesar.userservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.GeneralService.GeneralService;
@@ -23,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {
+
 
     //Servizi per la comunicazione con la logica di buisiness
     private final UserService userService;
@@ -174,8 +176,13 @@ public class UserController {
         else
             return new ResponseEntity<>("Problemi nell'eliminazione", HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-
+    //Metodo di prova, fatto da ciccio, bifano e cesare <3
+    //prendere tutti gli utenti
+    @GetMapping("/usersByUsername")
+    public List<String> getUsernames(@RequestParam("username") String username) {
+        System.out.printf("oh dio mi hanno chiamato");
+        return (userService.getUsersByUsername(username));
+    }
     //TODO aggiunta carta con la verifica che i numeri di carta non sia presente nel db
-
 }
+    

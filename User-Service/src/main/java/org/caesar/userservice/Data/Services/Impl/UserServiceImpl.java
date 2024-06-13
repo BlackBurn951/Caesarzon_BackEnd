@@ -49,6 +49,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<String> getUsersByUsername(String username) {
+        System.out.printf("sono nel getUsersByUsername: %s\n", username);
+        return userRepository.findAllUsersByUsername(username);
+    }
+
+
+    @Override
     public boolean saveUser(UserRegistrationDTO userRegistrationDTO) {
         //Controllo che i campi mandati da front non siano null e che rispettino il formato richiesto
         if(checkUsername(userRegistrationDTO.getUsername()) &&
