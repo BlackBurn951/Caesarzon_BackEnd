@@ -3,7 +3,6 @@ package org.caesar.userservice.Data.Dao.KeycloakDAO;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Dao.ProfilePicRepository;
 import org.caesar.userservice.Data.Entities.ProfilePic;
 import org.caesar.userservice.Data.Entities.User;
@@ -23,12 +22,9 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.modelmapper.ModelMapper;
 
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.*;
 
 @Component
@@ -37,7 +33,7 @@ import java.util.*;
 public class UserRepositoryImpl implements UserRepository {
 
     //Converter per il token
-    private final JwtConverter jwtConverter;
+//    private final JwtConverter jwtConverter;
 
     private final ProfilePicRepository profilePicRepository;
 
@@ -122,7 +118,8 @@ public class UserRepositoryImpl implements UserRepository {
     public String getUserIdFromToken() {
 
 //        log.debug("USERNAME PROVA: " + jwtConverter.getUserInfo());
-        return this.findUserByUsername(jwtConverter.getUsernameFromToken()).getId();
+//        return this.findUserByUsername(jwtConverter.getUsernameFromToken()).getId();
+        return "";
     }
 
 
@@ -196,7 +193,7 @@ public class UserRepositoryImpl implements UserRepository {
             RealmResource realmResource = keycloak.realm("CaesarRealm");
 
             //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
-            User userKeycloak = findUserByUsername(jwtConverter.getUsernameFromToken());
+            User userKeycloak = findUserByUsername("jwtConverter.getUsernameFromToken()");
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
 
             //Aggiornamento dei dati dell'utente ad eccezione dell'username (attributo unique e non modificabile)

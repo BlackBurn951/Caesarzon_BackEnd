@@ -2,7 +2,6 @@ package org.caesar.userservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.UserDTO;
@@ -23,29 +22,29 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final JwtConverter jwtConverter;
+//    private final JwtConverter jwtConverter;
     private final ModelMapper modelMapper;
 
 
     @Override
     public UserIdDTO getUserId() {
-        String username= jwtConverter.getUsernameFromToken();
-        return modelMapper.map(userRepository.findUserByUsername(username), UserIdDTO.class);
+//        String username= jwtConverter.getUsernameFromToken();
+        return modelMapper.map(userRepository.findUserByUsername("username"), UserIdDTO.class);
     }
 
-    public Mono<UserDTO> getUser() {
+    public UserDTO getUser() {
         try {
             // Presa dell'username dell'utente dal token
-            String username = jwtConverter.getUsernameFromToken();
+//            String username = jwtConverter.getUsernameFromToken();
 
             // Conversione dell'oggetto entity in un oggetto DTO per poi privarlo dell'id per non farlo girare sulla rete
-            UserDTO userDTO = modelMapper.map(userRepository.findUserByUsername(username), UserDTO.class);
+            UserDTO userDTO = modelMapper.map(userRepository.findUserByUsername("username"), UserDTO.class);
             userDTO.setId("");
 
-            return Mono.just(userDTO); // Wrappare l'UserDTO in un Mono
+            return userDTO; // Wrappare l'UserDTO in un Mono
         } catch (Exception | Error e) {
             log.debug("Errore nella presa dei dati dell'utente");
-            return Mono.empty(); // Ritornare un Mono vuoto in caso di eccezione
+            return null; // Ritornare un Mono vuoto in caso di eccezione
         }
     }
 

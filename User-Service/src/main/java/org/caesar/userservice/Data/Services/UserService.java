@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 public interface UserService {
 
     UserIdDTO getUserId();
-    Mono<UserDTO> getUser();
+    UserDTO getUser();
     boolean saveUser(UserRegistrationDTO userData);
     boolean updateUser(UserDTO userData);
     boolean deleteUser(String userId);

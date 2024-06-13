@@ -29,24 +29,21 @@ public class UserController {
     private final CityDataService cityDataService;
 //    private final ProfilePicService profilePicService;
     private final GeneralService generalService;
+    private final HttpServletRequest httpServletRequest;
 
     //End-point per gli utenti
-//    @GetMapping("/user")
-//    public ResponseEntity<UserDTO> getUserData(HttpServletRequest request) {
-//        UserDTO userDTO = userService.getUser();
-//
-//        if(userDTO != null)
-//            return new ResponseEntity<>(userDTO, HttpStatus.OK);
-//        else
-//            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-//    }
-
     @GetMapping("/user")
-    public Mono<ResponseEntity<UserDTO>> getUserData() {
-        return userService.getUser()
-                .map(userDTO -> new ResponseEntity<>(userDTO, HttpStatus.OK))
-                .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<UserDTO> getUserData() {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+        log.debug("Username all'interno del controller {}",username);
+        UserDTO userDTO = userService.getUser();
+
+        if(userDTO != null)
+            return new ResponseEntity<>(userDTO, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
+
 
     @PostMapping("/user")
     public ResponseEntity<String> postUserData(@RequestBody UserRegistrationDTO userData) {

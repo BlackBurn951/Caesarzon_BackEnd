@@ -4,7 +4,6 @@ package org.caesar.userservice.GeneralService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.AddressDTO;
 import org.caesar.userservice.Dto.CardDTO;
