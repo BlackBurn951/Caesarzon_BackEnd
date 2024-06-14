@@ -26,75 +26,37 @@ import org.springframework.stereotype.Service;
 public class CardServiceImpl implements CardService {
 
     private final ModelMapper modelMapper;
-
-    //Repository delle carte
     private final CardRepository cardRepository;
-
-    private final UserCardService userCardService;
-
 
 
     //I metodi CRUD delle repository hanno di base il @Transactional, ma bisogna fare il doppio passaggio
-    @Transactional
     @Override
-    public boolean saveCard(CardDTO cardDTO) {
+    public UUID addCard(CardDTO cardDTO) {
         if(!checkCardNumber(cardDTO.getCardNumber()) || !checkOwner(cardDTO.getOwner()) ||
             !checkCvv(cardDTO.getCvv()) || !checkExpiryDate(cardDTO.getExpiryDate()))
-            return false;
+            return null;
 
         try{
             Card card = modelMapper.map(cardDTO, Card.class);
 
-            UUID cardID = cardRepository.save(card).getId(); // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
-
-            UserCardDTO userCardDTO = new UserCardDTO();
-
-            userCardDTO.setCardId(cardID);
-
-            return userCardService.addUserCards(userCardDTO);
+             // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
+            return cardRepository.save(card).getId();
         }catch(RuntimeException | Error e){
-            //LOG DA IMPLEMENTARE //TODO
-            e.printStackTrace(); // You should replace this with a proper logging mechanism
-
-            return false;
+            log.debug("Errore nel salvataggio della carta dell'utente");
+            return null;
         }
     }
 
     @Override
-    public CardDTO getCard(String cardName) {
-
-        //Scrittura della regex per prendere il numero della carta desiderata
-
-        int cardNumber= getCardName(cardName);
-
-        log.debug("Sono dopo la presa del numero della carta desiderata numero carta {}", cardNumber);
-
-        UserCardDTO userCard= userCardService.getUserCard(cardNumber);
-
-        //Ritorno di un valore null in caso di problemi nella presa della carta desiderata
-        if(userCard==null)
-            return null;
-
-        return modelMapper.map(cardRepository.findById(userCard.getCardId()), CardDTO.class);
+    public CardDTO getCard(UUID cardId) {
+        return modelMapper.map(cardRepository.findById(cardId), CardDTO.class);
     }
 
     @Override
-    @Transactional
-    public boolean deleteCard(String cardName) {
-
-        int cardNumber= getCardName(cardName);
-
-        if(cardNumber == 0)
-            return false;
-
-        UserCardDTO userCard= userCardService.getUserCard(cardNumber);
-
+    public boolean deleteCard(UUID cardId) {
         try {
-            if(userCardService.deleteUserCard(userCard)) {
-                cardRepository.deleteById(userCard.getCardId());
-                return true;
-            }
-            return false;
+            cardRepository.deleteById(cardId);
+            return true;
         } catch (Exception e) {
             log.debug("Errore nella cancellazione della carta");
             return false;
@@ -102,26 +64,21 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    @Transactional
-    public boolean deleteUserCards(String userId) {
-        List<UserCardDTO> userCards= userCardService.getUserCards(userId);
-
+    public boolean deleteUserCards(List<UserCardDTO> userCards) {  //DONE
         List<UUID> cardId= new Vector<>();
-        for(UserCardDTO userAddress: userCards) {
-            cardId.add(userAddress.getCardId());
+        for(UserCardDTO userCard: userCards) {
+            cardId.add(userCard.getCardId());
         }
 
         try {
-            if(userCardService.deleteUserCards(userCards)) {
-                cardRepository.deleteAllById(cardId);
-                return true;
-            }
-            return false;
+            cardRepository.deleteAllById(cardId);
+            return true;
         } catch (Exception e) {
-            log.debug("Problemi nell'eliminazione di tutti gli indirizzi");
+            log.debug("Problemi nell'eliminazione di tutti le carte");
             return false;
         }
     }
+
 
     //Metodi per la convalida
     private boolean checkCardNumber(String cardNumber) {
@@ -159,16 +116,5 @@ public class CardServiceImpl implements CardService {
         int actualMonth = date.getMonthValue(), actualYear = date.getYear();
 
         return month>=actualMonth && year>=actualYear;
-    }
-
-    private int getCardName(String cardName) {
-        Pattern pattern = Pattern.compile(".*([0-9]+)");
-        Matcher matcher = pattern.matcher(cardName);
-
-        int cardNumber=0;
-        if(matcher.matches())
-            cardNumber = Integer.parseInt(matcher.group(1));
-
-        return cardNumber;
     }
 }

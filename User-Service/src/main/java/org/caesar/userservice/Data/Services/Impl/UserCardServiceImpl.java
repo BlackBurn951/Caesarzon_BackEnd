@@ -2,15 +2,10 @@ package org.caesar.userservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Dao.UserCardRepository;
-import org.caesar.userservice.Data.Entities.UserAddress;
 import org.caesar.userservice.Data.Entities.UserCard;
 import org.caesar.userservice.Data.Services.UserCardService;
-import org.caesar.userservice.Data.Services.UserService;
-import org.caesar.userservice.Dto.UserAddressDTO;
 import org.caesar.userservice.Dto.UserCardDTO;
-import org.caesar.userservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
@@ -24,38 +19,29 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class UserCardServiceImpl implements UserCardService {
 
-
     private final UserCardRepository userCardRepository;
-
     private final ModelMapper modelMapper;
 
-    private final UserRepository userRepository;
-
-    private final Utils utils;
 
     @Override
     public boolean addUserCards(UserCardDTO userCard) {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
-            String userId= utils.getUserId().getUserId();
-
-            userCard.setUserId(userId);
             UserCard userCardEntity = modelMapper.map(userCard, UserCard.class);
             userCardRepository.save(userCardEntity);
+
+            return true;
         } catch (RuntimeException | Error e){
-            //TODO Log
+            log.debug("Errore nel salvataggio nella tabella di relazione utente carte");
             return false;
         }
-
-        return true;
     }
 
     @Override
-    public UserCardDTO getUserCard(int cardNum) {
+    public UserCardDTO getUserCard(String userUsername, int cardNum) {
 
-        String userId= utils.getUserId().getUserId();
         //Presa della lista delle carte associate all'utente
-        List<UserCard> userCardVector = userCardRepository.findByUserId(userId);
+        List<UserCard> userCardVector = userCardRepository.findByUserUsername(userUsername);
 
         int count= 0;
 
@@ -73,10 +59,8 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public List<String> getCards() {
-        String userId= userRepository.getUserIdFromToken();
-
-        int num= userCardRepository.countByUserId(userId);
+    public List<String> getCards(String userUsername) {
+        int num= userCardRepository.countByUserUsername(userUsername);
 
         log.debug("Numero di tuple tornato {}", num);
 
@@ -95,10 +79,10 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public List<UserCardDTO> getUserCards(String userId) {
+    public List<UserCardDTO> getUserCards(String userUsername) {
         List<UserCardDTO> result= new Vector<>();
 
-        List<UserCard> userCards = userCardRepository.findByUserId(userId);
+        List<UserCard> userCards = userCardRepository.findByUserUsername(userUsername);
 
         for(UserCard ut: userCards) {
             result.add(modelMapper.map(ut, UserCardDTO.class));
@@ -119,11 +103,13 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public boolean deleteUserCards(List<UserCardDTO> userCards) {
+    public boolean deleteUserCards(String userUsername) {
         try {
+            List<UserCard> userCards = userCardRepository.findByUserUsername(userUsername);
+
             List<UUID> ids= new Vector<>();
 
-            for(UserCardDTO userCard : userCards) {
+            for(UserCard userCard : userCards) {
                 ids.add(userCard.getId());
             }
 

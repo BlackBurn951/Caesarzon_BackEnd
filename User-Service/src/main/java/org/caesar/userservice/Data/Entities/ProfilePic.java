@@ -17,8 +17,8 @@ public class ProfilePic {
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "id_utente")
-    private String userId;
+    @Column(name = "username_utente")
+    private String userUsername;
 
     @Column(name = "foto_profilo")
     private byte[] profilePic;

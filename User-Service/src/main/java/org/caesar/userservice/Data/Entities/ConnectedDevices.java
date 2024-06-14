@@ -20,6 +20,6 @@ public class ConnectedDevices {
     @Column(name = "data_collegamento")
     private LocalDate connectionDate;
 
-    @Column(name = "id_utente")
-    private String userId;
+    @Column(name = "username_utente")
+    private String userUsername;
 }
