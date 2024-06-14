@@ -10,5 +10,5 @@ public interface CardService {
     UUID addCard(CardDTO cardDTO);
     CardDTO getCard(UUID cardId);
     boolean deleteCard(UUID cardId);
-    boolean deleteUserCards(String userId, List<UserCardDTO> userCards);
+    boolean deleteUserCards(List<UserCardDTO> userCards);
 }

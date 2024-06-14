@@ -68,7 +68,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public boolean deleteAllUserAddresses(String userId, List<UserAddressDTO> userAddresses) {  //DONE
+    public boolean deleteAllUserAddresses(List<UserAddressDTO> userAddresses) {  //DONE
         List<UUID> addressId= new Vector<>();
         for(UserAddressDTO userAddress: userAddresses) {
             addressId.add(userAddress.getAddressId());

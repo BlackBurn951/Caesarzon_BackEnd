@@ -29,6 +29,9 @@
         <appender-ref ref="debugLog"/>
     </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
 
+    <logger name="org.caesar.userservice.GeneralService" level="debug">
+        <appender-ref ref="debugLog"/>
+    </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
 <!--    <logger name="org.caesar.userservice" level="warn">-->
 <!--        <appender-ref ref="infoLog"/>-->
 <!--    </logger>   &lt;!&ndash; LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI INFO&ndash;&gt;-->

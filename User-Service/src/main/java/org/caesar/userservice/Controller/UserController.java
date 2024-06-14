@@ -4,18 +4,13 @@ package org.caesar.userservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Mono;
 
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -23,17 +18,18 @@ import java.util.List;
 @RequestMapping("/user-api")
 @RequiredArgsConstructor
 @Slf4j
-public class UserController {
+public class UserController {  //FIXME FARE LA SUDDIVISIONE IN PIù CLASI
 
 
     //Servizi per la comunicazione con la logica di buisiness
     private final UserService userService;
     private final CityDataService cityDataService;
-//    private final ProfilePicService profilePicService;
+    private final ProfilePicService profilePicService;
     private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
+    private final FollowerService followerService;
 
-    //End-point per gli utenti
+    //End-point per l'utente
     @GetMapping("/user")
     public ResponseEntity<UserDTO> getUserData() {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
@@ -76,6 +72,48 @@ public class UserController {
     }
 
 
+    //End-point per gli utenti
+    @GetMapping("/users")
+    public ResponseEntity<List<UserSearchDTO>> getUsersSearch(@RequestParam("str") int start) {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        List<UserSearchDTO> result= generalService.getUserSearch(username, start);
+
+        if(result!=null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    //End-point per follower-system
+    @GetMapping("/followers")
+    public ResponseEntity<List<UserSearchDTO>> getFollowers(@RequestParam("flw") int flw, @RequestParam("friend") boolean friend) {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        return new ResponseEntity<>(generalService.getFollowersOrFriend(username, flw, friend), HttpStatus.OK);
+    }
+
+    @PostMapping("/followers")
+    public ResponseEntity<String> addUpdateFollower(@RequestBody List<UserSearchDTO> followers) {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        if(followerService.addFollowers(username, followers))
+            return new ResponseEntity<>("Followers registrati!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nella registrazione dei followers...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    @DeleteMapping("/followers")
+    public ResponseEntity<String> deleteFollower(@RequestBody List<String> followers) {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        if(followerService.deleteFollowers(username, followers))
+            return new ResponseEntity<>("Followers eliminati con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nell'eliminazione dei followers...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
 //    @PostMapping("/image")
 //    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file){
@@ -195,13 +233,15 @@ public class UserController {
         else
             return new ResponseEntity<>("Problemi nell'eliminazione", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
     //Metodo di prova, fatto da ciccio, bifano e cesare <3
     //prendere tutti gli utenti
     @GetMapping("/usersByUsername")
-    public List<String> getUsernames(@RequestParam("username") String username) {
+    public List<String> getUsernames(@RequestParam("username") String username) {  //TODO FATTO DA CICCIO
         System.out.printf("oh dio mi hanno chiamato");
         return (userService.getUsersByUsername(username));
-    }
+    }  //FIXME deve tornare userSerarch
     //TODO aggiunta carta con la verifica che i numeri di carta non sia presente nel db
 }
     

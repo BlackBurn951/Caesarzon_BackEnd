@@ -64,7 +64,7 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public boolean deleteUserCards(String userId, List<UserCardDTO> userCards) {  //DONE
+    public boolean deleteUserCards(List<UserCardDTO> userCards) {  //DONE
         List<UUID> cardId= new Vector<>();
         for(UserCardDTO userCard: userCards) {
             cardId.add(userCard.getCardId());

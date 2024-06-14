@@ -85,7 +85,7 @@ public class UserRepositoryImpl implements UserRepository {
 
 
     @Override
-    public List<User> findAllUsers() {
+    public List<User> findAllUsers(int start) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
 
         List<User> result = new ArrayList<>();
@@ -94,19 +94,22 @@ public class UserRepositoryImpl implements UserRepository {
         UsersResource usersResource = realmResource.users();
 
         //Convertiamo tutti gli utenti in UserRepresentation per accedere ai dati dei singoli utenti
-        List<UserRepresentation> users = usersResource.list();
+        List<UserRepresentation> users = usersResource.list(start, 20);
+
+        List<RoleRepresentation> roles;
+
+        User user= new User();
 
         //Foreach sugli utenti, filtriamo per id e raccogliamo tutti i ruoli dei singoli utenti
         for (UserRepresentation userRepresentation : users) {
             UserResource userResource = usersResource.get(userRepresentation.getId());
 
             //Raccolta della lista di ruoli dell'utente
-            List<RoleRepresentation> roles = userResource.roles().clientLevel("caesar-app").listEffective();
+            roles = userResource.roles().clientLevel("caesar-app").listEffective();
 
             //Se l'utente possiede il ruolo "basic" lo aggiungiamo alla nostra lista di utenti (mappando)
             for (RoleRepresentation role : roles) {
                 if (role.getName().equals("basic")) {
-                    User user = new User();
                     user.setId(userRepresentation.getId());
                     user.setFirstName(userRepresentation.getFirstName());
                     user.setLastName(userRepresentation.getLastName());
@@ -114,10 +117,8 @@ public class UserRepositoryImpl implements UserRepository {
                     user.setEmail(userRepresentation.getEmail());
                     user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
                     result.add(user);
-                    break;
                 }
             }
-
         }
 
         return result;

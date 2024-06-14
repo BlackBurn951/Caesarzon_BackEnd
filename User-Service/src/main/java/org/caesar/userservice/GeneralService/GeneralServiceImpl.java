@@ -5,14 +5,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.*;
-import org.caesar.userservice.Dto.AddressDTO;
-import org.caesar.userservice.Dto.CardDTO;
-import org.caesar.userservice.Dto.UserAddressDTO;
-import org.caesar.userservice.Dto.UserCardDTO;
+import org.caesar.userservice.Dto.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,8 +28,9 @@ public class GeneralServiceImpl implements GeneralService {
     private final CardService cardService;
     private final UserCardService userCardService;
 
+    private final ProfilePicService profilePicService;
 
-
+    private final FollowerService followerService;
 
     //Metodi di inserimento dati con tabelle di relazione
     @Override
@@ -65,6 +64,66 @@ public class GeneralServiceImpl implements GeneralService {
         userCardDTO.setUserUsername(userUsername);
 
         return userCardService.addUserCards(userCardDTO);
+    }
+
+
+    @Override
+    public List<UserSearchDTO> getUserSearch(String username, int start) {
+        List<UserDTO> users= userService.getUsers(start);
+
+        if(users == null || users.isEmpty())
+            return null;
+
+        List<UserSearchDTO> userSearchDTOs= new Vector<>();
+
+        try {
+            byte[] image;
+            UserSearchDTO userSearchDTO= new UserSearchDTO();
+            FollowerDTO followerDTO;
+
+            for (UserDTO userDTO : users) {
+                image= profilePicService.getUserImage(userDTO.getUsername());
+
+                userSearchDTO.setUsername(userDTO.getUsername());
+                userSearchDTO.setProfilePic(image);
+
+                followerDTO= followerService.getFollower(username, userDTO.getUsername());
+
+                if(followerDTO != null) {
+                    userSearchDTO.setFriend(followerDTO.isFriend());
+//                    userSearchDTO.setFollower(true);
+                }
+
+                userSearchDTOs.add(userSearchDTO);
+            }
+
+            return userSearchDTOs;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella presa delle foto profilo");
+            return null;
+        }
+    }  //FIXME DA VEDERE SE SERVE A LUCA
+
+
+    @Override
+    public List<UserSearchDTO> getFollowersOrFriend(String username, int flw, boolean friend) {
+        List<FollowerDTO> followers= followerService.getFollowersOrFriends(username, flw, friend);
+
+        if(followers.isEmpty())
+            return null;
+
+        List<UserSearchDTO> userSearch= new Vector<>();
+        UserSearchDTO userSearchDTO= new UserSearchDTO();
+
+        for(FollowerDTO followerDTO: followers) {
+            userSearchDTO.setUsername(followerDTO.getUserUsername2());
+            userSearchDTO.setProfilePic(profilePicService.getUserImage(followerDTO.getUserUsername2()));
+            userSearchDTO.setFriend(followerDTO.isFriend());
+
+            userSearch.add(userSearchDTO);
+        }
+
+        return userSearch;
     }
 
 
@@ -126,10 +185,10 @@ public class GeneralServiceImpl implements GeneralService {
             boolean userDeleted = userService.deleteUser(username);
 
             boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
-            boolean addressesDeleted = addressService.deleteAllUserAddresses(username, userAddresses);
+            boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
 
             boolean userCardsDeleted = userCardService.deleteUserCards(username);
-            boolean cardDeleted = cardService.deleteUserCards(username, userCards);
+            boolean cardDeleted = cardService.deleteUserCards(userCards);
 
             return userDeleted && addressesDeleted && userAddressesDeleted && cardDeleted && userCardsDeleted;
         } catch (Exception | Error e) {

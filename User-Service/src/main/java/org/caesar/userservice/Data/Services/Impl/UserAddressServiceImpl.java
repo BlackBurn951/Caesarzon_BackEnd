@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.UserAddressRepository;
 import org.caesar.userservice.Data.Entities.UserAddress;
 import org.caesar.userservice.Data.Services.UserAddressService;
-import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.UserAddressDTO;
 import org.modelmapper.ModelMapper;
 
