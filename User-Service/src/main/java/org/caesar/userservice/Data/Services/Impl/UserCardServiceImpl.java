@@ -24,20 +24,6 @@ public class UserCardServiceImpl implements UserCardService {
 
 
     @Override
-    public boolean addUserCards(UserCardDTO userCard) {
-        //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
-        try{
-            UserCard userCardEntity = modelMapper.map(userCard, UserCard.class);
-            userCardRepository.save(userCardEntity);
-
-            return true;
-        } catch (RuntimeException | Error e){
-            log.debug("Errore nel salvataggio nella tabella di relazione utente carte");
-            return false;
-        }
-    }
-
-    @Override
     public UserCardDTO getUserCard(String userUsername, int cardNum) {
 
         //Presa della lista delle carte associate all'utente
@@ -60,20 +46,18 @@ public class UserCardServiceImpl implements UserCardService {
 
     @Override
     public List<String> getCards(String userUsername) {
+        //Conta delle tuple di relazione per capire quante carte ha salvato l'utente
         int num= userCardRepository.countByUserUsername(userUsername);
 
-        log.debug("Numero di tuple tornato {}", num);
-
+        //Creazione delle stringhe da tornare al client
         List<String> result= new Vector<>();
         for(int i=0; i<num; i++)
             result.add("Carta "+ (i+1));
 
+        //Invio di lista vuota in caso l'utente non abbia carte salvate
         if (result.isEmpty())
             result.add("");
 
-
-        for (String a: result)
-            log.debug("Elemento nella lista {}", a);
 
         return result;
     }
@@ -92,6 +76,20 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
+    public boolean addUserCards(UserCardDTO userCard) {
+        //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
+        try{
+            UserCard userCardEntity = modelMapper.map(userCard, UserCard.class);
+            userCardRepository.save(userCardEntity);
+
+            return true;
+        } catch (RuntimeException | Error e){
+            log.debug("Errore nel salvataggio nella tabella di relazione utente carte");
+            return false;
+        }
+    }
+
+    @Override
     public boolean deleteUserCard(UserCardDTO userCardDTO) {
         try {
             userCardRepository.deleteById(userCardDTO.getId());
@@ -105,15 +103,11 @@ public class UserCardServiceImpl implements UserCardService {
     @Override
     public boolean deleteUserCards(String userUsername) {
         try {
+            //Presa di tutte le tuple inerenti all'utente da cancellare
             List<UserCard> userCards = userCardRepository.findByUserUsername(userUsername);
 
-            List<UUID> ids= new Vector<>();
-
-            for(UserCard userCard : userCards) {
-                ids.add(userCard.getId());
-            }
-
-            userCardRepository.deleteAllById(ids);
+            //Eliminizaione delle tuple passando direttamente la lista con al suo intenro gli ogetti entity che le rappresentano
+            userCardRepository.deleteAll(userCards);
             return true;
         } catch (Exception e) {
             log.debug("Errore nella cancellazione di tutte le tuple nella tabella di relazione utente carte");

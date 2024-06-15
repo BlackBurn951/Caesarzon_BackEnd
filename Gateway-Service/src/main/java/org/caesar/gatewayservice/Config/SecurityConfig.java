@@ -34,16 +34,20 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/user-api/user").permitAll()
                         .pathMatchers(HttpMethod.DELETE, "/user-api/user").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/user").permitAll()
+
                         .pathMatchers(HttpMethod.GET, "/user-api/city").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/city-data").permitAll()
                         .pathMatchers(HttpMethod.POST, "/user-api/address").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/address").permitAll()
                         .pathMatchers(HttpMethod.DELETE, "/user-api/address").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/addresses-names").permitAll()
+
                         .pathMatchers(HttpMethod.POST, "/user-api/upload").permitAll()
+
                         .pathMatchers(HttpMethod.GET, "/user-api/card").permitAll()
                         .pathMatchers(HttpMethod.POST, "/user-api/card").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/cards-name").permitAll()
+
                         .pathMatchers(HttpMethod.GET, "/search-api/search/users").permitAll()
 
                         .anyExchange().authenticated())

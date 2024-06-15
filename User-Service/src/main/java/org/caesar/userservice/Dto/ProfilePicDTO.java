@@ -10,7 +10,7 @@ import java.util.UUID;
 public class ProfilePicDTO {
 
     private UUID id;
-    private String userId;
+    private String username;
     private byte[] profilePic;
 
 }

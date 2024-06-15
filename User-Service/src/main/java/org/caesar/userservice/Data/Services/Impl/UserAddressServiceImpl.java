@@ -9,7 +9,6 @@ import org.caesar.userservice.Dto.UserAddressDTO;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.Vector;
 
 import org.springframework.stereotype.Service;
@@ -22,20 +21,6 @@ public class UserAddressServiceImpl implements UserAddressService {
     private final UserAddressRepository userAddressRepository;
     private final ModelMapper modelMapper;
 
-
-    @Override
-    public boolean addUserAddreses(UserAddressDTO userAddress) {
-        //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
-        try{
-            UserAddress userAddressEntity = modelMapper.map(userAddress, UserAddress.class);
-            userAddressRepository.save(userAddressEntity);
-
-            return true;
-        } catch (Exception e){
-            log.debug("Errore nell'inserimento nella tabella di relazione utente indirizzo");
-            return false;
-        }
-    }
 
     @Override
     public UserAddressDTO getUserAddress(String userUsername, int addressNum) {
@@ -60,12 +45,15 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     @Override
     public List<String> getAddresses(String userUsername) {
+        //Conta degli indirizzi associati all'utente
         int num= userAddressRepository.countByUserUsername(userUsername);
 
+        //Creazione delle stringe da restituire al client
         List<String> result= new Vector<>();
         for(int i=0; i<num; i++)
             result.add("Indirizzo "+ (i+1));
 
+        //Invio di una stringa vuota nel caso l'utente non abbia indirizzi
         if (result.isEmpty())
             result.add("");
 
@@ -86,6 +74,20 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
+    public boolean addUserAddreses(UserAddressDTO userAddress) {
+        //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
+        try{
+            UserAddress userAddressEntity = modelMapper.map(userAddress, UserAddress.class);
+            userAddressRepository.save(userAddressEntity);
+
+            return true;
+        } catch (Exception e){
+            log.debug("Errore nell'inserimento nella tabella di relazione utente indirizzo");
+            return false;
+        }
+    }
+
+    @Override
     public boolean deleteUserAddress(UserAddressDTO userAddressDTO) {
         try {
             userAddressRepository.deleteById(userAddressDTO.getId());
@@ -97,17 +99,13 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public boolean deleteUserAddresses(String userUsername) { //DONE
+    public boolean deleteUserAddresses(String userUsername) {
         try {
+            //Presa di tutte le tuple inerenti all'utente da cancellare
             List<UserAddress> userAddresses = userAddressRepository.findByUserUsername(userUsername);
 
-            List<UUID> ids= new Vector<>();
-
-            for(UserAddress userAddress : userAddresses) {
-                ids.add(userAddress.getId());
-            }
-
-            userAddressRepository.deleteAllById(ids);
+            //Eliminizaione delle tuple passando direttamente la lista con al suo intenro gli ogetti entity che le rappresentano
+            userAddressRepository.deleteAll(userAddresses);
             return true;
         } catch (Exception e) {
             log.debug("Errore nella cancellazione di tutte le tuple nella tabella di relazione utente indirizzi");
