@@ -16,36 +16,27 @@ spring:
       discovery:
         locator:
           enabled: true # INDICA LE IMPOSTAZIONE PER IL ROUTER, CON ENABLED SI INDICA SE SI ABBILITA O MENO LA SCOPERTA DEI SERVIZI IN MODO DINAMICO
-      #      default-filters:
-      #        - DedupeResponseHeader=Access-Control-Allow-Origin
-      #        - AddResponseHeader=Access-Control-Allow-Origin, http://localhost:4200   DA CHIEDERE A SCALZO QUALE CORS POLICY SAREBBE PIù PULITA COSì OPPURE CON QUESTI ATTIVI E SENZA LA SEZIONE SOTTOSTANTE PRECEDUTA DA GLOBAL E NON GLOBALCORS
-#      globalcors:
-#        corsConfigurations:
-#          '[/**]':
-#            allowedOrigins: "http://localhost:4200"
-#            allowedMethods: "*"
-#            allowedHeaders: "*"
       routes:
         - id: product-service
           uri: lb://product-service
           predicates:
             - Path=/product-api/**
           filters:
-            - RewritePath=/product-api/(?<path>.*), /product-api/${path}
+            - RewritePath=/product-api/(?<path>.*), /product-api/$\{path}
 
         - id: user-service
           uri: lb://user-service
           predicates:
             - Path=/user-api/**
           filters:
-            - RewritePath=/user-api/(?<path>.*), /user-api/${path}   # CHIEDERE A SCALZO SE IL "SIMPLE-API" DEVE RIMANERE O BISOGNA ASTRARRE LA CHIAMATA AL CLIENT
+            - RewritePath=/user-api/(?<path>.*), /user-api/$\{path}   # CHIEDERE A SCALZO SE IL "SIMPLE-API" DEVE RIMANERE O BISOGNA ASTRARRE LA CHIAMATA AL CLIENT
 
         - id: search-service
           uri: lb://search-service
           predicates:
             - Path=/search-api/**
           filters:
-            - RewritePath=/user-api/(?<path>.*), /search-api/${path}
+            - RewritePath=/user-api/(?<path>.*), /search-api/$\{path}
   security:
     oauth2:
       resourceserver:

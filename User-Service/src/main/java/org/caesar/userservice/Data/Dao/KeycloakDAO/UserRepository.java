@@ -13,12 +13,11 @@ import java.util.List;
 public interface UserRepository{
 
     User findUserById(String id);
-    List<User> findAllUsers();
+    List<User> findAllUsers(int start);
     List<String> findAllUsersByUsername(String username);
     User findUserByEmail(String email);
     User findUserByUsername(String username);
     boolean saveUser(UserRegistrationDTO userRegistrationDTO);
     boolean updateUser(UserDTO userDTO);
-    String getUserIdFromToken();
     boolean deleteUser(String username);
 }

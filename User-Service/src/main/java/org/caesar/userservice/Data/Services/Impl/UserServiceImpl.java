@@ -2,22 +2,21 @@ package org.caesar.userservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Config.JwtConverter;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
-import org.caesar.userservice.Data.Services.AddressService;
-import org.caesar.userservice.Data.Services.CardService;
+import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.UserService;
-import org.caesar.userservice.Dto.PhoneNumberDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserIdDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Vector;
 
 @Service
 @RequiredArgsConstructor
@@ -25,35 +24,41 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final JwtConverter jwtConverter;
     private final ModelMapper modelMapper;
-    private final AddressService addressService;
-    private final CardService cardService;
+
 
 
     @Override
-    public UserDTO getUser() {
+    public UserDTO getUser(String username) {
         try {
-            //Presa dell'username dell'utente dal token
-            String username = jwtConverter.getUsernameFromToken();
-
-            //Conversione dell'oggetto entity in un oggetto DTO per poi privarlo dell'id per non farlo girare sulla rete
+            // Conversione dell'oggetto entity in un oggetto DTO per poi privarlo dell'id per non farlo girare sulla rete
             UserDTO userDTO = modelMapper.map(userRepository.findUserByUsername(username), UserDTO.class);
             userDTO.setId("");
 
             return userDTO;
         } catch (Exception | Error e) {
             log.debug("Errore nella presa dei dati dell'utente");
-            return null;
+            return null; // Ritornare un Mono vuoto in caso di eccezione
         }
     }
 
     @Override
-    public List<String> getUsersByUsername(String username) {
-        System.out.printf("sono nel getUsersByUsername: %s\n", username);
-        return userRepository.findAllUsersByUsername(username);
+    public List<UserDTO> getUsers(int start) {
+        List<User> users= userRepository.findAllUsers(start);
+
+        List<UserDTO> result= new Vector<>();
+
+        for (User user : users) {
+            result.add(modelMapper.map(user, UserDTO.class));
+        }
+
+        return result;
     }
 
+    @Override
+    public List<String> getUsersByUsername(String username) {  //TODO FATTO DA CICCIO
+        return userRepository.findAllUsersByUsername(username);
+    }
 
     @Override
     public boolean saveUser(UserRegistrationDTO userRegistrationDTO) {
@@ -81,22 +86,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean deleteUser() {
-        String userid= jwtConverter.getUsernameFromToken();
-
-        boolean userDelete, addressesDelete, cardsDelete;
-        //TODO CHIAMATA AI SERVIZI DI CARTE E INDIRIZZI(IN FUTURO TUTTO IL RESTO)
+    public boolean deleteUser(String userUsername) {
         try {
-            userDelete= userRepository.deleteUser(userid);
-            addressesDelete= addressService.deleteAllUserAddresses(userid);
-            cardsDelete= cardService.deleteUserCards(userid);
-
-            return userDelete && addressesDelete && cardsDelete;
-        } catch (Exception e) {
-            log.debug("Errori nella cancellazione dell'utente");
+            return userRepository.deleteUser(userUsername);
+        } catch(Exception | Error e) {
+            log.debug("Errore nella cancellazione dell'utente");
             return false;
         }
     }
+
 
 
     //Metodi per la convalida dei dati

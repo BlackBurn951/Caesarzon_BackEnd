@@ -3,14 +3,11 @@ package org.caesar.userservice.Dto;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Getter
 @Setter
-public class ProfilePicDTO {
-
-    private UUID id;
+public class UserSearchDTO {
     private String username;
     private byte[] profilePic;
-
+    private boolean follower;
+    private boolean friend;
 }

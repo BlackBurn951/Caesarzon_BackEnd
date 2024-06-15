@@ -17,8 +17,8 @@ public class UserCard {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Column(name= "id_utente")
-    private String userId;
+    @Column(name= "username_utente")
+    private String userUsername;
 
     @ManyToOne
     @JoinColumn(name = "id_carta")

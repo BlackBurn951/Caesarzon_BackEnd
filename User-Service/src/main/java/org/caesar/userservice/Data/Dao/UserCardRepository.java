@@ -12,6 +12,6 @@ import java.util.UUID;
 @Repository
 public interface UserCardRepository extends JpaRepository<UserCard, UUID> {
 
-    List<UserCard> findByUserId(String userId);
-    int countByUserId(String userId);
+    List<UserCard> findByUserUsername(String userId);
+    int countByUserUsername(String userId);
 }
