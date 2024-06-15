@@ -24,14 +24,9 @@ import java.util.Vector;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-//    private final JwtConverter jwtConverter;
     private final ModelMapper modelMapper;
 
 
-    @Override
-    public UserIdDTO getUserId() {
-        return modelMapper.map(userRepository.findUserByUsername("username"), UserIdDTO.class);
-    }
 
     @Override
     public UserDTO getUser(String username) {

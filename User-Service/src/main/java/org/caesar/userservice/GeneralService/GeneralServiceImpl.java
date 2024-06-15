@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 public class GeneralServiceImpl implements GeneralService {
 
     private final UserService userService;
+    private final ProfilePicService profilePicService;
 
     private final AddressService addressService;
     private final UserAddressService userAddressService;
@@ -28,9 +29,8 @@ public class GeneralServiceImpl implements GeneralService {
     private final CardService cardService;
     private final UserCardService userCardService;
 
-    private final ProfilePicService profilePicService;
-
     private final FollowerService followerService;
+
 
     //Metodi di inserimento dati con tabelle di relazione
     @Override
@@ -38,7 +38,6 @@ public class GeneralServiceImpl implements GeneralService {
     public boolean addAddress(String userUsername, AddressDTO addressDTO) {
         UUID addressId= addressService.addAddress(addressDTO);
 
-        log.debug("Nel general service dopo aver preso l'adddressssssss");
         if(addressId == null)
             return false;
 
@@ -130,12 +129,14 @@ public class GeneralServiceImpl implements GeneralService {
     //Getters per prendere i dati dalle tabelle di relazione
     @Override
     public CardDTO getUserCard(String userUsername, String cardName) {
+        //Presa del numero della carta desiderata
         int cardNumber= getNumber(cardName);
 
 
         if(cardNumber == 0)
             return null;
 
+        //Presa della carta in posizione cardNumber sulla tabella di relazione
         UserCardDTO userCardDTO= userCardService.getUserCard(userUsername, cardNumber);
 
         if(userCardDTO == null)
@@ -151,13 +152,13 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public AddressDTO getUserAddress(String addressName, String username) {
-        log.debug("uiwqdhqygdygqiqigQ");
+        //Presa del numero dell'indirizzo desiderato
         int addressNumber= getNumber(addressName);
 
-        log.debug("Numero preso dal front {}", addressNumber);
         if(addressNumber == 0)
             return null;
 
+        //Presa dell'indirizzo in posizione addressNumber sulla tabella di relazione
         UserAddressDTO userAddressDTO= userAddressService.getUserAddress(username, addressNumber);
 
         if(userAddressDTO == null)
@@ -175,22 +176,37 @@ public class GeneralServiceImpl implements GeneralService {
     //Metodi di cancellazione
     @Override
     @Transactional
-    public boolean deleteUser(String username) {
+    public boolean deleteUser(String username) {  //FIXME DA CONTROLLARE COSA TORNA IN CASO DI LISTA VUOTA SE NULL O EMPTY
         try {
+            //Chiamate per prendere le tuple di relazione con gli indirizzi e le carte
             List<UserAddressDTO> userAddresses = userAddressService.getUserAddresses(username);
             List<UserCardDTO> userCards = userCardService.getUserCards(username);
-            if(userAddresses==null || userAddresses.isEmpty() || userCards==null || userCards.isEmpty())
-                return false;
+
 
             boolean userDeleted = userService.deleteUser(username);
 
-            boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
-            boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
+            //Controllo dei casi in cui l'utente non abbia indirizzi e/o carte
+            if(userAddresses!=null && !userAddresses.isEmpty() && userCards!=null && !userCards.isEmpty()) {
+                boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
+                boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
 
-            boolean userCardsDeleted = userCardService.deleteUserCards(username);
-            boolean cardDeleted = cardService.deleteUserCards(userCards);
+                boolean userCardsDeleted = userCardService.deleteUserCards(username);
+                boolean cardDeleted = cardService.deleteUserCards(userCards);
 
-            return userDeleted && addressesDeleted && userAddressesDeleted && cardDeleted && userCardsDeleted;
+                return userDeleted && addressesDeleted && userAddressesDeleted && cardDeleted && userCardsDeleted;
+            } else if(userAddresses!=null && !userAddresses.isEmpty() && (userCards==null || userCards.isEmpty())) {
+                boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
+                boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
+
+                return userDeleted && userAddressesDeleted && addressesDeleted;
+            } else if((userAddresses==null || userAddresses.isEmpty()) && (userCards==null || userCards.isEmpty())) {
+                boolean userCardsDeleted = userCardService.deleteUserCards(username);
+                boolean cardDeleted = cardService.deleteUserCards(userCards);
+
+                return userDeleted && userCardsDeleted && cardDeleted;
+            }
+
+            return userDeleted;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione dell'utente e dei suoi dati");
             return false;
@@ -200,14 +216,17 @@ public class GeneralServiceImpl implements GeneralService {
     @Override
     @Transactional
     public boolean deleteUserAddress(String userUsername, String addressName) {
+        //Presa del numero dell'indirizzo desiderato
         int addressNumber= getNumber(addressName);
 
         if(addressNumber==0)
             return false;
 
         try {
+            //Presa della tupla di relazione dell'indirizzo richiesto
             UserAddressDTO userAddressDTO= userAddressService.getUserAddress(userUsername, addressNumber);
 
+            //Controllo che la tupla di relazione esista e eliminazione dell'indirizzo associato più controllo della riuscita dell'operazione
             if(userAddressDTO!=null && userAddressService.deleteUserAddress(userAddressDTO))
                 return addressService.deleteAddress(userAddressDTO.getAddressId());
 
@@ -221,15 +240,18 @@ public class GeneralServiceImpl implements GeneralService {
     @Override
     @Transactional
     public boolean deleteUserCard(String userUsername, String cardName) {
+        //Presa del numero della carta desiderata
         int cardNumber= getNumber(cardName);
 
         if(cardNumber==0)
             return false;
 
         try {
+            //Presa della tupla di relazione della carta richiesta
             UserCardDTO userCardDTO= userCardService.getUserCard(userUsername, cardNumber);
 
-            if(userCardService.deleteUserCard(userCardDTO))
+            //Controllo che la tupla di relazione esista e eliminazione della carta associata più controllo della riuscita dell'operazione
+            if(userCardDTO!=null && userCardService.deleteUserCard(userCardDTO))
                 return cardService.deleteCard(userCardDTO.getCardId());
 
             return false;
@@ -243,7 +265,7 @@ public class GeneralServiceImpl implements GeneralService {
     //Metodi di servizio
     private int getNumber(String name) {
         //Creazione della regex per prendersi il numero dell'indirizzo mandato dall'utente
-        Pattern pattern = Pattern.compile(".*([0-9]+)");
+        Pattern pattern = Pattern.compile(".*([0-9]+)"); //TODO CHECK DELLA REGEX
         Matcher matcher = pattern.matcher(name);
 
         int number= 0;

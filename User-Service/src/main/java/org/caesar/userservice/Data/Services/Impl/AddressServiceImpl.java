@@ -24,21 +24,23 @@ import org.springframework.stereotype.Service;
 public class AddressServiceImpl implements AddressService {
 
     private final ModelMapper modelMapper;
-
-    //Repository degli indirizzi
     private final AddressRepository addressRepository;
 
 
-    //I metodi CRUD delle repository hanno di base il @Transactional, ma bisogna fare il doppio passaggio
+    @Override
+    public AddressDTO getAddress(UUID addressId) {
+        return modelMapper.map(addressRepository.findById(addressId), AddressDTO.class);
+    }
+
     @Override
     public UUID addAddress(AddressDTO addressDTO) {
+        //Controllo che i campi inviati rispettino i criteri
         if(!checkRoadName(addressDTO.getRoadName()) ||
                 !checkHouseNumber(addressDTO.getHouseNumber()) ||
                 !checkRoadType(addressDTO.getRoadType()))
             return null;
 
         try{
-            log.debug("Post controlli");
             Address address = modelMapper.map(addressDTO, Address.class);
 
             // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
@@ -47,13 +49,6 @@ public class AddressServiceImpl implements AddressService {
             log.debug("Errore nell'inserimento dell'indirizzo dell'utente");
             return null;
         }
-
-    }
-
-    //Metodo per ottenere il singolo indirizzo e restituirlo al client
-    @Override
-    public AddressDTO getAddress(UUID addressId) {
-        return modelMapper.map(addressRepository.findById(addressId), AddressDTO.class);
     }
 
     @Override
@@ -68,7 +63,8 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public boolean deleteAllUserAddresses(List<UserAddressDTO> userAddresses) {  //DONE
+    public boolean deleteAllUserAddresses(List<UserAddressDTO> userAddresses) {
+        //Presa degli id dei indirizzi dalle tuple di relazione
         List<UUID> addressId= new Vector<>();
         for(UserAddressDTO userAddress: userAddresses) {
             addressId.add(userAddress.getAddressId());
@@ -114,6 +110,4 @@ public class AddressServiceImpl implements AddressService {
 
         return false;
     }
-
-
 }

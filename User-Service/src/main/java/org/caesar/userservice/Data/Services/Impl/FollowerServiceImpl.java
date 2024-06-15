@@ -23,10 +23,37 @@ public class FollowerServiceImpl implements FollowerService {
     private final ModelMapper modelMapper;
 
     @Override
+    public FollowerDTO getFollower(String username1, String username2) {
+        return modelMapper.map(followerRepository.findByUserUsername1AndUserUsername2(username1, username2), FollowerDTO.class);
+    }  //FIXME POSSIBILE CANCELLAZIONE
+
+    @Override
+    public List<FollowerDTO> getFollowersOrFriends(String username1, int flw, boolean friend) {
+        List<Follower> followers;
+
+        //Controllo se si vuole prendere i follower o gli amici
+        if(friend)
+            followers= followerRepository.findAllByUserUsername1(username1, PageRequest.of(flw, 20));
+        else
+            followers= followerRepository.findAllByUserUsername1AndFriend(username1, true, PageRequest.of(flw, 20));
+
+        //Conversione degli eventuali oggetti entity in DTO
+        List<FollowerDTO> followerDTOs= new Vector<>();
+
+        for(Follower f: followers) {
+            followerDTOs.add(modelMapper.map(f, FollowerDTO.class));
+        }
+
+        return followerDTOs;
+    }
+
+    @Override
     public boolean addFollowers(String username1, List<UserSearchDTO> followers) {
+        //Controllo che venga inviato almeno un dato
         if(followers==null || followers.isEmpty())
             return false;
 
+        //TODO DA IMPLEMENTARE UPDATE CERCANDO PRIMKA LA TUPLA
         List<Follower> savingFollower= new Vector<>();
 
         FollowerDTO fwl= new FollowerDTO();
@@ -49,32 +76,10 @@ public class FollowerServiceImpl implements FollowerService {
     }
 
     @Override
-    public FollowerDTO getFollower(String username1, String username2) {
-        return modelMapper.map(followerRepository.findByUserUsername1AndUserUsername2(username1, username2), FollowerDTO.class);
-    }
-
-    @Override
-    public List<FollowerDTO> getFollowersOrFriends(String username1, int flw, boolean friend) {
-        List<Follower> followers;
-
-        if(friend)
-            followers= followerRepository.findAllByUserUsername1(username1, PageRequest.of(flw, 20));
-        else
-            followers= followerRepository.findAllByUserUsername1AndFriend(username1, true, PageRequest.of(flw, 20));
-
-        List<FollowerDTO> followerDTOs= new Vector<>();
-
-        for(Follower f: followers) {
-            followerDTOs.add(modelMapper.map(f, FollowerDTO.class));
-        }
-
-        return followerDTOs;
-    }
-
-    @Override
     public boolean deleteFollowers(String username1, List<String> followers) {
         List<Follower> savedFollowers= new Vector<>();
 
+        //Ricerca e presa di tutti gli oggetti entity per eseguire la cancellazione
         for(String follower : followers) {
             savedFollowers.add(followerRepository.findByUserUsername1AndUserUsername2(username1, follower));
         }
@@ -88,4 +93,7 @@ public class FollowerServiceImpl implements FollowerService {
             return false;
         }
     }
+
+
+    //TODO DA IMPLEMENTARE CANCELLAZIONE DI TUTTI I FOLLOWER
 }

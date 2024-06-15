@@ -22,9 +22,12 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.modelmapper.ModelMapper;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 @Component
@@ -32,14 +35,8 @@ import java.util.*;
 @Slf4j
 public class UserRepositoryImpl implements UserRepository {
 
-    //Converter per il token
-//    private final JwtConverter jwtConverter;
-
     private final ProfilePicRepository profilePicRepository;
-
     private final ModelMapper modelMapper;
-
-    //Oggetti per la comunicazione con keycloak
     private final Keycloak keycloak;
 
 
@@ -81,9 +78,9 @@ public class UserRepositoryImpl implements UserRepository {
             System.out.printf("Errore: %s\n", e.getMessage());
             return null;
         }
-    }
+    } //TODO CHECK
 
-
+    //Metodo per prendere tutti gli utenti "basic" dal real (20 alla volta)
     @Override
     public List<User> findAllUsers(int start) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
@@ -131,16 +128,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User findUserByUsername(String username) {
-//        log.debug("USERNAME CON METODO NUOVO" + jwtConverter.getUserInfo());
         return setUser(false, username);
-    }
-
-    @Override
-    public String getUserIdFromToken() {
-
-//        log.debug("USERNAME PROVA: " + jwtConverter.getUserInfo());
-//        return this.findUserByUsername(jwtConverter.getUsernameFromToken()).getId();
-        return "";
     }
 
 
@@ -149,60 +137,69 @@ public class UserRepositoryImpl implements UserRepository {
     @Transactional
     public boolean saveUser(UserRegistrationDTO userData) {
 
+        //Presa del real associato all'applicazione
         RealmResource realmResource = keycloak.realm("CaesarRealm");
 
+        //Presa degli utenti presenti sul real
         UsersResource usersResource = realmResource.users();
 
+        //Creazione di un nuovo utente per inserirlo nel realm
         UserRepresentation user = new UserRepresentation();
 
+        //Assegnazione dei campi base offerti da keycloak
         user.setUsername(userData.getUsername());
         user.setFirstName(userData.getFirstName());
         user.setLastName(userData.getLastName());
         user.setEmail(userData.getEmail());
         user.setEnabled(true);
 
+        //Assegnazione e specifica del tipo di crednziali d'accesso
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setType(CredentialRepresentation.PASSWORD);
         credential.setValue(userData.getCredentialValue());
         credential.setTemporary(false);
 
+        //Impostazione delle credenziali d'accesso
         user.setCredentials(Collections.singletonList(credential));
-        log.debug("Ho impostato i dati dell'utente");
+
+        //Chiamata per la creazione dell'user
         Response response = usersResource.create(user);
-        log.debug("Ho creato l'utente");
+
+        //Controllo che l'user sia stato inserito
         if (response.getStatus() == 201) {
+
+            //Presa dell'id dell'utente mandata come risposta della chiamata
             String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
-            log.debug("ID DEL NUOVO PROFILO: " + userId);
+
             UserResource userResource = usersResource.get(userId);
 
+            //Invio dell'email per la verifica dell'account
+            userResource.sendVerifyEmail();
 
-            //userResource.sendVerifyEmail();
-
-
+            //Inserimento della foto profilo di base all'utente TODO DA SPOSTARE NEL GENERAL SERVICE
             ProfilePicDTO profilePic = new ProfilePicDTO();
             File file = new File("User-Service/src/main/resources/static/img/base_profile_pic.jpg");
 
 //            try{
-//                MultipartFile multipartFile = new MockMultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
+//                MultipartFile multipartFile = new MultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
 //
 //                profilePic.setProfilePic(multipartFile.getBytes());
-//            }catch (IOException e){
-//                e.printStackTrace();
+//            }catch (Exception | Error e){
+//                log.debug("Errore nel salvataggio della foto profilo standard");
+//                return false;
 //            }
-
             profilePicRepository.save(modelMapper.map(profilePic, ProfilePic.class));
 
+            //Impostazione del ruolo "basic" al nuovo utente salvato
             ClientRepresentation clientRepresentation= realmResource.clients().findByClientId("caesar-app").getFirst();
             ClientResource clientResource = realmResource.clients().get(clientRepresentation.getId());
 
             RoleRepresentation role = clientResource.roles().get("basic").toRepresentation();
             userResource.roles().clientLevel(clientRepresentation.getId()).add(Collections.singletonList(role));
 
-            log.debug("Ho ricevuto risposta 200 da KEY");
-
             return true;
-        } else
-            return false;
+        }
+        return false;
     }
 
 
@@ -223,14 +220,8 @@ public class UserRepositoryImpl implements UserRepository {
             user.setLastName(userData.getLastName());
             user.setEmail(userData.getEmail());
 
-            //Presa degli attributi personalizzati da keycloak
+            //Aggiunta degli attributi personalizzati
             Map<String, List<String>> attributes = new HashMap<>();  //FIXME controllare vecchia config
-
-
-//            if(attributes==null) {
-//                log.debug("Attributi nulli");
-//                return false;
-//            }
 
             attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
             user.setAttributes(attributes);

@@ -1,13 +1,10 @@
 package org.caesar.userservice.Data.Services.Impl;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.CardRepository;
 import org.caesar.userservice.Data.Entities.Card;
 import org.caesar.userservice.Data.Services.CardService;
-import org.caesar.userservice.Data.Services.UserCardService;
-import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.*;
 import org.modelmapper.ModelMapper;
 
@@ -29,27 +26,26 @@ public class CardServiceImpl implements CardService {
     private final CardRepository cardRepository;
 
 
-    //I metodi CRUD delle repository hanno di base il @Transactional, ma bisogna fare il doppio passaggio
+    @Override
+    public CardDTO getCard(UUID cardId) {
+        return modelMapper.map(cardRepository.findById(cardId), CardDTO.class);
+    }
+
     @Override
     public UUID addCard(CardDTO cardDTO) {
+        //Controllo che i campi mandati rispettino i criteri
         if(!checkCardNumber(cardDTO.getCardNumber()) || !checkOwner(cardDTO.getOwner()) ||
             !checkCvv(cardDTO.getCvv()) || !checkExpiryDate(cardDTO.getExpiryDate()))
             return null;
-
+        //TODO DA DECIDRE SE ABILITARE LA MODIFICA (DUPLICAZIONE OBBLIGATORIA)
         try{
             Card card = modelMapper.map(cardDTO, Card.class);
 
-             // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
             return cardRepository.save(card).getId();
         }catch(RuntimeException | Error e){
             log.debug("Errore nel salvataggio della carta dell'utente");
             return null;
         }
-    }
-
-    @Override
-    public CardDTO getCard(UUID cardId) {
-        return modelMapper.map(cardRepository.findById(cardId), CardDTO.class);
     }
 
     @Override
@@ -64,7 +60,8 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public boolean deleteUserCards(List<UserCardDTO> userCards) {  //DONE
+    public boolean deleteUserCards(List<UserCardDTO> userCards) {
+        //Presa degli id dei indirizzi dalle tuple di relazione
         List<UUID> cardId= new Vector<>();
         for(UserCardDTO userCard: userCards) {
             cardId.add(userCard.getCardId());
