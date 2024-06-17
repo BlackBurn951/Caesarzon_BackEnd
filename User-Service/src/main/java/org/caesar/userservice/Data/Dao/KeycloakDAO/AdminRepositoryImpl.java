@@ -63,7 +63,7 @@ public class AdminRepositoryImpl implements AdminRepository {
 
         List<RoleRepresentation> roles;
 
-        Admin admin= new Admin();
+        Admin admin = new Admin();
 
         //Foreach sugli utenti, filtriamo per id e raccogliamo tutti i ruoli dei singoli utenti
         for (UserRepresentation userRepresentation : admins) {

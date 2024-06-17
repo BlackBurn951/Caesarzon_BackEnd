@@ -23,8 +23,8 @@ public class SearchController {
     public List<String> searchUsers(@RequestParam("username") String query) {
         System.out.println("Provo a fare la chiamata");
         return restTemplate.getForObject("http://user-service/user-api/usersByUsername?username=" + query, List.class);
-
     }
+
     /*
     @GetMapping("/search/users")
     public Mono<String> getString() {

@@ -1,6 +1,7 @@
 package org.caesar.userservice.Data.Dao.KeycloakDAO;
 
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.ProfilePicRepository;
@@ -24,7 +25,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -83,43 +83,46 @@ public class UserRepositoryImpl implements UserRepository {
     //Metodo per prendere tutti gli utenti "basic" dal real (20 alla volta)
     @Override
     public List<User> findAllUsers(int start) {
-        RealmResource realmResource = keycloak.realm("CaesarRealm");
 
         List<User> result = new ArrayList<>();
 
-        //Prendiamo tutti gli utenti del realm (CaesarzonRealm)
-        UsersResource usersResource = realmResource.users();
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
 
-        //Convertiamo tutti gli utenti in UserRepresentation per accedere ai dati dei singoli utenti
-        List<UserRepresentation> users = usersResource.list(start, 20);
+        List<UserRepresentation> users = realmResource.users().list();
 
-        List<RoleRepresentation> roles;
+        // Ottieni il ClientRepresentation per il client "caesar-app"
+        ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").get(0);
+        String clientId = clientRepresentation.getId();
 
-        User user= new User();
-
-        //Foreach sugli utenti, filtriamo per id e raccogliamo tutti i ruoli dei singoli utenti
         for (UserRepresentation userRepresentation : users) {
-            UserResource userResource = usersResource.get(userRepresentation.getId());
+            // Ottieni i ruoli del client per l'utente
+            List<RoleRepresentation> clientRoles = realmResource.users().get(userRepresentation.getId())
+                    .roles()
+                    .clientLevel(clientId)
+                    .listEffective();
 
-            //Raccolta della lista di ruoli dell'utente
-            roles = userResource.roles().clientLevel("caesar-app").listEffective();
+            // Verifica se l'utente ha il ruolo "basic"
+            boolean hasBasicRole = clientRoles.stream()
+                    .anyMatch(role -> role.getName().equals("admin"));
 
-            //Se l'utente possiede il ruolo "basic" lo aggiungiamo alla nostra lista di utenti (mappando)
-            for (RoleRepresentation role : roles) {
-                if (role.getName().equals("basic")) {
-                    user.setId(userRepresentation.getId());
-                    user.setFirstName(userRepresentation.getFirstName());
-                    user.setLastName(userRepresentation.getLastName());
-                    user.setUsername(userRepresentation.getUsername());
-                    user.setEmail(userRepresentation.getEmail());
+            if (hasBasicRole) {
+                User user = new User();
+                user.setId(userRepresentation.getId());
+                user.setFirstName(userRepresentation.getFirstName());
+                user.setLastName(userRepresentation.getLastName());
+                user.setUsername(userRepresentation.getUsername());
+                user.setEmail(userRepresentation.getEmail());
+                if (userRepresentation.getAttributes() != null) {
                     user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
-                    result.add(user);
                 }
+                result.add(user);
             }
         }
 
         return result;
     }
+
+
 
     @Override
     public User findUserByEmail(String email) {

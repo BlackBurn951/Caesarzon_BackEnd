@@ -4,6 +4,8 @@ package org.caesar.userservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
+import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.GeneralService.GeneralService;
