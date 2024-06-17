@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface SupportRequestService {
 
-    List<SupportDTO> getAllSupportRequest();
+    List<SupportDTO> getAllSupportRequest(int num);
 
 }

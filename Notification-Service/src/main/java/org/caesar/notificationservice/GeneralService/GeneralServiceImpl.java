@@ -1,5 +1,6 @@
 package org.caesar.notificationservice.GeneralService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.caesar.notificationservice.Data.Dao.AdminNotificationRepository;
@@ -8,8 +9,14 @@ import org.caesar.notificationservice.Data.Services.ReportService;
 import org.caesar.notificationservice.Dto.AdminNotificationDTO;
 import org.caesar.notificationservice.Dto.ReportDTO;
 import org.caesar.notificationservice.Dto.SendReportDTO;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

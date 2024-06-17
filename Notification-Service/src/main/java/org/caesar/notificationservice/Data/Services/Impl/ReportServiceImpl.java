@@ -8,6 +8,9 @@ import org.caesar.notificationservice.Data.Services.ReportService;
 import org.caesar.notificationservice.Dto.ReportDTO;
 import org.caesar.notificationservice.Dto.SendReportDTO;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -34,8 +37,8 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public List<ReportDTO> getAllReports() {
-        return reportRepository.findAll().stream().map(a -> modelMapper.map(a, ReportDTO.class)).toList();
-
+    public List<ReportDTO> getAllReports(int num) {
+        Page<Report> result = reportRepository.findAll(PageRequest.of(num, 20));
+        return result.stream().map(a -> modelMapper.map(a, ReportDTO.class)).toList();
     }
 }

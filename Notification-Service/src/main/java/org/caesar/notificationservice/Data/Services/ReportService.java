@@ -7,5 +7,5 @@ import java.util.List;
 public interface ReportService {
     boolean addReport(ReportDTO reportDTO);
 
-    List<ReportDTO> getAllReports();
+    List<ReportDTO> getAllReports(int num);
 }

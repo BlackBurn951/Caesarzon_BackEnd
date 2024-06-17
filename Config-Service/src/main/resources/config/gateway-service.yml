@@ -36,7 +36,14 @@ spring:
           predicates:
             - Path=/search-api/**
           filters:
-            - RewritePath=/user-api/(?<path>.*), /search-api/$\{path}
+            - RewritePath=/search-api/(?<path>.*), /search-api/$\{path}
+
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/notify-api/**
+          filters:
+            - RewritePath=/notify-api/(?<path>.*), /notify-api/$\{path}
   security:
     oauth2:
       resourceserver:
