@@ -2,10 +2,8 @@ package org.caesar.userservice.Data.Services;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-
 public interface ProfilePicService {
+    boolean saveImage(String username, MultipartFile file);
+    byte[] getUserImage(String username);
 
-    boolean saveImage(MultipartFile file);
-//    MultipartFile getImage();
 }

@@ -18,12 +18,14 @@ import org.springframework.stereotype.Service;
 public class CityDataServiceimpl implements CityDataService {
 
     private final CityDataRepository cityDataRepository;
-
     private final ModelMapper modelMapper;
 
     @Override
     public List<String> getCities(String sugg) {
+        //Metodo per cercare le città che iniziano per sugg
         List<CityData> cities = cityDataRepository.findByCityIgnoreCaseStartingWith(sugg, PageRequest.of(0, 20));
+
+        //Cast dell'oggetto entity nell'oggetto DTO
         List<CityDataDTO> citiesDTO= cities.stream().map(a -> modelMapper.map(a, CityDataDTO.class)).toList();
 
         return citiesDTO.stream().map(CityDataDTO::getCity).toList();

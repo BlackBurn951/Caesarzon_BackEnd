@@ -7,10 +7,9 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class ProfilePicDTO {
-
+public class FollowerDTO {
     private UUID id;
-    private String username;
-    private byte[] profilePic;
-
+    private String userUsername1;
+    private String userUsername2;
+    private boolean friend;
 }

@@ -14,11 +14,11 @@ public class Follower {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Column(name= "id_utente1")
-    private String userId1;
+    @Column(name= "username_utente1")
+    private String userUsername1;
 
-    @Column(name= "id_utente2")
-    private String userId2;
+    @Column(name= "username_utente2")
+    private String userUsername2;
 
     @Column(name = "amico")
     private boolean friend;

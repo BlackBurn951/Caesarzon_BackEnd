@@ -42,6 +42,9 @@ public class JwtConverter implements Converter<Jwt, Mono<AbstractAuthenticationT
         if (properties.getPrincipalAttribute() != null) {
             claimName = properties.getPrincipalAttribute();
         }
+
+        String username = jwt.getClaimAsString("preferred_username"); // Access preferred_username claim
+        System.out.println("Username preso dal token " + username);
         return jwt.getClaim(claimName);
     }
 
