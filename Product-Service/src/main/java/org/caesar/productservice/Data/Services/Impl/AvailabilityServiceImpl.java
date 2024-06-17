@@ -6,7 +6,6 @@ import org.caesar.productservice.Data.Dao.AvailabilityRepository;
 import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Dto.AvailabilityDTO;
 import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
