@@ -1,10 +1,18 @@
 package org.caesar.notificationservice.Dto;
 
 
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDate;
+import java.util.UUID;
+
+@Getter
+@Setter
 public class UserNotificationDTO {
-    private Long id;
+    private UUID id;
     private LocalDate data;
-    private String descrizione;
-    private Long idUtente;
+    private String description;
+    private String user;
 }
 

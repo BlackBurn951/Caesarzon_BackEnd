@@ -10,7 +10,8 @@ import java.time.LocalDate;
 public class AdminNotificationDTO {
     private Long id;
     private LocalDate data;
-    private String descrizione;
-    private Long idAdmin;
+    private String description;
+    private String admin;
+    private boolean read;
 }
 

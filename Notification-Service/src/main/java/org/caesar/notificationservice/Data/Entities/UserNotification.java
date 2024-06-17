@@ -21,4 +21,7 @@ public class UserNotification {
 
     @Column(name= "username_utente")
     private String user;
+
+    @Column(name= "letta")
+    private boolean read;
 }

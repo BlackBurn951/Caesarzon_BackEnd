@@ -23,5 +23,8 @@ public class AdminNotification {
 
     @Column(name= "username_admin")
     private String admin;
+
+    @Column(name= "letta")
+    private boolean read;
 }
 

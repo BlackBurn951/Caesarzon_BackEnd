@@ -23,8 +23,6 @@ public class NotificationController {
     private final GeneralService generalService;
 
 
-        //return restTemplate.getForObject("http://user-service/user-api/admins" , List.class);
-
     @PostMapping("/report")
     public ResponseEntity<String> sendReport(@RequestBody SendReportDTO reportDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();

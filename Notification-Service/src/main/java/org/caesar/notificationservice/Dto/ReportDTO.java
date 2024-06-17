@@ -13,6 +13,7 @@ public class ReportDTO {
     private UUID id;
     private LocalDate reportDate;
     private String reason;
+    private String description;
     private String usernameUser1;
     private String usernameUser2;
 }
