@@ -22,6 +22,6 @@ public class Wishlist {
     @Column(name= "visibilita")
     private String visibility;
 
-    @Column(name= "id_utente")
-    private long userID;
+    @Column(name= "username_utente")
+    private String userUsername;
 }

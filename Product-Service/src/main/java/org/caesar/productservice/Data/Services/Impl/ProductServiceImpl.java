@@ -65,11 +65,11 @@ public class ProductServiceImpl implements ProductService{
     }
 
     private boolean checkDescription(String description) {
-        return description.length()> 0 && description.length()<=500;
+        return !description.isEmpty() && description.length()<=500;
     }
 
     private boolean checkName(String name) {
-        return name.length()>0 && name.length()<=50;
+        return !name.isEmpty() && name.length()<=50;
     }
 
     private boolean checkDiscount(int discount) {
@@ -81,10 +81,10 @@ public class ProductServiceImpl implements ProductService{
     }
 
     private boolean checkPrimaryColor(String color) {
-        return color.length()>0 && color.length()<=50;
+        return !color.isEmpty() && color.length()<=50;
     }
 
     private boolean checkSecondaryColor(String color) {
-        return color.length()>0 && color.length()<50;
+        return !color.isEmpty() && color.length()<50;
     }
 }

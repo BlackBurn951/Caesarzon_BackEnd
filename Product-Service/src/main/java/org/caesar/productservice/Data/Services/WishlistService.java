@@ -10,7 +10,6 @@ public interface WishlistService {
 
     UUID addOrUpdateWishlist(WishlistDTO wishlist);
     WishlistDTO getWishlist(UUID id);
-    List<WishlistDTO> getAllWishlists();
+    List<WishlistDTO> getAllWishlists(String userUsername, String visibility);
     boolean deleteWishlist(UUID id);
-    boolean deleteWishlists(List<UUID> ids);
 }

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.WishlistRepository;
 import org.caesar.productservice.Data.Entities.Wishlist;
 import org.caesar.productservice.Data.Services.WishlistService;
+import org.caesar.productservice.Dto.ReviewDTO;
 import org.caesar.productservice.Dto.WishlistDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -43,17 +44,27 @@ public class WishlistServiceImpl implements WishlistService {
 
     @Override
     public List<WishlistDTO> getAllWishlists(String userUsername, String visibility) {
-        switch (visibility) {
-            case "privata":
-                //palle private
-                break;
-            case "pubblica":
-                //palle pubiche
-                break;
-            case "condivisa":
-                //palle condivise
-                break;
-        }
+        return switch (visibility) {
+            case "privata" ->
+                //Restituisce una lista di "liste desideri" dell'utente specificato che hanno visibilità privata
+                    wishlistRepository.findAllByUserUsernameAndVisibility(userUsername, visibility)
+                            .stream()
+                            .map(wishlist -> modelMapper.map(wishlist, WishlistDTO.class))
+                            .toList();
+            case "pubblica" ->
+                //Restituisce una lista di "liste desideri" dell'utente specificato che hanno visibilità pubblica
+                    wishlistRepository.findAllByUserUsernameAndVisibility(userUsername, visibility)
+                            .stream()
+                            .map(wishlist -> modelMapper.map(wishlist, WishlistDTO.class))
+                            .toList();
+            case "condivisa" ->
+                //Restituisce una lista di "liste desideri" dell'utente specificato che hanno visibilità condivisa tra amici
+                    wishlistRepository.findAllByUserUsernameAndVisibility(userUsername, visibility)
+                            .stream()
+                            .map(wishlist -> modelMapper.map(wishlist, WishlistDTO.class))
+                            .toList();
+            default -> List.of();
+        };
     }
 
     @Override
@@ -65,10 +76,5 @@ public class WishlistServiceImpl implements WishlistService {
             log.debug("Errore nella cancellazione della lista desideri");
             return false;
         }
-    }
-
-    @Override
-    public boolean deleteWishlists(List<UUID> ids) {
-        return false;
     }
 }
