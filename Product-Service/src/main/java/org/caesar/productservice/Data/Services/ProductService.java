@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface ProductService {
 
-    boolean addOrUpdateProduct(ProductDTO product);
+    UUID addOrUpdateProduct(ProductDTO product);
     ProductDTO getProductById(UUID id);
     List<ProductDTO> getAllProducts();
     boolean deleteProductById(UUID id);
