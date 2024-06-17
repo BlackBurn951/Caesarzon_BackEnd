@@ -5,12 +5,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.protocol.HTTP;
 import org.caesar.notificationservice.Data.Services.ReportService;
+import org.caesar.notificationservice.Dto.ReportDTO;
 import org.caesar.notificationservice.Dto.SendReportDTO;
 import org.caesar.notificationservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
 
 @RestController
@@ -21,6 +23,7 @@ public class NotificationController {
 
     private final HttpServletRequest httpServletRequest;
     private final GeneralService generalService;
+    private final ReportService reportService;
 
 
         //return restTemplate.getForObject("http://user-service/user-api/admins" , List.class);
@@ -33,6 +36,17 @@ public class NotificationController {
             return new ResponseEntity<>("Segnalazione inviata con sucesso!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'invio della segnalazione...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @GetMapping("/report")
+    public ResponseEntity<List<ReportDTO>> getReports() {
+
+        List<ReportDTO> result = reportService.getAllReports();
+
+        if(result != null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 

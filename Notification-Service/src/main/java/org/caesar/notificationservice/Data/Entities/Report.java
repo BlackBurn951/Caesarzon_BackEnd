@@ -19,6 +19,9 @@ public class Report {
     @Column(name = "motivo")
     private String reason;
 
+    @Column(name = "descrizione")
+    private String description;
+
     @Column(name = "username_utente1")
     private String usernameUser1;
 

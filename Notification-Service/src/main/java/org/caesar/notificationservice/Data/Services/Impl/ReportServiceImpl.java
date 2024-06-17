@@ -11,6 +11,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -29,5 +31,11 @@ public class ReportServiceImpl implements ReportService {
             log.debug("Errore nell'inserimento della segnalazione");
             return false;
         }
+    }
+
+    @Override
+    public List<ReportDTO> getAllReports() {
+        return reportRepository.findAll().stream().map(a -> modelMapper.map(a, ReportDTO.class)).toList();
+
     }
 }

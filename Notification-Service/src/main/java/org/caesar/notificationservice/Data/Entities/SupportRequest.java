@@ -15,6 +15,9 @@ public class SupportRequest {
     @Column(name = "tipo")
     private String type;
 
+    @Column(name = "username")
+    private String username;
+
     @Column(name = "testo")
     private String text;
 
