@@ -7,11 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
 import java.util.Vector;
 
 
 @Repository
-public interface CityDataRepository extends JpaRepository<CityData, Long> {
+public interface CityDataRepository extends JpaRepository<CityData, UUID> {
 
     Vector<CityData> findByCityIgnoreCaseStartingWith(@Param("citta") String citta, Pageable pageable);
 
