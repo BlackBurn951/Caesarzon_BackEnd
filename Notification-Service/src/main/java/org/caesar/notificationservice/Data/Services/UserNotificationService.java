@@ -1,4 +1,4 @@
 package org.caesar.notificationservice.Data.Services;
 
-public class UserNotificationService {
+public interface UserNotificationService {
 }

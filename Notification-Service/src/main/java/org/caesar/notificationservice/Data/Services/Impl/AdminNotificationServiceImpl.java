@@ -1,4 +1,8 @@
 package org.caesar.notificationservice.Data.Services.Impl;
 
-public class AdminNotificationServiceImpl {
+import org.caesar.notificationservice.Data.Services.AdminNotificationService;
+import org.springframework.stereotype.Service;
+
+@Service
+public class AdminNotificationServiceImpl implements AdminNotificationService {
 }

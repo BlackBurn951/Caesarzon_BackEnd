@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public class SupportRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private Long id;
+    private UUID id;
 
     @Column(name = "tipo")
     private String type;

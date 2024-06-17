@@ -7,11 +7,11 @@ import jakarta.persistence.*;
 public class AdminUserSupport {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private Long id;
+    private UUID id;
 
-    @Column(name = "id_utente")
-    private Long UserId;
+    @Column(name = "username_utente")
+    private String user;
 
-    @Column(name = "id_admin")
-    private Long AdminId;
+    @Column(name = "username_admin")
+    private String admin;
 }

@@ -3,13 +3,15 @@ package org.caesar.notificationservice.Data.Entities;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "segnala")
 public class Report {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private Long id;
+    private UUID id;
 
     @Column(name = "data_segnalazione")
     private LocalDate reportDate;
@@ -17,9 +19,9 @@ public class Report {
     @Column(name = "motivo")
     private String reason;
 
-    @Column(name = "id_utente1")
-    private Long userIdOne;
+    @Column(name = "username_utente1")
+    private String usernameUser1;
 
-    @Column(name = "id_utente2")
-    private Long userIdTwo;
+    @Column(name = "username_utente2")
+    private String usernameUser2;
 }
