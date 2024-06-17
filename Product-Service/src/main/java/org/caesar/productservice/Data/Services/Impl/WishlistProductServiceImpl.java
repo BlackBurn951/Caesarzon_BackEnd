@@ -18,6 +18,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
         return null;
     }
 
+
     @Override
     public List<WishlistProductDTO> getWishlistProducts() {
         return List.of();
