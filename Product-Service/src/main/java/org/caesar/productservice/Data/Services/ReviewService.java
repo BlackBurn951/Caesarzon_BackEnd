@@ -10,7 +10,6 @@ public interface ReviewService {
 
     UUID addOrUpdateReview(ReviewDTO review);
     ReviewDTO getReview(UUID id);
-    List<ReviewDTO> getAllReviews();
     List<ReviewDTO> getReviewsByProductId(UUID productId);
     boolean deleteReview(UUID id);
 }

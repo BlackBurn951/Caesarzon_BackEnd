@@ -26,8 +26,8 @@ public class Review {
     @Column(name= "valutazione")
     private int evaluation;
 
-    @Column(name= "id_utente")
-    private long userID;
+    @Column(name= "username_utente")
+    private String userID;
 
     @ManyToOne
     @JoinColumn(name= "id_prodotto")
