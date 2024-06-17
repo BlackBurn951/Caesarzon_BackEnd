@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface AvailabilityService {
 
-    boolean addOrUpdateAvailability(AvailabilityDTO availability);
+    UUID addOrUpdateAvailability(AvailabilityDTO availability);
     AvailabilityDTO getAvailability(UUID id);
     boolean deleteAvailability(UUID id);
 }

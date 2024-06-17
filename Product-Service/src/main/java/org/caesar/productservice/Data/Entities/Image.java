@@ -1,8 +1,12 @@
 package org.caesar.productservice.Data.Entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Setter
+@Getter
 @Table(name = "immagine")
 public class Image {
 
