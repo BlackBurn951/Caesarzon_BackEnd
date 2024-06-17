@@ -30,4 +30,5 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     public boolean deleteAvailability(UUID id) {
         return false;
     }
+    //afsdad
 }
