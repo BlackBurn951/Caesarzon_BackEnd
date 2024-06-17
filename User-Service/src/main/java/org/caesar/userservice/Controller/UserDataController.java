@@ -74,6 +74,7 @@ public class UserDataController {
     }
 
 
+
     //End-point per manipolare la foto profilo
     @GetMapping("/image")
     public ResponseEntity<byte[]> loadImage(){

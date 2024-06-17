@@ -7,7 +7,7 @@ import org.springframework.web.client.RestTemplate;
 
 
 @Configuration
-public class WebClientConfig {
+public class RestControllerConfig {
 
     @Bean
     @LoadBalanced

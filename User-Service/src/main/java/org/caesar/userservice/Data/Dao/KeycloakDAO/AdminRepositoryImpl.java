@@ -17,9 +17,6 @@ public class AdminRepositoryImpl implements AdminRepository {
     //Oggetto per la comunicazione con keycloak
     private final Keycloak keycloak;
 
-
-
-
     @Override
     public Admin findAdminById(String id) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
