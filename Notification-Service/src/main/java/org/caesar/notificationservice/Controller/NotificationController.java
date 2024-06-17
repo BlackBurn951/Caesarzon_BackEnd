@@ -18,7 +18,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/notity-api")
+@RequestMapping("/notify-api")
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationController {
@@ -33,6 +33,7 @@ public class NotificationController {
     public ResponseEntity<String> sendReport(@RequestBody SendReportDTO reportDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
+        System.out.println("Sono nell'end-point delle notifiche");
         if(generalService.addReportRequest(username, reportDTO))
             return new ResponseEntity<>("Segnalazione inviata con sucesso!", HttpStatus.OK);
         else

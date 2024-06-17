@@ -34,6 +34,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/user-api/user").permitAll()
                         .pathMatchers(HttpMethod.DELETE, "/user-api/user").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/user").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/user-api/users").permitAll()
 
                         .pathMatchers(HttpMethod.GET, "/user-api/city").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/city-data").permitAll()
@@ -47,8 +48,14 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/user-api/card").permitAll()
                         .pathMatchers(HttpMethod.POST, "/user-api/card").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/cards-name").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/user-api/admins").permitAll()
 
                         .pathMatchers(HttpMethod.GET, "/search-api/search/users").permitAll()
+
+                        .pathMatchers(HttpMethod.POST, "/notify-api/report").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/notify-api/report").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/notify-api/support").permitAll()
+
 
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

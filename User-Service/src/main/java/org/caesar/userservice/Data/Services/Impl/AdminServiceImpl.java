@@ -16,6 +16,9 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<String> getAdmins() {
         List<Admin> admins = adminRepository.findAllAdmin();
+        for(Admin admin : admins) {
+            System.out.println("Admin: " + admin);
+        }
         return admins.stream().map(Admin::getUsername).toList();
     }
 }

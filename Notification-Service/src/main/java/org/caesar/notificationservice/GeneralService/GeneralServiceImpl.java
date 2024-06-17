@@ -46,7 +46,24 @@ public class GeneralServiceImpl implements GeneralService{
         reportRequest.setUsernameUser2(reportRequest.getUsernameUser2());
 
         if(reportService.addReport(reportRequest)) {
-            List<String> admins= restTemplate.getForObject("http://user-service/user-api/admins", List.class);
+            System.out.println("Sono prima della chiamata rest template");
+            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+            HttpHeaders headers = new HttpHeaders();
+            System.out.println("TOKEN: " + request.getHeader("Authorization"));
+            headers.add("Authorization", request.getHeader("Authorization"));
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            ResponseEntity<List> responseEntity = restTemplate.exchange(
+                    "http://user-service/user-api/admins",
+                    HttpMethod.GET,
+                    entity,
+                    List.class
+            );
+
+            List<String> admins = responseEntity.getBody();
+
+            //List<String> admins = restTemplate.getForObject("http://user-service/user-api/admins", List.class);
+
 
             if(admins==null)
                 return false;

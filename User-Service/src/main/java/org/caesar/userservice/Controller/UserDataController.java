@@ -26,6 +26,7 @@ public class UserDataController {
     private final ProfilePicService profilePicService;
     private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
+    private final UserRepository userRepository;
 
 
     //TODO DA PRENDERE LE TUPLE PER CONTROLLARE SE FARE UPDATE O NO
@@ -128,4 +129,13 @@ public class UserDataController {
         System.out.printf("oh dio mi hanno chiamato");
         return (userService.getUsersByUsername(username));
     }  //FIXME deve tornare userSerarch (mantanere per luca)
+
+
+    @GetMapping("/suca")
+    public List<User> ajeje() {
+        List<User> al= userRepository.findAllUsers(0);
+        if(al!=null)
+            return al;
+        return null;
+    }
 }
