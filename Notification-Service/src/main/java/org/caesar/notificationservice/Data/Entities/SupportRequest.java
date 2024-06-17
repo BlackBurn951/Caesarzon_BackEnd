@@ -3,6 +3,7 @@ package org.caesar.notificationservice.Data.Entities;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table( name = "richiesta_supporto")

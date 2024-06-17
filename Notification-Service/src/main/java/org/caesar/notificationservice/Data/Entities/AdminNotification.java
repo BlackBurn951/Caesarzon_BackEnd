@@ -2,7 +2,7 @@ package org.caesar.notificationservice.Data.Entities;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -15,7 +15,7 @@ public class AdminNotification {
     private UUID id;
 
     @Column(name = "data", nullable = false)
-    private LocalDateTime data;
+    private LocalDate data;
 
     @Basic
     @Column(name = "descrizione")
