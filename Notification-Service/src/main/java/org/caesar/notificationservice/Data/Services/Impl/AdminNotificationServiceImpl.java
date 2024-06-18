@@ -30,4 +30,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
             return false;
         }
     }
+
+    @Override
+    public boolean deleteNotification(){}
 }

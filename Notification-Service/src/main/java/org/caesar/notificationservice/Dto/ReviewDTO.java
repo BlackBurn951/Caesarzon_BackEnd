@@ -3,12 +3,15 @@ package org.caesar.notificationservice.Dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 
 @Getter
 @Setter
 public class ReviewDTO{
 
-    private int numStelle;
-    private String descrizione;
-    private String dataRecensione;
+    private UUID id;
+    private int starNumber;
+    private String description;
+    private String reviewDate;
 }

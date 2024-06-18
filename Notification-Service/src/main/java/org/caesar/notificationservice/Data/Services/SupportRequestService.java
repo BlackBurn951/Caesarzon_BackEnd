@@ -7,5 +7,6 @@ import java.util.List;
 public interface SupportRequestService {
 
     List<SupportDTO> getAllSupportRequest(int num);
-
+    boolean addSupportRequest(SupportDTO supportDTO);
+    boolean deleteSupportRequest(SupportDTO supportDTO);
 }
