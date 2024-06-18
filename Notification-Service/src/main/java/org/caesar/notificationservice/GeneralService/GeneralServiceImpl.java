@@ -42,10 +42,10 @@ public class GeneralServiceImpl implements GeneralService{
         LocalDate date= LocalDate.now();
 
         reportRequest.setReportDate(date);
-        reportRequest.setReason(reportRequest.getReason());
-        reportRequest.setDescription(reportDTO.getDescrizione());
+        reportRequest.setReason(reportDTO.getReason());
+        reportRequest.setDescription(reportDTO.getDescription());
         reportRequest.setUsernameUser1(username1);
-        reportRequest.setUsernameUser2(reportRequest.getUsernameUser2());
+        reportRequest.setUsernameUser2(reportDTO.getUsernameUser2());
 
         if(reportService.addReport(reportRequest)) {
             System.out.println("Sono prima della chiamata rest template");

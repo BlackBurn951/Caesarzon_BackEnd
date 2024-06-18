@@ -5,5 +5,7 @@ import org.caesar.notificationservice.Dto.SupportDTO;
 
 public interface GeneralService {
     
-    boolean addReportRequest(String username1, SendReportDTO reportDTO);
+    boolean addReportRequest(String username1, ReportDTO reportDTO);
+    boolean addSupportRequest(String username1, SupportDTO supportDTO);
+    boolean manageSupportRequest(SupportDTO supportDTO);
 }
