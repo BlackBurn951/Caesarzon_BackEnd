@@ -67,7 +67,7 @@ public class GeneralServiceImpl implements GeneralService {
 
 
     @Override
-    public List<UserSearchDTO> getUserSearch(String username, int start) {
+    public List<UserSearchDTO> getUserSearch(int start) {
         List<UserDTO> users= userService.getUsers(start);
 
         if(users == null || users.isEmpty())
@@ -81,17 +81,21 @@ public class GeneralServiceImpl implements GeneralService {
             FollowerDTO followerDTO;
 
             for (UserDTO userDTO : users) {
-                image= profilePicService.getUserImage(userDTO.getUsername());
+                System.out.println(userDTO.getUsername());
+                if(userDTO.getUsername().equals("francusso")) {
+                    image = profilePicService.getUserImage(userDTO.getUsername());
+                    userSearchDTO.setProfilePic(image);
+                }
+
 
                 userSearchDTO.setUsername(userDTO.getUsername());
-                userSearchDTO.setProfilePic(image);
 
-                followerDTO= followerService.getFollower(username, userDTO.getUsername());
-
-                if(followerDTO != null) {
-                    userSearchDTO.setFriend(followerDTO.isFriend());
-//                    userSearchDTO.setFollower(true);
-                }
+//                followerDTO= followerService.getFollower(username, userDTO.getUsername());
+//
+//                if(followerDTO != null) {
+//                    userSearchDTO.setFriend(followerDTO.isFriend());
+////                    userSearchDTO.setFollower(true);
+//                }
 
                 userSearchDTOs.add(userSearchDTO);
             }

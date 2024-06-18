@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.List;
 @Service
 @RequiredArgsConstructor
@@ -29,6 +30,8 @@ public class SupportRequestServiceImpl implements SupportRequestService {
 
     @Override
     public boolean addSupportRequest(SupportDTO supportDTO) {
+        supportDTO.setSupportCode(generaCodice());
+
         try {
             supportRequestRepository.save(modelMapper.map(supportDTO, SupportRequest.class));
 
@@ -51,5 +54,16 @@ public class SupportRequestServiceImpl implements SupportRequestService {
             log.debug("Errore nella cancellazione della richiesta di supporto");
             return false;
         }
+    }
+
+    private String generaCodice() {
+        String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        SecureRandom RANDOM = new SecureRandom();
+        StringBuilder codice = new StringBuilder(7);
+        for (int i = 0; i < 7; i++) {
+            int index = RANDOM.nextInt(CHARACTERS.length());
+            codice.append(CHARACTERS.charAt(index));
+        }
+        return codice.toString();
     }
 }

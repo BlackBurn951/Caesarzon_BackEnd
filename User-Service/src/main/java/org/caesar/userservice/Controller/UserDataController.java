@@ -49,6 +49,7 @@ public class UserDataController {
 
     @PostMapping("/user")
     public ResponseEntity<String> saveUserData(@RequestBody UserRegistrationDTO userData) {
+        System.out.println("MANNAJA  DIO");
         if(userService.saveUser(userData))
             return new ResponseEntity<>("User registrato!", HttpStatus.OK);
         else
@@ -113,7 +114,7 @@ public class UserDataController {
     public ResponseEntity<List<UserSearchDTO>> getUsersSearch(@RequestParam("str") int start) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        List<UserSearchDTO> result= generalService.getUserSearch(username, start);
+        List<UserSearchDTO> result= generalService.getUserSearch(start);
 
         if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
