@@ -1,6 +1,7 @@
 package org.caesar.notificationservice.GeneralService;
 
-import org.caesar.notificationservice.Dto.SendReportDTO;
+import org.caesar.notificationservice.Dto.ReportDTO;
+import org.caesar.notificationservice.Dto.SupportDTO;
 
 public interface GeneralService {
     
