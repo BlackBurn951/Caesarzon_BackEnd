@@ -103,7 +103,7 @@ public class UserRepositoryImpl implements UserRepository {
 
             // Verifica se l'utente ha il ruolo "basic"
             boolean hasBasicRole = clientRoles.stream()
-                    .anyMatch(role -> role.getName().equals("admin"));
+                    .anyMatch(role -> role.getName().equals("basic"));
 
             if (hasBasicRole) {
                 User user = new User();
