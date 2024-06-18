@@ -3,16 +3,20 @@ package org.caesar.notificationservice.Data.Entities;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table( name = "richiesta_supporto")
 public class SupportRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private Long id;
+    private UUID id;
 
     @Column(name = "tipo")
     private String type;
+
+    @Column(name = "username")
+    private String username;
 
     @Column(name = "testo")
     private String text;

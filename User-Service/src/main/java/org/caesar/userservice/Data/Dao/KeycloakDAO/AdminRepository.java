@@ -9,4 +9,5 @@ public interface AdminRepository {
     Admin findAdminById(String id);
     Admin findAdminByEmail(String email);
     Admin findAdminByUsername(String username);
+    List<Admin> findAllAdmin();
 }

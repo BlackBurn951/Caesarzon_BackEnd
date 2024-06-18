@@ -9,6 +9,6 @@ import java.util.UUID;
 public class UserAddressDTO {
 
     private UUID id;
-    private String userId;
+    private String userUsername;
     private UUID addressId;
 }

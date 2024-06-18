@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface UserAddressRepository extends JpaRepository<UserAddress, UUID> {
 
-    List<UserAddress> findByUserId(String userId);
-    int countByUserId(String userId);
+    List<UserAddress> findByUserUsername(String userUsername);
+    int countByUserUsername(String userUsername);
 }

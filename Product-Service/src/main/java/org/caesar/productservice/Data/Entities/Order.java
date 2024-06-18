@@ -1,16 +1,21 @@
 package org.caesar.productservice.Data.Entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "ordine")
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private long id;
+    private UUID id;
 
     @Column(name= "num_ordine")
     private String orderNumber;

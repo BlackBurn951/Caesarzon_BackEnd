@@ -2,12 +2,17 @@ package org.caesar.userservice.Data.Dao.KeycloakDAO;
 
 import lombok.RequiredArgsConstructor;
 import org.caesar.userservice.Data.Entities.Admin;
+import org.caesar.userservice.Data.Entities.User;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.ClientRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -16,9 +21,6 @@ public class AdminRepositoryImpl implements AdminRepository {
 
     //Oggetto per la comunicazione con keycloak
     private final Keycloak keycloak;
-
-
-
 
     @Override
     public Admin findAdminById(String id) {
@@ -48,6 +50,43 @@ public class AdminRepositoryImpl implements AdminRepository {
         return setAdmin(false, username);
     }
 
+    @Override
+    public List<Admin> findAllAdmin() {
+
+        List<Admin> result = new ArrayList<>();
+
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+
+        List<UserRepresentation> admins = realmResource.users().list();
+
+        // Ottieni il ClientRepresentation per il client "caesar-app"
+        ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").get(0);
+        String clientId = clientRepresentation.getId();
+
+        for (UserRepresentation userRepresentation : admins) {
+            // Ottieni i ruoli del client per l'utente
+            List<RoleRepresentation> clientRoles = realmResource.users().get(userRepresentation.getId())
+                    .roles()
+                    .clientLevel(clientId)
+                    .listEffective();
+
+            // Verifica se l'utente ha il ruolo "admin"
+            boolean hasAdminRole = clientRoles.stream()
+                    .anyMatch(role -> role.getName().equals("admin"));
+
+            if (hasAdminRole) {
+                Admin admin = new Admin();
+                admin.setId(userRepresentation.getId());
+                admin.setFirstName(userRepresentation.getFirstName());
+                admin.setLastName(userRepresentation.getLastName());
+                admin.setUsername(userRepresentation.getUsername());
+                admin.setEmail(userRepresentation.getEmail());
+                result.add(admin);
+            }
+        }
+
+        return result;
+    }
     public Admin setAdmin(boolean type, String field) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
         List<UserRepresentation> usersResource;

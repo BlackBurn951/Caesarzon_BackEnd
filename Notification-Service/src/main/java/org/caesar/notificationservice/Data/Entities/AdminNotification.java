@@ -2,26 +2,29 @@ package org.caesar.notificationservice.Data.Entities;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "notificheadmin")
 public class AdminNotification {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "Id", nullable = false)
-    private Long id;
+    @Column(name = "id", nullable = false)
+    private UUID id;
+
+    @Column(name = "data", nullable = false)
+    private LocalDate data;
 
     @Basic
-    @Column(name = "Data", nullable = false)
-    private LocalDateTime data;
-
-    @Basic
-    @Column(name = "Descrizione")
+    @Column(name = "descrizione")
     private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "idAdmin", referencedColumnName = "id", nullable = false)
-    private AdminNotification admin;
+    @Column(name= "username_admin")
+    private String admin;
+
+    @Column(name= "letta")
+    private boolean read;
 }
 

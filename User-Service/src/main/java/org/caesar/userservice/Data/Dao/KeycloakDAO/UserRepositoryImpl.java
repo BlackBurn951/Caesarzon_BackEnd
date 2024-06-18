@@ -1,11 +1,14 @@
 package org.caesar.userservice.Data.Dao.KeycloakDAO;
 
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Config.JwtConverter;
+import org.caesar.userservice.Data.Dao.ProfilePicRepository;
+import org.caesar.userservice.Data.Entities.ProfilePic;
 import org.caesar.userservice.Data.Entities.User;
-import org.caesar.userservice.Dto.PhoneNumberDTO;
+
+import org.caesar.userservice.Dto.ProfilePicDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
 import org.keycloak.admin.client.Keycloak;
@@ -17,9 +20,14 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.springframework.stereotype.Component;
+import org.modelmapper.ModelMapper;
 
-import javax.ws.rs.core.Response;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 @Component
@@ -27,11 +35,10 @@ import java.util.*;
 @Slf4j
 public class UserRepositoryImpl implements UserRepository {
 
-    //Converter per il token
-    private final JwtConverter jwtConverter = new JwtConverter();
-
-    //Oggetti per la comunicazione con keycloak
+    private final ProfilePicRepository profilePicRepository;
+    private final ModelMapper modelMapper;
     private final Keycloak keycloak;
+
 
 
     //Metodi per la ricerca dell'utente
@@ -55,43 +62,67 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public List<User> findAllUsers() {
-        RealmResource realmResource = keycloak.realm("CaesarRealm");
+    public List<String> findAllUsersByUsername(String username) {
+
+        List<String> usernames = new ArrayList<>();
+        try{
+            System.out.printf("sono nel findAllUsersByUsername: %s\n", username);
+            RealmResource realmResource = keycloak.realm("CaesarRealm");
+            List<UserRepresentation> users = realmResource.users().searchByUsername(username, false);
+
+            for (UserRepresentation user : users) {
+                usernames.add(user.getUsername());
+            }
+            return usernames;
+        }catch (Exception e) {
+            System.out.printf("Errore: %s\n", e.getMessage());
+            return null;
+        }
+    } //TODO CHECK
+
+    //Metodo per prendere tutti gli utenti "basic" dal real (20 alla volta)
+    @Override
+    public List<User> findAllUsers(int start) {
 
         List<User> result = new ArrayList<>();
 
-        //Prendiamo tutti gli utenti del realm (CaesarzonRealm)
-        UsersResource usersResource = realmResource.users();
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
 
-        //Convertiamo tutti gli utenti in UserRepresentation per accedere ai dati dei singoli utenti
-        List<UserRepresentation> users = usersResource.list();
+        List<UserRepresentation> users = realmResource.users().list();
 
-        //Foreach sugli utenti, filtriamo per id e raccogliamo tutti i ruoli dei singoli utenti
+        // Ottieni il ClientRepresentation per il client "caesar-app"
+        ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").get(0);
+        String clientId = clientRepresentation.getId();
+
         for (UserRepresentation userRepresentation : users) {
-            UserResource userResource = usersResource.get(userRepresentation.getId());
+            // Ottieni i ruoli del client per l'utente
+            List<RoleRepresentation> clientRoles = realmResource.users().get(userRepresentation.getId())
+                    .roles()
+                    .clientLevel(clientId)
+                    .listEffective();
 
-            //Raccolta della lista di ruoli dell'utente
-            List<RoleRepresentation> roles = userResource.roles().clientLevel("caesar-app").listEffective();
+            // Verifica se l'utente ha il ruolo "basic"
+            boolean hasBasicRole = clientRoles.stream()
+                    .anyMatch(role -> role.getName().equals("basic"));
 
-            //Se l'utente possiede il ruolo "basic" lo aggiungiamo alla nostra lista di utenti (mappando)
-            for (RoleRepresentation role : roles) {
-                if (role.getName().equals("basic")) {
-                    User user = new User();
-                    user.setId(userRepresentation.getId());
-                    user.setFirstName(userRepresentation.getFirstName());
-                    user.setLastName(userRepresentation.getLastName());
-                    user.setUsername(userRepresentation.getUsername());
-                    user.setEmail(userRepresentation.getEmail());
+            if (hasBasicRole) {
+                User user = new User();
+                user.setId(userRepresentation.getId());
+                user.setFirstName(userRepresentation.getFirstName());
+                user.setLastName(userRepresentation.getLastName());
+                user.setUsername(userRepresentation.getUsername());
+                user.setEmail(userRepresentation.getEmail());
+                if (userRepresentation.getAttributes() != null) {
                     user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
-                    result.add(user);
-                    break;
                 }
+                result.add(user);
             }
-
         }
 
         return result;
     }
+
+
 
     @Override
     public User findUserByEmail(String email) {
@@ -103,68 +134,74 @@ public class UserRepositoryImpl implements UserRepository {
         return setUser(false, username);
     }
 
-    @Override
-    public String getUserIdFromToken() {
-        return this.findUserByUsername(jwtConverter.getUsernameFromToken()).getId();
-    }
-
 
     //Metodi per la gestione dell'utente
     @Override
     @Transactional
     public boolean saveUser(UserRegistrationDTO userData) {
-        try {
+        //Presa del real associato all'applicazione
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
 
-            //Presa del realm da keycloak per effettuare le operazioni in esso
-            RealmResource realmResource = keycloak.realm("CaesarRealm");
+        //Presa degli utenti presenti sul real
+        UsersResource usersResource = realmResource.users();
 
-            //Definizione oggwtto per la manipolazione degli utenti
-            UsersResource usersResource = realmResource.users();
+        //Creazione di un nuovo utente per inserirlo nel realm
+        UserRepresentation user = new UserRepresentation();
 
+        //Assegnazione dei campi base offerti da keycloak
+        user.setUsername(userData.getUsername());
+        user.setFirstName(userData.getFirstName());
+        user.setLastName(userData.getLastName());
+        user.setEmail(userData.getEmail());
+        user.setEnabled(true);
 
-            //Oggetto per la creazione di un utente secondo l'interfaccia di keycloak
-            UserRepresentation user = new UserRepresentation();
+        //Assegnazione e specifica del tipo di crednziali d'accesso
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(userData.getCredentialValue());
+        credential.setTemporary(false);
 
-            user.setUsername(userData.getUsername());
-            user.setFirstName(userData.getFirstName());
-            user.setLastName(userData.getLastName());
-            user.setEmail(userData.getEmail());
-            user.setEnabled(true);
+        //Impostazione delle credenziali d'accesso
+        user.setCredentials(Collections.singletonList(credential));
 
-            //Impostazione del tipo di verifica d'identità
-            CredentialRepresentation credential = new CredentialRepresentation();
-            credential.setType(CredentialRepresentation.PASSWORD);
-            credential.setValue(userData.getCredentialValue());
-            credential.setTemporary(false);
+        //Chiamata per la creazione dell'user
+        Response response = usersResource.create(user);
 
-            user.setCredentials(Collections.singletonList(credential));
+        //Controllo che l'user sia stato inserito
+        if (response.getStatus() == 201) {
 
-            //Chiamata al server keycloak per salvare l'utente
-            Response response = usersResource.create(user);
+            //Presa dell'id dell'utente mandata come risposta della chiamata
+            String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
 
-            //Controllo dello stato della risposta del server keycloak
-            if (response.getStatus() == 201) {
-                String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+            UserResource userResource = usersResource.get(userId);
 
-                //Invio della email di verifica all'utente
-                UserResource userResource = usersResource.get(userId);
-                userResource.sendVerifyEmail();
+            //Invio dell'email per la verifica dell'account
+            userResource.sendVerifyEmail();
 
-                //Presa del client keycloak inerente all'applicazione
-                ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").getFirst();
-                ClientResource clientResource = realmResource.clients().get(clientRepresentation.getId());
+            //Inserimento della foto profilo di base all'utente TODO DA SPOSTARE NEL GENERAL SERVICE
+            ProfilePicDTO profilePic = new ProfilePicDTO();
+            File file = new File("User-Service/src/main/resources/static/img/base_profile_pic.jpg");
 
-                //Presa del ruolo basic presente nel client e assegnazione all'utente appena registrato
-                RoleRepresentation role = clientResource.roles().get("basic").toRepresentation();
-                userResource.roles().clientLevel(clientRepresentation.getId()).add(Collections.singletonList(role));
+//            try{
+//                MultipartFile multipartFile = new MultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
+//
+//                profilePic.setProfilePic(multipartFile.getBytes());
+//            }catch (Exception | Error e){
+//                log.debug("Errore nel salvataggio della foto profilo standard");
+//                return false;
+//            }
+            profilePicRepository.save(modelMapper.map(profilePic, ProfilePic.class));
 
-                return true;
-            } else
-                return false;
-        } catch (Exception | Error e) {
-            log.debug("Errore nel salvataggio dell'utente su keycloak");
-            return false;
+            //Impostazione del ruolo "basic" al nuovo utente salvato
+            ClientRepresentation clientRepresentation= realmResource.clients().findByClientId("caesar-app").getFirst();
+            ClientResource clientResource = realmResource.clients().get(clientRepresentation.getId());
+
+            RoleRepresentation role = clientResource.roles().get("basic").toRepresentation();
+            userResource.roles().clientLevel(clientRepresentation.getId()).add(Collections.singletonList(role));
+
+            return true;
         }
+        return false;
     }
 
     @Override
@@ -175,7 +212,7 @@ public class UserRepositoryImpl implements UserRepository {
             RealmResource realmResource = keycloak.realm("CaesarRealm");
 
             //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
-            User userKeycloak = findUserByUsername(jwtConverter.getUsernameFromToken());
+            User userKeycloak = findUserByUsername(userData.getUsername());
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
 
             //Aggiornamento dei dati dell'utente ad eccezione dell'username (attributo unique e non modificabile)
@@ -184,11 +221,8 @@ public class UserRepositoryImpl implements UserRepository {
             user.setLastName(userData.getLastName());
             user.setEmail(userData.getEmail());
 
-            //Presa degli attributi personalizzati da keycloak
-            Map<String, List<String>> attributes = user.getAttributes();
-
-            if(attributes==null)
-                return false;
+            //Aggiunta degli attributi personalizzati
+            Map<String, List<String>> attributes = new HashMap<>();  //FIXME controllare vecchia config
 
             attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
             user.setAttributes(attributes);

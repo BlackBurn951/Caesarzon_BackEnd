@@ -1,4 +1,7 @@
 package org.caesar.notificationservice.Data.Services;
 
-public class UserNotificationService {
+import org.caesar.notificationservice.Dto.UserNotificationDTO;
+
+public interface UserNotificationService {
+    boolean addUserNotification(UserNotificationDTO notification);
 }

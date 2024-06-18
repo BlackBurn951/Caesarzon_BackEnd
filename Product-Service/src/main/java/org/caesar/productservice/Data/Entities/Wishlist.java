@@ -1,14 +1,20 @@
 package org.caesar.productservice.Data.Entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.UUID;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "lista_desideri")
 public class Wishlist {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private long id;
+    private UUID id;
 
     @Column(name= "nome")
     private String name;
@@ -16,6 +22,6 @@ public class Wishlist {
     @Column(name= "visibilita")
     private String visibility;
 
-    @Column(name= "id_utente")
-    private long userID;
+    @Column(name= "username_utente")
+    private String userUsername;
 }
