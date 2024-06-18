@@ -14,5 +14,6 @@ public class UserNotificationDTO {
     private LocalDate data;
     private String description;
     private String user;
+    private boolean read;
 }
 

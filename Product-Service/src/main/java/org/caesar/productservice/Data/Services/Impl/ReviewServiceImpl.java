@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ReviewRepository;
 import org.caesar.productservice.Data.Entities.Image;
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
 import org.caesar.productservice.Data.Services.ReviewService;
 import org.caesar.productservice.Dto.ImageDTO;
@@ -46,7 +47,8 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public List<ReviewDTO> getReviewsByProductId(UUID productId) {
-        return reviewRepository.findByProductId(productId)
+        Product product = modelMapper.map(productId, Product.class);
+        return reviewRepository.findByProductID(product)
                 .stream()
                 .map(review -> modelMapper.map(review, ReviewDTO.class))
                 .toList();
