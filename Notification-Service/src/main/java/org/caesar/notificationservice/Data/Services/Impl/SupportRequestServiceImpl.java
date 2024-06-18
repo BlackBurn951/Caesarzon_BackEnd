@@ -3,7 +3,7 @@ package org.caesar.notificationservice.Data.Services.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Dao.SupportRequestRepository;
-import org.caesar.notificationservice.Data.Entities.SupportRequest;
+import org.caesar.notificationservice.Data.Entities.Support;
 import org.caesar.notificationservice.Data.Services.SupportRequestService;
 import org.caesar.notificationservice.Dto.SupportDTO;
 import org.modelmapper.ModelMapper;
@@ -24,7 +24,7 @@ public class SupportRequestServiceImpl implements SupportRequestService {
 
     @Override
     public List<SupportDTO> getAllSupportRequest(int num) {
-        Page<SupportRequest> result = supportRequestRepository.findAll(PageRequest.of(num, 20));
+        Page<Support> result = supportRequestRepository.findAll(PageRequest.of(num, 20));
         return result.stream().map(a -> modelMapper.map(a, SupportDTO.class)).toList();
     }
 
@@ -33,7 +33,7 @@ public class SupportRequestServiceImpl implements SupportRequestService {
         supportDTO.setSupportCode(generaCodice());
 
         try {
-            supportRequestRepository.save(modelMapper.map(supportDTO, SupportRequest.class));
+            supportRequestRepository.save(modelMapper.map(supportDTO, Support.class));
 
             return true;
         } catch (Exception | Error e) {
@@ -45,9 +45,7 @@ public class SupportRequestServiceImpl implements SupportRequestService {
     @Override
     public boolean deleteSupportRequest(SupportDTO supportDTO) {
         try {
-            supportRequestRepository.deleteByDateRequestAndTypeAndTextAndSubjectAndUsername(supportDTO.getDateRequest(),
-                    supportDTO.getType(), supportDTO.getText(),
-                    supportDTO.getSubject(), supportDTO.getUsername());
+            supportRequestRepository.deleteBySupportCode(supportDTO.getSupportCode());
 
             return true;
         } catch (Exception | Error e) {

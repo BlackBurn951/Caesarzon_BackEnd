@@ -33,6 +33,7 @@ public class GeneralServiceImpl implements GeneralService{
     private final ReportService reportService;
     private final SupportRequestService supportRequestService;
     private final AdminNotificationService adminNotificationService;
+    private final UserNotificationService userNotificationService;
 
 
     @Override
@@ -144,16 +145,17 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    public boolean manageSupportRequest(SupportDTO supportDTO, boolean accept) {
+    public boolean manageSupportRequest(String username, SupportDTO supportDTO) {
         if(!supportRequestService.deleteSupportRequest(supportDTO))
             return false;
 
-        UserNotificationDTO notification= new UserNotificationDTO();
+        String descr;
+        if(supportDTO.getAdminResponse().isAccept())
+            descr= "Richiesta di supporto "+ supportDTO.getSupportCode()+" elaborata dall'admin "+username;
+        else
+            descr= "Richiesta di supporto "+ supportDTO.getSupportCode()+" respinta dall'admin "+username;
 
-        LocalDate date= LocalDate.now();
-        notification.setData(date);
-        notification.setUser(supportDTO.getUsername());
-        notification.setDescription();
+        return userNotificationService.addUserNotification(username, descr, supportDTO.getAdminResponse().getExplain());
     }
 
     @Override

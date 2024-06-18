@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Entity
 @Table( name = "richiesta_supporto")
-public class SupportRequest {
+public class Support {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

@@ -27,4 +27,7 @@ public class UserNotification {
 
     @Column(name= "letta")
     private boolean read;
+
+    @Column(name= "spiegazione")
+    private String explanation;
 }

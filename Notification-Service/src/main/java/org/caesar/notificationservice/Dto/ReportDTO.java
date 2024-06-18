@@ -16,4 +16,7 @@ public class ReportDTO {
     private String description;
     private String usernameUser1;
     private String usernameUser2;
+    private String reportCode;
+
+    private AdminResponse adminResponse;
 }
