@@ -2,6 +2,12 @@ package org.caesar.productservice.Data.Dao;
 
 import org.caesar.productservice.Data.Entities.Sport;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface SportRepository extends JpaRepository<Sport, Long> {
+import java.util.List;
+import java.util.UUID;
+
+@Repository
+public interface SportRepository extends JpaRepository<Sport, UUID> {
+    List<Sport> findAll(String sportName);
 }

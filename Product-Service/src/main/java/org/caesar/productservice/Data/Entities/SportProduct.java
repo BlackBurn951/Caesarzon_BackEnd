@@ -1,14 +1,20 @@
 package org.caesar.productservice.Data.Entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.UUID;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "prodotto_sport")
 public class SportProduct {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private long id;
+    private UUID id;
 
     @Column(name= "id_prodotto")
     private int quantity;
