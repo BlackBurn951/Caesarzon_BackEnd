@@ -32,7 +32,7 @@ public class SportServiceImpl implements SportService {
 
     @Override
     public List<SportDTO> getSportDTObySportName(String sportName) {
-        return sportRepository.findAll(sportName)
+        return sportRepository.findByName(sportName)
                 .stream()
                 .map(sport -> modelMapper.map(sport, SportDTO.class))
                 .toList();
