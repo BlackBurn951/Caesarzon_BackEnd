@@ -29,6 +29,7 @@ public class GeneralServiceImpl implements GeneralService{
     private final SupportRequestService supportRequestService;
     private final AdminNotificationService adminNotificationService;
     private final UserNotificationService userNotificationService;
+    private final BanService banService;
 
 
     @Override
@@ -45,10 +46,8 @@ public class GeneralServiceImpl implements GeneralService{
         reportRequest.setUsernameUser2(reportDTO.getUsernameUser2());
 
         if(reportService.addReport(reportRequest)) {
-            System.out.println("Sono prima della chiamata rest template");
             HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
             HttpHeaders headers = new HttpHeaders();
-            System.out.println("TOKEN: " + request.getHeader("Authorization"));
             headers.add("Authorization", request.getHeader("Authorization"));
 
             HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -155,8 +154,32 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    public boolean manageReport(String username, ReportDTO reportDTO) {
-        if(!reportService.deleteReport(reportDTO))
+    public boolean manageReport(ReportResponseDTO reportResponseDTO, String username) {
+        ReportDTO reportDTO= reportService.getReport(reportResponseDTO.getReportCode());
+
+        if(reportDTO!=null && reportService.deleteReport(reportDTO)) {
+            if(!reportResponseDTO.isAccept())
+                return true;
+
+            BanDTO banDTO= new BanDTO();
+            banDTO.setReason(reportResponseDTO.getExplain());
+            banDTO.setStartDate(LocalDate.now());
+            banDTO.setUserUsername(reportDTO.getUsernameUser1());
+            banDTO.setAdminUsername(username);
+
+            if(banService.banUser(banDTO)) {
+                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Authorization", request.getHeader("Authorization"));
+
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+                "http://user-service/user-api/admins",
+                        HttpMethod.GET,
+                        entity,
+                        List.class
+                restTemplate.exchange("");
+            }
+        } else
             return false;
 
         /*TODO fare controllo per consecutivo ban

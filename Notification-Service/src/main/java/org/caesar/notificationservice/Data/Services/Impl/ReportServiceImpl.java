@@ -36,6 +36,11 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
+    public ReportDTO getReport(String reportCode) {
+        return modelMapper.map(reportRepository.findByReportCode(reportCode), ReportDTO.class);
+    }
+
+    @Override
     public List<ReportDTO> getAllReports(int num) {
         Page<Report> result = reportRepository.findAll(PageRequest.of(num, 20));
         return result.stream().map(a -> modelMapper.map(a, ReportDTO.class)).toList();

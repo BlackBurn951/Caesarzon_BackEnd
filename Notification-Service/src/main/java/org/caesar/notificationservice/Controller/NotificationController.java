@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Services.ReportService;
 import org.caesar.notificationservice.Data.Services.SupportRequestService;
 import org.caesar.notificationservice.Dto.ReportDTO;
+import org.caesar.notificationservice.Dto.ReportResponseDTO;
 import org.caesar.notificationservice.Dto.SupportDTO;
 import org.caesar.notificationservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
@@ -50,10 +51,10 @@ public class NotificationController {
     }
 
     @DeleteMapping("/report")
-    public ResponseEntity<String> deleteReport(@RequestBody ReportDTO reportDTO) {
+    public ResponseEntity<String> deleteReport(@RequestBody ReportResponseDTO reportResponseDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(generalService.manageReport(username, reportDTO))
+        if(generalService.manageReport(reportResponseDTO, username))
             return new ResponseEntity<>("Segnalazione eliminata con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'eliminazione della segnalazione", HttpStatus.INTERNAL_SERVER_ERROR);
