@@ -176,30 +176,11 @@ public class UserRepositoryImpl implements UserRepository {
 
         //Controllo che l'user sia stato inserito
         if (response.getStatus() == 201) {
-            System.out.println("response" + response);
-
             //Presa dell'id dell'utente mandata come risposta della chiamata
             String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
 
             UserResource userResource = usersResource.get(userId);
 
-            //Invio dell'email per la verifica dell'account
-            //userResource.sendVerifyEmail();
-
-            //Inserimento della foto profilo di base all'utente TODO DA SPOSTARE NEL GENERAL SERVICE
-            ProfilePicDTO profilePic = new ProfilePicDTO();
-            File file = new File("User-Service/src/main/resources/static/img/base_profile_pic.jpg");
-
-            try{
-                MockMultipartFile multipartFile = new MockMultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
-
-                profilePic.setProfilePic(multipartFile.getBytes());
-            }catch (Exception | Error e){
-                log.debug("Errore nel salvataggio della foto profilo standard");
-                return false;
-            }
-            profilePicRepository.save(modelMapper.map(profilePic, ProfilePic.class));
-            System.out.println("Ruoli");
             //Impostazione del ruolo "basic" al nuovo utente salvato
             ClientRepresentation clientRepresentation= realmResource.clients().findByClientId("caesar-app").getFirst();
             ClientResource clientResource = realmResource.clients().get(clientRepresentation.getId());

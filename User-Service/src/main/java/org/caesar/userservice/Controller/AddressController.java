@@ -66,10 +66,13 @@ public class AddressController {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(generalService.addAddress(username, addressDTO))
+        int result= generalService.addAddress(username, addressDTO);
+        if(result==0)
             return new ResponseEntity<>("Indirizzo salvato!", HttpStatus.OK);
-        else
+        else if(result==1)
             return new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
+        else
+            return new ResponseEntity<>("Raggiunto limite massimo di indirizzi!", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @DeleteMapping("/address")

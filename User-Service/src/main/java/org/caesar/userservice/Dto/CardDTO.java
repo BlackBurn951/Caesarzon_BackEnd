@@ -17,4 +17,17 @@ public class CardDTO {
     private String owner;
     private String cvv;
     private String expiryDate;
+
+    public boolean equals(Object o) {
+        if(this == o) return true;
+
+        if(o == null) return false;
+
+        if(this.getClass() != o.getClass()) return false;
+
+        CardDTO a = (CardDTO) o;
+
+        return cardNumber.equals(a.getCardNumber()) && owner.equals(a.getOwner()) &&
+                cvv.equals(a.getCvv()) && expiryDate.equals(a.getExpiryDate());
+    }
 }

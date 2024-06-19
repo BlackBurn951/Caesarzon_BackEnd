@@ -28,10 +28,7 @@ public class UserDataController {
     private final ProfilePicService profilePicService;
     private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
-    private final UserRepository userRepository;
 
-
-    //TODO DA PRENDERE LE TUPLE PER CONTROLLARE SE FARE UPDATE O NO
 
     //End-point per manipolare i dati anagrafici dell'utente
     @GetMapping("/user")
@@ -49,8 +46,7 @@ public class UserDataController {
 
     @PostMapping("/user")
     public ResponseEntity<String> saveUserData(@RequestBody UserRegistrationDTO userData) {
-        System.out.println("MANNAJA  DIO");
-        if(userService.saveUser(userData))
+        if(generalService.addUser(userData))
             return new ResponseEntity<>("User registrato!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nella registrazione...", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -120,7 +116,7 @@ public class UserDataController {
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-}  //TODO DA CHIEDERE SE SERVE A LUCA
+}  //TODO DA AGGIUSTARE E USARE
 
 
 
@@ -133,12 +129,4 @@ public class UserDataController {
         return (userService.getUsersByUsername(username));
     }  //FIXME deve tornare userSerarch (mantanere per luca)
 
-
-    @GetMapping("/suca")
-    public List<User> ajeje() {
-        List<User> al= userRepository.findAllUsers(0);
-        if(al!=null)
-            return al;
-        return null;
-    }
 }

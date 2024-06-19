@@ -1,15 +1,14 @@
 package org.caesar.userservice.GeneralService;
 
-import org.caesar.userservice.Dto.AddressDTO;
-import org.caesar.userservice.Dto.CardDTO;
-import org.caesar.userservice.Dto.UserSearchDTO;
+import org.caesar.userservice.Dto.*;
 
 import java.util.List;
 
 public interface GeneralService {
 
-    boolean addAddress(String userUsername, AddressDTO addressDTO);
-    boolean addCard(String userUsername, CardDTO cardDTO);
+    boolean addUser(UserRegistrationDTO user);
+    int addAddress(String userUsername, AddressDTO addressDTO);
+    int addCard(String userUsername, CardDTO cardDTO);
 
     List<UserSearchDTO> getUserSearch(int start);
     CardDTO getUserCard(String userUsername, String cardName);

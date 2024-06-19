@@ -6,8 +6,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -32,37 +35,92 @@ public class GeneralServiceImpl implements GeneralService {
     private final FollowerService followerService;
 
 
+    @Override
+    @Transactional
+    public boolean addUser(UserRegistrationDTO user) {
+        if(userService.saveUser(user)) {
+            try {
+                File file = new File("User-Service/src/main/resources/static/img/base_profile_pic.jpg");
+                MockMultipartFile multipartFile = new MockMultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
+
+                return profilePicService.saveImage(user.getUsername(), multipartFile);
+            } catch (Exception | Error e) {
+                log.debug("Errore nel salvataggio dell'user");
+                return false;
+            }
+        }
+        return false;
+    }
+
     //Metodi di inserimento dati con tabelle di relazione
     @Override
     @Transactional
-    public boolean addAddress(String userUsername, AddressDTO addressDTO) {
-        UUID addressId= addressService.addAddress(addressDTO);
+    public int addAddress(String userUsername, AddressDTO addressDTO) {
+        List<UserAddressDTO> addresses= userAddressService.getUserAddresses(userUsername);
 
-        if(addressId == null)
-            return false;
+        if(addresses==null || addresses.isEmpty()) {
+            UUID addressId= addressService.addAddress(addressDTO);
 
-        UserAddressDTO userAddressDTO= new UserAddressDTO();
+            if(addressId == null)
+                return 1;
 
-        userAddressDTO.setAddressId(addressId);
-        userAddressDTO.setUserUsername(userUsername);
+            UserAddressDTO userAddressDTO= new UserAddressDTO();
 
-        return userAddressService.addUserAddreses(userAddressDTO);
+            userAddressDTO.setAddressId(addressId);
+            userAddressDTO.setUserUsername(userUsername);
+
+            return userAddressService.addUserAddreses(userAddressDTO)? 0: 1;
+        } else if(addresses.size()==5)
+            return 2;
+        else {
+            for(UserAddressDTO userAddressDTO: addresses) {
+                AddressDTO address= addressService.getAddress(userAddressDTO.getAddressId());
+
+                if(address.equals(addressDTO)) {
+                    addressDTO.setId(address.getId());
+                    UUID id= addressService.addAddress(addressDTO);
+                    if(id == null)
+                        return 1;
+                    return 0;
+                }
+            }
+            return 1;
+        }
     }
 
     @Override
     @Transactional
-    public boolean addCard(String userUsername, CardDTO cardDTO) {
-        UUID cardId= cardService.addCard(cardDTO);
+    public int addCard(String userUsername, CardDTO cardDTO) {
+        List<UserCardDTO> cards= userCardService.getUserCards(userUsername);
 
-        if(cardId == null)
-            return false;
+        if(cards==null || cards.isEmpty()) {
+            UUID cardId = cardService.addCard(cardDTO);
 
-        UserCardDTO userCardDTO= new UserCardDTO();
+            if(cardId == null)
+                return 1;
 
-        userCardDTO.setCardId(cardId);
-        userCardDTO.setUserUsername(userUsername);
+            UserCardDTO userCardDTO= new UserCardDTO();
 
-        return userCardService.addUserCards(userCardDTO);
+            userCardDTO.setCardId(cardId);
+            userCardDTO.setUserUsername(userUsername);
+
+            return userCardService.addUserCards(userCardDTO)? 0: 1;
+        } else if(cards.size()==5)
+            return 2;
+        else {
+            for(UserCardDTO userCardDTO: cards) {
+                CardDTO card= cardService.getCard(userCardDTO.getCardId());
+
+                if(card.equals(cardDTO)) {
+                    cardDTO.setId(card.getId());
+                    UUID id= cardService.addCard(cardDTO);
+                    if(id == null)
+                        return 1;
+                    return 0;
+                }
+            }
+            return 1;
+        }
     }
 
 
