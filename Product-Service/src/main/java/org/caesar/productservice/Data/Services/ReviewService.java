@@ -1,5 +1,6 @@
 package org.caesar.productservice.Data.Services;
 
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
 import org.caesar.productservice.Dto.ReviewDTO;
 
@@ -10,6 +11,6 @@ public interface ReviewService {
 
     UUID addOrUpdateReview(ReviewDTO review);
     ReviewDTO getReview(UUID id);
-    List<ReviewDTO> getReviewsByProductId(UUID productId);
+    List<ReviewDTO> getReviewsByProductId(Product product);
     boolean deleteReview(UUID id);
 }

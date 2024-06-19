@@ -10,6 +10,8 @@ import org.caesar.productservice.Dto.AvailabilityDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,29 +24,27 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private final AvailabilityRepository availabilityRepository;
 
 
+    //Ritorna le liste di disponibilità del prodotto
     @Override
-    public UUID addOrUpdateAvailability(AvailabilityDTO availabilityDTO) {
-
-        if(!checkQuantity(availabilityDTO.getAmount()) || !checkSize(availabilityDTO.getSize()))
-            return null;
-
+    public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilitiesDTO) {
+        System.out.println("Sono nell'add or update della disponibilità");
         try{
-            Availability availability = modelMapper.map(availabilityDTO, Availability.class);
-            return availabilityRepository.save(availability).getId();
-
+            for(AvailabilityDTO availabilityDTO : availabilitiesDTO)
+                if(checkQuantity(availabilityDTO.getAmount()) && checkSize(availabilityDTO.getSize())) {
+                    availabilityRepository.save(modelMapper.map(availabilityDTO, Availability.class));
+                    log.debug("Disponibilità del prodotto aggiunta");
+                }
+                else
+                    log.debug("Errore nell'inserimento della disponibilità");
+            return true;
 
         }catch (RuntimeException e){
-            log.debug("Errore nell'inserimento della disponibilità");
-            return null;
+            log.debug("Errore nell'inserimento della disponibilità: {}", e.getMessage(), e);
+            return false;
         }
 
     }
 
-    @Override
-    public AvailabilityDTO getAvailability(UUID id) {
-
-        return modelMapper.map(availabilityRepository.findById(id), AvailabilityDTO.class);
-    }
 
     @Override
     public boolean deleteAvailability(UUID id) {
@@ -56,6 +56,8 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             return false;
         }
     }
+
+
 
     private boolean checkSize(String size) {
         List<String> sizes = List.of(new String[]{"XS", "S", "M", "L", "XL", "XXL"});
