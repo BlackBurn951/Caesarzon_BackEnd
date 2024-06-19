@@ -77,7 +77,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         try {
             byte[] image;
-            UserSearchDTO userSearchDTO= new UserSearchDTO();
+            UserSearchDTO userSearchDTO;
             FollowerDTO followerDTO;
 
             for (UserDTO userDTO : users) {
