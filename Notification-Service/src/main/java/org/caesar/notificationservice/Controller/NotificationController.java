@@ -51,8 +51,9 @@ public class NotificationController {
 
     @DeleteMapping("/report")
     public ResponseEntity<String> deleteReport(@RequestBody ReportDTO reportDTO) {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(reportService.deleteReport(reportDTO))
+        if(generalService.manageReport(username, reportDTO))
             return new ResponseEntity<>("Segnalazione eliminata con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'eliminazione della segnalazione", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -82,9 +83,10 @@ public class NotificationController {
     }
 
     @DeleteMapping("/support")
-    public ResponseEntity<String> deleteReport(@RequestBody SupportDTO supportDTO, @RequestParam()) {
+    public ResponseEntity<String> deleteSupport(@RequestBody SupportDTO supportDTO) {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(supportRequestService.deleteSupport(supportDTO))
+        if(generalService.manageSupportRequest(username, supportDTO))
             return new ResponseEntity<>("Richiesta di supporto eliminata con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'eliminazione della richiesta di supporto", HttpStatus.INTERNAL_SERVER_ERROR);

@@ -30,6 +30,4 @@ public class Address {
     @OneToOne
     @JoinColumn(name = "id_dati_comune")
     private CityData city;
-
-
 }

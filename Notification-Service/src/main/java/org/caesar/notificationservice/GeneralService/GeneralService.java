@@ -7,5 +7,6 @@ public interface GeneralService {
     
     boolean addReportRequest(String username1, ReportDTO reportDTO);
     boolean addSupportRequest(String username1, SupportDTO supportDTO);
-    boolean manageSupportRequest(SupportDTO supportDTO);
+    boolean manageSupportRequest(String username, SupportDTO supportDTO);
+    boolean manageReport(String username, ReportDTO reportDTO);
 }
