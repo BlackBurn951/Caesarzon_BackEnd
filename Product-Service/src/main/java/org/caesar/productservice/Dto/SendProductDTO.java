@@ -3,12 +3,12 @@ package org.caesar.productservice.Dto;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
+import java.util.List;
+
 @Getter
 @Setter
-public class ProductDTO {
+public class SendProductDTO {
 
-    private UUID id;
     private String name;
     private String description;
     private String brand;
@@ -17,4 +17,6 @@ public class ProductDTO {
     private String primaryColor;
     private String secondaryColor;
     private Boolean is_clothing;
+    private List<AvailabilityDTO> availabilities;
+
 }

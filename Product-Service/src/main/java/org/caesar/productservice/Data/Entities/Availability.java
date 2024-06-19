@@ -17,9 +17,13 @@ public class Availability {
     private UUID id;
 
     @Column(name= "quantita")
-    private int quantity;
+    private int amount;
 
     @Column(name= "taglia")
     private String size;
+
+    @OneToOne
+    @JoinColumn(name = "id_prodotto")  // Specifica la colonna di jo
+    private Product product;
 
 }

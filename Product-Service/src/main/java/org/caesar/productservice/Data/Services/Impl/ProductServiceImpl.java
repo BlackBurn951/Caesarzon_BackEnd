@@ -3,10 +3,10 @@ package org.caesar.productservice.Data.Services.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductRepository;
-import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.ProductDTO;
+import org.caesar.productservice.Dto.SendProductDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -24,22 +24,22 @@ public class ProductServiceImpl implements ProductService{
     private final ProductRepository productRepository;
 
     @Override
-    public UUID addOrUpdateProduct(ProductDTO productDTO, List<Availability> availabilities) {
+    public Product addOrUpdateProduct(ProductDTO sendProductDTO) {
 
         System.out.println("Sono nell'add or update product del  service");
 
 
-        if(!checkDescription(productDTO.getDescription()) || !checkDiscount(productDTO.getDiscount())
-        || !checkName(productDTO.getName()) || !checkPrice(productDTO.getPrice())
-                || !checkPrimaryColor(productDTO.getPrimaryColor()) || !checkSecondaryColor(productDTO.getSecondaryColor())) {
+        if(!checkDescription(sendProductDTO.getDescription()) || !checkDiscount(sendProductDTO.getDiscount())
+        || !checkName(sendProductDTO.getName()) || !checkPrice(sendProductDTO.getPrice())
+                || !checkPrimaryColor(sendProductDTO.getPrimaryColor()) || !checkSecondaryColor(sendProductDTO.getSecondaryColor())) {
             System.out.println("Prodotto non salvato");
             return null;
         }
 
         try{
-            Product product = modelMapper.map(productDTO, Product.class);
-            product.setAvailabilityID(availabilities);
-            return productRepository.save(product).getId();
+            Product product = modelMapper.map(sendProductDTO, Product.class);
+
+            return productRepository.save(product);
 
         }catch (RuntimeException e){
             e.printStackTrace();
@@ -48,25 +48,25 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public ProductDTO getProductByName(String name) {
+    public SendProductDTO getProductByName(String name) {
         System.out.println("Risultato: "+productRepository.findByName(name));
-        if(modelMapper.map(productRepository.findByName(name), ProductDTO.class) != null)
-            return modelMapper.map(productRepository.findByName(name), ProductDTO.class);
+        if(modelMapper.map(productRepository.findByName(name), SendProductDTO.class) != null)
+            return modelMapper.map(productRepository.findByName(name), SendProductDTO.class);
         else
             log.debug("Il prodotto che cerchi non esiste");
         return null;
     }
 
     @Override
-    public ProductDTO getProductById(UUID id) {
-        return modelMapper.map(productRepository.findById(id), ProductDTO.class);
+    public SendProductDTO getProductById(UUID id) {
+        return modelMapper.map(productRepository.findById(id), SendProductDTO.class);
     }
 
     @Override
-    public List<ProductDTO> getAllProducts() {
+    public List<SendProductDTO> getAllProducts() {
         return productRepository.findAll()
                 .stream()
-                .map(product -> modelMapper.map(product, ProductDTO.class))
+                .map(product -> modelMapper.map(product, SendProductDTO.class))
                 .collect(Collectors.toList());
     }
 
