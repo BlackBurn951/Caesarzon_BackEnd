@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface AdminNotificationService {
     boolean sendNotificationAllAdmin(List<AdminNotificationDTO> notification);
+
+    boolean deleteNotification();
 }

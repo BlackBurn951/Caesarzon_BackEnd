@@ -48,10 +48,13 @@ public class CardController {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if (generalService.addCard(username, cardDTO))
+        int result=generalService.addCard(username, cardDTO);
+        if (result==0)
             return new ResponseEntity<>("Carta salvata!", HttpStatus.OK);
-        else
+        else if (result==1)
             return new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
+        else
+            return new ResponseEntity<>("Ragiunto limite massimo di carte!", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @DeleteMapping("/card")

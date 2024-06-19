@@ -9,9 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface ReportRepository extends JpaRepository<Report, UUID> {
-
-
-    void deleteByReportDateAndReasonAndDescriptionAndUsernameUser1AndUsernameUser2(
-            LocalDate reportDate, String reason, String description, String usernameUser1, String usernameUser2);
-
+    void deleteByReportCode(String code);
 }
