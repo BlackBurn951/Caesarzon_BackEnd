@@ -46,13 +46,13 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public List<ReviewDTO> getReviewsByProductId(UUID productId) {
-        Product product = modelMapper.map(productId, Product.class);
+    public List<ReviewDTO> getReviewsByProductId(Product product) {
         return reviewRepository.findByProductID(product)
                 .stream()
                 .map(review -> modelMapper.map(review, ReviewDTO.class))
                 .toList();
     }
+
 
     @Override
     public boolean deleteReview(UUID id) {

@@ -21,4 +21,5 @@ public class Availability {
 
     @Column(name= "taglia")
     private String size;
+
 }

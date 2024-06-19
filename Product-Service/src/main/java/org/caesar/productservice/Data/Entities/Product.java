@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -40,7 +41,7 @@ public class Product {
     @Column(name= "e_abbigliamento")
     private Boolean is_clothing;
 
-    @ManyToOne
+    @OneToMany
     @JoinColumn(name= "id_disponibilita")
-    private Availability availabilityID;
+    private List<Availability> availabilityID;
 }
