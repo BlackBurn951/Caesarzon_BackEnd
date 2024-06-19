@@ -135,15 +135,12 @@ public class GeneralServiceImpl implements GeneralService {
 
         try {
             byte[] image;
-            UserSearchDTO userSearchDTO= new UserSearchDTO();
+            UserSearchDTO userSearchDTO;
             FollowerDTO followerDTO;
 
             for (UserDTO userDTO : users) {
-                System.out.println(userDTO.getUsername());
-                if(userDTO.getUsername().equals("francusso")) {
-                    image = profilePicService.getUserImage(userDTO.getUsername());
-                    userSearchDTO.setProfilePic(image);
-                }
+                userSearchDTO= new UserSearchDTO();
+            
 
 
                 userSearchDTO.setUsername(userDTO.getUsername());
@@ -157,7 +154,9 @@ public class GeneralServiceImpl implements GeneralService {
 
                 userSearchDTOs.add(userSearchDTO);
             }
-
+            for(UserSearchDTO a: userSearchDTOs) {
+                log.debug("utenti nella lista di ritorno {}", a.getUsername());
+            }
             return userSearchDTOs;
         } catch (Exception | Error e) {
             log.debug("Errore nella presa delle foto profilo");
@@ -178,9 +177,6 @@ public class GeneralServiceImpl implements GeneralService {
 
         for(FollowerDTO followerDTO: followers) {
             userSearchDTO.setUsername(followerDTO.getUserUsername2());
-            userSearchDTO.setProfilePic(profilePicService.getUserImage(followerDTO.getUserUsername2()));
-            userSearchDTO.setFriend(followerDTO.isFriend());
-
             userSearch.add(userSearchDTO);
         }
 
