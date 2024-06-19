@@ -4,8 +4,6 @@ package org.caesar.userservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
-import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.GeneralService.GeneralService;
@@ -89,6 +87,16 @@ public class UserDataController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @GetMapping("/image/{username}")
+    public ResponseEntity<byte[]> loadImages(@PathVariable String username){
+        //Presa dell'imagine profilo dell'utente
+        byte[] img = profilePicService.getUserImage(username);
+        if(img != null)
+            return new ResponseEntity<>(img, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @PutMapping("/image")
     public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file){
         //Prendendo l'username dell'utente che ha fatto la chiamata
@@ -102,31 +110,16 @@ public class UserDataController {
     }
 
 
-    @GetMapping("/image/{username}")
-    public ResponseEntity<byte[]> loadImages(@PathVariable String username){
-        //Presa dell'imagine profilo dell'utente
-        byte[] img = profilePicService.getUserImage(username);
-        if(img != null)
-            return new ResponseEntity<>(img, HttpStatus.OK);
-        else
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-
-
-
     //End-point per gli utenti
     @GetMapping("/users")
-    public ResponseEntity<List<UserSearchDTO>> getUsersSearch(@RequestParam("str") int start) {
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
-
-        List<UserSearchDTO> result= generalService.getUserSearch(start);
+    public ResponseEntity<List<UserFindDTO>> getUsersSearch(@RequestParam("str") int start) {
+        List<UserFindDTO> result= generalService.getUserFind(start);
 
         if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-}  //TODO DA AGGIUSTARE E USARE
+    }
 
 
 

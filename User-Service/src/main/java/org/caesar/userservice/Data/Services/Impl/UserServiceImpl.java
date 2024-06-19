@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
             return userDTO;
         } catch (Exception | Error e) {
             log.debug("Errore nella presa dei dati dell'utente");
-            return null; // Ritornare un Mono vuoto in caso di eccezione
+            return null;
         }
     }
 
