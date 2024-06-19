@@ -14,4 +14,5 @@ public interface UserService {
     boolean saveUser(UserRegistrationDTO userData);
     boolean updateUser(UserDTO userData);
     boolean deleteUser(String userId);
+    boolean banUser(String username);
 }

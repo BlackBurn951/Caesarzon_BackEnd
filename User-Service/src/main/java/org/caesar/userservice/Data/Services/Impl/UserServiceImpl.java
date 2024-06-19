@@ -95,6 +95,15 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public boolean banUser(String username) {
+        try {
+            return userRepository.banUser(username);
+        } catch(Exception | Error e) {
+            log.debug("Errore nel ban dell'utente");
+            return false;
+        }
+    }
 
 
     //Metodi per la convalida dei dati

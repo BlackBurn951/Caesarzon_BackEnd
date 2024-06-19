@@ -64,6 +64,14 @@ public class AdminController {
             return new ResponseEntity<>("Errore nella cancellazione dell'user...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @PostMapping("/ban")
+    public ResponseEntity<String> banUser(@RequestParam("usr")String username){
+        if(userService.banUser(username))
+            return new ResponseEntity<>("Utente bannato con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel ban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
 
     @PutMapping("/image/{username}")

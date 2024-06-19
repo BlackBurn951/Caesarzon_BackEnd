@@ -286,4 +286,22 @@ public class UserRepositoryImpl implements UserRepository {
             return null;
         }
     }
+
+    @Override
+    public boolean banUser(String useraname, String ReportDTO){
+
+
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+
+        //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
+        User userKeycloak = findUserByUsername(useraname);
+        UserResource userResource = realmResource.users().get(userKeycloak.getId());
+
+        UserRepresentation user = userResource.toRepresentation();
+        user.setEnabled(false);
+
+        userResource.update(user);
+
+        return true;
+    }
 }

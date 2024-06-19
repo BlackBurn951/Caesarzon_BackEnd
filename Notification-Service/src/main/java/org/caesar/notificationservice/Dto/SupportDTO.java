@@ -18,5 +18,5 @@ public class SupportDTO {
     private LocalDate dateRequest;
     private String supportCode;
 
-    private AdminResponse adminResponse;
+    private AdminResponseDTO adminResponseDTO;
 }

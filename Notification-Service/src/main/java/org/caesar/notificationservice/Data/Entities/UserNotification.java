@@ -9,7 +9,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "notificheutente")
 @Setter
-@Getter
 public class UserNotification {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

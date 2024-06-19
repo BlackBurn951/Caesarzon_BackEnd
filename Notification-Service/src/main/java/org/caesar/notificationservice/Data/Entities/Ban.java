@@ -1,4 +1,4 @@
-package org.caesar.userservice.Data.Entities;
+package org.caesar.notificationservice.Data.Entities;
 
 import jakarta.persistence.*;
 

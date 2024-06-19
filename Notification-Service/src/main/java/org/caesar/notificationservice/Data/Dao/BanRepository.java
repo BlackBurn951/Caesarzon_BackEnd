@@ -1,6 +1,6 @@
-package org.caesar.userservice.Data.Dao;
+package org.caesar.notificationservice.Data.Dao;
 
-import org.caesar.userservice.Data.Entities.Ban;
+import org.caesar.notificationservice.Data.Entities.Ban;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,4 +1,4 @@
-package org.caesar.userservice.Data.Services;
+package org.caesar.notificationservice.Data.Services;
 
 import org.caesar.userservice.Dto.BanDTO;
 

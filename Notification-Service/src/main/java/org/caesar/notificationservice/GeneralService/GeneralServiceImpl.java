@@ -3,14 +3,9 @@ package org.caesar.notificationservice.GeneralService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.caesar.notificationservice.Data.Services.AdminNotificationService;
-import org.caesar.notificationservice.Data.Services.ReportService;
-import org.caesar.notificationservice.Data.Services.SupportRequestService;
-import org.caesar.notificationservice.Data.Services.UserNotificationService;
-import org.caesar.notificationservice.Dto.AdminNotificationDTO;
-import org.caesar.notificationservice.Dto.ReportDTO;
-import org.caesar.notificationservice.Dto.SupportDTO;
-import org.caesar.notificationservice.Dto.UserNotificationDTO;
+import org.caesar.notificationservice.Data.Services.*;
+import org.caesar.notificationservice.Dto.*;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -150,12 +145,12 @@ public class GeneralServiceImpl implements GeneralService{
             return false;
 
         String descr;
-        if(supportDTO.getAdminResponse().isAccept())
+        if(supportDTO.getAdminResponseDTO().isAccept())
             descr= "Richiesta di supporto "+ supportDTO.getSupportCode()+" elaborata dall'admin "+username;
         else
             descr= "Richiesta di supporto "+ supportDTO.getSupportCode()+" respinta dall'admin "+username;
 
-        return userNotificationService.addUserNotification(username, descr, supportDTO.getAdminResponse().getExplain());
+        return userNotificationService.addUserNotification(username, descr, supportDTO.getAdminResponseDTO().getExplain());
     }
 
     @Override
@@ -164,13 +159,6 @@ public class GeneralServiceImpl implements GeneralService{
         if(!reportService.deleteReport(reportDTO))
             return false;
 
-        String descr;
-        if(reportDTO.getAdminResponse().isAccept())
-            descr= "Segnalazione "+ reportDTO.getReportCode() +" elaborata dall'admin "+username;
-        else
-            descr= "Segnalazione "+ reportDTO.getReportCode() +" respinta dall'admin "+username;
-
-        return userNotificationService.addUserNotification(username, descr, reportDTO.getAdminResponse().getExplain());
         /*TODO fare controllo per consecutivo ban
           TODO un admin può bannare direttamente e l'utente viene bannato direttamente a quota 5 tuple contenente il suo usernme
           TODO togliere il campo "accept" da DB o metodi (l'admin risponde alle richieste)

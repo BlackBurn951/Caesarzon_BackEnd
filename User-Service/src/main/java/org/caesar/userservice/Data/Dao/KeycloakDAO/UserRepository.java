@@ -20,4 +20,5 @@ public interface UserRepository{
     boolean saveUser(UserRegistrationDTO userRegistrationDTO);
     boolean updateUser(UserDTO userDTO);
     boolean deleteUser(String username);
+
 }

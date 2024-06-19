@@ -52,6 +52,8 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
+
+    //Metodi di servizio
     private String generaCodice() {
         String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         SecureRandom RANDOM = new SecureRandom();

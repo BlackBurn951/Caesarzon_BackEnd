@@ -5,7 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AdminResponse {
+public class ReportResponseDTO {
+    private String reportCode;
     private boolean accept;
     private String explain;
 }

@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, UUID> {
     void deleteByReportCode(String code);
+    Report findByReportCode(String reportCode);
 }
