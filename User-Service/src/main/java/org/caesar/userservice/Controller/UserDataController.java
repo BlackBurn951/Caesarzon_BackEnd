@@ -106,6 +106,16 @@ public class UserDataController {
     }
 
 
+    @GetMapping("/image/{username}")
+    public ResponseEntity<byte[]> loadImages(@PathVariable String username){
+        //Presa dell'imagine profilo dell'utente
+        byte[] img = profilePicService.getUserImage(username);
+        if(img != null)
+            return new ResponseEntity<>(img, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
 
 
