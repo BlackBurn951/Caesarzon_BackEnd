@@ -1,9 +1,8 @@
 package org.caesar.productservice.GeneralService;
 
-import org.caesar.productservice.Data.Entities.Product;
-import org.caesar.productservice.Dto.ProductDTO;
+import org.caesar.productservice.Dto.SendProductDTO;
 
 public interface GeneralService {
 
-    Product addProduct(ProductDTO product);
+    boolean addProduct(SendProductDTO sendProductDTO);
 }

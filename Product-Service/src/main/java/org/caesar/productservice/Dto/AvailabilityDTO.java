@@ -8,6 +8,9 @@ import java.util.UUID;
 @Getter
 @Setter
 public class AvailabilityDTO {
+
+    private UUID id;
     private int amount;
     private String size;
+    private ProductDTO productDTO;
 }

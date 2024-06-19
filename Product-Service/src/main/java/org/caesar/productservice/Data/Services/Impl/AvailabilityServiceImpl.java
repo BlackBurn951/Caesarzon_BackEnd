@@ -1,19 +1,16 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.AvailabilityRepository;
 import org.caesar.productservice.Data.Entities.Availability;
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Dto.AvailabilityDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -24,25 +21,24 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private final AvailabilityRepository availabilityRepository;
 
 
-    //Ritorna le liste di disponibilità del prodotto
     @Override
-    public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilitiesDTO) {
-        System.out.println("Sono nell'add or update della disponibilità");
-        try{
-            for(AvailabilityDTO availabilityDTO : availabilitiesDTO)
-                if(checkQuantity(availabilityDTO.getAmount()) && checkSize(availabilityDTO.getSize())) {
-                    availabilityRepository.save(modelMapper.map(availabilityDTO, Availability.class));
-                    log.debug("Disponibilità del prodotto aggiunta");
-                }
-                else
-                    log.debug("Errore nell'inserimento della disponibilità");
-            return true;
-
-        }catch (RuntimeException e){
-            log.debug("Errore nell'inserimento della disponibilità: {}", e.getMessage(), e);
+    public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, Product product) {
+        if (availabilities.isEmpty()) {
             return false;
         }
+        for (AvailabilityDTO availability : availabilities) {
+            if(checkQuantity(availability.getAmount()) && checkSize(availability.getSize())) {
+                Availability myAvailability = modelMapper.map(availability, Availability.class);
+                myAvailability.setProduct(product);
+                availabilityRepository.save(myAvailability);
+            }
+        }
+        return true;
+    }
 
+    @Override
+    public Availability getAvailabilityById(UUID id) {
+        return availabilityRepository.findById(id).orElse(null);
     }
 
 
@@ -65,6 +61,6 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     private boolean checkQuantity(int quantity) {
-        return quantity > 0;
+        return quantity >= 0;
     }
 }
