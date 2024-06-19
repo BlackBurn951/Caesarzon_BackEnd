@@ -1,12 +1,15 @@
 package org.caesar.notificationservice.Data.Entities;
 
 import jakarta.persistence.*;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
 @Table(name = "notificheutente")
+@Setter
+@Getter
 public class UserNotification {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -24,4 +27,7 @@ public class UserNotification {
 
     @Column(name= "letta")
     private boolean read;
+
+    @Column(name= "spiegazione")
+    private String explanation;
 }

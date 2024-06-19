@@ -6,14 +6,12 @@ import org.caesar.notificationservice.Data.Dao.ReportRepository;
 import org.caesar.notificationservice.Data.Entities.Report;
 import org.caesar.notificationservice.Data.Services.ReportService;
 import org.caesar.notificationservice.Dto.ReportDTO;
-import org.caesar.notificationservice.Dto.SendReportDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
+import java.security.SecureRandom;
 import java.util.List;
 
 @Service
@@ -26,6 +24,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public boolean addReport(ReportDTO reportDTO) {
+        reportDTO.setReportCode(generaCodice());
         try {
             reportRepository.save(modelMapper.map(reportDTO, Report.class));
 
@@ -40,5 +39,27 @@ public class ReportServiceImpl implements ReportService {
     public List<ReportDTO> getAllReports(int num) {
         Page<Report> result = reportRepository.findAll(PageRequest.of(num, 20));
         return result.stream().map(a -> modelMapper.map(a, ReportDTO.class)).toList();
+    }
+
+    @Override
+    public boolean deleteReport(ReportDTO reportDTO) {
+        try {
+            reportRepository.deleteByReportCode(reportDTO.getReportCode());
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della segnalazione");
+            return false;
+        }
+    }
+
+    private String generaCodice() {
+        String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        SecureRandom RANDOM = new SecureRandom();
+        StringBuilder codice = new StringBuilder(7);
+        for (int i = 0; i < 7; i++) {
+            int index = RANDOM.nextInt(CHARACTERS.length());
+            codice.append(CHARACTERS.charAt(index));
+        }
+        return codice.toString();
     }
 }

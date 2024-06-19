@@ -11,7 +11,7 @@ public interface GeneralService {
     boolean addAddress(String userUsername, AddressDTO addressDTO);
     boolean addCard(String userUsername, CardDTO cardDTO);
 
-    List<UserSearchDTO> getUserSearch(String username, int start);
+    List<UserSearchDTO> getUserSearch(int start);
     CardDTO getUserCard(String userUsername, String cardName);
     AddressDTO getUserAddress(String addressName, String userUsername);
     List<String> getUserCards(String userUsername);
