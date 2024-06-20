@@ -61,7 +61,7 @@ public class FollowerServiceImpl implements FollowerService {
         for(UserSearchDTO follower : followers) {
             fwl.setUserUsername1(username1);
             fwl.setUserUsername2(follower.getUsername());
-            fwl.setFriend(follower.isFriend());
+            //fwl.setFriend(follower.isFriend());
 
             savingFollower.add(modelMapper.map(fwl, Follower.class));
         }

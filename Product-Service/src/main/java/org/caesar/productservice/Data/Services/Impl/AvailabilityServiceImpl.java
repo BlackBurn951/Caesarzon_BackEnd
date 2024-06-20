@@ -20,7 +20,6 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private final ModelMapper modelMapper;
     private final AvailabilityRepository availabilityRepository;
 
-
     @Override
     public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, Product product) {
         if (availabilities.isEmpty()) {
@@ -41,7 +40,6 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         return availabilityRepository.findById(id).orElse(null);
     }
 
-
     @Override
     public boolean deleteAvailability(UUID id) {
         try {
@@ -52,8 +50,6 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             return false;
         }
     }
-
-
 
     private boolean checkSize(String size) {
         List<String> sizes = List.of(new String[]{"XS", "S", "M", "L", "XL", "XXL"});

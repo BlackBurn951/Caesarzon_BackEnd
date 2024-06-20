@@ -9,7 +9,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import static com.fasterxml.jackson.databind.type.LogicalType.Array;
+import static java.util.Arrays.stream;
 
 @RestController
 @RequestMapping("/search-api")
@@ -21,8 +26,17 @@ public class SearchController {
 
     @GetMapping("/search/users")
     public List<String> searchUsers(@RequestParam("username") String query) {
-        System.out.println("Provo a fare la chiamata");
-        return restTemplate.getForObject("http://user-service/user-api/usersByUsername?username=" + query, List.class);
+
+        log.debug("Cerco gli username contenenti: {}", query);
+        try{
+            String url= "http://user-service/user-api/usersByUsername?username=" + query;
+            String[] response = restTemplate.getForObject(url, String[].class);
+            assert response != null;
+            return Arrays.asList(response);
+        }catch (Exception e){
+            log.debug("Errore nella chiamata al servizio user-service", e);
+            return List.of();
+        }
     }
 
     /*
