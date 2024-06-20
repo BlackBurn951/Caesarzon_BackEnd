@@ -12,6 +12,8 @@ import org.caesar.productservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -27,11 +29,12 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public UUID addOrUpdateReview(ReviewDTO reviewDTO, Product product) {
 
-        if(reviewDTO.getId() == null){
+        if(reviewDTO == null){
             return null;
         }
         try {
             Review review = modelMapper.map(reviewDTO, Review.class);
+            review.setDate(LocalDate.now());
             review.setProductID(product);
             return reviewRepository.save(review).getId();
 

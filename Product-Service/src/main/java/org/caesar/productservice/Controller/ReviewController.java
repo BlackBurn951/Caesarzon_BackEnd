@@ -24,19 +24,22 @@ public class ReviewController {
     private final ProductService productService;
 
     @PostMapping("/review")
-    public ResponseEntity<String> addReview(@RequestParam String productName, @RequestBody ReviewDTO reviewDTO) {
+    public ResponseEntity<String> addReview(@RequestBody ReviewDTO reviewDTO) {
 
         Product product = new Product();
-        product.setId(productService.getProductIDByName(productName));
+        product.setId(productService.getProductIDByName(reviewDTO.getNameProduct()));
 
         UUID reviewID = reviewService.addOrUpdateReview(reviewDTO, product);
-
-
 
         if (reviewID != null) {
             return new ResponseEntity<>("Recensione aggiunta", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Recensione non aggiunta", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/review")
+    public String ciao(){
+        return "ciao";
     }
 }
