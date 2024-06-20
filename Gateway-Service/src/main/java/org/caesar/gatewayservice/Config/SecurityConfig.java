@@ -56,6 +56,8 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/notify-api/report").permitAll()
                         .pathMatchers(HttpMethod.GET, "/notify-api/support").permitAll()
 
+                        .pathMatchers(HttpMethod.POST, "/product-api/product").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/product-api/product").permitAll()
 
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

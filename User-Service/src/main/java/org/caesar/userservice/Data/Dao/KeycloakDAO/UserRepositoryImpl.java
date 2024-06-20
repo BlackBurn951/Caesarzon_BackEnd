@@ -22,6 +22,7 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.modelmapper.ModelMapper;
 
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -148,6 +149,12 @@ public class UserRepositoryImpl implements UserRepository {
         //Creazione di un nuovo utente per inserirlo nel realm
         UserRepresentation user = new UserRepresentation();
 
+        System.out.println(userData.getCredentialValue());
+        System.out.println(userData.getUsername());
+        System.out.println(userData.getFirstName());
+        System.out.println(userData.getLastName());
+        System.out.println(userData.getEmail());
+
         //Assegnazione dei campi base offerti da keycloak
         user.setUsername(userData.getUsername());
         user.setFirstName(userData.getFirstName());
@@ -169,28 +176,10 @@ public class UserRepositoryImpl implements UserRepository {
 
         //Controllo che l'user sia stato inserito
         if (response.getStatus() == 201) {
-
             //Presa dell'id dell'utente mandata come risposta della chiamata
             String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
 
             UserResource userResource = usersResource.get(userId);
-
-            //Invio dell'email per la verifica dell'account
-            userResource.sendVerifyEmail();
-
-            //Inserimento della foto profilo di base all'utente TODO DA SPOSTARE NEL GENERAL SERVICE
-            ProfilePicDTO profilePic = new ProfilePicDTO();
-            File file = new File("User-Service/src/main/resources/static/img/base_profile_pic.jpg");
-
-//            try{
-//                MultipartFile multipartFile = new MultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
-//
-//                profilePic.setProfilePic(multipartFile.getBytes());
-//            }catch (Exception | Error e){
-//                log.debug("Errore nel salvataggio della foto profilo standard");
-//                return false;
-//            }
-            profilePicRepository.save(modelMapper.map(profilePic, ProfilePic.class));
 
             //Impostazione del ruolo "basic" al nuovo utente salvato
             ClientRepresentation clientRepresentation= realmResource.clients().findByClientId("caesar-app").getFirst();
