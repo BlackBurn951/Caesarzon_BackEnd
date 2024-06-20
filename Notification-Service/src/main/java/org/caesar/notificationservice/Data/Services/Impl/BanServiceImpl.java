@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.caesar.notificationservice.Data.Dao.BanRepository;
 import org.caesar.notificationservice.Data.Services.BanService;
 import org.caesar.notificationservice.Dto.BanDTO;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
