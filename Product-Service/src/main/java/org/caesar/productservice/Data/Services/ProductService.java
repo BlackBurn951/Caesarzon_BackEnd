@@ -11,11 +11,13 @@ public interface ProductService {
 
     Product addOrUpdateProduct(ProductDTO product);
 
-    SendProductDTO getProductByName(String name);
+    UUID getProductIDByName(String name);
 
-    SendProductDTO getProductById(UUID id);
+    Product getProductById(UUID id);
 
     List<SendProductDTO> getAllProducts();
+
+    public List<SendProductDTO> getProductByPrice(double priceMin, double priceMax);
 
     boolean deleteProductById(UUID id);
 }

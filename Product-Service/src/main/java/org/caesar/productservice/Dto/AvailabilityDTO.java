@@ -9,8 +9,6 @@ import java.util.UUID;
 @Setter
 public class AvailabilityDTO {
 
-    private UUID id;
     private int amount;
     private String size;
-    private ProductDTO productDTO;
 }
