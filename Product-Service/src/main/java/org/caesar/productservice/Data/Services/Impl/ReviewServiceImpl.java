@@ -25,13 +25,14 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
 
     @Override
-    public UUID addOrUpdateReview(ReviewDTO reviewDTO) {
+    public UUID addOrUpdateReview(ReviewDTO reviewDTO, Product product) {
 
         if(reviewDTO.getId() == null){
             return null;
         }
         try {
             Review review = modelMapper.map(reviewDTO, Review.class);
+            review.setProductID(product);
             return reviewRepository.save(review).getId();
 
         }catch (RuntimeException | Error e) {

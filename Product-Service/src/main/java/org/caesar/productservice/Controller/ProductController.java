@@ -1,6 +1,7 @@
 package org.caesar.productservice.Controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
@@ -18,6 +19,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/product-api")
 public class ProductController {
 
