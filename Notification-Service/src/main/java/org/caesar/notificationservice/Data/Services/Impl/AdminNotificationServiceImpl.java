@@ -6,10 +6,12 @@ import org.caesar.notificationservice.Data.Dao.AdminNotificationRepository;
 import org.caesar.notificationservice.Data.Entities.AdminNotification;
 import org.caesar.notificationservice.Data.Services.AdminNotificationService;
 import org.caesar.notificationservice.Dto.AdminNotificationDTO;
+import org.caesar.notificationservice.Dto.NotificationDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +20,28 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
     private final AdminNotificationRepository adminNotificationRepository;
     private final ModelMapper modelMapper;
+
+    @Override
+    public List<NotificationDTO> getAdminNotification(String username) {
+        try {
+            List<AdminNotification> notifications= adminNotificationRepository.findAllByAdmin(username);
+
+            if(notifications==null || notifications.isEmpty())
+                return null;
+
+            List<NotificationDTO> notificationsDTO= notifications.stream()
+                    .map(a -> modelMapper.map(a, NotificationDTO.class))
+                    .toList();
+
+            for (NotificationDTO notify: notificationsDTO) {
+                notify.setId(null);
+            }
+            return notificationsDTO;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella presa delle notifiche");
+            return null;
+        }
+    }
 
     @Override
     public boolean sendNotificationAllAdmin(List<AdminNotificationDTO> notification) {

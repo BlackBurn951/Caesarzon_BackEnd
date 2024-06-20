@@ -145,15 +145,14 @@ public class GeneralServiceImpl implements GeneralService{
             log.debug("Dopo il controllo is null  e la cancellazione della tupla di supporto");
             String descr= "Richiesta di supporto " + supportDTO.getSupportCode() + " elaborata dall'admin " + username;
 
-            UserNotificationDTO notificationDTO= new UserNotificationDTO();
+            NotificationDTO notificationDTO= new NotificationDTO();
 
-            notificationDTO.setDate(LocalDate.now());
-            notificationDTO.setDescription(descr);
-            notificationDTO.setUser(supportDTO.getUsername());
+            notificationDTO.setDate(LocalDate.now().toString());
+            notificationDTO.setSubject(descr);
             notificationDTO.setRead(false);
             notificationDTO.setExplanation(sendSupportDTO.getExplain());
 
-            return userNotificationService.addUserNotification(notificationDTO);
+            return userNotificationService.addUserNotification(notificationDTO, supportDTO.getUsername());
         }
         return false;
     }
