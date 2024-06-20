@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.caesar.notificationservice.Data.Services.AdminNotificationService;
 import org.caesar.notificationservice.Data.Services.ReportService;
 import org.caesar.notificationservice.Data.Services.SupportRequestService;
+import org.caesar.notificationservice.Data.Services.UserNotificationService;
 import org.caesar.notificationservice.Dto.AdminNotificationDTO;
 import org.caesar.notificationservice.Dto.ReportDTO;
 import org.caesar.notificationservice.Dto.SupportDTO;
@@ -32,6 +33,7 @@ public class GeneralServiceImpl implements GeneralService{
     private final ReportService reportService;
     private final SupportRequestService supportRequestService;
     private final AdminNotificationService adminNotificationService;
+    private final UserNotificationService userNotificationService;
 
 
     @Override
@@ -76,7 +78,7 @@ public class GeneralServiceImpl implements GeneralService{
             for(String ad: admins) {
                 notify= new AdminNotificationDTO();
                 notify.setData(date);
-                notify.setDescription("L'utente "+username1+" ha mandato una segnalazione");
+                notify.setDescription("C'è una nuova segnalazione da parte dell'utente" + username1 );
                 notify.setAdmin(ad);
                 notify.setRead(false);
 
@@ -128,7 +130,7 @@ public class GeneralServiceImpl implements GeneralService{
             for(String ad: admins) {
                 notify= new AdminNotificationDTO();
                 notify.setData(date);
-                notify.setDescription("L'utente "+username+" ha mandato una richiesta di supporto");
+                notify.setDescription("C'è una nuova richiesta di supporto dall'utente " + username);
                 notify.setAdmin(ad);
                 notify.setRead(false);
 
@@ -143,15 +145,37 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    public boolean manageSupportRequest(SupportDTO supportDTO, boolean accept) {
+    public boolean manageSupportRequest(String username, SupportDTO supportDTO) {
         if(!supportRequestService.deleteSupportRequest(supportDTO))
             return false;
 
-        UserNotificationDTO notification= new UserNotificationDTO();
+        String descr;
+        if(supportDTO.getAdminResponse().isAccept())
+            descr= "Richiesta di supporto "+ supportDTO.getSupportCode()+" elaborata dall'admin "+username;
+        else
+            descr= "Richiesta di supporto "+ supportDTO.getSupportCode()+" respinta dall'admin "+username;
 
-        LocalDate date= LocalDate.now();
-        notification.setData(date);
-        notification.setUser(supportDTO.getUsername());
-        notification.setDescription();
+        return userNotificationService.addUserNotification(username, descr, supportDTO.getAdminResponse().getExplain());
     }
+
+    @Override
+    @Transactional
+    public boolean manageReport(String username, ReportDTO reportDTO) {
+        if(!reportService.deleteReport(reportDTO))
+            return false;
+
+        String descr;
+        if(reportDTO.getAdminResponse().isAccept())
+            descr= "Segnalazione "+ reportDTO.getReportCode() +" elaborata dall'admin "+username;
+        else
+            descr= "Segnalazione "+ reportDTO.getReportCode() +" respinta dall'admin "+username;
+
+        return userNotificationService.addUserNotification(username, descr, reportDTO.getAdminResponse().getExplain());
+        /*TODO fare controllo per consecutivo ban
+          TODO un admin può bannare direttamente e l'utente viene bannato direttamente a quota 5 tuple contenente il suo usernme
+          TODO togliere il campo "accept" da DB o metodi (l'admin risponde alle richieste)
+        */
+    }
+
+
 }

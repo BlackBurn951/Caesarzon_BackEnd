@@ -1,17 +1,16 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.AvailabilityRepository;
 import org.caesar.productservice.Data.Entities.Availability;
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Dto.AvailabilityDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -23,28 +22,22 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
 
     @Override
-    public UUID addOrUpdateAvailability(AvailabilityDTO availabilityDTO) {
-
-        if(!checkQuantity(availabilityDTO.getAmount()) || !checkSize(availabilityDTO.getSize()))
-            return null;
-
-        try{
-            Availability availability = modelMapper.map(availabilityDTO, Availability.class);
-            return availabilityRepository.save(availability).getId();
-
-
-        }catch (RuntimeException e){
-            log.debug("Errore nell'inserimento della disponibilità");
-            return null;
+    public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, Product product) {
+        if (availabilities.isEmpty()) {
+            return false;
         }
-
+        for (AvailabilityDTO availability : availabilities) {
+            if(checkQuantity(availability.getAmount()) && checkSize(availability.getSize())) {
+                Availability myAvailability = modelMapper.map(availability, Availability.class);
+                myAvailability.setProduct(product);
+                availabilityRepository.save(myAvailability);
+            }
+        }
+        return true;
     }
 
-    @Override
-    public AvailabilityDTO getAvailability(UUID id) {
 
-        return modelMapper.map(availabilityRepository.findById(id), AvailabilityDTO.class);
-    }
+
 
     @Override
     public boolean deleteAvailability(UUID id) {
@@ -57,12 +50,14 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         }
     }
 
+
+
     private boolean checkSize(String size) {
         List<String> sizes = List.of(new String[]{"XS", "S", "M", "L", "XL", "XXL"});
         return sizes.contains(size);
     }
 
     private boolean checkQuantity(int quantity) {
-        return quantity > 0;
+        return quantity >= 0;
     }
 }

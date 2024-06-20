@@ -18,4 +18,16 @@ public class AddressDTO {
 
     private CityDataDTO city;
 
+    public boolean equals(Object o) {
+        if(this == o) return true;
+
+        if(o == null) return false;
+
+        if(this.getClass() != o.getClass()) return false;
+
+        AddressDTO a = (AddressDTO) o;
+
+        return roadName.equals(a.getRoadName()) && houseNumber.equals(a.getHouseNumber()) &&
+                roadType.equals(a.getRoadType()) && city.equals(a.getCity());
+    }
 }
