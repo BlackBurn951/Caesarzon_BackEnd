@@ -33,9 +33,14 @@ public class ReviewServiceImpl implements ReviewService {
             return null;
         }
         try {
-            Review review = modelMapper.map(reviewDTO, Review.class);
-            review.setDate(LocalDate.now());
+
+            Review review = new Review();
             review.setProductID(product);
+            review.setDate(LocalDate.now());
+            review.setText(reviewDTO.getText());
+            review.setEvaluation(reviewDTO.getEvaluation());
+            review.setUserID(reviewDTO.getUserID());
+
             return reviewRepository.save(review).getId();
 
         }catch (RuntimeException | Error e) {
