@@ -65,4 +65,15 @@ public class UserNotificationServiceImpl implements UserNotificationService {
            return false;
         }
     }
+
+    @Override
+    public boolean deleteUserNotification(NotificationDTO notificationDTO, String username){
+        try{
+            return userNotificationRepository.deleteByDateAndSubjectAndUserAndReadAndExplanation(notificationDTO.getDate(), notificationDTO.getSubject(), username, notificationDTO.isRead(), notificationDTO.getExplanation());
+        }catch(Exception | Error e){
+            log.debug("Errore nell'eliminazione");
+            return false;
+        }
+    }
+
 }
