@@ -40,7 +40,6 @@ public class NotificationController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @PostMapping("/report")
     public ResponseEntity<String> sendReport(@RequestBody ReportDTO reportDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
@@ -98,6 +97,8 @@ public class NotificationController {
             return new ResponseEntity<>("Problemi nell'eliminazione della richiesta di supporto", HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
+
+
 
 
 }

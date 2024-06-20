@@ -139,7 +139,7 @@ public class GeneralServiceImpl implements GeneralService{
     @Transactional
     public boolean manageSupportRequest(String username, SupportResponseDTO sendSupportDTO) {
         log.debug("Prima della presa della richiesta con il codice");
-        SupportDTO supportDTO= supportRequestService.getSupport(sendSupportDTO.getReportCode());
+        SupportDTO supportDTO= supportRequestService.getSupport(sendSupportDTO.getSupportCode());
 
         if(supportDTO!=null && supportRequestService.deleteSupportRequest(supportDTO)) {
             log.debug("Dopo il controllo is null  e la cancellazione della tupla di supporto");
@@ -147,7 +147,7 @@ public class GeneralServiceImpl implements GeneralService{
 
             UserNotificationDTO notificationDTO= new UserNotificationDTO();
 
-            notificationDTO.setData(LocalDate.now());
+            notificationDTO.setDate(LocalDate.now());
             notificationDTO.setDescription(descr);
             notificationDTO.setUser(supportDTO.getUsername());
             notificationDTO.setRead(false);

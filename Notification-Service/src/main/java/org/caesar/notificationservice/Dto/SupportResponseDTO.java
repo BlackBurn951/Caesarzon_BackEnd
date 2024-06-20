@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SupportResponseDTO {
-    private String reportCode;
+    private String supportCode;
     private String explain;
 }
