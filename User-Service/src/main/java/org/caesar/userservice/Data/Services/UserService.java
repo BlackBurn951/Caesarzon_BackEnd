@@ -13,6 +13,6 @@ public interface UserService {
     List<String> getUsersByUsername(String username);
     boolean saveUser(UserRegistrationDTO userData);
     boolean updateUser(UserDTO userData);
+    boolean banUser(String username, boolean ban);
     boolean deleteUser(String userId);
-    boolean banUser(String username);
 }

@@ -17,6 +17,4 @@ public class SupportDTO {
     private String text;
     private LocalDate dateRequest;
     private String supportCode;
-
-    private AdminResponseDTO adminResponseDTO;
 }

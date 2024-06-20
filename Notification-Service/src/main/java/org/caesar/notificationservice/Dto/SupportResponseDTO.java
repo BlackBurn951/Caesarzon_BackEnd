@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AdminResponseDTO {  //TODO TOGLIERE LA CLASSE E LASCIARE SOLO EXPLAIN
-    private boolean accept;
+public class SupportResponseDTO {
+    private String reportCode;
     private String explain;
 }

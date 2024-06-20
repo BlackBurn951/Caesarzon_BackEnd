@@ -96,9 +96,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean banUser(String username) {
+    public boolean banUser(String username, boolean ban) {
         try {
-            return userRepository.banUser(username);
+            return userRepository.banUser(username, ban);
         } catch(Exception | Error e) {
             log.debug("Errore nel ban dell'utente");
             return false;

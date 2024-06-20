@@ -8,6 +8,7 @@ import org.caesar.notificationservice.Data.Services.SupportRequestService;
 import org.caesar.notificationservice.Dto.ReportDTO;
 import org.caesar.notificationservice.Dto.ReportResponseDTO;
 import org.caesar.notificationservice.Dto.SupportDTO;
+import org.caesar.notificationservice.Dto.SupportResponseDTO;
 import org.caesar.notificationservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,20 +31,21 @@ public class NotificationController {
 
     @GetMapping("/report")
     public ResponseEntity<List<ReportDTO>> getReports(@RequestParam("num") int num) {
-
         List<ReportDTO> result = reportService.getAllReports(num);
 
+        log.debug("Sono nell'end-point del get report");
         if(result != null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 
     @PostMapping("/report")
     public ResponseEntity<String> sendReport(@RequestBody ReportDTO reportDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        System.out.println("Sono nell'end-point delle notifiche");
+        log.debug("Sono nell'end-point del send report");
         if(generalService.addReportRequest(username, reportDTO))
             return new ResponseEntity<>("Segnalazione inviata con sucesso!", HttpStatus.OK);
         else
@@ -54,6 +56,7 @@ public class NotificationController {
     public ResponseEntity<String> deleteReport(@RequestBody ReportResponseDTO reportResponseDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
+        log.debug("Sono nell'end-point del delete report");
         if(generalService.manageReport(reportResponseDTO, username))
             return new ResponseEntity<>("Segnalazione eliminata con successo", HttpStatus.OK);
         else
@@ -64,19 +67,20 @@ public class NotificationController {
 
     @GetMapping("/support")
     public ResponseEntity<List<SupportDTO>> getSupports(@RequestParam("num") int num) {
-
         List<SupportDTO> result = supportRequestService.getAllSupportRequest(num);
 
+        log.debug("Sono nell'end-point del get support");
         if(result != null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PostMapping("/support")
     public ResponseEntity<String> sendReport(@RequestBody SupportDTO supportDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
+        log.debug("Sono nell'end-point del send support");
         if(generalService.addSupportRequest(username, supportDTO))
             return new ResponseEntity<>("Richiesta di supporto inviata con successo!", HttpStatus.OK);
         else
@@ -84,9 +88,10 @@ public class NotificationController {
     }
 
     @DeleteMapping("/support")
-    public ResponseEntity<String> deleteSupport(@RequestBody SupportDTO supportDTO) {
+    public ResponseEntity<String> deleteSupport(@RequestBody SupportResponseDTO supportDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
+        log.debug("Sono nell'end-point del delete support");
         if(generalService.manageSupportRequest(username, supportDTO))
             return new ResponseEntity<>("Richiesta di supporto eliminata con successo", HttpStatus.OK);
         else
