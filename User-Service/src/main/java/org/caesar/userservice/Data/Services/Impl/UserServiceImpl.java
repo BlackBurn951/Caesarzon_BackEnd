@@ -1,5 +1,6 @@
 package org.caesar.userservice.Data.Services.Impl;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
@@ -9,13 +10,21 @@ import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserIdDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.Vector;
 
 @Service
@@ -25,7 +34,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-
+    private final RestTemplate restTemplate;
 
 
     @Override
@@ -98,7 +107,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean banUser(String username, boolean ban) {
         try {
-            if(!ban)
+            if(!ban && userRepository.banUser(username, ban)) {
+                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Authorization", request.getHeader("Authorization"));
+
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+
+                return restTemplate.exchange("http://notification-service/notify-api/ban/" + username,
+                        HttpMethod.PUT,
+                        entity,
+                        String.class).getStatusCode() == HttpStatus.OK;
+            }
             return userRepository.banUser(username, ban);
         } catch(Exception | Error e) {
             log.debug("Errore nel ban dell'utente");

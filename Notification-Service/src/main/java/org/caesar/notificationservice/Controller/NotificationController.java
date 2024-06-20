@@ -3,6 +3,7 @@ package org.caesar.notificationservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.notificationservice.Data.Services.BanService;
 import org.caesar.notificationservice.Data.Services.ReportService;
 import org.caesar.notificationservice.Data.Services.SupportRequestService;
 import org.caesar.notificationservice.Dto.ReportDTO;
@@ -27,6 +28,7 @@ public class NotificationController {
     private final GeneralService generalService;
     private final ReportService reportService;
     private final SupportRequestService supportRequestService;
+    private final BanService banService;
 
 
     @GetMapping("/report")
@@ -100,5 +102,11 @@ public class NotificationController {
 
 
 
-
+    @PutMapping("/ban/{username}")
+    public ResponseEntity<String> sbanUser(@PathVariable("username") String username) {
+        if(banService.sbanUser(username))
+            return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nello sban dell'user...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

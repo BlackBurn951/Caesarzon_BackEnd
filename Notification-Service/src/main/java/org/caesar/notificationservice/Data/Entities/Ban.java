@@ -1,12 +1,16 @@
 package org.caesar.notificationservice.Data.Entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
 @Table(name ="ban")
+@Getter
+@Setter
 public class Ban {
 
     @Id
