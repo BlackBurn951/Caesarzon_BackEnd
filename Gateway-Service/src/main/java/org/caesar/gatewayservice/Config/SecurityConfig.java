@@ -59,6 +59,9 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/product-api/product").permitAll()
                         .pathMatchers(HttpMethod.GET, "/product-api/product").permitAll()
 
+                        .pathMatchers(HttpMethod.POST, "/review-api/review").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/review-api/review").permitAll()
+
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));
