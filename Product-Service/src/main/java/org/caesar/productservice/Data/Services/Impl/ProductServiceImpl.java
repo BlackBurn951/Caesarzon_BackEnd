@@ -10,6 +10,7 @@ import org.caesar.productservice.Dto.SendProductDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -48,18 +49,31 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public SendProductDTO getProductByName(String name) {
+    public UUID getProductIDByName(String name) {
         System.out.println("Risultato: "+productRepository.findByName(name));
-        if(modelMapper.map(productRepository.findByName(name), SendProductDTO.class) != null)
-            return modelMapper.map(productRepository.findByName(name), SendProductDTO.class);
+        Product productID = productRepository.findProductByName(name);
+        if(productID != null)
+            return productID.getId();
         else
             log.debug("Il prodotto che cerchi non esiste");
         return null;
     }
 
     @Override
-    public SendProductDTO getProductById(UUID id) {
-        return modelMapper.map(productRepository.findById(id), SendProductDTO.class);
+    public List<SendProductDTO> getProductByPrice(double priceMin, double priceMax) {
+        List<Product> products = productRepository.findAll();
+        List<SendProductDTO> sendProductDTOs = new ArrayList<>();
+        for(Product product : products){
+            if(product.getPrice() >= priceMin && product.getPrice() <= priceMax){
+                sendProductDTOs.add(modelMapper.map(product, SendProductDTO.class));
+            }
+        }
+        return sendProductDTOs;
+    }
+
+    @Override
+    public Product getProductById(UUID id) {
+        return productRepository.findById(id).orElse(null);
     }
 
     @Override
@@ -69,6 +83,7 @@ public class ProductServiceImpl implements ProductService{
                 .map(product -> modelMapper.map(product, SendProductDTO.class))
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public boolean deleteProductById(UUID id) {
