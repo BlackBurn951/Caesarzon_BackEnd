@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.Vector;
 
 @Getter
 @Setter
@@ -16,31 +19,27 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name= "descrizione")
+    @Column(name = "descrizione")
     private String description;
 
-    @Column(name= "nome")
+    @Column(name = "nome")
     private String name;
 
-    @Column(name= "marca")
+    @Column(name = "marca")
     private String brand;
 
-    @Column(name= "sconto")
+    @Column(name = "sconto")
     private int discount;
 
-    @Column(name= "prezzo")
+    @Column(name = "prezzo")
     private double price;
 
-    @Column(name= "colore_primario")
+    @Column(name = "colore_primario")
     private String primaryColor;
 
-    @Column(name= "colore_secondario")
+    @Column(name = "colore_secondario")
     private String secondaryColor;
 
-    @Column(name= "e_abbigliamento")
+    @Column(name = "e_abbigliamento")
     private Boolean is_clothing;
-
-    @ManyToOne
-    @JoinColumn(name= "id_disponibilita")
-    private Availability availabilityID;
 }

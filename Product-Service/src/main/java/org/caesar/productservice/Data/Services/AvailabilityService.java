@@ -1,13 +1,15 @@
 package org.caesar.productservice.Data.Services;
 
 import org.caesar.productservice.Data.Entities.Availability;
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Dto.AvailabilityDTO;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface AvailabilityService {
 
-    UUID addOrUpdateAvailability(AvailabilityDTO availability);
-    AvailabilityDTO getAvailability(UUID id);
+    boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, Product product);
     boolean deleteAvailability(UUID id);
+    //List<AvailabilityDTO> getAvailabilitiesByProductID(UUID productId);
 }

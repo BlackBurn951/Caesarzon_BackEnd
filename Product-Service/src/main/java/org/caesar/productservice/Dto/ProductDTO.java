@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.UUID;
-
 @Getter
 @Setter
 public class ProductDTO {
@@ -17,5 +16,5 @@ public class ProductDTO {
     private int discount;
     private String primaryColor;
     private String secondaryColor;
-
+    private Boolean is_clothing;
 }

@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface SportRepository extends JpaRepository<Sport, UUID> {
-    List<Sport> findAll(String sportName);
+    List<Sport> findByName(String sportName);
 }
