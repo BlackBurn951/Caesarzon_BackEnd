@@ -50,13 +50,13 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public ReviewDTO getReview(UUID id) {
-        return modelMapper.map(reviewRepository.findById(id), ReviewDTO.class);
+    public Review getReview(String username) {
+        return reviewRepository.findByuserID(username);
     }
 
     @Override
-    public List<ReviewDTO> getReviewsByProductId(Product product) {
-        return reviewRepository.findByProductID(product)
+    public List<ReviewDTO> getReviewsByProductId(UUID product) {
+        return reviewRepository.findById(product)
                 .stream()
                 .map(review -> modelMapper.map(review, ReviewDTO.class))
                 .toList();
