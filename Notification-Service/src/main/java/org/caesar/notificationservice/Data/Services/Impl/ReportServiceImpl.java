@@ -30,7 +30,7 @@ public class ReportServiceImpl implements ReportService {
             return modelMapper.map(report, ReportDTO.class);
         } catch (Exception | Error e) {
             log.debug("Errore nell'inserimento della segnalazione");
-            return false;
+            return null;
         }
     }
 
