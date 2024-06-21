@@ -62,7 +62,8 @@ public class SecurityConfig {
 
                         .pathMatchers(HttpMethod.GET, "/product-api/review").permitAll()
                         .pathMatchers(HttpMethod.POST, "/product-api/review").permitAll()
-                        .pathMatchers(HttpMethod.DELETE, "/product-api/reviews").permitAll()
+                        .pathMatchers(HttpMethod.DELETE, "/product-api/review").permitAll()
+                        .pathMatchers(HttpMethod.DELETE, "/product-api/admin/review").permitAll()
 
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

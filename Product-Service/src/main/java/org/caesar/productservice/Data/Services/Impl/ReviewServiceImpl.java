@@ -3,22 +3,15 @@ package org.caesar.productservice.Data.Services.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ReviewRepository;
-import org.caesar.productservice.Data.Entities.Image;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
 import org.caesar.productservice.Data.Services.ReviewService;
-import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.security.SecureRandom;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +44,11 @@ public class ReviewServiceImpl implements ReviewService {
             log.debug("Errore nell'inserimento della recensione");
             return null;
         }
+    }
+
+    @Override
+    public Review getReviewById(UUID id) {
+        return reviewRepository.findById(id).orElse(null);
     }
 
 
