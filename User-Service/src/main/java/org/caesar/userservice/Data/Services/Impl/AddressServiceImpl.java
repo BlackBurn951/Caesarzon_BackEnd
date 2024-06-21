@@ -29,7 +29,9 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDTO getAddress(UUID addressId) {
-        return modelMapper.map(addressRepository.findById(addressId), AddressDTO.class);
+        AddressDTO addressDTO = modelMapper.map(addressRepository.findById(addressId), AddressDTO.class);
+        addressDTO.setId(null);
+        return addressDTO;
     }
 
     @Override

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,16 +24,19 @@ public class ReportServiceImpl implements ReportService {
     private final ModelMapper modelMapper;
 
     @Override
-    public boolean addReport(ReportDTO reportDTO) {
-
+    public ReportDTO addReport(ReportDTO reportDTO) {
         try {
-            reportRepository.save(modelMapper.map(reportDTO, Report.class));
-
-            return true;
+            Report report= reportRepository.save(modelMapper.map(reportDTO, Report.class));
+            return modelMapper.map(report, ReportDTO.class);
         } catch (Exception | Error e) {
             log.debug("Errore nell'inserimento della segnalazione");
-            return false;
+            return null;
         }
+    }
+
+    @Override
+    public ReportDTO getReport(UUID id) {
+        return modelMapper.map(reportRepository.findById(id), ReportDTO.class);
     }
 
     @Override
@@ -42,14 +46,20 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public boolean deleteReport(ReportDTO reportDTO) {
+    public boolean deleteReport(UUID reviewId) {
         try {
-            reportRepository.deleteByReportCode(reportDTO.getReportCode());
+            reportRepository.deleteByReviewId(reviewId);
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della segnalazione");
             return false;
         }
+    }
+
+
+    @Override
+    public int countReportForUser(String username, UUID reviewId) {
+        return reportRepository.countByUsernameUser2AndReviewId(username, reviewId);
     }
 
 }

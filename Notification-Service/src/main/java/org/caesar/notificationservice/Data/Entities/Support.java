@@ -27,6 +27,4 @@ public class Support {
     @Column(name = "data_richiesta")
     private LocalDate dateRequest;
 
-    @Column(name= "codice_richiesta", unique = true)
-    private String supportCode;
 }

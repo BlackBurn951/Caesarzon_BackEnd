@@ -15,16 +15,19 @@ public class AdminNotification {
     private UUID id;
 
     @Column(name = "data", nullable = false)
-    private LocalDate data;
+    private LocalDate date;
 
     @Basic
     @Column(name = "descrizione")
-    private String description;
+    private String subject;
 
     @Column(name= "username_admin")
     private String admin;
 
     @Column(name= "letta")
     private boolean read;
+
+    @Column(name= "id_segnalazione")
+    private UUID reportId;
 }
 

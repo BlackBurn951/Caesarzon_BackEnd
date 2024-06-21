@@ -4,8 +4,6 @@ package org.caesar.userservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
-import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.GeneralService.GeneralService;
@@ -89,19 +87,6 @@ public class UserDataController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/image")
-    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file){
-        //Prendendo l'username dell'utente che ha fatto la chiamata
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
-
-
-        if(profilePicService.saveImage(username, file))
-            return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-
     @GetMapping("/image/{username}")
     public ResponseEntity<byte[]> loadImages(@PathVariable String username){
         //Presa dell'imagine profilo dell'utente
@@ -112,22 +97,29 @@ public class UserDataController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @PutMapping("/image")
+    public ResponseEntity<String> uploadImage(@RequestBody MultipartFile file){
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
 
+
+        if(profilePicService.saveImage(username, file, false))
+            return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
 
     //End-point per gli utenti
     @GetMapping("/users")
-    public ResponseEntity<List<UserSearchDTO>> getUsersSearch(@RequestParam("str") int start) {
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
-
-        List<UserSearchDTO> result= generalService.getUserSearch(start);
+    public ResponseEntity<List<UserFindDTO>> getUsersSearch(@RequestParam("str") int start) {
+        List<UserFindDTO> result= generalService.getUserFind(start);
 
         if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-}  //TODO DA AGGIUSTARE E USARE
-
+    }
 
 
 
@@ -138,5 +130,19 @@ public class UserDataController {
         System.out.printf("oh dio mi hanno chiamato");
         return (userService.getUsersByUsername(username));
     }  //FIXME deve tornare userSerarch (mantanere per luca)
+
+
+    @PostMapping("/password")
+    public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDTO passwordChangeDTO){
+
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result = userService.changePassword(passwordChangeDTO, username);
+
+        if(result)
+            return new ResponseEntity<>("Password cambiata", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore cambio password", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
 }

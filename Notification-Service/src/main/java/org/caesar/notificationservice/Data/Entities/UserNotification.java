@@ -9,7 +9,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "notificheutente")
 @Setter
-@Getter
 public class UserNotification {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -20,7 +19,7 @@ public class UserNotification {
     private LocalDate date;
 
     @Column(name = "descrizione")
-    private String description;
+    private String subject;
 
     @Column(name= "username_utente")
     private String user;

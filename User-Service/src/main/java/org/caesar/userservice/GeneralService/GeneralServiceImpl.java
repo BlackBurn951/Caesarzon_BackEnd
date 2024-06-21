@@ -42,8 +42,7 @@ public class GeneralServiceImpl implements GeneralService {
             try {
                 File file = new File("User-Service/src/main/resources/static/img/base_profile_pic.jpg");
                 MockMultipartFile multipartFile = new MockMultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
-
-                return profilePicService.saveImage(user.getUsername(), multipartFile);
+                return profilePicService.saveImage(user.getUsername(), multipartFile, true);
             } catch (Exception | Error e) {
                 log.debug("Errore nel salvataggio dell'user");
                 return false;
@@ -52,7 +51,6 @@ public class GeneralServiceImpl implements GeneralService {
         return false;
     }
 
-    //Metodi di inserimento dati con tabelle di relazione
     @Override
     @Transactional
     public int addAddress(String userUsername, AddressDTO addressDTO) {
@@ -124,45 +122,27 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
 
+
     @Override
-    public List<UserSearchDTO> getUserSearch(int start) {
+    public List<UserFindDTO> getUserFind(int start) {
         List<UserDTO> users= userService.getUsers(start);
 
         if(users == null || users.isEmpty())
             return null;
 
-        List<UserSearchDTO> userSearchDTOs= new Vector<>();
+        List<UserFindDTO> userFindDTOs= new Vector<>();
 
-        try {
-            byte[] image;
-            UserSearchDTO userSearchDTO;
-            FollowerDTO followerDTO;
+        UserFindDTO userFindDTO;
 
-            for (UserDTO userDTO : users) {
-                userSearchDTO= new UserSearchDTO();
-            
+        for (UserDTO userDTO : users) {
+            userFindDTO= new UserFindDTO();
 
-
-                userSearchDTO.setUsername(userDTO.getUsername());
-
-//                followerDTO= followerService.getFollower(username, userDTO.getUsername());
-//
-//                if(followerDTO != null) {
-//                    userSearchDTO.setFriend(followerDTO.isFriend());
-////                    userSearchDTO.setFollower(true);
-//                }
-
-                userSearchDTOs.add(userSearchDTO);
-            }
-            for(UserSearchDTO a: userSearchDTOs) {
-                log.debug("utenti nella lista di ritorno {}", a.getUsername());
-            }
-            return userSearchDTOs;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella presa delle foto profilo");
-            return null;
+            userFindDTO.setUsername(userDTO.getUsername());
+            userFindDTOs.add(userFindDTO);
         }
-    }  //FIXME DA VEDERE SE SERVE A LUCA
+
+        return userFindDTOs;
+}
 
 
     @Override
@@ -173,9 +153,10 @@ public class GeneralServiceImpl implements GeneralService {
             return null;
 
         List<UserSearchDTO> userSearch= new Vector<>();
-        UserSearchDTO userSearchDTO= new UserSearchDTO();
+        UserSearchDTO userSearchDTO;
 
         for(FollowerDTO followerDTO: followers) {
+            userSearchDTO= new UserSearchDTO();
             userSearchDTO.setUsername(followerDTO.getUserUsername2());
             userSearch.add(userSearchDTO);
         }
