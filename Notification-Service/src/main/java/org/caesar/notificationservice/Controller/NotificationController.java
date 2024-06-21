@@ -53,10 +53,10 @@ public class NotificationController {
             return new ResponseEntity<>("Problemi nella creazione della notifica...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/notifications")
-    public ResponseEntity<String> updateNotifications(@RequestBody List<NotificationDTO> notificationDTO) {
-
-    }
+//    @PutMapping("/notifications")
+//    public ResponseEntity<String> updateNotifications(@RequestBody List<NotificationDTO> notificationDTO) {
+//
+//    }
 
     @DeleteMapping("/notification")
     public ResponseEntity<String> deleteNotification(@RequestBody NotificationDTO notificationDTO, @RequestParam("user") int isUser) {

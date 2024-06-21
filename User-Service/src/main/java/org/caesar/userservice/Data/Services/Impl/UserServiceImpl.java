@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.UserService;
+import org.caesar.userservice.Dto.PasswordChangeDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserIdDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
@@ -103,6 +104,17 @@ public class UserServiceImpl implements UserService {
             return false;
         }
     }
+
+    @Override
+    public boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username) {
+        try {
+            return userRepository.changePassword(passwordChangeDTO, username);
+        } catch(Exception | Error e) {
+            log.debug("Errore nella cancellazione dell'utente");
+            return false;
+        }
+    }
+
 
     @Override
     public boolean banUser(String username, boolean ban) {
