@@ -44,27 +44,11 @@ public class WishlistServiceImpl implements WishlistService {
 
     @Override
     public List<WishlistDTO> getAllWishlists(String userUsername, String visibility) {
-        return switch (visibility) {
-            case "privata" ->
-                //Restituisce una lista di "liste desideri" dell'utente specificato che hanno visibilità privata
-                    wishlistRepository.findAllByUserUsernameAndVisibility(userUsername, visibility)
-                            .stream()
-                            .map(wishlist -> modelMapper.map(wishlist, WishlistDTO.class))
-                            .toList();
-            case "pubblica" ->
-                //Restituisce una lista di "liste desideri" dell'utente specificato che hanno visibilità pubblica
-                    wishlistRepository.findAllByUserUsernameAndVisibility(userUsername, visibility)
-                            .stream()
-                            .map(wishlist -> modelMapper.map(wishlist, WishlistDTO.class))
-                            .toList();
-            case "condivisa" ->
-                //Restituisce una lista di "liste desideri" dell'utente specificato che hanno visibilità condivisa tra amici
-                    wishlistRepository.findAllByUserUsernameAndVisibility(userUsername, visibility)
-                            .stream()
-                            .map(wishlist -> modelMapper.map(wishlist, WishlistDTO.class))
-                            .toList();
-            default -> List.of();
-        };
+        //Restituisce una lista di "liste desideri" dell'utente specificato in base alla visibilità richiesta
+            return wishlistRepository.findAllByUserUsernameAndVisibility(userUsername, visibility)
+                           .stream()
+                           .map(wishlist -> modelMapper.map(wishlist, WishlistDTO.class))
+                           .toList();
     }
 
     @Override
