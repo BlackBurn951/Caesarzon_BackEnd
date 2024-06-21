@@ -71,7 +71,7 @@ public class ReviewController {
             HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
             ResponseEntity<Void> responseEntity = restTemplate.exchange(
-                    "http://notification-service/notify-api/review?review_id="+reviewID,
+                    "http://notification-service/notify-api/user/report?review_id="+reviewID,
                     HttpMethod.DELETE,
                     requestEntity,
                     Void.class
@@ -85,18 +85,15 @@ public class ReviewController {
         return ResponseEntity.internalServerError().build();
     }
 
-    //                                                          //
 
-    /*@DeleteMapping("/review")
-    public ResponseEntity<ReviewDTO> deleteReview(@RequestParam String username, @RequestParam UUID productID) {
+    @DeleteMapping("/admin/review")
+    public ResponseEntity<String> deleteReview(@RequestParam("review_id") UUID review_id) {
 
-        Review review = reviewService.getReview(username, productID);
-        UUID reviewID = review.getId();
-        if (review != null) {
-            reviewService.deleteReview(review.getId());
-
-            return new RestTemplate().getForObject("/notify-api/report")
+        if(review_id == null) {
+            return new ResponseEntity<>("Recensione non trovata", HttpStatus.NOT_FOUND);
+        }else {
+            reviewService.deleteReview(review_id);
+            return new ResponseEntity<>("Recensione trovata e scopata", HttpStatus.OK);
         }
-        return ResponseEntity.internalServerError().build();
-    }*/
+    }
 }
