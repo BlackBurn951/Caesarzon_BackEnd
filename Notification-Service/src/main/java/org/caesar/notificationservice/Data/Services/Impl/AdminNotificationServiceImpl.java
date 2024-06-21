@@ -58,7 +58,8 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     @Override
     public boolean deleteAdminNotification(NotificationDTO notificationDTO, String username){
         try{
-            return adminNotificationRepository.deleteByDateAndSubjectAndAdminAndRead(LocalDate.parse(notificationDTO.getDate()), notificationDTO.getSubject(), username, notificationDTO.isRead());
+            adminNotificationRepository.deleteByDateAndSubjectAndAdminAndRead(LocalDate.parse(notificationDTO.getDate()), notificationDTO.getSubject(), username, notificationDTO.isRead());
+            return true;
         }catch(Exception | Error e){
             log.debug("Errore nell'eliminazione");
             return false;

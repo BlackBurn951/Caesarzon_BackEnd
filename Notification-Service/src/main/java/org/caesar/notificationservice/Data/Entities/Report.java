@@ -1,12 +1,14 @@
 package org.caesar.notificationservice.Data.Entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
 @Table(name = "segnala")
+@Getter
 public class Report {
 
     @Id

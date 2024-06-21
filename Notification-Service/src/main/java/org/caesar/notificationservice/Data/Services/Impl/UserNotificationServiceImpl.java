@@ -3,7 +3,6 @@ package org.caesar.notificationservice.Data.Services.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Dao.UserNotificationRepository;
-import org.caesar.notificationservice.Data.Entities.AdminNotification;
 import org.caesar.notificationservice.Data.Entities.UserNotification;
 import org.caesar.notificationservice.Data.Services.UserNotificationService;
 import org.caesar.notificationservice.Dto.NotificationDTO;
@@ -45,13 +44,13 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     }
 
     @Override
-    public boolean addUserNotification(NotificationDTO notificationDTO, String username) {
+    public boolean addUserNotification(UserNotificationDTO notificationDTO, String username) {
         try{
             UserNotificationDTO userNotificationDTO= modelMapper.map(notificationDTO, UserNotificationDTO.class);
             userNotificationDTO.setUser(username);
 
             UserNotification userNotification= userNotificationRepository.findByDateAndSubjectAndUserAndReadAndExplanation(userNotificationDTO.getDate(),
-                    userNotificationDTO.getDescription(), username, userNotificationDTO.isRead(), userNotificationDTO.getExplanation());
+                    userNotificationDTO.getSubject(), username, userNotificationDTO.isRead(), userNotificationDTO.getExplanation());
 
             if(userNotification!=null)
                 userNotification.setRead(notificationDTO.isRead());

@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface AdminNotificationRepository extends JpaRepository<AdminNotification, UUID> {
     List<AdminNotification> findAllByAdmin(String admin);
 
-    boolean deleteByDateAndSubjectAndAdminAndRead(LocalDate date, String subject, String user, boolean read);
+    void deleteByDateAndSubjectAndAdminAndRead(LocalDate date, String subject, String user, boolean read);
 
-    boolean deleteByReportId(UUID id);
+    void deleteByReportId(UUID id);
 }

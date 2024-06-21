@@ -43,7 +43,7 @@ public class NotificationController {
     }
 
     @PostMapping("/notification/{username}")
-    public ResponseEntity<String> createNotification(@PathVariable String username, @RequestBody NotificationDTO notificationDTO) {
+    public ResponseEntity<String> createNotification(@PathVariable String username, @RequestBody UserNotificationDTO notificationDTO) {
         if(userNotificationService.addUserNotification(notificationDTO, username))
             return new ResponseEntity<>("Notifica creata con successo", HttpStatus.OK);
         else

@@ -11,7 +11,7 @@ import java.util.UUID;
 public class AdminNotificationDTO {
     private Long id;
     private LocalDate date;
-    private String description;
+    private String subject;
     private String admin;
     private boolean read;
     private UUID reportId;

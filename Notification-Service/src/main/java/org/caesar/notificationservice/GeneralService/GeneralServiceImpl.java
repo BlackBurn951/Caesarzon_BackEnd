@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Dao.AdminNotificationRepository;
 import org.caesar.notificationservice.Data.Dao.ReportRepository;
+import org.caesar.notificationservice.Data.Dao.SupportRequestRepository;
 import org.caesar.notificationservice.Data.Services.*;
 import org.caesar.notificationservice.Dto.*;
 import org.springframework.http.*;
@@ -33,6 +34,7 @@ public class GeneralServiceImpl implements GeneralService{
     private final BanService banService;
     private final AdminNotificationRepository adminNotificationRepository;
     private final ReportRepository reportRepository;
+    private final SupportRequestRepository supportRequestRepository;
 
 
     @Override
@@ -87,7 +89,7 @@ public class GeneralServiceImpl implements GeneralService{
                 for(String ad: admins) {
                     notify= new AdminNotificationDTO();
                     notify.setDate(LocalDate.now());
-                    notify.setDescription("C'è una nuova segnalazione da parte dell'utente" + username1 );
+                    notify.setSubject("C'è una nuova segnalazione da parte dell'utente" + username1 );
                     notify.setAdmin(ad);
                     notify.setReportId(newReportDTO.getId());
                     notify.setRead(false);
@@ -136,7 +138,7 @@ public class GeneralServiceImpl implements GeneralService{
             for(String ad: admins) {
                 notify= new AdminNotificationDTO();
                 notify.setDate(LocalDate.now());
-                notify.setDescription("C'è una nuova richiesta di supporto dall'utente " + username);
+                notify.setSubject("C'è una nuova richiesta di supporto dall'utente " + username);
                 notify.setAdmin(ad);
                 notify.setReportId(null);
                 notify.setRead(false);
@@ -155,17 +157,22 @@ public class GeneralServiceImpl implements GeneralService{
     public boolean manageSupportRequest(String username, SupportResponseDTO sendSupportDTO) {
         SupportDTO supportDTO= supportRequestService.getSupport(sendSupportDTO.getSupportCode());
 
+
         if(supportDTO!=null && supportRequestService.deleteSupportRequest(supportDTO)) {
-            String descr= "Richiesta di supporto " + supportDTO.getId()+ " elaborata dall'admin " + username;
+            String descr= "Richiesta di supporto elaborata dall'admin " + username;
 
-            NotificationDTO notificationDTO= new NotificationDTO();
+            UserNotificationDTO userNotificationDTO= new UserNotificationDTO();
 
-            notificationDTO.setDate(LocalDate.now().toString());
-            notificationDTO.setSubject(descr);
-            notificationDTO.setRead(false);
-            notificationDTO.setExplanation(sendSupportDTO.getExplain());
+            System.out.println("codice richiesta" + sendSupportDTO.getSupportCode());
 
-            return userNotificationService.addUserNotification(notificationDTO, supportDTO.getUsername());
+            userNotificationDTO.setDate(LocalDate.now());
+            userNotificationDTO.setSubject(descr);
+            userNotificationDTO.setExplanation(sendSupportDTO.getExplain());
+            userNotificationDTO.setUser(supportDTO.getUsername());
+            userNotificationDTO.setRead(false);
+
+
+            return userNotificationService.addUserNotification(userNotificationDTO, supportDTO.getUsername());
         }
         return false;
     }
@@ -192,8 +199,8 @@ public class GeneralServiceImpl implements GeneralService{
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        return restTemplate.exchange("http://product-service/product-api/admin/review/?review_id="+reviewId,
-                HttpMethod.POST,
+        return restTemplate.exchange("http://product-service/product-api/admin/review?review_id="+reviewId,
+                HttpMethod.DELETE,
                 entity,
                 String.class).getStatusCode() == HttpStatus.OK;
     }
