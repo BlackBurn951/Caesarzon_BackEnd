@@ -60,6 +60,10 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/product-api/product").permitAll()
                         .pathMatchers(HttpMethod.POST, "/product-api/review").permitAll()
 
+                        .pathMatchers(HttpMethod.GET, "/product-api/review").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/product-api/review").permitAll()
+                        .pathMatchers(HttpMethod.DELETE, "/product-api/reviews").permitAll()
+
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));

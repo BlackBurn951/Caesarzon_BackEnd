@@ -24,7 +24,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public boolean addReport(ReportDTO reportDTO) {
-        reportDTO.setReportCode(generaCodice());
+
         try {
             reportRepository.save(modelMapper.map(reportDTO, Report.class));
 
@@ -52,14 +52,4 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    private String generaCodice() {
-        String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        SecureRandom RANDOM = new SecureRandom();
-        StringBuilder codice = new StringBuilder(7);
-        for (int i = 0; i < 7; i++) {
-            int index = RANDOM.nextInt(CHARACTERS.length());
-            codice.append(CHARACTERS.charAt(index));
-        }
-        return codice.toString();
-    }
 }
