@@ -87,7 +87,7 @@ public class ReviewController {
 
 
     @DeleteMapping("/admin/review")
-    public ResponseEntity<String> deleteReview(@RequestParam UUID review_id) {
+    public ResponseEntity<String> deleteReview(@RequestParam("review_id") UUID review_id) {
 
         if(review_id == null) {
             return new ResponseEntity<>("Recensione non trovata", HttpStatus.NOT_FOUND);
