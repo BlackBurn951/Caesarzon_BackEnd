@@ -10,7 +10,7 @@ import java.util.UUID;
 public interface ReviewService {
 
     UUID addOrUpdateReview(ReviewDTO review, Product product);
-    Review getReview(String username);
+    Review getReview(String username, UUID productID);
     List<ReviewDTO> getReviewsByProductId(Product product);
     boolean deleteReview(UUID id);
 }

@@ -12,6 +12,7 @@ import org.caesar.productservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,13 +35,15 @@ public class ReviewServiceImpl implements ReviewService {
             return null;
         }
         try {
-
+            System.out.println("Adding review");
             Review review = new Review();
             review.setProductID(product);
             review.setDate(LocalDate.now());
             review.setText(reviewDTO.getText());
             review.setEvaluation(reviewDTO.getEvaluation());
             review.setUserID(reviewDTO.getUserID());
+            System.out.println("codice: "+review.getReviewCode());
+
 
             return reviewRepository.save(review).getId();
 
@@ -50,9 +53,10 @@ public class ReviewServiceImpl implements ReviewService {
         }
     }
 
+
     @Override
-    public Review getReview(String username) {
-        return reviewRepository.findByuserID(username);
+    public Review getReview(String username, UUID productID) {
+        return reviewRepository.findByuserIDAndProductID(username, productID);
     }
 
     @Override
@@ -80,4 +84,5 @@ public class ReviewServiceImpl implements ReviewService {
             return false;
         }
     }
+
 }
