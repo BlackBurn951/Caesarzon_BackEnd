@@ -19,7 +19,7 @@ public class UserNotification {
     private LocalDate date;
 
     @Column(name = "descrizione")
-    private String description;
+    private String subject;
 
     @Column(name= "username_utente")
     private String user;

@@ -19,7 +19,7 @@ public class AdminNotification {
 
     @Basic
     @Column(name = "descrizione")
-    private String description;
+    private String subject;
 
     @Column(name= "username_admin")
     private String admin;
