@@ -5,10 +5,12 @@ import org.caesar.notificationservice.Dto.ReportResponseDTO;
 import org.caesar.notificationservice.Dto.SupportDTO;
 import org.caesar.notificationservice.Dto.SupportResponseDTO;
 
+import java.util.UUID;
+
 public interface GeneralService {
     
     boolean addReportRequest(String username1, ReportDTO reportDTO);
     boolean addSupportRequest(String username1, SupportDTO supportDTO);
     boolean manageSupportRequest(String username, SupportResponseDTO sendSupportDTO);
-    boolean manageReport(ReportResponseDTO reportResponseDTO, String username);
+    boolean manageReport(String username, UUID reviewId, boolean product, boolean accept);
 }

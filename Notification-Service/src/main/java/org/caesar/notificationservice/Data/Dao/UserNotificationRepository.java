@@ -15,5 +15,5 @@ public interface UserNotificationRepository extends JpaRepository<UserNotificati
 
     UserNotification findByDateAndSubjectAndUserAndReadAndExplanation(LocalDate date, String subject, String user, boolean read, String explanation);
 
-    boolean deleteByDateAndSubjectAndUserAndReadAndExplanation(String date, String subject, String user, boolean read, String explanation);
+    boolean deleteByDateAndSubjectAndUserAndReadAndExplanation(LocalDate date, String subject, String user, boolean read, String explanation);
 }

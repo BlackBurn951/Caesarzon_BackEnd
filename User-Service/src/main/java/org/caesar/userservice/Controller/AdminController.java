@@ -1,10 +1,12 @@
 package org.caesar.userservice.Controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.AdminService;
 import org.caesar.userservice.Data.Services.ProfilePicService;
 import org.caesar.userservice.Data.Services.UserService;
+import org.caesar.userservice.Dto.BanDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,8 @@ public class AdminController {
     private final UserService userService;
     private final GeneralService generalService;
     private final ProfilePicService profilePicService;
+    private final HttpServletRequest httpServletRequest;
+
 
     @GetMapping("/admins")
     public ResponseEntity<List<String>> getAdmins(){
@@ -64,10 +68,12 @@ public class AdminController {
             return new ResponseEntity<>("Errore nella cancellazione dell'user...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PostMapping("/ban/{username}")
-    public ResponseEntity<String> banUser(@PathVariable String username){
+    @PostMapping("/ban")
+    public ResponseEntity<String> banUser(@RequestBody BanDTO banDTO){
         log.debug("Sono nella chiamata per bannare l'user");
-        if(userService.banUser(username, true))
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+        banDTO.setAdminUsername(username);
+        if(userService.banUser(banDTO))
             return new ResponseEntity<>("Utente bannato con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nel ban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -75,7 +81,7 @@ public class AdminController {
 
     @PutMapping("/ban/{username}")
     public ResponseEntity<String> sbanUser(@PathVariable String username) {
-        if(userService.banUser(username, false))
+        if(userService.sbanUser(username))
             return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nello sban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -84,7 +90,7 @@ public class AdminController {
 
     @PutMapping("/image/{username}")
     public ResponseEntity<String> changeImage(@PathVariable String username, @RequestParam("file") MultipartFile file) {
-        if(profilePicService.saveImage(username, file))
+        if(profilePicService.saveImage(username, file, false))
             return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);

@@ -98,12 +98,12 @@ public class UserDataController {
     }
 
     @PutMapping("/image")
-    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file){
+    public ResponseEntity<String> uploadImage(@RequestBody MultipartFile file){
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
 
-        if(profilePicService.saveImage(username, file))
+        if(profilePicService.saveImage(username, file, false))
             return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -145,14 +145,4 @@ public class UserDataController {
             return new ResponseEntity<>("Errore cambio password", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-//    @PostMapping("/follower")
-//    public ResponseEntity<String> addFollower(@RequestBody FollowerDTO followerDTO){
-//        String username= httpServletRequest.getAttribute("preferred_username").toString();
-//
-//    }
-//
-//    @PutMapping("/follower")
-//    public ResponseEntity<String> addFriend(@RequestBody FollowerDTO followerDTO){
-//
-//    }
 }

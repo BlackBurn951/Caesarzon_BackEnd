@@ -10,8 +10,8 @@ import org.caesar.notificationservice.Dto.NotificationDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +58,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     @Override
     public boolean deleteAdminNotification(NotificationDTO notificationDTO, String username){
         try{
-            return adminNotificationRepository.deleteByDateAndSubjectAndUserAndReadAndExplanation(notificationDTO.getDate(), notificationDTO.getSubject(), username, notificationDTO.isRead(), notificationDTO.getExplanation());
+            return adminNotificationRepository.deleteByDateAndSubjectAndAdminAndRead(LocalDate.parse(notificationDTO.getDate()), notificationDTO.getSubject(), username, notificationDTO.isRead());
         }catch(Exception | Error e){
             log.debug("Errore nell'eliminazione");
             return false;

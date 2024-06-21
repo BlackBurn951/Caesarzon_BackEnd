@@ -85,7 +85,7 @@ public class UserRepositoryImpl implements UserRepository {
 
         RealmResource realmResource = keycloak.realm("CaesarRealm");
 
-        List<UserRepresentation> users = realmResource.users().list();
+        List<UserRepresentation> users = realmResource.users().list(start, 20);
 
         // Ottieni il ClientRepresentation per il client "caesar-app"
         ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").get(0);

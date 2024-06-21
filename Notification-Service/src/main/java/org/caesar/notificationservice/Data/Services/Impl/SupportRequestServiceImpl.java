@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -29,29 +31,25 @@ public class SupportRequestServiceImpl implements SupportRequestService {
     }
 
     @Override
-    public SupportDTO getSupport(String supportCode) {
-        return modelMapper.map(supportRequestRepository.findBySupportCode(supportCode), SupportDTO.class);
+    public SupportDTO getSupport(UUID id) {
+        return modelMapper.map(supportRequestRepository.findById(id), SupportDTO.class);
     }
 
     @Override
-    public boolean addSupportRequest(SupportDTO supportDTO) {
-        supportDTO.setSupportCode(generaCodice());
-
+    public SupportDTO addSupportRequest(SupportDTO supportDTO) {
         try {
-            supportRequestRepository.save(modelMapper.map(supportDTO, Support.class));
-
-            return true;
+            Support support = supportRequestRepository.save(modelMapper.map(supportDTO, Support.class));
+            return modelMapper.map(support, SupportDTO.class);
         } catch (Exception | Error e) {
             log.debug("Errore nell'inserimento della richiesta");
-            return false;
+            return null;
         }
     }
 
     @Override
     public boolean deleteSupportRequest(SupportDTO supportDTO) {
         try {
-            supportRequestRepository.deleteBySupportCode(supportDTO.getSupportCode());
-
+            supportRequestRepository.deleteById(supportDTO.getId());
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della richiesta di supporto");
@@ -60,15 +58,4 @@ public class SupportRequestServiceImpl implements SupportRequestService {
     }
 
 
-    //Metodi di servizio
-    private String generaCodice() {
-        String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        SecureRandom RANDOM = new SecureRandom();
-        StringBuilder codice = new StringBuilder(7);
-        for (int i = 0; i < 7; i++) {
-            int index = RANDOM.nextInt(CHARACTERS.length());
-            codice.append(CHARACTERS.charAt(index));
-        }
-        return codice.toString();
-    }
 }

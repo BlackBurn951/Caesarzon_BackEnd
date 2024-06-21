@@ -10,6 +10,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Arrays;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -19,13 +21,29 @@ public class ProfilePicServiceImpl implements ProfilePicService {
 
 
     @Override
-    public boolean saveImage(String username, MultipartFile file) {
+    public boolean saveImage(String username, MultipartFile file, boolean save) {
         try {
             //Ricerca sul db della vecchia foto profilo per eseguire l'aggiornamento
-            ProfilePic profilePic = profilePicRepository.findByUserUsername(username);
 
-            profilePic.setProfilePic(file.getBytes());
-            profilePicRepository.save(profilePic);
+            if(save){
+                ProfilePic profilePic1 = new ProfilePic();
+                profilePic1.setUserUsername(username);
+                profilePic1.setProfilePic(file.getBytes());
+                System.out.println("username: " + username + " profilePic: " + Arrays.toString(profilePic1.getProfilePic()));
+                profilePicRepository.save(profilePic1);
+            }else{
+                ProfilePic profilePic = profilePicRepository.findByUserUsername(username);
+                System.out.println("using asdasdasd" + profilePic.getUserUsername());
+
+                profilePic.setProfilePic(file.getBytes());
+                System.out.println("username: " + username + " profilePic: " + Arrays.toString(profilePic.getProfilePic()));
+                profilePicRepository.save(profilePic);
+
+
+            }
+
+
+
 
             return true;
         }catch (Exception | Error e){

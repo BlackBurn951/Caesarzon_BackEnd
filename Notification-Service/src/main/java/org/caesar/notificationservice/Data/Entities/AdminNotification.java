@@ -15,7 +15,7 @@ public class AdminNotification {
     private UUID id;
 
     @Column(name = "data", nullable = false)
-    private LocalDate data;
+    private LocalDate date;
 
     @Basic
     @Column(name = "descrizione")

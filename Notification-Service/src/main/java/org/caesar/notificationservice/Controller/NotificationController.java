@@ -4,17 +4,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Services.*;
-import org.caesar.notificationservice.Dto.ReportDTO;
-import org.caesar.notificationservice.Dto.ReportResponseDTO;
-import org.caesar.notificationservice.Dto.SupportDTO;
-import org.caesar.notificationservice.Dto.SupportResponseDTO;
-import org.caesar.notificationservice.Dto.NotificationDTO;
+import org.caesar.notificationservice.Dto.*;
 import org.caesar.notificationservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @RestController
@@ -95,12 +92,26 @@ public class NotificationController {
             return new ResponseEntity<>("Problemi nell'invio della segnalazione...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @DeleteMapping("/report")
-    public ResponseEntity<String> deleteReport(@RequestBody ReportResponseDTO reportResponseDTO) {
+
+
+    @DeleteMapping("/admin/report")
+    public ResponseEntity<String> deleteReport(@RequestParam("review_id") UUID reviewId, @RequestParam("accept") boolean accept) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        log.debug("Sono nell'end-point del delete report");
-        if(generalService.manageReport(reportResponseDTO, username))
+        if(generalService.manageReport(username, reviewId, false, accept))
+            return new ResponseEntity<>("Segnalazione eliminata con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nell'eliminazione della segnalazione", HttpStatus.INTERNAL_SERVER_ERROR);
+
+    }
+
+
+    //chiamata da product service
+    @DeleteMapping("/user/report")
+    public ResponseEntity<String> deleteReportFromProduct(@RequestParam("review_id") UUID reviewId) {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        if(generalService.manageReport(username, reviewId, true, true))
             return new ResponseEntity<>("Segnalazione eliminata con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'eliminazione della segnalazione", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -124,7 +135,6 @@ public class NotificationController {
     public ResponseEntity<String> sendReport(@RequestBody SupportDTO supportDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        log.debug("Sono nell'end-point del send support");
         if(generalService.addSupportRequest(username, supportDTO))
             return new ResponseEntity<>("Richiesta di supporto inviata con successo!", HttpStatus.OK);
         else
@@ -135,7 +145,6 @@ public class NotificationController {
     public ResponseEntity<String> deleteSupport(@RequestBody SupportResponseDTO supportDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        log.debug("Sono nell'end-point del delete support");
         if(generalService.manageSupportRequest(username, supportDTO))
             return new ResponseEntity<>("Richiesta di supporto eliminata con successo", HttpStatus.OK);
         else
@@ -148,6 +157,15 @@ public class NotificationController {
     @PutMapping("/ban/{username}")
     public ResponseEntity<String> sbanUser(@PathVariable("username") String username) {
         if(banService.sbanUser(username))
+            return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nello sban dell'user...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    //End-point per lo sban
+    @PostMapping("/ban")
+    public ResponseEntity<String> banUser(@RequestBody BanDTO banDTO) {
+        if(banService.banUser(banDTO))
             return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nello sban dell'user...", HttpStatus.INTERNAL_SERVER_ERROR);

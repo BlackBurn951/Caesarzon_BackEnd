@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.notificationservice.Data.Dao.AdminNotificationRepository;
+import org.caesar.notificationservice.Data.Dao.ReportRepository;
 import org.caesar.notificationservice.Data.Services.*;
 import org.caesar.notificationservice.Dto.*;
 import org.springframework.http.*;
@@ -15,6 +17,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.Vector;
 
 @Service
@@ -28,76 +31,89 @@ public class GeneralServiceImpl implements GeneralService{
     private final AdminNotificationService adminNotificationService;
     private final UserNotificationService userNotificationService;
     private final BanService banService;
+    private final AdminNotificationRepository adminNotificationRepository;
+    private final ReportRepository reportRepository;
 
 
     @Override
     @Transactional
     public boolean addReportRequest(String username1, ReportDTO reportDTO) {
-        ReportDTO reportRequest= new ReportDTO();
+        try {
+            //Aggiungo al DTO la data e l'username che ha inviato la segnalazione
+            reportDTO.setReportDate(LocalDate.now());
+            reportDTO.setUsernameUser1(username1);
 
-        log.debug("Sono nel metodo dell'add segnalazione");
-        reportRequest.setReportDate(LocalDate.now());
-        reportRequest.setReason(reportDTO.getReason());
-        reportRequest.setDescription(reportDTO.getDescription());
-        reportRequest.setUsernameUser1(username1);
-        reportRequest.setUsernameUser2(reportDTO.getUsernameUser2());
+            //Aggiungo la segnalazione
+            ReportDTO newReportDTO = reportService.addReport(reportDTO);
 
-        log.debug("Prima di aggiungere la tupla della segnalazione");
-        if(reportService.addReport(reportRequest)) {
-            log.debug("Prima di effettuare la chiamata all'user-api");
-            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Authorization", request.getHeader("Authorization"));
+            //Controllo se il DTO non è nullo e se il numero di segnalazioni ricevute da un utente è minore di 5 (Su diversi prodotti)
+            if(newReportDTO != null && reportService.countReportForUser(newReportDTO.getUsernameUser2(), newReportDTO.getReviewId())>=5) {
+                BanDTO banDTO= new BanDTO();
 
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-            ResponseEntity<List> responseEntity = restTemplate.exchange(
-                    "http://user-service/user-api/admins",
-                    HttpMethod.GET,
-                    entity,
-                    List.class
-            );
+                banDTO.setAdminUsername("System");
+                banDTO.setReason("Limite di segnalazioni raggiunto");
+                banDTO.setStartDate(LocalDate.now());
+                banDTO.setEndDate(null);
+                banDTO.setUserUsername(newReportDTO.getUsernameUser2());
 
-            log.debug("Dopo la chiamata dell'user-api");
-            List<String> admins = responseEntity.getBody();
+                //Eliminazione delle notifiche relative alla segnalazione per tutti gli admin
+                adminNotificationRepository.deleteByReportId(reportDTO.getReviewId());
 
-            if(admins==null)
-                return false;
-            log.debug("Dopo controllo della risposta dell'usera-api");
-            List<AdminNotificationDTO> notifications= new Vector<>();
-            AdminNotificationDTO notify;
+                //Eliminazione della segnalazione
+                reportRepository.deleteById(reportDTO.getId());
 
-            for(String ad: admins) {
-                log.debug("Nel for-each");
-                notify= new AdminNotificationDTO();
-                notify.setData(LocalDate.now());
-                notify.setDescription("C'è una nuova segnalazione da parte dell'utente" + username1 );
-                notify.setAdmin(ad);
-                notify.setRead(false);
+                return banService.banUser(banDTO) && deleteReview(reportDTO.getReviewId());
+            } else if(newReportDTO != null) {
+                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Authorization", request.getHeader("Authorization"));
 
-                notifications.add(notify);
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+                ResponseEntity<List> responseEntity = restTemplate.exchange(
+                        "http://user-service/user-api/admins",
+                        HttpMethod.GET,
+                        entity,
+                        List.class
+                );
+
+                List<String> admins = responseEntity.getBody();
+
+                if(admins==null)
+                    return false;
+
+                List<AdminNotificationDTO> notifications= new Vector<>();
+                AdminNotificationDTO notify;
+
+                for(String ad: admins) {
+                    notify= new AdminNotificationDTO();
+                    notify.setDate(LocalDate.now());
+                    notify.setDescription("C'è una nuova segnalazione da parte dell'utente" + username1 );
+                    notify.setAdmin(ad);
+                    notify.setReportId(newReportDTO.getId());
+                    notify.setRead(false);
+
+                    notifications.add(notify);
+                }
+                return adminNotificationService.sendNotificationAllAdmin(notifications);
             }
-
-            return adminNotificationService.sendNotificationAllAdmin(notifications);
-        }
-        else
             return false;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella gestione della richiesta");
+            return false;
+        }
     }
 
     @Override
-    @Transactional
+    @Transactional //TODO COSI FUNZIONA
     public boolean addSupportRequest(String username, SupportDTO supportDTO) {
-        SupportDTO supportRequest= new SupportDTO();
 
-        log.debug("Sono nel metodo dell'add richiesta");
-        supportRequest.setDateRequest(LocalDate.now());
-        supportRequest.setType(supportDTO.getType());
-        supportRequest.setText(supportDTO.getText());
-        supportRequest.setUsername(username);
-        supportRequest.setSubject(supportDTO.getSubject());
+        supportDTO.setDateRequest(LocalDate.now());
+        supportDTO.setUsername(username);
+        System.out.println("Sono dentro");
+        SupportDTO newSupportDTO = supportRequestService.addSupportRequest(supportDTO);
+        System.out.println("Ho salvato la richiesta");
 
-        log.debug("Prima di aggiungere la tupla della richiesta");
-        if(supportRequestService.addSupportRequest(supportRequest)) {
-            log.debug("Prima di effettuare la chiamata all'user-api");
+        if(newSupportDTO != null) {
             HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", request.getHeader("Authorization"));
@@ -109,21 +125,20 @@ public class GeneralServiceImpl implements GeneralService{
                     entity,
                     List.class
             );
-            log.debug("Dopo la chiamata dell'user-api");
             List<String> admins = responseEntity.getBody();
 
             if(admins==null)
                 return false;
-            log.debug("Dopo controllo della risposta dell'usera-api");
+
             List<AdminNotificationDTO> notifications= new Vector<>();
             AdminNotificationDTO notify;
 
             for(String ad: admins) {
-                log.debug("Nel for-each");
                 notify= new AdminNotificationDTO();
-                notify.setData(LocalDate.now());
+                notify.setDate(LocalDate.now());
                 notify.setDescription("C'è una nuova richiesta di supporto dall'utente " + username);
                 notify.setAdmin(ad);
+                notify.setReportId(null);
                 notify.setRead(false);
 
                 notifications.add(notify);
@@ -138,12 +153,10 @@ public class GeneralServiceImpl implements GeneralService{
     @Override
     @Transactional
     public boolean manageSupportRequest(String username, SupportResponseDTO sendSupportDTO) {
-        log.debug("Prima della presa della richiesta con il codice");
         SupportDTO supportDTO= supportRequestService.getSupport(sendSupportDTO.getSupportCode());
 
         if(supportDTO!=null && supportRequestService.deleteSupportRequest(supportDTO)) {
-            log.debug("Dopo il controllo is null  e la cancellazione della tupla di supporto");
-            String descr= "Richiesta di supporto " + supportDTO.getSupportCode() + " elaborata dall'admin " + username;
+            String descr= "Richiesta di supporto " + supportDTO.getId()+ " elaborata dall'admin " + username;
 
             NotificationDTO notificationDTO= new NotificationDTO();
 
@@ -159,36 +172,29 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    public boolean manageReport(ReportResponseDTO reportResponseDTO, String username) {
-        log.debug("Subito prima della presa della tupla di segnalazione tramite codice");
-        ReportDTO reportDTO= reportService.getReport(reportResponseDTO.getReportCode());
+    public boolean manageReport(String username, UUID reviewId, boolean product, boolean accept) {
 
-        if(reportDTO!=null && reportService.deleteReport(reportDTO)) {
-            log.debug("Subito dopo il controllo is null e la cancellazione della tupla");
-            if(!reportResponseDTO.isAccept())
-                return true;
+        reportService.deleteReport(reviewId);
+        adminNotificationRepository.deleteByReportId(reviewId);
 
-            log.debug("Dopo il controllo che la segnalazione sia accettata o meno");
-            BanDTO banDTO= new BanDTO();
-            banDTO.setReason(reportResponseDTO.getExplain());
-            banDTO.setStartDate(LocalDate.now());
-            banDTO.setUserUsername(reportDTO.getUsernameUser2());
-            banDTO.setAdminUsername(username);
+        if(!product && accept){
+            return deleteReview(reviewId);
 
-            if(banService.banUser(banDTO)) {
-                log.debug("Dopo l'aggiunta della tupla del ban e prima della chiamata all'user-api");
-                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-                HttpHeaders headers = new HttpHeaders();
-                headers.add("Authorization", request.getHeader("Authorization"));
-
-                HttpEntity<String> entity = new HttpEntity<>(headers);
-
-                return restTemplate.exchange("http://user-service/user-api/ban/" + reportDTO.getUsernameUser2(),
-                        HttpMethod.POST,
-                        entity,
-                        String.class).getStatusCode() == HttpStatus.OK;
-            }
         }
         return false;
+    }
+
+
+    boolean deleteReview(UUID reviewId){
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://product-service/product-api/admin/review/?review_id="+reviewId,
+                HttpMethod.POST,
+                entity,
+                String.class).getStatusCode() == HttpStatus.OK;
     }
 }

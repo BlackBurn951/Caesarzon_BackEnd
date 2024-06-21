@@ -42,8 +42,7 @@ public class GeneralServiceImpl implements GeneralService {
             try {
                 File file = new File("User-Service/src/main/resources/static/img/base_profile_pic.jpg");
                 MockMultipartFile multipartFile = new MockMultipartFile("file", file.getName(), "image/jpeg", Files.readAllBytes(file.toPath()));
-
-                return profilePicService.saveImage(user.getUsername(), multipartFile);
+                return profilePicService.saveImage(user.getUsername(), multipartFile, true);
             } catch (Exception | Error e) {
                 log.debug("Errore nel salvataggio dell'user");
                 return false;
@@ -154,9 +153,10 @@ public class GeneralServiceImpl implements GeneralService {
             return null;
 
         List<UserSearchDTO> userSearch= new Vector<>();
-        UserSearchDTO userSearchDTO= new UserSearchDTO();
+        UserSearchDTO userSearchDTO;
 
         for(FollowerDTO followerDTO: followers) {
+            userSearchDTO= new UserSearchDTO();
             userSearchDTO.setUsername(followerDTO.getUserUsername2());
             userSearch.add(userSearchDTO);
         }
