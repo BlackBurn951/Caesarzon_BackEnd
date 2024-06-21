@@ -10,8 +10,8 @@ import java.util.UUID;
 @Setter
 public class ReviewDTO {
 
-    private String reviewText;
-    private int reviewRating;
-    private String reviewAuthorUsername;
+    private String text;
+    private int evaluation;
+    private String userID;
     private String nameProduct;
 }
