@@ -35,10 +35,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         return true;
     }
 
-    @Override
-    public Availability getAvailabilityById(UUID id) {
-        return availabilityRepository.findById(id).orElse(null);
-    }
+
 
     @Override
     public boolean deleteAvailability(UUID id) {

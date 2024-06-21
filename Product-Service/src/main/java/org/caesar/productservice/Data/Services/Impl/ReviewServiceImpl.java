@@ -12,6 +12,8 @@ import org.caesar.productservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,13 +27,20 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
 
     @Override
-    public UUID addOrUpdateReview(ReviewDTO reviewDTO) {
+    public UUID addOrUpdateReview(ReviewDTO reviewDTO, Product product) {
 
-        if(reviewDTO.getId() == null){
+        if(reviewDTO == null){
             return null;
         }
         try {
-            Review review = modelMapper.map(reviewDTO, Review.class);
+
+            Review review = new Review();
+            review.setProductID(product);
+            review.setDate(LocalDate.now());
+            review.setText(reviewDTO.getText());
+            review.setEvaluation(reviewDTO.getEvaluation());
+            review.setUserID(reviewDTO.getUserID());
+
             return reviewRepository.save(review).getId();
 
         }catch (RuntimeException | Error e) {
@@ -41,13 +50,13 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public ReviewDTO getReview(UUID id) {
-        return modelMapper.map(reviewRepository.findById(id), ReviewDTO.class);
+    public Review getReview(String username) {
+        return reviewRepository.findByuserID(username);
     }
 
     @Override
-    public List<ReviewDTO> getReviewsByProductId(Product product) {
-        return reviewRepository.findByProductID(product)
+    public List<ReviewDTO> getReviewsByProductId(UUID product) {
+        return reviewRepository.findById(product)
                 .stream()
                 .map(review -> modelMapper.map(review, ReviewDTO.class))
                 .toList();
