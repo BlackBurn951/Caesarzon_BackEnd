@@ -1,6 +1,7 @@
 package org.caesar.userservice.Data.Dao;
 
 import org.caesar.userservice.Data.Entities.Follower;
+import org.caesar.userservice.Dto.FollowerDTO;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

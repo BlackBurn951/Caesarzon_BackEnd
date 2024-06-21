@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.UserService;
-import org.caesar.userservice.Dto.UserDTO;
-import org.caesar.userservice.Dto.UserIdDTO;
-import org.caesar.userservice.Dto.UserRegistrationDTO;
+import org.caesar.userservice.Dto.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -96,10 +94,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username) {
+        try {
+            return userRepository.changePassword(passwordChangeDTO, username);
+        } catch(Exception | Error e) {
+            log.debug("Errore nel cambio della password");
+            return false;
+        }
+    }
+
+
+    @Override
     public boolean banUser(String username, boolean ban) {
         try {
-            if(!ban)
-            return userRepository.banUser(username, ban);
+            if(ban)
+                return userRepository.banUser(username, ban);
+            else
+                return false;
         } catch(Exception | Error e) {
             log.debug("Errore nel ban dell'utente");
             return false;

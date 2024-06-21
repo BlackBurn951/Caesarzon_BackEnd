@@ -1,5 +1,7 @@
 package org.caesar.userservice.Data.Services;
 
+import org.caesar.userservice.Dto.FollowerDTO;
+import org.caesar.userservice.Dto.PasswordChangeDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserRegistrationDTO;
 
@@ -15,4 +17,5 @@ public interface UserService {
     boolean updateUser(UserDTO userData);
     boolean banUser(String username, boolean ban);
     boolean deleteUser(String userId);
+    boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username);
 }

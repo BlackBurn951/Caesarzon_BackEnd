@@ -1,9 +1,7 @@
 package org.caesar.userservice.Data.Dao.KeycloakDAO;
 
 import org.caesar.userservice.Data.Entities.User;
-import org.caesar.userservice.Dto.PhoneNumberDTO;
-import org.caesar.userservice.Dto.UserDTO;
-import org.caesar.userservice.Dto.UserRegistrationDTO;
+import org.caesar.userservice.Dto.*;
 import org.jboss.resteasy.annotations.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
@@ -21,5 +19,7 @@ public interface UserRepository{
     boolean updateUser(UserDTO userDTO);
     boolean banUser(String username, boolean ban);
     boolean deleteUser(String username);
+
+    boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username);
 
 }

@@ -123,7 +123,6 @@ public class UserDataController {
 
 
 
-
     //Metodo di prova, fatto da ciccio, bifano e cesare <3
     //prendere tutti gli utenti
     @GetMapping("/usersByUsername")
@@ -132,4 +131,28 @@ public class UserDataController {
         return (userService.getUsersByUsername(username));
     }  //FIXME deve tornare userSerarch (mantanere per luca)
 
+
+    @PostMapping("/password")
+    public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDTO passwordChangeDTO){
+
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result = userService.changePassword(passwordChangeDTO, username);
+
+        if(result)
+            return new ResponseEntity<>("Password cambiata", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore cambio password", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+//    @PostMapping("/follower")
+//    public ResponseEntity<String> addFollower(@RequestBody FollowerDTO followerDTO){
+//        String username= httpServletRequest.getAttribute("preferred_username").toString();
+//
+//    }
+//
+//    @PutMapping("/follower")
+//    public ResponseEntity<String> addFriend(@RequestBody FollowerDTO followerDTO){
+//
+//    }
 }

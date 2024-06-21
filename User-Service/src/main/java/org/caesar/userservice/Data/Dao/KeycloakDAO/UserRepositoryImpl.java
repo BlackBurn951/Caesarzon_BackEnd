@@ -8,9 +8,7 @@ import org.caesar.userservice.Data.Dao.ProfilePicRepository;
 import org.caesar.userservice.Data.Entities.ProfilePic;
 import org.caesar.userservice.Data.Entities.User;
 
-import org.caesar.userservice.Dto.ProfilePicDTO;
-import org.caesar.userservice.Dto.UserDTO;
-import org.caesar.userservice.Dto.UserRegistrationDTO;
+import org.caesar.userservice.Dto.*;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -268,6 +266,22 @@ public class UserRepositoryImpl implements UserRepository {
         }
 
         return true;
+    }
+
+    @Override
+    public boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username) {
+
+        String userId= findUserByUsername(username).getId();
+        UserResource userResource= keycloak.realm("CaesarRealm").users().get(userId);
+
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setTemporary(false);
+        credential.setValue(passwordChangeDTO.getPassword());
+
+        userResource.resetPassword(credential);
+        return true;
+
     }
 
 

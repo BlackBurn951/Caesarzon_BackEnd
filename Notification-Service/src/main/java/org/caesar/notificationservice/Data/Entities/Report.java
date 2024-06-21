@@ -30,4 +30,7 @@ public class Report {
 
     @Column(name= "codice_segnalazione", unique = true)
     private String reportCode;
+
+    @Column(name = "id_recensione")
+    private UUID reviewID;
 }
