@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -55,11 +56,17 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public List<ReviewDTO> getReviewsByProductId(UUID product) {
-        return reviewRepository.findById(product)
-                .stream()
-                .map(review -> modelMapper.map(review, ReviewDTO.class))
-                .toList();
+    public List<ReviewDTO> getReviewsByProductId(Product product) {
+        List<ReviewDTO> reviewDTOS = new ArrayList<>();
+        for(Review review: reviewRepository.findByproductID(product)){
+            ReviewDTO reviewDTO = modelMapper.map(review, ReviewDTO.class);
+            System.out.println("text: "+review.getText());
+            System.out.println("evaluation: "+review.getEvaluation());
+            System.out.println("userID: "+review.getUserID());
+            System.out.println("productID: "+review.getProductID());
+            reviewDTOS.add(reviewDTO);
+        }
+        return reviewDTOS;
     }
 
 

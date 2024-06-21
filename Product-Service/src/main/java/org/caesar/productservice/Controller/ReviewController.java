@@ -27,7 +27,7 @@ public class ReviewController {
     private final ProductService productService;
     private final RestTemplate restTemplate;
 
-
+    //La post funziona
     @PostMapping("/review")
     public ResponseEntity<String> createReview(@RequestBody ReviewDTO reviewDTO) {
         Product product = new Product();
@@ -42,11 +42,17 @@ public class ReviewController {
         }
     }
 
+    //La get funziona
     @GetMapping("/review")
     public ResponseEntity<List<ReviewDTO>> getReview(@RequestParam String productName) {
         UUID productID = productService.getProductIDByName(productName);
-        List<ReviewDTO> reviewDTOS = reviewService.getReviewsByProductId(productID);
-        if (reviewDTOS != null) {
+        Product product = productService.getProductById(productID);
+        System.out.println("Product ID: " + productID);
+        List<ReviewDTO> reviewDTOS = reviewService.getReviewsByProductId(product);
+        for(ReviewDTO reviewDTO : reviewDTOS) {
+            System.out.println(reviewDTO);
+        }
+        if (!reviewDTOS.isEmpty()) {
             return new ResponseEntity<>(reviewDTOS, HttpStatus.OK);
         }else{
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);

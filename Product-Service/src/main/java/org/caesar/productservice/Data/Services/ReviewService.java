@@ -11,6 +11,6 @@ public interface ReviewService {
 
     UUID addOrUpdateReview(ReviewDTO review, Product product);
     Review getReview(String username);
-    List<ReviewDTO> getReviewsByProductId(UUID product);
+    List<ReviewDTO> getReviewsByProductId(Product product);
     boolean deleteReview(UUID id);
 }
