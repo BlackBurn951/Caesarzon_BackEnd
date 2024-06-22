@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public interface ImageService {
 
-    UUID addOrUpdateImage(ImageDTO image);
+    boolean addOrUpdateImage(UUID productID, byte[] image);
     ImageDTO getImage(UUID id);
     boolean deleteImage(UUID id);
 }
