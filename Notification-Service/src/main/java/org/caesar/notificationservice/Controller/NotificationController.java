@@ -42,6 +42,18 @@ public class NotificationController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @GetMapping("/admin/notifications")
+    public ResponseEntity<List<AdminNotificationDTO>> getAllAdminNotifications() {
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
+
+        List<AdminNotificationDTO> result = adminNotificationService.getAdminNotification(username);
+
+        if (result != null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @PostMapping("/notification/{username}")
     public ResponseEntity<String> createNotification(@PathVariable String username, @RequestBody UserNotificationDTO notificationDTO) {
         if(userNotificationService.addUserNotification(notificationDTO, username))
@@ -56,12 +68,13 @@ public class NotificationController {
 //    }
 
     @DeleteMapping("/notification")
-    public ResponseEntity<String> deleteNotification(@RequestBody NotificationDTO notificationDTO, @RequestParam("user") int isUser) {
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
+    public ResponseEntity<String> deleteNotification(@RequestParam("notify-id") UUID id, @RequestParam("isUser") boolean isUser) {
         boolean result;
-
-        result = isUser==0? userNotificationService.deleteUserNotification(notificationDTO, username): adminNotificationService.deleteAdminNotification(notificationDTO, username);
-
+        if(isUser) {
+            result = userNotificationService.deleteUserNotification(id);
+        }else{
+            result = adminNotificationService.deleteAdminNotification(id);
+        }
         if(result)
             return new ResponseEntity<>("Eliminata", HttpStatus.OK);
         else

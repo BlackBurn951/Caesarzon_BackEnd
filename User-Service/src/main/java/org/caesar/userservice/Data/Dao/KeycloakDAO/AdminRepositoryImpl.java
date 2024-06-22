@@ -2,11 +2,9 @@ package org.caesar.userservice.Data.Dao.KeycloakDAO;
 
 import lombok.RequiredArgsConstructor;
 import org.caesar.userservice.Data.Entities.Admin;
-import org.caesar.userservice.Data.Entities.User;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
-import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -60,7 +58,7 @@ public class AdminRepositoryImpl implements AdminRepository {
         List<UserRepresentation> admins = realmResource.users().list();
 
         // Ottieni il ClientRepresentation per il client "caesar-app"
-        ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").get(0);
+        ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").getFirst();
         String clientId = clientRepresentation.getId();
 
         for (UserRepresentation userRepresentation : admins) {

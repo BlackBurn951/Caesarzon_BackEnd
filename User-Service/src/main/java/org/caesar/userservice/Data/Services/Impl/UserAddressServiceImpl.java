@@ -9,6 +9,7 @@ import org.caesar.userservice.Dto.UserAddressDTO;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.Vector;
 
 import org.springframework.stereotype.Service;
@@ -23,39 +24,23 @@ public class UserAddressServiceImpl implements UserAddressService {
 
 
     @Override
-    public UserAddressDTO getUserAddress(String userUsername, int addressNum) {
+    public UserAddressDTO getUserAddress(UUID id) {
 
-        //Presa della lista degli inidirizzi del singolo utente
-        List<UserAddress> userAddresses = userAddressRepository.findByUserUsername(userUsername);
+        UserAddress userAddress = userAddressRepository.findById(id).orElse(null);
 
-        int count= 0;
-
-        //Scorrimento della lista degli indirizzi ricercando quello in posizione addressNum
-        UserAddressDTO userAddressDTO = null;
-        for(UserAddress userAddress : userAddresses){
-            count+=1;
-            if(count == addressNum){
-                userAddressDTO= modelMapper.map(userAddress, UserAddressDTO.class);
-                break;
-            }
-        }
-
-        return userAddressDTO;
+        return modelMapper.map(userAddress, UserAddressDTO.class);
     }
 
     @Override
-    public List<String> getAddresses(String userUsername) {
-        //Conta degli indirizzi associati all'utente
-        int num= userAddressRepository.countByUserUsername(userUsername);
+    public List<UUID> getAddresses(String userUsername) {
 
-        //Creazione delle stringe da restituire al client
-        List<String> result= new Vector<>();
-        for(int i=0; i<num; i++)
-            result.add("Indirizzo "+ (i+1));
+        List<UserAddress> userAddresses = userAddressRepository.findAllByUserUsername(userUsername);
 
-        //Invio di una stringa vuota nel caso l'utente non abbia indirizzi
-        if (result.isEmpty())
-            result.add("");
+        List<UUID> result = new Vector<>();
+
+        for (UserAddress userAddress : userAddresses) {
+            result.add(userAddress.getId());
+        }
 
         return result;
     }

@@ -37,7 +37,6 @@ public class ReviewServiceImpl implements ReviewService {
             review.setText(reviewDTO.getText());
             review.setEvaluation(reviewDTO.getEvaluation());
             review.setUserID(reviewDTO.getUserID());
-            System.out.println("codice: "+review.getReviewCode());
 
 
             return reviewRepository.save(review).getId();

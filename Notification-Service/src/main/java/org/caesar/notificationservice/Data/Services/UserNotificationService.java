@@ -1,9 +1,9 @@
 package org.caesar.notificationservice.Data.Services;
 
-import org.caesar.notificationservice.Dto.NotificationDTO;
 import org.caesar.notificationservice.Dto.UserNotificationDTO;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface UserNotificationService {
     List<NotificationDTO> getUserNotification(String username);

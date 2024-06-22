@@ -5,13 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Dao.UserNotificationRepository;
 import org.caesar.notificationservice.Data.Entities.UserNotification;
 import org.caesar.notificationservice.Data.Services.UserNotificationService;
-import org.caesar.notificationservice.Dto.NotificationDTO;
 import org.caesar.notificationservice.Dto.UserNotificationDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -68,7 +67,8 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     @Override
     public boolean deleteUserNotification(NotificationDTO notificationDTO, String username){
         try{
-            return userNotificationRepository.deleteByDateAndSubjectAndUserAndReadAndExplanation(LocalDate.parse(notificationDTO.getDate()), notificationDTO.getSubject(), username, notificationDTO.isRead(), notificationDTO.getExplanation());
+            userNotificationRepository.deleteById(id);
+            return true;
         }catch(Exception | Error e){
             log.debug("Errore nell'eliminazione");
             return false;
