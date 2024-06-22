@@ -27,7 +27,12 @@ public class AdminNotification {
     @Column(name= "letta")
     private boolean read;
 
-    @Column(name= "id_segnalazione")
-    private UUID reportId;
+    @OneToOne
+    @JoinColumn(name= "id_segnalazione")
+    private Report report;
+
+    @OneToOne
+    @JoinColumn(name= "id_richiesta")
+    private Support support;
 }
 

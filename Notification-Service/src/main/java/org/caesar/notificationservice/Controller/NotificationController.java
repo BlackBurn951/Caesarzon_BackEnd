@@ -29,12 +29,11 @@ public class NotificationController {
     private final AdminNotificationService adminNotificationService;
 
     //End-point per la gestione delle notifiche
-    @GetMapping("/notifications")
-    public ResponseEntity<List<NotificationDTO>> getAllNotifications(@RequestParam("user") int isUser) {
+    @GetMapping("/user/notifications")
+    public ResponseEntity<List<UserNotificationDTO>> getAllUserNotifications() {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-        List<NotificationDTO> result;
 
-        result= isUser==0? userNotificationService.getUserNotification(username): adminNotificationService.getAdminNotification(username);
+        List<UserNotificationDTO> result= userNotificationService.getUserNotification(username);
 
         if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
@@ -54,18 +53,29 @@ public class NotificationController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PostMapping("/notification/{username}")
-    public ResponseEntity<String> createNotification(@PathVariable String username, @RequestBody UserNotificationDTO notificationDTO) {
-        if(userNotificationService.addUserNotification(notificationDTO, username))
+    @PostMapping("/notification")
+    public ResponseEntity<String> createNotification(@RequestBody UserNotificationDTO notificationDTO) {
+        if(userNotificationService.addUserNotification(notificationDTO))
             return new ResponseEntity<>("Notifica creata con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nella creazione della notifica...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-//    @PutMapping("/notifications")
-//    public ResponseEntity<String> updateNotifications(@RequestBody List<NotificationDTO> notificationDTO) {
-//
-//    }
+    @PutMapping("/user/notifications")
+    public ResponseEntity<String> updateUserNotifications(@RequestBody List<UserNotificationDTO> notificationDTO) {
+        if(userNotificationService.updateUserNotification(notificationDTO))
+            return new ResponseEntity<>("Notifiche aggiornate con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nell'aggiornamento della notifica...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/admin/notifications")
+    public ResponseEntity<String> updateAdminNotifications(@RequestBody List<AdminNotificationDTO> notificationDTO) {
+        if(generalService.updateAdminNotification(notificationDTO))
+            return new ResponseEntity<>("Notifiche aggiornate con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nell'aggiornamento della notifica...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     @DeleteMapping("/notification")
     public ResponseEntity<String> deleteNotification(@RequestParam("notify-id") UUID id, @RequestParam("isUser") boolean isUser) {
@@ -81,6 +91,7 @@ public class NotificationController {
             return new ResponseEntity<>("Errore", HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
+
 
     //End-point per le segnalazioni
     @GetMapping("/report")

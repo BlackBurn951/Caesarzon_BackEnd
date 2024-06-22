@@ -39,6 +39,10 @@ public class GeneralServiceImpl implements GeneralService{
             reportDTO.setReportDate(LocalDate.now());
             reportDTO.setUsernameUser1(username1);
 
+            //Controllo che l'utente che segnala non abbia già segnalato quella stessa recensione
+            if(reportService.findByUsername1AndReviewId(reportDTO.getUsernameUser1(), reportDTO.getReviewId()))
+                return false;
+
             //Aggiungo la segnalazione
             ReportDTO newReportDTO = reportService.addReport(reportDTO);
 
@@ -77,15 +81,15 @@ public class GeneralServiceImpl implements GeneralService{
                 if(admins==null)
                     return false;
 
-                List<AdminNotificationDTO> notifications= new Vector<>();
-                AdminNotificationDTO notify;
+                List<SaveAdminNotificationDTO> notifications= new Vector<>();
+                SaveAdminNotificationDTO notify;
 
                 for(String ad: admins) {
                     notify= new SaveAdminNotificationDTO();
                     notify.setDate(LocalDate.now());
                     notify.setSubject("C'è una nuova segnalazione da parte dell'utente" + username1 );
                     notify.setAdmin(ad);
-                    notify.setReportId(newReportDTO.getId());
+                    notify.setReport(newReportDTO);
                     notify.setRead(false);
 
                     notifications.add(notify);
@@ -101,14 +105,12 @@ public class GeneralServiceImpl implements GeneralService{
     }
 
     @Override
-    @Transactional //TODO COSI FUNZIONA
+    @Transactional
     public boolean addSupportRequest(String username, SupportDTO supportDTO) {
 
         supportDTO.setDateRequest(LocalDate.now());
         supportDTO.setUsername(username);
-        System.out.println("Sono dentro");
         SupportDTO newSupportDTO = supportRequestService.addSupportRequest(supportDTO);
-        System.out.println("Ho salvato la richiesta");
 
         if(newSupportDTO != null) {
             HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
@@ -136,6 +138,7 @@ public class GeneralServiceImpl implements GeneralService{
                 notify.setSubject("C'è una nuova richiesta di supporto dall'utente " + username);
                 notify.setAdmin(ad);
                 notify.setRead(false);
+                notify.setSupport(newSupportDTO);
 
                 notifications.add(notify);
             }

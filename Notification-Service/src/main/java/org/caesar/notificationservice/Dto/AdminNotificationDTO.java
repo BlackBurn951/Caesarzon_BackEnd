@@ -15,5 +15,6 @@ public class AdminNotificationDTO {
     private String admin;
     private boolean read;
     private UUID reportId;
+    private UUID supportId;
 }
 

@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Dao.AdminNotificationRepository;
 import org.caesar.notificationservice.Data.Entities.AdminNotification;
+import org.caesar.notificationservice.Data.Entities.Report;
+import org.caesar.notificationservice.Data.Entities.Support;
 import org.caesar.notificationservice.Data.Services.AdminNotificationService;
 import org.caesar.notificationservice.Dto.*;
 import org.modelmapper.ModelMapper;
@@ -22,7 +24,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     private final ModelMapper modelMapper;
 
     @Override
-    public List<NotificationDTO> getAdminNotification(String username) {
+    public List<AdminNotificationDTO> getAdminNotification(String username) {
         try {
             List<AdminNotification> notifications= adminNotificationRepository.findAllByAdmin(username);
 
@@ -57,7 +59,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     }
 
     @Override
-    public boolean sendNotificationAllAdmin(List<AdminNotificationDTO> notification) {
+    public boolean sendNotificationAllAdmin(List<SaveAdminNotificationDTO> notification) {
         try {
             adminNotificationRepository.saveAll(notification.stream().map(a -> modelMapper.map(a, AdminNotification.class)).toList());
 
@@ -69,7 +71,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     }
 
     @Override
-    public boolean deleteAdminNotification(NotificationDTO notificationDTO, String username){
+    public boolean deleteAdminNotification(UUID id){
         try{
             adminNotificationRepository.deleteById(id);
             return true;

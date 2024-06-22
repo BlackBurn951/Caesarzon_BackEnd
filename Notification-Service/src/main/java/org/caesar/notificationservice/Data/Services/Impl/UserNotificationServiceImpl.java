@@ -21,21 +21,16 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     private final ModelMapper modelMapper;
 
     @Override
-    public List<NotificationDTO> getUserNotification(String username) {
+    public List<UserNotificationDTO> getUserNotification(String username) {
         try {
             List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
 
             if(notifications==null || notifications.isEmpty())
                 return null;
 
-            List<NotificationDTO> notificationsDTO= notifications.stream()
-                    .map(a -> modelMapper.map(a, NotificationDTO.class))
+            return notifications.stream()
+                    .map(a -> modelMapper.map(a, UserNotificationDTO.class))
                     .toList();
-
-            for (NotificationDTO notify: notificationsDTO) {
-                notify.setId(null);
-            }
-            return notificationsDTO;
         } catch (Exception | Error e) {
             log.debug("Errore nella presa delle notifiche");
             return null;
@@ -43,29 +38,31 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     }
 
     @Override
-    public boolean addUserNotification(UserNotificationDTO notificationDTO, String username) {
+    public boolean addUserNotification(UserNotificationDTO notificationDTO) {
         try{
-            UserNotificationDTO userNotificationDTO= modelMapper.map(notificationDTO, UserNotificationDTO.class);
-            userNotificationDTO.setUser(username);
-
-            UserNotification userNotification= userNotificationRepository.findByDateAndSubjectAndUserAndReadAndExplanation(userNotificationDTO.getDate(),
-                    userNotificationDTO.getSubject(), username, userNotificationDTO.isRead(), userNotificationDTO.getExplanation());
-
-            if(userNotification!=null)
-                userNotification.setRead(notificationDTO.isRead());
-
-
-
             userNotificationRepository.save(modelMapper.map(notificationDTO, UserNotification.class));
+
             return true;
         }catch(Exception | Error e){
-           log.debug("Errore nell'inserimento della notifica per l'utent");
+           log.debug("Errore nell'inserimento della notifica per l'utente");
            return false;
         }
     }
 
     @Override
-    public boolean deleteUserNotification(NotificationDTO notificationDTO, String username){
+    public boolean updateUserNotification(List<UserNotificationDTO> notificationDTO) {
+        try{
+            userNotificationRepository.saveAll(notificationDTO.stream().map(a -> modelMapper.map(a, UserNotification.class)).toList());
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean deleteUserNotification(UUID id){
         try{
             userNotificationRepository.deleteById(id);
             return true;
