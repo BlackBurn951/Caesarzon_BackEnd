@@ -7,7 +7,9 @@ import org.caesar.productservice.Data.Dao.AvailabilityRepository;
 import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.AvailabilityService;
+import org.caesar.productservice.Data.Services.ImageService;
 import org.caesar.productservice.Data.Services.ProductService;
+import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.SendProductDTO;
 import org.modelmapper.ModelMapper;
@@ -27,17 +29,24 @@ public class ProductGeneralService implements GeneralService {
     private final AvailabilityService availabilityService;
     private final ModelMapper modelMapper;
     private final AvailabilityRepository availabilityRepository;
+    private final ImageService imageService;
+
 
     @Override
     public boolean addProduct(SendProductDTO sendProductDTO) {
-        System.out.println("Sono nell'add product del general service");
+
         ProductDTO productDTO = modelMapper.map(sendProductDTO, ProductDTO.class);
         Product product = productService.addOrUpdateProduct(productDTO);
-        System.out.println("prodotto: "+product.getName());
-        System.out.println("Dopo avermi salvato");
-        return availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), product);
+        if (product != null) {
+            if(imageService.addOrUpdateImage(product.getId(), sendProductDTO.getImage()))
+                return availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), product);
+            else
+                return false;
+        }
+        return false;
 
     }
+
 
     @Override
     public List<Availability> getAvailabilityByProductID(UUID productID) {
@@ -51,5 +60,6 @@ public class ProductGeneralService implements GeneralService {
         }
         return availabilities;
     }
+
 
 }

@@ -20,6 +20,7 @@ public class SendProductDTO {
     private String primaryColor;
     private String secondaryColor;
     private Boolean is_clothing;
+    private byte[] image;
     private List<AvailabilityDTO> availabilities;
 
     public SendProductDTO() {}
