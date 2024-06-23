@@ -5,6 +5,10 @@ import java.util.Base64;
 public class ImageUtils {
 
     public static String convertByteArrayToBase64(byte[] byteArray) {
+        if (byteArray == null) {
+            System.out.println("Array nullo");
+        }
+        System.out.println("Array: " + byteArray.toString());
         return Base64.getEncoder().encodeToString(byteArray);
     }
 

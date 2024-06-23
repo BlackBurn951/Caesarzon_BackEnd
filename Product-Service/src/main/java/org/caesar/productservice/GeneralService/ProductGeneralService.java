@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.AvailabilityRepository;
 import org.caesar.productservice.Data.Entities.Availability;
+import org.caesar.productservice.Data.Entities.Image;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Data.Services.ImageService;
@@ -17,6 +18,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -70,8 +72,10 @@ public class ProductGeneralService implements GeneralService {
 
         Product product = productService.getProductById(productID);
         List<String> images = new ArrayList<>();
-        for(ImageDTO image: imageService.getAllProductImages(product)){
-            images.add(new String(ImageUtils.convertByteArrayToBase64(image.getImage())));
+        for(Image image: imageService.getAllProductImages(product)){
+            String string = ImageUtils.convertByteArrayToBase64(image.getFile());
+            log.debug("Sono il debug della stringa"+string);
+            images.add(string);
         }
         return images;
     }

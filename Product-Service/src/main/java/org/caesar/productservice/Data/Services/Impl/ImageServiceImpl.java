@@ -58,10 +58,11 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public List<ImageDTO> getAllProductImages(Product product) {
-        List<ImageDTO> productImages = new ArrayList<>();
+    public List<Image> getAllProductImages(Product product) {
+        List<Image> productImages = new ArrayList<>();
         for(Image image : imageRepository.findAll())
-            productImages.add(modelMapper.map(image, ImageDTO.class));
+            if(image.getIdProduct().equals(product))
+                productImages.add(image);
         return productImages;
     }
 
