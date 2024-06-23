@@ -28,6 +28,6 @@ public class Report {
     @Column(name = "username_utente2")
     private String usernameUser2;
 
-    @Column(name= "codice_segnalazione", unique = true)
-    private String reportCode;
+    @Column(name = "id_recensione")
+    private UUID reviewId;
 }

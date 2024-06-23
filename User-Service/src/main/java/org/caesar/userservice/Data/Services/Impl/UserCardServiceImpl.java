@@ -9,7 +9,6 @@ import org.caesar.userservice.Dto.UserCardDTO;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.Vector;
 
 import org.springframework.stereotype.Service;

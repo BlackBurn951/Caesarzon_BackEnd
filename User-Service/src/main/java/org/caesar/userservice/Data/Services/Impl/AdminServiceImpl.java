@@ -1,7 +1,9 @@
 package org.caesar.userservice.Data.Services.Impl;
 import lombok.RequiredArgsConstructor;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.AdminRepository;
+import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Entities.Admin;
+import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.AdminService;
 import org.springframework.stereotype.Service;
 
@@ -21,4 +23,6 @@ public class AdminServiceImpl implements AdminService {
         }
         return admins.stream().map(Admin::getUsername).toList();
     }
+
+
 }

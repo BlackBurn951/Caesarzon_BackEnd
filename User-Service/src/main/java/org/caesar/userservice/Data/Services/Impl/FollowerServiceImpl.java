@@ -32,7 +32,7 @@ public class FollowerServiceImpl implements FollowerService {
         List<Follower> followers;
 
         //Controllo se si vuole prendere i follower o gli amici
-        if(friend)
+        if(!friend)
             followers= followerRepository.findAllByUserUsername1(username1, PageRequest.of(flw, 20));
         else
             followers= followerRepository.findAllByUserUsername1AndFriend(username1, true, PageRequest.of(flw, 20));
@@ -52,16 +52,30 @@ public class FollowerServiceImpl implements FollowerService {
         //Controllo che venga inviato almeno un dato
         if(followers==null || followers.isEmpty())
             return false;
+        List<UserSearchDTO> followz = new Vector<>();
 
         //TODO DA IMPLEMENTARE UPDATE CERCANDO PRIMKA LA TUPLA
+
+        for(UserSearchDTO f: followers) {
+            Follower follower  = followerRepository.findByUserUsername1AndUserUsername2(username1, f.getUsername());
+            if(follower!=null){
+                System.out.println("TROVATO" + f.getUsername());
+                follower.setFriend(f.isFriend());
+                followerRepository.save(follower);
+            }else{
+                System.out.println("NON TROVATO" + f.getUsername());
+                followz.add(f);
+            }
+
+        }
+
         List<Follower> savingFollower= new Vector<>();
 
         FollowerDTO fwl= new FollowerDTO();
 
-        for(UserSearchDTO follower : followers) {
+        for(UserSearchDTO follower : followz) {
             fwl.setUserUsername1(username1);
             fwl.setUserUsername2(follower.getUsername());
-            fwl.setFriend(follower.isFriend());
 
             savingFollower.add(modelMapper.map(fwl, Follower.class));
         }
