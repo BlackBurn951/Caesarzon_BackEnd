@@ -29,7 +29,7 @@ public class ReviewController {
 
     //La post funziona
     @PostMapping("/review")
-    public ResponseEntity<String> createReview(@RequestBody ReviewDTO reviewDTO) {
+    public ResponseEntity<String> addReview(@RequestBody ReviewDTO reviewDTO) {
         Product product = new Product();
         product.setId(productService.getProductIDByName(reviewDTO.getNameProduct()));
 
@@ -60,21 +60,40 @@ public class ReviewController {
     }
 
     @DeleteMapping("/review")
-    public ResponseEntity<ReviewDTO> deleteReview(@RequestParam String username) {
+    public ResponseEntity<ReviewDTO> deleteReview(@RequestParam String username, @RequestParam UUID productID){
 
-        Review review = reviewService.getReview(username);
+        Review review = reviewService.getReview(username, productID);
+        UUID reviewID = review.getId();
         if (review != null) {
             reviewService.deleteReview(review.getId());
-        }
-        ReviewDTO reviewDTO = modelMapper.map(review, ReviewDTO.class);
-        if (reviewDTO != null) {
-            ReviewDTO response = restTemplate.postForObject(
-                    "http://notification-service/notify-api/report",
-                    reviewDTO,
-                    ReviewDTO.class
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+            ResponseEntity<Void> responseEntity = restTemplate.exchange(
+                    "http://notification-service/notify-api/user/report?review_id="+reviewID,
+                    HttpMethod.DELETE,
+                    requestEntity,
+                    Void.class
             );
-            return ResponseEntity.ok(response);
-        } else
-            return ResponseEntity.internalServerError().build();
+
+            if(responseEntity.getStatusCode().is2xxSuccessful()){
+                ReviewDTO reviewDTO = modelMapper.map(responseEntity.getBody(), ReviewDTO.class);
+                return new ResponseEntity<>(reviewDTO, HttpStatus.OK);
+            }
+        }
+        return ResponseEntity.internalServerError().build();
+    }
+
+
+    @DeleteMapping("/admin/review")
+    public ResponseEntity<String> deleteReview(@RequestParam("review_id") UUID review_id) {
+
+        if(review_id == null) {
+            return new ResponseEntity<>("Recensione non trovata", HttpStatus.NOT_FOUND);
+        }else {
+            reviewService.deleteReview(review_id);
+            return new ResponseEntity<>("Recensione trovata e scopata", HttpStatus.OK);
+        }
     }
 }

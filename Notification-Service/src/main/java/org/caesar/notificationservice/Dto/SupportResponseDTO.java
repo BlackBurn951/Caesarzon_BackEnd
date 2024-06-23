@@ -3,9 +3,11 @@ package org.caesar.notificationservice.Dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
-public class AdminResponse {
-    private boolean accept;
+public class SupportResponseDTO {
+    private UUID supportCode;
     private String explain;
 }

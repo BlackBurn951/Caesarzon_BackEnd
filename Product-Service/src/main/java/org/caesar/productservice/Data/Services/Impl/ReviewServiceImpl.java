@@ -3,21 +3,15 @@ package org.caesar.productservice.Data.Services.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ReviewRepository;
-import org.caesar.productservice.Data.Entities.Image;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
 import org.caesar.productservice.Data.Services.ReviewService;
-import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -34,13 +28,15 @@ public class ReviewServiceImpl implements ReviewService {
             return null;
         }
         try {
-
+            System.out.println("Adding review");
             Review review = new Review();
             review.setProductID(product);
             review.setDate(LocalDate.now());
             review.setText(reviewDTO.getText());
             review.setEvaluation(reviewDTO.getEvaluation());
             review.setUserID(reviewDTO.getUserID());
+            System.out.println("codice: "+review.getReviewCode());
+
 
             return reviewRepository.save(review).getId();
 
@@ -51,8 +47,14 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public Review getReview(String username) {
-        return reviewRepository.findByuserID(username);
+    public Review getReviewById(UUID id) {
+        return reviewRepository.findById(id).orElse(null);
+    }
+
+
+    @Override
+    public Review getReview(String username, UUID productID) {
+        return reviewRepository.findByuserIDAndProductID(username, productID);
     }
 
     @Override
@@ -80,4 +82,5 @@ public class ReviewServiceImpl implements ReviewService {
             return false;
         }
     }
+
 }

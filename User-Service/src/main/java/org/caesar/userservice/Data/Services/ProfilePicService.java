@@ -4,6 +4,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface ProfilePicService {
 
-    boolean saveImage(String username, MultipartFile file);
+    boolean saveImage(String username, MultipartFile file, boolean save);
     byte[] getUserImage(String username);
 }

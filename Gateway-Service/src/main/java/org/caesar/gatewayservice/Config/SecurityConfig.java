@@ -52,13 +52,21 @@ public class SecurityConfig {
 
                         .pathMatchers(HttpMethod.GET, "/search-api/search/users").permitAll()
 
-                        .pathMatchers(HttpMethod.POST, "/notify-api/report").permitAll()
                         .pathMatchers(HttpMethod.GET, "/notify-api/report").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/notify-api/report").permitAll()
+                        .pathMatchers(HttpMethod.DELETE, "/notify-api/report").permitAll()
                         .pathMatchers(HttpMethod.GET, "/notify-api/support").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/notify-api/support").permitAll()
+                        .pathMatchers(HttpMethod.DELETE, "/notify-api/support").permitAll()
 
                         .pathMatchers(HttpMethod.POST, "/product-api/product").permitAll()
                         .pathMatchers(HttpMethod.GET, "/product-api/product").permitAll()
                         .pathMatchers(HttpMethod.POST, "/product-api/review").permitAll()
+
+                        .pathMatchers(HttpMethod.GET, "/product-api/review").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/product-api/review").permitAll()
+                        .pathMatchers(HttpMethod.DELETE, "/product-api/review").permitAll()
+                        .pathMatchers(HttpMethod.DELETE, "/product-api/admin/review").permitAll()
 
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

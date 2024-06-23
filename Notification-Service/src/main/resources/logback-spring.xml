@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <root level="info">
+        <appender-ref ref="springLog"/>
+    </root>     <!-- LOGGER ROOT PER GESTIRE IL LOGGING BASE DI SPRING-->
+
+    <!-- LOGGERS-->
+    <logger name="org.caesar.notificationservice.Config" level="debug">
+        <appender-ref ref="debugLog"/>
+    </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
+
+    <logger name="org.caesar.notificationservice.Controller" level="debug">
+        <appender-ref ref="debugLog"/>
+    </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
+
+    <logger name="org.caesar.notificationservice.Data" level="debug">
+        <appender-ref ref="debugLog"/>
+    </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
+
+    <logger name="org.caesar.notificationservice.Dto" level="debug">
+        <appender-ref ref="debugLog"/>
+    </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
+
+    <logger name="org.caesar.notificationservice.Exception" level="debug">
+        <appender-ref ref="debugLog"/>
+    </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
+
+    <logger name="org.caesar.notificationservice.GeneralService" level="debug">
+        <appender-ref ref="debugLog"/>
+    </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
+
+
+    <!-- APPENDERS-->
+    <appender name="springLog" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <Pattern>%d{dd:MM:yyyy} %green(%-5level) %magenta(%logger{36}) - %msg %n</Pattern>
+        </encoder>
+    </appender>     <!-- APPENDER PER SPRING -->
+
+    <appender name="debugLog" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <Pattern>%d{dd:MM:yyyy ss:mm:hh} %yellow(%-5level) %blue(%logger{36}) - %msg %n</Pattern>
+        </encoder>
+    </appender>     <!-- APPENDER PER LIVELLO DEBUG DEL MICROSERVIZIO -->
+
+    <appender name="infoLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>src/main/resources/log-files/info-log.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>User-Service/src/main/resources/log-files/info-log-num-%i-%d{dd-MM-yy}.log</fileNamePattern>
+            <!-- each file should be at most 100MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <append>true</append>
+        <encoder>
+            <Pattern>%d{dd:MM:yyyy ss:mm:hh} %blue(%-5level) %yellow(%logger{36}) - %msg %n</Pattern>
+        </encoder>
+    </appender>     <!-- APPENDER PER LIVELLO INFO DEL MICROSERVIZIO -->
+</configuration>
