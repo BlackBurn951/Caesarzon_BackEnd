@@ -65,6 +65,8 @@ public class ProductController {
             return new ResponseEntity<>(productDTOS, HttpStatus.OK);
     }
 
+
+
     @DeleteMapping("/product")
     public ResponseEntity<String> deleteProductAndAvailabilities(@RequestParam UUID productID) {
         if(generalService.deleteProduct(productID))
