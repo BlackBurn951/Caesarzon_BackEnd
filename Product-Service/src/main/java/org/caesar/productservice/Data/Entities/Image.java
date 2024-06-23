@@ -17,9 +17,10 @@ public class Image {
     private UUID id;
 
     @Column(name= "file")
-    private byte file;
+    private byte[] file;
 
     @ManyToOne
     @JoinColumn(name= "id_prodotto")
     private Product idProduct;
+
 }
