@@ -53,6 +53,22 @@ public class ProductGeneralService implements GeneralService {
 
     }
 
+    @Override
+    public boolean deleteProduct(UUID id) {
+        Product product = productService.getProductById(id);
+        System.out.println("product: " + product.getName());
+        if(product != null){
+            if(imageService.deleteImage(product))
+            {
+                System.out.println("Ho eliminato l'immagine del prodotto");
+                if(availabilityService.deleteAvailabilityByProduct(product))
+                    return productService.deleteProductById(id);
+            }else
+                return false;
+        }
+        return false;
+    }
+
 
     @Override
     public List<Availability> getAvailabilityByProductID(UUID productID) {
@@ -73,7 +89,7 @@ public class ProductGeneralService implements GeneralService {
         Product product = productService.getProductById(productID);
         List<String> images = new ArrayList<>();
         for(Image image: imageService.getAllProductImages(product)){
-            String string = ImageUtils.convertByteArrayToBase64(image.getFile());
+            String string = ImageUtils.convertByteArrayToBase64(image.getFile() );
             log.debug("Sono il debug della stringa"+string);
             images.add(string);
         }
