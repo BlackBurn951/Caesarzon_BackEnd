@@ -10,7 +10,7 @@ public interface GeneralService {
     int addAddress(String userUsername, AddressDTO addressDTO);
     int addCard(String userUsername, CardDTO cardDTO);
 
-    List<UserSearchDTO> getUserSearch(int start);
+    List<UserFindDTO> getUserFind(int start);
     CardDTO getUserCard(String userUsername, String cardName);
     AddressDTO getUserAddress(String addressName, String userUsername);
     List<String> getUserCards(String userUsername);

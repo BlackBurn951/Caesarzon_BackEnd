@@ -9,7 +9,6 @@ import java.util.UUID;
 @Setter
 public class ImageDTO {
 
-    private UUID id;
-    private UUID productId;
-    private String image;
+    private byte[] image;
+    private UUID productID;
 }

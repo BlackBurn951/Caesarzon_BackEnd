@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,16 +24,19 @@ public class ReportServiceImpl implements ReportService {
     private final ModelMapper modelMapper;
 
     @Override
-    public boolean addReport(ReportDTO reportDTO) {
-        reportDTO.setReportCode(generaCodice());
+    public ReportDTO addReport(ReportDTO reportDTO) {
         try {
-            reportRepository.save(modelMapper.map(reportDTO, Report.class));
-
-            return true;
+            Report report= reportRepository.save(modelMapper.map(reportDTO, Report.class));
+            return modelMapper.map(report, ReportDTO.class);
         } catch (Exception | Error e) {
             log.debug("Errore nell'inserimento della segnalazione");
-            return false;
+            return null;
         }
+    }
+
+    @Override
+    public ReportDTO getReport(UUID id) {
+        return modelMapper.map(reportRepository.findById(id), ReportDTO.class);
     }
 
     @Override
@@ -42,9 +46,9 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public boolean deleteReport(ReportDTO reportDTO) {
+    public boolean deleteReport(UUID reviewId) {
         try {
-            reportRepository.deleteByReportCode(reportDTO.getReportCode());
+            reportRepository.deleteByReviewId(reviewId);
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della segnalazione");
@@ -52,14 +56,10 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    private String generaCodice() {
-        String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        SecureRandom RANDOM = new SecureRandom();
-        StringBuilder codice = new StringBuilder(7);
-        for (int i = 0; i < 7; i++) {
-            int index = RANDOM.nextInt(CHARACTERS.length());
-            codice.append(CHARACTERS.charAt(index));
-        }
-        return codice.toString();
+
+    @Override
+    public int countReportForUser(String username, UUID reviewId) {
+        return reportRepository.countByUsernameUser2AndReviewId(username, reviewId);
     }
+
 }

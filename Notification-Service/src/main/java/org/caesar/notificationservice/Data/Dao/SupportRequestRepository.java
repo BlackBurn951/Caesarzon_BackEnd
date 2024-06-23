@@ -8,5 +8,4 @@ import java.util.UUID;
 
 public interface SupportRequestRepository extends JpaRepository<Support, UUID> {
 
-    void deleteBySupportCode(String code);
 }

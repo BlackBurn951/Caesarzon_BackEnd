@@ -28,7 +28,9 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public CardDTO getCard(UUID cardId) {
-        return modelMapper.map(cardRepository.findById(cardId), CardDTO.class);
+        CardDTO cardDTO = modelMapper.map(cardRepository.findById(cardId), CardDTO.class);
+        cardDTO.setId(null);
+        return cardDTO;
     }
 
     @Override

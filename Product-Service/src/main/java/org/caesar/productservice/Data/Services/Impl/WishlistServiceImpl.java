@@ -29,7 +29,6 @@ public class WishlistServiceImpl implements WishlistService {
         }
         try {
             Wishlist wishlistEntity = modelMapper.map(wishlistDTO, Wishlist.class);
-            log.debug("Lista desideri creata");
             return wishlistRepository.save(wishlistEntity).getId();
         }
         catch (RuntimeException | Error e) {
@@ -44,22 +43,21 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    //Restituisce tutte le liste desideri con la visibilità specificata (privata, pubblica, condivisa)
     public List<WishlistDTO> getAllWishlists(String userUsername, String visibility) {
-        return wishlistRepository.findAllByUserUsernameAndVisibility(userUsername, visibility)
-                .stream()
-                .map(wishlist -> modelMapper.map(wishlist, WishlistDTO.class))
-                .toList();
+        //Restituisce una lista di "liste desideri" dell'utente specificato in base alla visibilità richiesta
+            return wishlistRepository.findAllByUserUsernameAndVisibility(userUsername, visibility)
+                           .stream()
+                           .map(wishlist -> modelMapper.map(wishlist, WishlistDTO.class))
+                           .toList();
     }
 
     @Override
     public boolean deleteWishlist(UUID id) {
         try {
             wishlistRepository.deleteById(id);
-            log.debug("Wishlist id: {} cancellata \n", id);
             return true;
         } catch (Exception e) {
-            log.debug("Errore nella cancellazione della lista desideri \n");
+            log.debug("Errore nella cancellazione della lista desideri");
             return false;
         }
     }

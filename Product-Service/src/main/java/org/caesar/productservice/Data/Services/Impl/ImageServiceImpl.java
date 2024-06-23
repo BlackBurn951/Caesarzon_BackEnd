@@ -22,31 +22,42 @@ public class ImageServiceImpl implements ImageService {
     private final ModelMapper modelMapper;
     private final ImageRepository imageRepository;
 
-    @Override
-    public UUID addOrUpdateImage(ImageDTO imageDTO) {
 
-        if(imageDTO.getId() == null){
-            return null;
-        }
+    @Override
+    public boolean addOrUpdateImage(UUID productID, byte[] image) {
+        ImageDTO imageDTO = new ImageDTO();
+        imageDTO.setImage(image);
+        imageDTO.setProductID(productID);
+
         try {
-            Image image = modelMapper.map(imageDTO, Image.class);
-            return imageRepository.save(image).getId();
+            System.out.println("Sono nel try per aggiungere l'immagine");
+            Image myImage = modelMapper.map(imageDTO, Image.class);
+            if(myImage != null) {
+                imageRepository.save(myImage);
+                log.debug("Caricamento immagine riuscito");
+                return true;
+            }else{
+                log.debug("Immagine passata non trovata");
+                return false;
+            }
 
         }catch (RuntimeException | Error e) {
             log.debug("Errore nell'inserimento dell'immagine");
-            return null;
+            return false;
         }
     }
 
     @Override
-    public ImageDTO getImage(UUID id) {
-        return modelMapper.map(imageRepository.findById(id), ImageDTO.class);
+    public ImageDTO getImage(UUID productID) {
+        return modelMapper.map(imageRepository.findImageByidProduct(productID), ImageDTO.class);
     }
 
+
+
     @Override
-    public boolean deleteImage(UUID id) {
+    public boolean deleteImage(UUID productID) {
         try {
-            imageRepository.deleteById(id);
+            imageRepository.deleteImageByidProduct(productID);
             return true;
         } catch (Exception e) {
             log.debug("Errore nella cancellazione della carta");

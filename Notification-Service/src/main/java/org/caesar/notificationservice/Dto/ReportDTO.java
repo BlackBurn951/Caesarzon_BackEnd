@@ -16,7 +16,8 @@ public class ReportDTO {
     private String description;
     private String usernameUser1;
     private String usernameUser2;
-    private String reportCode;
+    private String explain;
+    private UUID reviewId;
 
-    private AdminResponse adminResponse;
+
 }

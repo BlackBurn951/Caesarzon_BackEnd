@@ -1,4 +1,4 @@
-package org.caesar.userservice.Dto;
+package org.caesar.notificationservice.Dto;
 
 import lombok.Getter;
 import lombok.Setter;

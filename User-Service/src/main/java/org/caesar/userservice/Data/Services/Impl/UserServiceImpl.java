@@ -1,22 +1,28 @@
 package org.caesar.userservice.Data.Services.Impl;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
 import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.UserService;
-import org.caesar.userservice.Dto.UserDTO;
-import org.caesar.userservice.Dto.UserIdDTO;
-import org.caesar.userservice.Dto.UserRegistrationDTO;
+import org.caesar.userservice.Dto.*;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Vector;
+import java.time.LocalDate;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +31,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-
+    private final RestTemplate restTemplate;
 
 
     @Override
@@ -38,7 +44,7 @@ public class UserServiceImpl implements UserService {
             return userDTO;
         } catch (Exception | Error e) {
             log.debug("Errore nella presa dei dati dell'utente");
-            return null; // Ritornare un Mono vuoto in caso di eccezione
+            return null;
         }
     }
 
@@ -86,9 +92,73 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean banUser(BanDTO banDTO) {
+        try {
+            if(userRepository.banUser(banDTO.getUserUsername(), true)) {
+                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Authorization", request.getHeader("Authorization"));
+
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("reason", banDTO.getReason());
+                requestBody.put("startDate", String.valueOf(LocalDate.now()));
+                requestBody.put("endDate", null);
+                requestBody.put("userUsername", banDTO.getUserUsername());
+                requestBody.put("adminUsername", banDTO.getAdminUsername());
+
+                HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
+
+
+                return restTemplate.exchange("http://notification-service/notify-api/ban",
+                        HttpMethod.POST,
+                        entity,
+                        String.class).getStatusCode() == HttpStatus.OK;
+            }
+            return false;
+        } catch(Exception | Error e) {
+            log.debug("Errore nel ban dell'utente");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean sbanUser(String username) {
+        try {
+            if(userRepository.banUser(username, false)) {
+                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Authorization", request.getHeader("Authorization"));
+
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+
+                return restTemplate.exchange("http://notification-service/notify-api/ban/" + username,
+                        HttpMethod.PUT,
+                        entity,
+                        String.class).getStatusCode() == HttpStatus.OK;
+            }
+            return false;
+        } catch(Exception | Error e) {
+            log.debug("Errore nel ban dell'utente");
+            return false;
+        }
+    }
+
+    @Override
     public boolean deleteUser(String userUsername) {
         try {
             return userRepository.deleteUser(userUsername);
+        } catch(Exception | Error e) {
+            log.debug("Errore nella cancellazione dell'utente");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username) {
+        try {
+            return userRepository.changePassword(passwordChangeDTO, username);
         } catch(Exception | Error e) {
             log.debug("Errore nella cancellazione dell'utente");
             return false;

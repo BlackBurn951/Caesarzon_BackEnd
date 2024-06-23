@@ -8,9 +8,7 @@ import org.caesar.userservice.Data.Dao.ProfilePicRepository;
 import org.caesar.userservice.Data.Entities.ProfilePic;
 import org.caesar.userservice.Data.Entities.User;
 
-import org.caesar.userservice.Dto.ProfilePicDTO;
-import org.caesar.userservice.Dto.UserDTO;
-import org.caesar.userservice.Dto.UserRegistrationDTO;
+import org.caesar.userservice.Dto.*;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -36,8 +34,6 @@ import java.util.*;
 @Slf4j
 public class UserRepositoryImpl implements UserRepository {
 
-    private final ProfilePicRepository profilePicRepository;
-    private final ModelMapper modelMapper;
     private final Keycloak keycloak;
 
 
@@ -89,7 +85,7 @@ public class UserRepositoryImpl implements UserRepository {
 
         RealmResource realmResource = keycloak.realm("CaesarRealm");
 
-        List<UserRepresentation> users = realmResource.users().list();
+        List<UserRepresentation> users = realmResource.users().list(start, 20);
 
         // Ottieni il ClientRepresentation per il client "caesar-app"
         ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").get(0);
@@ -231,6 +227,29 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     @Transactional
+    public boolean banUser(String username, boolean ban) {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+        log.debug("Nella repository dell'user prima di prendere gli utenti");
+        try {
+            //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
+            User userKeycloak = findUserByUsername(username);
+            UserResource userResource = realmResource.users().get(userKeycloak.getId());
+
+            log.debug("Dopo aver preso l'user");
+            UserRepresentation user = userResource.toRepresentation();
+            user.setEnabled(!ban);
+            log.debug("Disabilitato");
+            userResource.update(user);
+            log.debug("Chiamata effettuata");
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nel ban dell'user");
+            return  false;
+        }
+    }
+
+    @Override
+    @Transactional
     public boolean deleteUser(String username) {
 
         //Presa dell'id dell'utente
@@ -247,6 +266,22 @@ public class UserRepositoryImpl implements UserRepository {
         }
 
         return true;
+    }
+
+    @Override
+    public boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username) {
+
+        String userId= findUserByUsername(username).getId();
+        UserResource userResource= keycloak.realm("CaesarRealm").users().get(userId);
+
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setTemporary(false);
+        credential.setValue(passwordChangeDTO.getPassword());
+
+        userResource.resetPassword(credential);
+        return true;
+
     }
 
 
