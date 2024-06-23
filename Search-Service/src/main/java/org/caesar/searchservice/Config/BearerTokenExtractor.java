@@ -1,4 +1,4 @@
-package org.caesar.userservice.Config;
+package org.caesar.searchservice.Config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

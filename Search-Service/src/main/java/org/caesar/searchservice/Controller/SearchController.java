@@ -1,6 +1,8 @@
 package org.caesar.searchservice.Controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.caesar.searchservice.Data.Services.SearchService;
 import org.caesar.searchservice.Dto.ProductSearchDTO;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +21,8 @@ import java.util.List;
 public class SearchController {
 
     private final RestTemplate restTemplate;
+    private final SearchService searchService;
+    private final HttpServletRequest httpServletRequest;
 
     @GetMapping("/users")
     public List<String> searchUsers(@RequestParam("username") String query) {
@@ -27,6 +31,8 @@ public class SearchController {
 
     @GetMapping("/products")
     public List<ProductSearchDTO> searchProducts(@RequestParam("search") String search) {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
 
+        return searchService.searchProducts(username, search);
     }
 }
