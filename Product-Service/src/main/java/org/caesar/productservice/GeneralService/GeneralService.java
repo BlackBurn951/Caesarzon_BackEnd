@@ -1,7 +1,6 @@
 package org.caesar.productservice.GeneralService;
 
 import org.caesar.productservice.Data.Entities.Availability;
-import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.SendProductDTO;
 
 import java.util.List;
@@ -13,5 +12,6 @@ public interface GeneralService {
     boolean addProduct(SendProductDTO sendProductDTO);
 
     List<Availability> getAvailabilityByProductID(UUID productID);
+    List<String> getAllProductImages(UUID productID);
 
 }

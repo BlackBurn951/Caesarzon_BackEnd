@@ -12,7 +12,7 @@ public interface ReviewService {
 
     UUID addOrUpdateReview(ReviewDTO review, Product product);
     Review getReviewById(UUID id);
-    Review getReview(String username, UUID productID);
+    Review getReview(String username, Product product);
     List<ReviewDTO> getReviewsByProductId(Product product);
     boolean deleteReview(UUID id);
 }
