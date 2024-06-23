@@ -11,5 +11,6 @@ public interface AvailabilityService {
 
     boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, Product product);
     boolean deleteAvailability(UUID id);
+    boolean deleteAvailabilityByProduct(Product product);
     //List<AvailabilityDTO> getAvailabilitiesByProductID(UUID productId);
 }

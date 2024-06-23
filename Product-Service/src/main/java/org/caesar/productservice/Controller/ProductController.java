@@ -64,4 +64,14 @@ public class ProductController {
         else
             return new ResponseEntity<>(productDTOS, HttpStatus.OK);
     }
+
+
+
+    @DeleteMapping("/product")
+    public ResponseEntity<String> deleteProductAndAvailabilities(@RequestParam UUID productID) {
+        if(generalService.deleteProduct(productID))
+            return new ResponseEntity<>("Prodotto eliminato", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Prodotto non eliminato", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

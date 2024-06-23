@@ -5,11 +5,13 @@ import lombok.Setter;
 import org.caesar.productservice.Data.Entities.Product;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class SendProductDTO {
 
+    private UUID productId;
     private String name;
     private String description;
     private String brand;

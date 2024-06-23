@@ -69,9 +69,21 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public boolean deleteImage(Product product) {
+        System.out.println("image product: "+product);
         try {
-            imageRepository.deleteImageByidProduct(product);
-            return true;
+            List<Image> imagesToDelete = new ArrayList<>();
+            for(Image image : imageRepository.findAll()){
+                if(image.getIdProduct().equals(product)) {
+                    imagesToDelete.add(image);
+
+                }
+            }
+            if(!imagesToDelete.isEmpty()){
+                imageRepository.deleteAll(imagesToDelete);
+                return true;
+            }else
+                return false;
+
         } catch (Exception e) {
             log.debug("Errore nella cancellazione della carta");
             return false;

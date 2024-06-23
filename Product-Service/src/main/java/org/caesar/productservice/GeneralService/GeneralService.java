@@ -10,7 +10,7 @@ public interface GeneralService {
 
 
     boolean addProduct(SendProductDTO sendProductDTO);
-
+    boolean deleteProduct(UUID id);
     List<Availability> getAvailabilityByProductID(UUID productID);
     List<String> getAllProductImages(UUID productID);
 
