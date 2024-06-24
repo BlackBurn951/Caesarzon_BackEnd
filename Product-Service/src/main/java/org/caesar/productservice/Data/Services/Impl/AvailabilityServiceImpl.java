@@ -50,10 +50,16 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         }
     }
 
+    @Override
+    public List<Availability> getAll() {
+        return availabilityRepository.findAll();
+    }
 
 
     private boolean checkSize(String size) {
-        List<String> sizes = List.of(new String[]{"XS", "S", "M", "L", "XL", "XXL"});
+        if(size==null)
+            return true;
+        List<String> sizes = List.of(new String[]{"XS", "S", "M", "L", "XL"});
         return sizes.contains(size);
     }
 

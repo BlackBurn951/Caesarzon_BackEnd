@@ -36,6 +36,15 @@ public class ProductController {
             return new ResponseEntity<>("Prodotto non aggiunto", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @PostMapping("/products")
+    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody List<SendProductDTO> sendProductDTO) {
+
+        for(SendProductDTO sendProductDTO1: sendProductDTO){
+            generalService.addProduct(sendProductDTO1);
+        }
+        return new ResponseEntity<>("Prodotti aggiunti correttamente", HttpStatus.OK);
+    }
+
     @GetMapping("/product")
     public ResponseEntity<SendProductDTO> getProductAndAvailabilities(@RequestParam String name) {
         UUID product = productService.getProductIDByName(name);

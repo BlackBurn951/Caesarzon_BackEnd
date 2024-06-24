@@ -8,6 +8,6 @@ import java.util.UUID;
 @Setter
 public class ProductSportDTO {
     private UUID id;
-    private UUID productId;
-    private UUID sportId;
+    private ProductDTO productId;
+    private SportDTO sportID;
 }

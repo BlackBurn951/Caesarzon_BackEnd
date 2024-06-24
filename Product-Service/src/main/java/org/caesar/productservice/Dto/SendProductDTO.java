@@ -1,6 +1,7 @@
 package org.caesar.productservice.Dto;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Entities.Product;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@RequiredArgsConstructor
 public class SendProductDTO {
 
     private String name;
@@ -20,9 +22,9 @@ public class SendProductDTO {
     private String primaryColor;
     private String secondaryColor;
     private Boolean is_clothing;
-    private List<AvailabilityDTO> availabilities;
 
-    public SendProductDTO() {}
+    private List<AvailabilityDTO> availabilities;
+    private List<String> listaSport;
 
     public SendProductDTO(Product product, List<AvailabilityDTO> availabilities) {
         this.name = product.getName();
