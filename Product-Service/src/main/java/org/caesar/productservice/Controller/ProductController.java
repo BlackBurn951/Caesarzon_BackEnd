@@ -5,8 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.AvailabilityDTO;
+import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.SendProductDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
+import org.caesar.productservice.GeneralService.ProductGeneralService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,6 +67,15 @@ public class ProductController {
             return new ResponseEntity<>(productDTOS, HttpStatus.OK);
     }
 
+    @GetMapping("/wishlist")
+    public ResponseEntity<ProductDTO> getProductFromWishlist(@RequestParam UUID productID) {
+        ProductDTO product = modelMapper.map(generalService.getProductFromWishlist(productID), ProductDTO.class);
+        if(product == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        else
+            return new ResponseEntity<>(product, HttpStatus.OK);
+    }
+
 
 
     @DeleteMapping("/product")
@@ -74,4 +85,6 @@ public class ProductController {
         else
             return new ResponseEntity<>("Prodotto non eliminato", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
 }

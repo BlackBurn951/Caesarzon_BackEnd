@@ -8,7 +8,8 @@ import java.util.UUID;
 @Setter
 @Getter
 public class WishlistProductDTO {
+
     private UUID Id;
     private UUID productId;
-    private UUID WishlistProductId;
+    private UUID wishlistId;
 }

@@ -4,11 +4,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.AvailabilityRepository;
-import org.caesar.productservice.Data.Entities.Availability;
-import org.caesar.productservice.Data.Entities.Image;
-import org.caesar.productservice.Data.Entities.Product;
+import org.caesar.productservice.Data.Dao.WishlistRepository;
+import org.caesar.productservice.Data.Entities.*;
 import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Data.Services.ImageService;
+import org.caesar.productservice.Data.Services.Impl.WishlistProductServiceImpl;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
@@ -33,6 +33,8 @@ public class ProductGeneralService implements GeneralService {
     private final ModelMapper modelMapper;
     private final AvailabilityRepository availabilityRepository;
     private final ImageService imageService;
+    private final WishlistRepository wishlistRepository;
+    private final WishlistProductServiceImpl wishlistProductServiceImpl;
 
 
     @Override
@@ -57,15 +59,12 @@ public class ProductGeneralService implements GeneralService {
     public boolean deleteProduct(UUID id) {
         Product product = productService.getProductById(id);
         System.out.println("product: " + product.getName());
-        if(product != null){
-            if(imageService.deleteImage(product))
-            {
-                System.out.println("Ho eliminato l'immagine del prodotto");
-                if(availabilityService.deleteAvailabilityByProduct(product))
-                    return productService.deleteProductById(id);
-            }else
-                return false;
-        }
+        if (imageService.deleteImage(product)) {
+            System.out.println("Ho eliminato l'immagine del prodotto");
+            if (availabilityService.deleteAvailabilityByProduct(product))
+                return productService.deleteProductById(id);
+        } else
+            return false;
         return false;
     }
 
@@ -77,7 +76,6 @@ public class ProductGeneralService implements GeneralService {
         for(Availability availability : availabilityRepository.findAll()) {
             if(availability.getProduct().getId().equals(productID)) {
                 availabilities.add(availability);
-
             }
         }
         return availabilities;
@@ -90,10 +88,27 @@ public class ProductGeneralService implements GeneralService {
         List<String> images = new ArrayList<>();
         for(Image image: imageService.getAllProductImages(product)){
             String string = ImageUtils.convertByteArrayToBase64(image.getFile() );
-            log.debug("Sono il debug della stringa"+string);
             images.add(string);
         }
         return images;
+    }
+
+    @Override
+    public Product getProductFromWishlist(UUID productID) {
+        Product product = productService.getProductById(productID);
+        return productService.getProductById(product.getId());
+    }
+
+    @Override
+    public boolean deleteWishlistAndProducts(UUID wishlistID) {
+        for(Wishlist wishlist : wishlistRepository.findAll()){
+            if(wishlist.getId().equals(wishlistID)) {
+                wishlistProductServiceImpl.deleteAllWishlistProductsByWishlistID(wishlistID);
+                wishlistRepository.delete(wishlist);
+                return true;
+            }
+        }
+        return false;
     }
 
 
