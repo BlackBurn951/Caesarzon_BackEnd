@@ -2,16 +2,16 @@ package org.caesar.productservice.Dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Entities.Product;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class SendProductDTO {
 
+    private UUID productId;
     private String name;
     private String description;
     private String brand;
@@ -20,12 +20,12 @@ public class SendProductDTO {
     private String primaryColor;
     private String secondaryColor;
     private Boolean is_clothing;
-    private byte[] image;
+    private List<String> images;
     private List<AvailabilityDTO> availabilities;
 
     public SendProductDTO() {}
 
-    public SendProductDTO(Product product, List<AvailabilityDTO> availabilities) {
+    public SendProductDTO(Product product, List<AvailabilityDTO> availabilities, List<String> images) {
         this.name = product.getName();
         this.description = product.getDescription();
         this.brand = product.getBrand();
@@ -35,5 +35,6 @@ public class SendProductDTO {
         this.secondaryColor = product.getSecondaryColor();
         this.is_clothing = product.getIs_clothing();
         this.availabilities = availabilities;
+        this.images = images;
     }
 }

@@ -62,7 +62,8 @@ public class ReviewController {
     @DeleteMapping("/review")
     public ResponseEntity<ReviewDTO> deleteReview(@RequestParam String username, @RequestParam UUID productID){
 
-        Review review = reviewService.getReview(username, productID);
+        Product product = productService.getProductById(productID);
+        Review review = reviewService.getReview(username, product);
         UUID reviewID = review.getId();
         if (review != null) {
             reviewService.deleteReview(review.getId());

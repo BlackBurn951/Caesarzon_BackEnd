@@ -27,19 +27,30 @@ public class ProductServiceImpl implements ProductService{
     @Override
     public Product addOrUpdateProduct(ProductDTO sendProductDTO) {
 
-        System.out.println("Sono nell'add or update product del  service");
-
 
         if(!checkDescription(sendProductDTO.getDescription()) || !checkDiscount(sendProductDTO.getDiscount())
         || !checkName(sendProductDTO.getName()) || !checkPrice(sendProductDTO.getPrice())
                 || !checkPrimaryColor(sendProductDTO.getPrimaryColor()) || !checkSecondaryColor(sendProductDTO.getSecondaryColor())) {
-            System.out.println("Prodotto non salvato");
             return null;
         }
 
         try{
-            Product product = modelMapper.map(sendProductDTO, Product.class);
+            Product product = new Product();
+            if(sendProductDTO.getId() != null && productRepository.findById(sendProductDTO.getId()).isPresent())
+            {
+                product.setId(sendProductDTO.getId());
+                product.setDescription(sendProductDTO.getDescription());
+                product.setDiscount(sendProductDTO.getDiscount());
+                product.setName(sendProductDTO.getName());
+                product.setBrand(sendProductDTO.getBrand());
+                product.setIs_clothing(sendProductDTO.getIs_clothing());
+                product.setPrice(sendProductDTO.getPrice());
+                product.setPrimaryColor(sendProductDTO.getPrimaryColor());
+                product.setSecondaryColor(sendProductDTO.getSecondaryColor());
 
+            }else{
+                product = modelMapper.map(sendProductDTO, Product.class);
+            }
             return productRepository.save(product);
 
         }catch (RuntimeException e){
