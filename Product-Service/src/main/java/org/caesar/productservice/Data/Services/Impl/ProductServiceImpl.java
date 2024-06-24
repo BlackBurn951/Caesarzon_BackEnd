@@ -25,31 +25,31 @@ public class ProductServiceImpl implements ProductService{
     private final ProductRepository productRepository;
 
     @Override
-    public Product addOrUpdateProduct(ProductDTO sendProductDTO) {
+    public Product addOrUpdateProduct(ProductDTO productDTO) {
 
 
-        if(!checkDescription(sendProductDTO.getDescription()) || !checkDiscount(sendProductDTO.getDiscount())
-        || !checkName(sendProductDTO.getName()) || !checkPrice(sendProductDTO.getPrice())
-                || !checkPrimaryColor(sendProductDTO.getPrimaryColor()) || !checkSecondaryColor(sendProductDTO.getSecondaryColor())) {
+        if(!checkDescription(productDTO.getDescription()) || !checkDiscount(productDTO.getDiscount())
+        || !checkName(productDTO.getName()) || !checkPrice(productDTO.getPrice())
+                || !checkPrimaryColor(productDTO.getPrimaryColor()) || !checkSecondaryColor(productDTO.getSecondaryColor())) {
             return null;
         }
 
         try{
             Product product = new Product();
-            if(sendProductDTO.getId() != null && productRepository.findById(sendProductDTO.getId()).isPresent())
+            if(productDTO != null && productRepository.findById(productDTO.getId()).isPresent())
             {
-                product.setId(sendProductDTO.getId());
-                product.setDescription(sendProductDTO.getDescription());
-                product.setDiscount(sendProductDTO.getDiscount());
-                product.setName(sendProductDTO.getName());
-                product.setBrand(sendProductDTO.getBrand());
-                product.setIs_clothing(sendProductDTO.getIs_clothing());
-                product.setPrice(sendProductDTO.getPrice());
-                product.setPrimaryColor(sendProductDTO.getPrimaryColor());
-                product.setSecondaryColor(sendProductDTO.getSecondaryColor());
+                product.setId(productDTO.getId());
+                product.setDescription(productDTO.getDescription());
+                product.setDiscount(productDTO.getDiscount());
+                product.setName(productDTO.getName());
+                product.setBrand(productDTO.getBrand());
+                product.setIs_clothing(productDTO.getIs_clothing());
+                product.setPrice(productDTO.getPrice());
+                product.setPrimaryColor(productDTO.getPrimaryColor());
+                product.setSecondaryColor(productDTO.getSecondaryColor());
 
             }else{
-                product = modelMapper.map(sendProductDTO, Product.class);
+                product = modelMapper.map(productDTO, Product.class);
             }
             return productRepository.save(product);
 

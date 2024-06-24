@@ -4,11 +4,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.AvailabilityRepository;
-import org.caesar.productservice.Data.Dao.WishlistRepository;
-import org.caesar.productservice.Data.Entities.*;
+import org.caesar.productservice.Data.Entities.Availability;
+import org.caesar.productservice.Data.Entities.Image;
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Data.Services.ImageService;
-import org.caesar.productservice.Data.Services.Impl.WishlistProductServiceImpl;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
@@ -16,7 +16,9 @@ import org.caesar.productservice.Dto.SendProductDTO;
 import org.caesar.productservice.utils.ImageUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -33,8 +35,6 @@ public class ProductGeneralService implements GeneralService {
     private final ModelMapper modelMapper;
     private final AvailabilityRepository availabilityRepository;
     private final ImageService imageService;
-    private final WishlistRepository wishlistRepository;
-    private final WishlistProductServiceImpl wishlistProductServiceImpl;
 
 
     @Override
@@ -42,14 +42,12 @@ public class ProductGeneralService implements GeneralService {
 
         ProductDTO productDTO = modelMapper.map(sendProductDTO, ProductDTO.class);
         Product product = productService.addOrUpdateProduct(productDTO);
-        for(String sendImageDTO : sendProductDTO.getImages()){
-            System.out.println("sendImageDTO: " + sendImageDTO);
-        }
         if (product != null) {
-            if(imageService.addOrUpdateImage(product, sendProductDTO.getImages()))
-                return availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), product);
-            else
-                return false;
+            for(int i = 0; i< sendProductDTO.getImages().size(); i++){
+                if(!imageService.addOrUpdateImage(product,  sendProductDTO.getImages().get(i)))
+                    return false;
+            }
+            return availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), product);
         }
         return false;
 
@@ -58,57 +56,53 @@ public class ProductGeneralService implements GeneralService {
     @Override
     public boolean deleteProduct(UUID id) {
         Product product = productService.getProductById(id);
-        System.out.println("product: " + product.getName());
-        if (imageService.deleteImage(product)) {
-            System.out.println("Ho eliminato l'immagine del prodotto");
-            if (availabilityService.deleteAvailabilityByProduct(product))
-                return productService.deleteProductById(id);
-        } else
-            return false;
+        if(product != null){
+            if(imageService.deleteImage(product))
+            {
+
+                if(availabilityService.deleteAvailabilityByProduct(product))
+                    return productService.deleteProductById(id);
+            }else
+                return false;
+        }
         return false;
+    }
+
+    @Override
+    public List<ImageDTO> getProductImages(UUID id) {
+        Product product = productService.getProductById(id);
+        List<ImageDTO> images = new ArrayList<>();
+        for(Image image: imageService.getAllProductImages(product)){
+            if(image.getIdProduct().equals(product)){
+                ImageDTO imageDTO = modelMapper.map(image, ImageDTO.class);
+                images.add(imageDTO);
+            }
+        }
+        return images;
     }
 
 
     @Override
     public List<Availability> getAvailabilityByProductID(UUID productID) {
         List<Availability> availabilities = new ArrayList<>();
-        System.out.println("Sono in getAvailabilityByProductID");
         for(Availability availability : availabilityRepository.findAll()) {
             if(availability.getProduct().getId().equals(productID)) {
                 availabilities.add(availability);
+
             }
         }
         return availabilities;
     }
 
     @Override
-    public List<String> getAllProductImages(UUID productID) {
+    public List<ImageDTO> getAllProductImages(UUID productID) {
 
-        Product product = productService.getProductById(productID);
-        List<String> images = new ArrayList<>();
+       Product product = productService.getProductById(productID);
+        List<ImageDTO> images = new ArrayList<>();
         for(Image image: imageService.getAllProductImages(product)){
-            String string = ImageUtils.convertByteArrayToBase64(image.getFile() );
-            images.add(string);
+            images.add(modelMapper.map(image, ImageDTO.class));
         }
         return images;
-    }
-
-    @Override
-    public Product getProductFromWishlist(UUID productID) {
-        Product product = productService.getProductById(productID);
-        return productService.getProductById(product.getId());
-    }
-
-    @Override
-    public boolean deleteWishlistAndProducts(UUID wishlistID) {
-        for(Wishlist wishlist : wishlistRepository.findAll()){
-            if(wishlist.getId().equals(wishlistID)) {
-                wishlistProductServiceImpl.deleteAllWishlistProductsByWishlistID(wishlistID);
-                wishlistRepository.delete(wishlist);
-                return true;
-            }
-        }
-        return false;
     }
 
 
