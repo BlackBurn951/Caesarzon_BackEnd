@@ -79,7 +79,7 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    public List<Product> searchProducts(@RequestParam String query) {
+    public List<Product> searchProducts(@RequestParam("query") String query) {
         return productService.searchProducts(query);
     }
 

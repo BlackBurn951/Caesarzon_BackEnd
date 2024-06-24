@@ -7,6 +7,7 @@ import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.SendProductDTO;
+//import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -28,7 +30,7 @@ public class ProductServiceImpl implements ProductService{
     private final ProductRepository productRepository;
 
     @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     @Override
     public Product addOrUpdateProduct(ProductDTO sendProductDTO) {
@@ -142,13 +144,24 @@ public class ProductServiceImpl implements ProductService{
 
 
     public List<Product> searchProducts(String searchText) {
-        return Search.session(entityManager)
-                .search(Product.class)
-                .where(f -> f.match()
-                        .fields("name", "description", "brand", "primaryColor", "secondaryColor")
-                        .matching(searchText)
-                        .fuzzy(5))  // permette fino a 5 errori di battitura
-                .fetchHits(20);
+        try {
+            System.out.println("Searching for: " + searchText);
+            List<Product> results = Search.session(entityManager)
+                    .search(Product.class)
+                    .where(f -> f.match()
+                            .fields("name", "description", "brand", "primaryColor", "secondaryColor")
+                            .matching(searchText)
+                            .fuzzy(2))
+                    .fetchHits(20);
+
+            System.out.println("Search results: " + results.size());
+            return results;
+
+        } catch (Exception e) {
+            log.error("Error while searching for products", e);
+            return Collections.emptyList(); // oppure gestisci l'errore a seconda delle tue esigenze
+        }
     }
+
 
 }
