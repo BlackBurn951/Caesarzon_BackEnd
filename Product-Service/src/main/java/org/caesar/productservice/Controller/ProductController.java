@@ -2,11 +2,15 @@ package org.caesar.productservice.Controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.productservice.Data.Dao.SportRepository;
 import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Entities.Product;
+import org.caesar.productservice.Data.Entities.Sport;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.AvailabilityDTO;
+import org.caesar.productservice.Dto.GeneralDTO;
 import org.caesar.productservice.Dto.SendProductDTO;
+import org.caesar.productservice.Dto.SportDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -26,6 +30,8 @@ public class ProductController {
     private final ModelMapper modelMapper;
     private final ProductService productService;
     private final GeneralService generalService;
+    private final SportRepository sportRepository;
+    private final ModelMapper model;
 
     @PostMapping("/product")
     public ResponseEntity<String> addProductAndAvailabilities(@RequestBody SendProductDTO sendProductDTO) {
@@ -77,4 +83,9 @@ public class ProductController {
         return productService.searchProducts(query);
     }
 
+
+    @PostMapping("/add")
+    public void addProduct(@RequestBody SportDTO generalDTO) {
+        sportRepository.save(model.map(generalDTO, Sport.class));
+    }
 }

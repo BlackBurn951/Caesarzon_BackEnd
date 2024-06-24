@@ -7,8 +7,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class SportDTO {
-
+public class GeneralDTO {
     private UUID id;
     private String name;
 }

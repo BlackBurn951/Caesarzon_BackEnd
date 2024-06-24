@@ -7,6 +7,7 @@ import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Dto.AvailabilityDTO;
+import org.caesar.productservice.Dto.ProductDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -22,14 +23,14 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
 
     @Override
-    public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, Product product) {
+    public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, ProductDTO product) {
         if (availabilities.isEmpty()) {
             return false;
         }
         for (AvailabilityDTO availability : availabilities) {
             if(checkQuantity(availability.getAmount()) && checkSize(availability.getSize())) {
                 Availability myAvailability = modelMapper.map(availability, Availability.class);
-                myAvailability.setProduct(product);
+                myAvailability.setProduct(modelMapper.map(product, Product.class));
                 availabilityRepository.save(myAvailability);
             }
         }
