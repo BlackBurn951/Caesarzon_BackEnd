@@ -12,7 +12,7 @@ import java.util.UUID;
 public class UserNotificationDTO {
     private UUID id;
     private LocalDate date;
-    private String description;
+    private String subject;
     private String user;
     private boolean read;
     private String explanation;

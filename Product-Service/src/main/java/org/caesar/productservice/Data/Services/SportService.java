@@ -9,5 +9,7 @@ import java.util.UUID;
 public interface SportService {
 
     UUID getSportID(SportDTO sport);
-    List<SportDTO> getSportDTObySportName(String sportName);
+    SportDTO getSportDTObySportName(String sportName);
+    List<SportDTO> getAllSports();
+
 }

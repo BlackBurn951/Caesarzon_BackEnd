@@ -1,6 +1,7 @@
 package org.caesar.productservice.Dto;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.caesar.productservice.Data.Entities.Image;
 import org.caesar.productservice.Data.Entities.Product;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@RequiredArgsConstructor
 public class SendProductDTO {
 
     private UUID productId;
@@ -22,10 +24,8 @@ public class SendProductDTO {
     private String primaryColor;
     private String secondaryColor;
     private Boolean is_clothing;
-    private List<MultipartFile> images;
     private List<AvailabilityDTO> availabilities;
-
-    public SendProductDTO() {}
+    private List<String> listaSport;
 
     public SendProductDTO(Product product, List<AvailabilityDTO> availabilities, List<MultipartFile> images) {
         this.name = product.getName();

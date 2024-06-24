@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/user-api")
@@ -21,8 +22,8 @@ public class CardController {
     private final HttpServletRequest httpServletRequest;
 
     //End-point per prendere il numero di carte associate all'utente
-    @GetMapping("/cards-names")
-    public List<String> getCardsNames() {
+    @GetMapping("/cards")
+    public List<UUID> getCards() {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
@@ -31,11 +32,9 @@ public class CardController {
 
 
     @GetMapping("/card")
-    public ResponseEntity<CardDTO> getCardData(@RequestParam("nameLista") String cardName) {
-        //Prendendo l'username dell'utente che ha fatto la chiamata
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
+    public ResponseEntity<CardDTO> getCardData(@RequestParam("card_id") UUID id) {
 
-        CardDTO cardDTO = generalService.getUserCard(username, cardName);
+        CardDTO cardDTO = generalService.getUserCard(id);
 
         if(cardDTO!=null)
             return new ResponseEntity<>(cardDTO, HttpStatus.OK);
@@ -58,12 +57,8 @@ public class CardController {
     }
 
     @DeleteMapping("/card")
-    public ResponseEntity<String> deleteCard(@RequestParam("crd") String cardName) {
-        //Prendendo l'username dell'utente che ha fatto la chiamata
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
-
-        boolean result= generalService.deleteUserCard(username, cardName);
-
+    public ResponseEntity<String> deleteCard(@RequestParam("card_id") UUID id) {
+        boolean result= generalService.deleteUserCard(id);
         if(result)
             return new ResponseEntity<>("Carta eliminata", HttpStatus.OK);
         else

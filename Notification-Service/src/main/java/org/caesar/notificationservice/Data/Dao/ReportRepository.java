@@ -13,6 +13,11 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
 
     @Query("SELECT COUNT(*) FROM segnala as s WHERE s.username_utente2 = :username AND s.id_recensione != :reviewId")
     int countByUsernameUser2AndReviewId(@Param("username") String username, @Param("reviewId") UUID reviewId);
+
     void deleteByReviewId(UUID id);
+
+    Report findByReviewId(UUID id);
+
+    Report findByUsernameUser1AndReviewId(String usernameUser1, UUID reviewId);
 
 }

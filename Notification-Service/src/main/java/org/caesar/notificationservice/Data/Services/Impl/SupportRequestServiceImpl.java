@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -32,6 +33,9 @@ public class SupportRequestServiceImpl implements SupportRequestService {
 
     @Override
     public SupportDTO getSupport(UUID id) {
+        Support support = supportRequestRepository.findById(id).orElse(null);
+        assert support != null;
+        System.out.println("sono nella get del support: " + support.getId());
         return modelMapper.map(supportRequestRepository.findById(id), SupportDTO.class);
     }
 

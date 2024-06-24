@@ -23,7 +23,7 @@ public class SportServiceImpl implements SportService {
     @Override
     public UUID getSportID(SportDTO sportDTO) {
 
-        if (sportDTO.getSportID() != null) {
+        if (sportDTO.getId() != null) {
             return null;
         }
         Sport sport = modelMapper.map(sportDTO, Sport.class);
@@ -31,10 +31,12 @@ public class SportServiceImpl implements SportService {
     }
 
     @Override
-    public List<SportDTO> getSportDTObySportName(String sportName) {
-        return sportRepository.findByName(sportName)
-                .stream()
-                .map(sport -> modelMapper.map(sport, SportDTO.class))
-                .toList();
+    public SportDTO getSportDTObySportName(String sportName) {
+        return modelMapper.map(sportRepository.findByName(sportName), SportDTO.class);
+    }
+
+    @Override
+    public List<SportDTO> getAllSports() {
+        return sportRepository.findAll().stream().map(a -> modelMapper.map(a, SportDTO.class)).toList();
     }
 }
