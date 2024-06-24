@@ -3,6 +3,7 @@ package org.caesar.userservice.GeneralService;
 import org.caesar.userservice.Dto.*;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface GeneralService {
 
@@ -11,13 +12,13 @@ public interface GeneralService {
     int addCard(String userUsername, CardDTO cardDTO);
 
     List<UserFindDTO> getUserFind(int start);
-    CardDTO getUserCard(String userUsername, String cardName);
-    AddressDTO getUserAddress(String addressName, String userUsername);
-    List<String> getUserCards(String userUsername);
-    List<String> getUserAddresses(String userUsername);
+    CardDTO getUserCard(UUID id);
+    AddressDTO getUserAddress(UUID id);
+    List<UUID> getUserCards(String userUsername);
+    List<UUID> getUserAddresses(String userUsername);
     List<UserSearchDTO> getFollowersOrFriend(String username, int fwl, boolean friend);
 
     boolean deleteUser(String username);
-    boolean deleteUserAddress(String userUsername, String addressName);
-    boolean deleteUserCard(String userUsername, String cardName);
+    boolean deleteUserAddress(UUID id);
+    boolean deleteUserCard(UUID id);
 }

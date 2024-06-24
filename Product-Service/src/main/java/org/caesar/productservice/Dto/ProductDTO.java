@@ -35,4 +35,5 @@ public class ProductDTO {
         this.availabilities = availabilities;
         this.images = images;
     }
+
 }

@@ -11,7 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,6 +39,11 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
+    public ReportDTO getReportByReviewId(UUID id) {
+        return modelMapper.map(reportRepository.findByReviewId(id), ReportDTO.class);
+    }
+
+    @Override
     public List<ReportDTO> getAllReports(int num) {
         Page<Report> result = reportRepository.findAll(PageRequest.of(num, 20));
         return result.stream().map(a -> modelMapper.map(a, ReportDTO.class)).toList();
@@ -60,6 +64,11 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public int countReportForUser(String username, UUID reviewId) {
         return reportRepository.countByUsernameUser2AndReviewId(username, reviewId);
+    }
+
+    @Override
+    public boolean findByUsername1AndReviewId(String username, UUID reviewId) {
+        return reportRepository.findByUsernameUser1AndReviewId(username, reviewId) != null;
     }
 
 }

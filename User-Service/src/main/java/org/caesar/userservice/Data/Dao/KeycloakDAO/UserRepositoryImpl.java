@@ -4,8 +4,6 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.userservice.Data.Dao.ProfilePicRepository;
-import org.caesar.userservice.Data.Entities.ProfilePic;
 import org.caesar.userservice.Data.Entities.User;
 
 import org.caesar.userservice.Dto.*;
@@ -18,15 +16,8 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.modelmapper.ModelMapper;
 
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.*;
 
 @Component
@@ -88,7 +79,7 @@ public class UserRepositoryImpl implements UserRepository {
         List<UserRepresentation> users = realmResource.users().list(start, 20);
 
         // Ottieni il ClientRepresentation per il client "caesar-app"
-        ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").get(0);
+        ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").getFirst();
         String clientId = clientRepresentation.getId();
 
         for (UserRepresentation userRepresentation : users) {
@@ -313,7 +304,7 @@ public class UserRepositoryImpl implements UserRepository {
 
             //Verifica ed eventuale aggiunta del campo inerente al numero di telefono
             if (usersResource.getFirst().getAttributes() != null)
-                user.setPhoneNumber(usersResource.getFirst().getAttributes().get("phoneNumber").get(0));
+                user.setPhoneNumber(usersResource.getFirst().getAttributes().get("phoneNumber").getFirst());
 
             return user;
         } catch (Exception | Error e) {

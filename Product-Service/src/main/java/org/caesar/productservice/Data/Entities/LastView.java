@@ -4,23 +4,23 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
+@Table(name= "ultimi_visti")
 @Getter
 @Setter
-@Table(name = "prodotto_sport")
-public class SportProduct {
+public class LastView {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name= "id_prodotto")
-    private Product productId;
+    @Column(name = "id_prodotto")
+    @OneToMany
+    private List<Product> idProduct;
 
-    @ManyToOne
-    @JoinColumn(name= "id_sport")
-    private Sport sportID;
+    @Column(name = "username")
+    private String username;
 }

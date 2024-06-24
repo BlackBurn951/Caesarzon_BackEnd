@@ -1,15 +1,15 @@
 package org.caesar.userservice.Data.Services;
 
 import org.caesar.userservice.Dto.UserAddressDTO;
-import org.caesar.userservice.Dto.UserCardDTO;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface UserAddressService {
 
     boolean addUserAddreses(UserAddressDTO userAddress);
-    UserAddressDTO getUserAddress(String userId, int addressNum);
-    List<String> getAddresses(String userUsername);
+    UserAddressDTO getUserAddress(UUID id);
+    List<UUID> getAddresses(String userUsername);
     List<UserAddressDTO> getUserAddresses(String userUsername);
     boolean deleteUserAddress(UserAddressDTO userAddressDTO);
     boolean deleteUserAddresses(String userUsername);

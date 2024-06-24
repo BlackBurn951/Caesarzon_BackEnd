@@ -9,6 +9,6 @@ import java.util.UUID;
 @Setter
 public class SportDTO {
 
-    private UUID sportID;
-    private String sportName;
+    private UUID id;
+    private String name;
 }

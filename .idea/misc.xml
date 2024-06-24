@@ -20,6 +20,7 @@
       <set>
         <option value="$PROJECT_DIR$/Auth-Service/pom.xml" />
         <option value="$PROJECT_DIR$/Config-Service/Discovery-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Search-Service/pom.xml" />
       </set>
     </option>
   </component>
