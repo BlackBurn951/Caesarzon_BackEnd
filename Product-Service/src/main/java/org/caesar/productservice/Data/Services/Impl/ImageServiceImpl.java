@@ -1,5 +1,6 @@
 package org.caesar.productservice.Data.Services.Impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ImageRepository;
@@ -10,9 +11,13 @@ import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.utils.ImageUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.apache.logging.log4j.ThreadContext.isEmpty;
 
 @Service
 @RequiredArgsConstructor
@@ -22,30 +27,25 @@ public class ImageServiceImpl implements ImageService {
     private final ModelMapper modelMapper;
     private final ImageRepository imageRepository;
 
-
+    //fare modifica dell'immagine con eventuale eliminazione delle singole immagini
     @Override
-    public boolean addOrUpdateImage(Product product, List<String> sendImagesDTO) {
+    public boolean addOrUpdateImage(Product product, MultipartFile file) {
 
-        if(sendImagesDTO == null || sendImagesDTO.isEmpty()){
-            log.debug("sendImagesDTO is null or empty");
+        if(file == null || file.isEmpty()){
             return false;
         }
 
         try {
-            for(String sendImageDTO : sendImagesDTO) {
-                byte[] imagebytes = ImageUtils.convertBase64ToByteArray(sendImageDTO);
-                ImageDTO imageDTO = new ImageDTO();
-                imageDTO.setImage(imagebytes);
-                imageDTO.setIdProduct(product);
-                Image myImage = new Image();
-                myImage.setFile(imageDTO.getImage());
-                myImage.setIdProduct(product);
-                imageRepository.save(myImage);
+                Image imageEntity = new Image();
 
-            }
+                imageEntity.setFile(file.getBytes());
+                imageEntity.setIdProduct(product);
+
+                imageRepository.save(imageEntity);
+
             return true;
 
-        }catch (RuntimeException | Error e) {
+        }catch (RuntimeException | Error | IOException e) {
             log.debug("Errore nell'inserimento dell'immagine");
             return false;
         }
@@ -54,7 +54,12 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public ImageDTO getImage(Product product) {
 
-        return modelMapper.map(imageRepository.findImageByidProduct(product), ImageDTO.class);
+        Image image = imageRepository.findImageByIdProduct(product);
+        if(image == null){
+            return null;
+        }
+        ImageDTO imageDTO = modelMapper.map(image, ImageDTO.class);
+        return imageDTO;
     }
 
     @Override
@@ -68,6 +73,7 @@ public class ImageServiceImpl implements ImageService {
 
 
     @Override
+    @Transactional
     public boolean deleteImage(Product product) {
         System.out.println("image product: "+product);
         try {

@@ -11,5 +11,5 @@ import java.util.UUID;
 @Repository
 public interface ImageRepository extends JpaRepository<Image, UUID> {
 
-    ImageDTO findImageByidProduct(Product productID);
+    Image findImageByIdProduct(Product productID);
 }

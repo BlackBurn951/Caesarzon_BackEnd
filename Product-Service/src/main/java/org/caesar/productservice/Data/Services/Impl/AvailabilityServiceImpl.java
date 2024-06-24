@@ -20,7 +20,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private final ModelMapper modelMapper;
     private final AvailabilityRepository availabilityRepository;
 
-
+    //fare la modifica delle disponibilità e eventuale eliminazione
     @Override
     public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, Product product) {
         if (availabilities.isEmpty()) {
