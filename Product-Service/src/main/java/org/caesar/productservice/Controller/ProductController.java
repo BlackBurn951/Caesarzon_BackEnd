@@ -62,4 +62,10 @@ public class ProductController {
         else
             return new ResponseEntity<>(productDTOS, HttpStatus.OK);
     }
+
+    @GetMapping("/search")
+    public List<Product> searchProducts(@RequestParam String query) {
+        return productService.searchProducts(query);
+    }
+
 }

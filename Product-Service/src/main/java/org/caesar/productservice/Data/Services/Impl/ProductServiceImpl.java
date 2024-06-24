@@ -7,8 +7,11 @@ import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.SendProductDTO;
+import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +26,9 @@ public class ProductServiceImpl implements ProductService{
 
     private final ModelMapper modelMapper;
     private final ProductRepository productRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public Product addOrUpdateProduct(ProductDTO sendProductDTO) {
@@ -116,7 +122,7 @@ public class ProductServiceImpl implements ProductService{
 
     private boolean checkPrice(Double price)
     {   if(price < 0)
-        log.debug("Price non salvato");
+            log.debug("Price non salvato");
         return price>0;
     }
 
@@ -130,6 +136,19 @@ public class ProductServiceImpl implements ProductService{
         if(color == null || color.isEmpty())
             log.debug("coloreS non salvato");
         return !color.isEmpty() && color.length()<50;
+    }
+
+
+
+
+    public List<Product> searchProducts(String searchText) {
+        return Search.session(entityManager)
+                .search(Product.class)
+                .where(f -> f.match()
+                        .fields("name", "description", "brand", "primaryColor", "secondaryColor")
+                        .matching(searchText)
+                        .fuzzy(5))  // permette fino a 5 errori di battitura
+                .fetchHits(20);
     }
 
 }
