@@ -38,7 +38,7 @@ public class ProductController {
     private final ModelMapper model;
 
     @PostMapping("/product")
-    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody SendProductDTO sendProductDTO) throws IOException {
+    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody SendProductDTO sendProductDTO) {
 
         if(generalService.addProduct(sendProductDTO))
             return new ResponseEntity<>("Product aggiunto", HttpStatus.OK);
@@ -102,10 +102,12 @@ public class ProductController {
 
     @DeleteMapping("/product")
     public ResponseEntity<String> deleteProductAndAvailabilities(@RequestParam UUID productID) {
-        if(generalService.deleteProduct(productID))
+        if (generalService.deleteProduct(productID))
             return new ResponseEntity<>("Prodotto eliminato", HttpStatus.OK);
         else
             return new ResponseEntity<>("Prodotto non eliminato", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @GetMapping("/search")
     public List<Product> searchProducts(@RequestParam("query") String query) {
         return productService.searchProducts(query);

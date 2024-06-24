@@ -11,6 +11,7 @@ import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Data.Services.SportProductService;
 import org.caesar.productservice.Data.Services.SportService;
+import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.SendProductDTO;
 import org.caesar.productservice.Dto.SportDTO;
@@ -79,6 +80,16 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
+    public boolean deleteProduct(UUID id) {
+        return false;
+    }
+
+    @Override
+    public List<ImageDTO> getProductImages(UUID id) {
+        return List.of();
+    }
+
+    @Override
     public List<Availability> getAvailabilityByProductID(UUID productID) {
         List<Availability> availabilities = new ArrayList<>();
         System.out.println("Sono in getAvailabilityByProductID");
@@ -89,6 +100,11 @@ public class GeneralServiceImpl implements GeneralService {
             }
         }
         return availabilities;
+    }
+
+    @Override
+    public List<ImageDTO> getAllProductImages(UUID productID) {
+        return List.of();
     }
 
 }
