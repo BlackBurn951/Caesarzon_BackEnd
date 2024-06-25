@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 
@@ -35,6 +36,7 @@ public class Product {
     @Column(name = "sconto")
     private int discount;
 
+    @GenericField
     @Column(name = "prezzo")
     private double price;
 
@@ -46,6 +48,11 @@ public class Product {
     @Column(name = "colore_secondario")
     private String secondaryColor;
 
+    @GenericField
     @Column(name = "e_abbigliamento")
     private Boolean is_clothing;
+
+    @FullTextField
+    @Column(name = "sport")
+    private String sport;
 }

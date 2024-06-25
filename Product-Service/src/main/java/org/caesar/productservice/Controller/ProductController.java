@@ -29,7 +29,7 @@ public class ProductController {
     private final ModelMapper modelMapper;
     private final ProductService productService;
     private final GeneralService generalService;
-    private final SportRepository sportRepository;
+    private final ProductRepository productRepository;
     private final ModelMapper model;
 
     @PostMapping("/product")
