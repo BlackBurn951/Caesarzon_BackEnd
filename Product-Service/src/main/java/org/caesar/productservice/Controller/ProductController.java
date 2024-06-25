@@ -41,19 +41,18 @@ public class ProductController {
     }
 
 
-    @GetMapping("/product")
-    public ResponseEntity<ProductDTO> getProductAndAvailabilitiesAndImages(@RequestParam String name) {
-        UUID product = productService.getProductIDByName(name);
+    @GetMapping("/product/{id}")
+    public ResponseEntity<ProductDTO> getProductAndAvailabilitiesAndImages(@PathVariable UUID id) {
+        Product product = productService.getProductById(id);
         if(product != null) {
-            List<Availability> availabilities = generalService.getAvailabilityByProductID(product);
-            List<ImageDTO> images = generalService.getAllProductImages(product);
+            List<Availability> availabilities = generalService.getAvailabilityByProductID(product.getId());
             List<AvailabilityDTO> availabilityDTOS = new ArrayList<>();
             for(Availability availability : availabilities) {
                 availabilityDTOS.add(modelMapper.map(availability, AvailabilityDTO.class));
             }
 
-            ProductDTO finalProduct = new ProductDTO();
-            // = new ProductDTO(productService.getProductById(product), availabilityDTOS, images);
+            ProductDTO finalProduct = new ProductDTO(product, availabilityDTOS);
+
 
             return new ResponseEntity<>(finalProduct, HttpStatus.OK);
         }
