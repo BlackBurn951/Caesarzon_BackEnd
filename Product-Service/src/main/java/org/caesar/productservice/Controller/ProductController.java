@@ -2,13 +2,17 @@ package org.caesar.productservice.Controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.productservice.Data.Dao.SportRepository;
 import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Entities.Product;
+import org.caesar.productservice.Data.Entities.Sport;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.AvailabilityDTO;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
+import org.caesar.productservice.Dto.GeneralDTO;
 import org.caesar.productservice.Dto.SendProductDTO;
+import org.caesar.productservice.Dto.SportDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -30,6 +34,8 @@ public class ProductController {
     private final ModelMapper modelMapper;
     private final ProductService productService;
     private final GeneralService generalService;
+    private final SportRepository sportRepository;
+    private final ModelMapper model;
 
     @PostMapping("/product")
     public ResponseEntity<String> addProductAndAvailabilities(@RequestBody SendProductDTO sendProductDTO) throws IOException {
@@ -38,6 +44,15 @@ public class ProductController {
             return new ResponseEntity<>("Product aggiunto", HttpStatus.OK);
         else
             return new ResponseEntity<>("Prodotto non aggiunto", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PostMapping("/products")
+    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody List<SendProductDTO> sendProductDTO) {
+
+        for(SendProductDTO sendProductDTO1: sendProductDTO){
+            generalService.addProduct(sendProductDTO1);
+        }
+        return new ResponseEntity<>("Prodotti aggiunti correttamente", HttpStatus.OK);
     }
 
     @GetMapping("/product")
@@ -91,5 +106,14 @@ public class ProductController {
             return new ResponseEntity<>("Prodotto eliminato", HttpStatus.OK);
         else
             return new ResponseEntity<>("Prodotto non eliminato", HttpStatus.INTERNAL_SERVER_ERROR);
+    @GetMapping("/search")
+    public List<Product> searchProducts(@RequestParam("query") String query) {
+        return productService.searchProducts(query);
+    }
+
+
+    @PostMapping("/add")
+    public void addProduct(@RequestBody SportDTO generalDTO) {
+        sportRepository.save(model.map(generalDTO, Sport.class));
     }
 }

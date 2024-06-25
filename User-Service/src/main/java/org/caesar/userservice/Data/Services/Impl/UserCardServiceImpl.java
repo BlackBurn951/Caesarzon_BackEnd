@@ -9,6 +9,7 @@ import org.caesar.userservice.Dto.UserCardDTO;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.Vector;
 
 import org.springframework.stereotype.Service;
@@ -23,43 +24,28 @@ public class UserCardServiceImpl implements UserCardService {
 
 
     @Override
-    public UserCardDTO getUserCard(String userUsername, int cardNum) {
+    public UserCardDTO getUserCard(UUID id) {
 
         //Presa della lista delle carte associate all'utente
-        List<UserCard> userCardVector = userCardRepository.findByUserUsername(userUsername);
+        UserCard userCard = userCardRepository.findById(id).orElse(null);
 
-        int count= 0;
-
-        //Presa della carta registrata in posizione cardNum
-        UserCardDTO userCardDTO = null;
-        for(UserCard userCard : userCardVector){
-            count+=1;
-            if(count == cardNum){
-                userCardDTO= modelMapper.map(userCard, UserCardDTO.class);
-                break;
-            }
-        }
-
-        return userCardDTO;
+        return modelMapper.map(userCard, UserCardDTO.class);
     }
 
     @Override
-    public List<String> getCards(String userUsername) {
-        //Conta delle tuple di relazione per capire quante carte ha salvato l'utente
-        int num= userCardRepository.countByUserUsername(userUsername);
+    public List<UUID> getCards(String userUsername) {
 
-        //Creazione delle stringhe da tornare al client
-        List<String> result= new Vector<>();
-        for(int i=0; i<num; i++)
-            result.add("Carta "+ (i+1));
+        List<UserCard> userCards = userCardRepository.findAllByUserUsername(userUsername);
 
-        //Invio di lista vuota in caso l'utente non abbia carte salvate
-        if (result.isEmpty())
-            result.add("");
+        List<UUID> result = new Vector<>();
 
+        for (UserCard userCard: userCards) {
+            result.add(userCard.getId());
+        }
 
         return result;
     }
+
 
     @Override
     public List<UserCardDTO> getUserCards(String userUsername) {

@@ -2,9 +2,6 @@ package org.caesar.userservice.Data.Dao.KeycloakDAO;
 
 import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Dto.*;
-import org.jboss.resteasy.annotations.Query;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
 

@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/user-api")
@@ -37,8 +38,11 @@ public class AddressController {
 
 
     //End-point per la presa del numero degli indirizzi posseduti dall'utente
-    @GetMapping("/addresses-names")
-    public List<String> getAddressesNames() {
+
+
+    //TODO RESTITUIRE LISTA DI ID
+    @GetMapping("/addresses")
+    public List<UUID> getAddressesNames() {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
@@ -48,18 +52,16 @@ public class AddressController {
 
 
     @GetMapping("/address")
-    public ResponseEntity<AddressDTO> getAddressData(@RequestParam("nameLista") String addressName) {
-        //Prendendo l'username dell'utente che ha fatto la chiamata
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
+    public ResponseEntity<AddressDTO> getAddressData(@RequestParam("address_id") UUID id) {
 
-
-        AddressDTO addressDTO= generalService.getUserAddress(addressName, username);
+        AddressDTO addressDTO = generalService.getUserAddress(id);
 
         if(addressDTO!=null)
             return new ResponseEntity<>(addressDTO, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
+
 
     @PostMapping("/address")
     public ResponseEntity<String> saveUserAddressData(@RequestBody AddressDTO addressDTO) {
@@ -76,11 +78,9 @@ public class AddressController {
     }
 
     @DeleteMapping("/address")
-    public ResponseEntity<String> deleteAddress(@RequestParam("addr") String addressName) {
-        //Prendendo l'username dell'utente che ha fatto la chiamata
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
+    public ResponseEntity<String> deleteAddress(@RequestParam("address_id") UUID id) {
 
-        boolean result= generalService.deleteUserAddress(username, addressName);
+        boolean result= generalService.deleteUserAddress(id);
 
         if(result)
             return new ResponseEntity<>("Indirizzo eliminato correttamente!", HttpStatus.OK);

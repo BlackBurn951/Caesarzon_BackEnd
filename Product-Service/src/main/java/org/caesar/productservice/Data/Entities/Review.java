@@ -26,9 +26,6 @@ public class Review {
     @Column(name= "valutazione")
     private int evaluation;
 
-    @Column(name = "codice_recensione")
-    private String reviewCode;
-
     @Column(name= "username_utente")
     private String userID;
 

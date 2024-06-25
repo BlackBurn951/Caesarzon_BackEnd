@@ -2,6 +2,7 @@ package org.caesar.productservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Dao.ReviewRepository;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
@@ -20,6 +21,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     private final ModelMapper modelMapper;
     private final ReviewRepository reviewRepository;
+    private final ProductRepository productRepository;
 
     @Override
     public UUID addOrUpdateReview(ReviewDTO reviewDTO, Product product) {
@@ -35,7 +37,6 @@ public class ReviewServiceImpl implements ReviewService {
             review.setText(reviewDTO.getText());
             review.setEvaluation(reviewDTO.getEvaluation());
             review.setUserID(reviewDTO.getUserID());
-            System.out.println("codice: "+review.getReviewCode());
 
 
             return reviewRepository.save(review).getId();
@@ -52,9 +53,8 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
 
-    @Override
-    public Review getReview(String username, Product product) {
-        return reviewRepository.findByuserIDAndProductID(username, product);
+    public Review getReview(String username, UUID productID) {
+        return reviewRepository.findByuserIDAndProductID(username, productRepository.findById(productID).orElse(null));
     }
 
     @Override
