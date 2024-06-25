@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface GeneralService {
 
-
+    List<ProductCartDTO> getCart(String username);
     boolean addProduct(ProductDTO ProductDTO);
     boolean deleteProduct(UUID id);
     List<ImageDTO> getProductImages(UUID id);

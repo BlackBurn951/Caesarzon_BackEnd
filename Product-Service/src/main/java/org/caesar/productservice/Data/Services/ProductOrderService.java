@@ -14,9 +14,9 @@ public interface ProductOrderService {
 
     List<SendProductOrderDTO> getProductOrders();
 
-    boolean deleteProductOrder(UUID id);
+    boolean deleteProductCart(String username, UUID id);
 
-    boolean deleteProductOrders(List<UUID> ids);
+    boolean deleteProductCarts(String username);
 
     boolean save(ProductOrderDTO productOrderDTO);
 
@@ -24,7 +24,8 @@ public interface ProductOrderService {
 
     boolean saveAll(List<ProductOrderDTO> orderDTOS);
 
-    boolean updateOrder(String username, UUID productId);
+    boolean saveLater(String username, UUID productId);
 
+    boolean changeQuantity(String username, UUID productId, int quantity);
 
 }

@@ -63,6 +63,31 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
+    public List<ProductCartDTO> getCart(String username) {
+        List<ProductOrderDTO> productCart= productOrderService.getProductOrdersByUsername(username);
+
+
+        if(productCart==null || productCart.isEmpty())
+            return null;
+
+
+        List<ProductCartDTO> result= new Vector<>();
+        ProductCartDTO prod;
+        for(ProductOrderDTO p: productCart){
+            prod = new ProductCartDTO();
+            prod.setName(productService.getProductById(p.getId()).getName());
+            prod.setId(p.getId());
+            prod.setTotal(p.getTotal());
+            prod.setQuantity(p.getQuantity());
+
+            result.add(prod);
+        }
+
+        return result;
+    }
+
+
+    @Override
     public boolean deleteProduct(UUID id) {
         return false;
     }
@@ -79,9 +104,12 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public boolean createOrder(String username, SendProductOrderDTO sendProductOrderDTO) {
-
+    @Transactional
+    public boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO) {
         ProductDTO productDTO = productService.getProductById(sendProductOrderDTO.getProductID());
+
+        if(productDTO==null)
+            return false;
 
         ProductOrderDTO productOrderDTO = new ProductOrderDTO();
 
@@ -91,8 +119,6 @@ public class GeneralServiceImpl implements GeneralService {
         productOrderDTO.setUsername(username);
 
         return productOrderService.save(productOrderDTO);
-
-
     }
 
     @Override
@@ -123,9 +149,12 @@ public class GeneralServiceImpl implements GeneralService {
 
         orderDTO.setTotalOrder(productOrderDTOs.stream().mapToDouble(ProductOrderDTO::getTotal).sum());
 
-        OrderDTO orderDTO1 = orderService.addOrder(orderDTO);
+        OrderDTO savedOrder = orderService.addOrder(orderDTO);
 
-        productInOrder.forEach(productOrderDTO -> productOrderDTO.setOrderID(orderDTO1));
+        if(savedOrder==null)
+            return false;
+
+        productInOrder.forEach(productOrderDTO -> productOrderDTO.setOrderID(savedOrder));
 
         if(productOrderService.saveAll(productOrderDTOs)) {
             HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
@@ -134,10 +163,10 @@ public class GeneralServiceImpl implements GeneralService {
 
             Map<String, String> requestBody = new HashMap<>();
             requestBody.put("date", String.valueOf(LocalDate.now()));
-            requestBody.put("subject", "Ordine numero "+orderDTO1.getOrderNumber()+" effettuato");
+            requestBody.put("subject", "Ordine numero "+savedOrder.getOrderNumber()+" effettuato");
             requestBody.put("user", username);
             requestBody.put("read", "false");
-            requestBody.put("explaination", "Il tuo ordine è in fase di elaborazione e sarà il "+ String.valueOf(orderDTO1.getExpectedDeliveryDate()));
+            requestBody.put("explaination", "Il tuo ordine è in fase di elaborazione e sarà il "+ String.valueOf(savedOrder.getExpectedDeliveryDate()));
 
             HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
             return restTemplate.exchange(
@@ -147,9 +176,10 @@ public class GeneralServiceImpl implements GeneralService {
                     String.class
             ).getStatusCode()== HttpStatus.OK;
         }
-        return false;
-        //☺
+        return false; //☺
     }
+
+
 
     public static String generaCodice(int lunghezza) {
         String CHARACTERS = "5LDG8OKXCSV4EZ1YU9IR0HT7WMAJB2FN3P6Q";

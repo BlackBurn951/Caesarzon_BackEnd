@@ -46,8 +46,15 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     }
 
     @Override
-    public boolean deleteProductOrders(List<UUID> ids) {
-        return false;
+    public boolean deleteProductCarts(String username) {
+        try {
+            productOrderRepository.deleteAllByUsernameAndOrderIDNull(username);
+
+            return true;
+        } catch (Exception | Error e) {
+//            log.debug("Errore nell'eliminazione del singolo prodotto dalla lista desideri");
+            return false;
+        }
     }
 
     @Override
@@ -62,8 +69,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
     @Override
     public List<ProductOrderDTO> getProductOrdersByUsername(String username){
-        return productOrderRepository.findAllByUsernameAAndOrderIDNull(username).stream().map(a -> modelMapper.map(a, ProductOrderDTO.class)).toList();
-
+        return productOrderRepository.findAllByUsernameAndOrderIDNull(username).stream().map(a -> modelMapper.map(a, ProductOrderDTO.class)).toList();
     }
 
     @Override
@@ -77,10 +83,12 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             return false;
         }
     }
+
+
     @Override
-    public boolean updateOrder(String username, UUID productId){
+    public boolean saveLater(String username, UUID productId) {
         try{
-            ProductOrderDTO productOrderDTO = modelMapper.map(productOrderRepository.findAllByUsernameAAndOrderIDNullAAndProductID(username, productId).getFirst(), ProductOrderDTO.class);
+            ProductOrderDTO productOrderDTO = modelMapper.map(productOrderRepository.findAllByUsernameAndOrderIDNullAndProductID(username, productId).getFirst(), ProductOrderDTO.class);
             if(productOrderDTO == null)
                 return false;
             productOrderDTO.setBuyLater(true);
@@ -93,4 +101,19 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         }
     }
 
+    @Override
+    public boolean changeQuantity(String username, UUID productId, int quantity) {
+        try{
+            ProductOrderDTO productOrderDTO = modelMapper.map(productOrderRepository.findAllByUsernameAndOrderIDNullAndProductID(username, productId).getFirst(), ProductOrderDTO.class);
+            if(productOrderDTO == null)
+                return false;
+            productOrderDTO.setQuantity(quantity);
+            productOrderRepository.save(modelMapper.map(productOrderDTO, ProductOrder.class));
+            return true;
+
+        }catch (Exception | Error e){
+//            log.debug("Errore nell'aggiornamento dell'ordine'");
+            return false;
+        }
+    }
 }
