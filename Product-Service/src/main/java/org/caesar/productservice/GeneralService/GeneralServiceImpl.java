@@ -1,5 +1,6 @@
 package org.caesar.productservice.GeneralService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,11 @@ import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
