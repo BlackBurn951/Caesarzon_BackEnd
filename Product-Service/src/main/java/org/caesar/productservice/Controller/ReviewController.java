@@ -1,5 +1,6 @@
 package org.caesar.productservice.Controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Entities.Product;
@@ -11,8 +12,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -58,22 +62,23 @@ public class ReviewController {
     public ResponseEntity<String> deleteReview(@RequestParam String username, @RequestParam UUID productID){
 
         UUID reviewID = reviewService.getReviewIDByUsernameAndProductID(username, productID);
-        System.out.println("Review ID prima delle delete: " + reviewID);
         if (reviewID != null) {
             reviewService.deleteReview(reviewID);
-            System.out.println("Review ID dopo delle delete: " + reviewID);
+            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            headers.add("Authorization", request.getHeader("Authorization"));
 
-            ResponseEntity<Void> responseEntity = restTemplate.exchange(
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            boolean responseEntity = restTemplate.exchange(
                     "http://notification-service/notify-api/user/report?review_id="+reviewID,
                     HttpMethod.DELETE,
-                    requestEntity,
-                    Void.class
-            );
+                    entity,
+                    String.class
+            ).getStatusCode() == HttpStatus.OK;
 
-            if(responseEntity.getStatusCode().is2xxSuccessful()){
+            if(responseEntity){
+
                 System.out.println("Sono in questa risposta, la giusta");
                 return new ResponseEntity<>("Recensione eliminata con sucesso!", HttpStatus.OK);
             }
