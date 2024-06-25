@@ -7,6 +7,7 @@ import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Data.Services.ReviewService;
+import org.caesar.productservice.Dto.AverageDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
@@ -97,5 +98,18 @@ public class ReviewController {
             reviewService.deleteReview(review_id);
             return new ResponseEntity<>("Recensione trovata", HttpStatus.OK);
         }
+    }
+
+    @GetMapping("/review/average")
+    public ResponseEntity<AverageDTO> getReviewAverage(@RequestParam UUID productID) {
+
+        if(productID != null) {
+            AverageDTO averageDTO = reviewService.getProductAverage(productID);
+            if(averageDTO != null){
+                return new ResponseEntity<>(averageDTO, HttpStatus.OK);
+            }
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

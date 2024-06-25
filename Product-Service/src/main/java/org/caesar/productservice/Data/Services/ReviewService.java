@@ -2,6 +2,7 @@ package org.caesar.productservice.Data.Services;
 
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
+import org.caesar.productservice.Dto.AverageDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 
 import java.util.List;
@@ -15,4 +16,6 @@ public interface ReviewService {
     UUID getReviewIDByUsernameAndProductID(String username, UUID productID);
     List<ReviewDTO> getReviewsByProductId(UUID product);
     boolean deleteReview(UUID id);
+    AverageDTO getProductAverage(UUID productID);
+
 }

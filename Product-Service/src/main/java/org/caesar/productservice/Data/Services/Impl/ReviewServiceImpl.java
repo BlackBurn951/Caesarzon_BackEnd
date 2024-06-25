@@ -7,6 +7,7 @@ import org.caesar.productservice.Data.Dao.ReviewRepository;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
 import org.caesar.productservice.Data.Services.ReviewService;
+import org.caesar.productservice.Dto.AverageDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -94,6 +95,24 @@ public class ReviewServiceImpl implements ReviewService {
             log.debug("Errore nella cancellazione della recensione");
             return false;
         }
+    }
+
+
+    @Override
+    public AverageDTO getProductAverage(UUID productID) {
+        Product product = productRepository.findById(productID).orElse(null);
+        if(product != null){
+            List<Review> reviewDTOS = reviewRepository.findByproduct(product);
+            double average = 0;
+            for(Review review : reviewDTOS){
+                average += review.getEvaluation();
+            }
+            AverageDTO averageDTO = new AverageDTO();
+            averageDTO.setAverage(average/reviewDTOS.size());
+            averageDTO.setNumberOfReviews(reviewDTOS.size());
+            return averageDTO;
+        }
+        return null;
     }
 
 }

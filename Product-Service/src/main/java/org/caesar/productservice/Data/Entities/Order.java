@@ -46,4 +46,7 @@ public class Order {
 
     @Column(name= "totale_ordine")
     private double orderTotal;
+
+    @Column(name = "username")
+    private String username;
 }

@@ -100,6 +100,15 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    @Override
+    public List<OrderDTO> getOrders(String username) {
+        return orderRepository.findOrderByUsername(username).stream().map(a -> modelMapper.map(a, OrderDTO.class)).toList();
+    }
+
+    @Override
+    public OrderDTO getOrder(String username, UUID id) {
+        return modelMapper.map(orderRepository.findOrderByIdAndUsername(id, username), OrderDTO.class);
+    }
 
 
 }

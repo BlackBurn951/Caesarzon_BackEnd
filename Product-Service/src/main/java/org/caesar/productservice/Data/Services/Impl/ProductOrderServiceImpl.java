@@ -34,8 +34,15 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     }
 
     @Override
-    public boolean deleteProductOrder(UUID id) {
-        return false;
+    public boolean deleteProductCart(String username, UUID id) {
+        try {
+            productOrderRepository.deleteByUsernameAndOrderIDNullAndProductID(username, id);
+
+            return true;
+        } catch (Exception | Error e) {
+//            log.debug("Errore nell'eliminazione del singolo prodotto dalla lista desideri");
+            return false;
+        }
     }
 
     @Override

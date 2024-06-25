@@ -21,4 +21,5 @@ public class OrderDTO {
     private UUID addressID;
     private UUID cardID;
     private double totalOrder;
+    private String username;
 }

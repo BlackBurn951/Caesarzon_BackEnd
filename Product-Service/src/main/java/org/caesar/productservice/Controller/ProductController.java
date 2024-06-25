@@ -1,21 +1,18 @@
 package org.caesar.productservice.Controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Data.Dao.ProductRepository;
-import org.caesar.productservice.Data.Entities.Availability;
-import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
-import org.caesar.productservice.Dto.AvailabilityDTO;
+import org.caesar.productservice.Data.Services.SearchService;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
+import org.caesar.productservice.Dto.ProductSearchDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,11 +22,10 @@ import java.util.UUID;
 @RequestMapping("/product-api")
 public class ProductController {
 
-    private final ModelMapper modelMapper;
     private final ProductService productService;
     private final GeneralService generalService;
-    private final ProductRepository productRepository;
-    private final ModelMapper model;
+    private final HttpServletRequest httpServletRequest;
+    private final SearchService searchService;
 
     @PostMapping("/product")
     public ResponseEntity<String> addProductAndAvailabilities(@RequestBody ProductDTO sendProductDTO) {
@@ -43,8 +39,10 @@ public class ProductController {
 
     @GetMapping("/product/{id}")
     public ResponseEntity<ProductDTO> getProductAndAvailabilitiesAndImages(@PathVariable UUID id) {
-        if(generalService.getProductAndAvailabilitiesAndImages(id) != null){
-            return new ResponseEntity<>(generalService.getProductAndAvailabilitiesAndImages(id), HttpStatus.OK);
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
+        ProductDTO productDTO = generalService.getProductAndAvailabilitiesAndImages(username, id);
+        if(productDTO!= null){
+            return new ResponseEntity<>(productDTO, HttpStatus.OK);
         }
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -85,15 +83,43 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    public List<Product> searchProducts(
+    public ResponseEntity<List<ProductSearchDTO>> searchProducts(
             @RequestParam("search-text") String query,
             @RequestParam(value = "min-price", required = false) Double minPrice,
             @RequestParam(value = "max-price", required = false) Double maxPrice,
             @RequestParam(value = "is-clothing", required = false) Boolean isClothing) {
-        System.out.println("min-price "+minPrice);
-        System.out.println("max-price "+maxPrice);
-        System.out.println("is-clothing "+isClothing);
-        return productService.searchProducts(query, minPrice, maxPrice, isClothing);
+
+        List<ProductSearchDTO> searchProduct = generalService.searchProducts(query, minPrice, maxPrice, isClothing);
+        if(searchProduct.isEmpty())
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        else
+            return new ResponseEntity<>(searchProduct, HttpStatus.OK);
+
+    }
+
+
+    @GetMapping("/lastSearchs")
+    public ResponseEntity<List<String>> searchs(){
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
+
+        List<String> ricerche = searchService.getAllSearchs(username);
+        if (ricerche != null)
+            return new ResponseEntity<>(ricerche, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+
+    @GetMapping("/lastView")
+    public ResponseEntity<List<ProductSearchDTO>> lastView(){
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
+
+        List<ProductSearchDTO> searchProduct = generalService.getLastView(username);
+
+        if(searchProduct.isEmpty())
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        else
+            return new ResponseEntity<>(searchProduct, HttpStatus.OK);
     }
 
 }

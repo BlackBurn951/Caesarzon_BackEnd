@@ -7,6 +7,7 @@ import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
 //import org.hibernate.search.mapper.orm.Search;
 import org.caesar.productservice.Dto.ProductDTO;
+import org.caesar.productservice.Dto.ProductSearchDTO;
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
 import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
@@ -155,9 +156,8 @@ public class ProductServiceImpl implements ProductService{
 
 
 
-    public List<Product> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
+    public List<ProductDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         try {
-            System.out.println("Searching for: " + searchText);
 
             List<Product> results = Search.session(entityManager)
                     .search(Product.class)
@@ -196,8 +196,9 @@ public class ProductServiceImpl implements ProductService{
                     })
                     .fetchHits(20);
 
-            System.out.println("Search results: " + results.size());
-            return results;
+
+            return results.stream().map(a -> modelMapper.map(a, ProductDTO.class)).toList();
+
 
         } catch (Exception e) {
             log.error("Error while searching for products", e);

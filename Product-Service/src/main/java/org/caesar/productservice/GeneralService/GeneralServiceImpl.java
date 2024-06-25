@@ -1,5 +1,7 @@
 package org.caesar.productservice.GeneralService;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -8,13 +10,12 @@ import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.ProductOrder;
-import org.caesar.productservice.Data.Services.AvailabilityService;
-import org.caesar.productservice.Data.Services.OrderService;
-import org.caesar.productservice.Data.Services.ProductOrderService;
-import org.caesar.productservice.Data.Services.ProductService;
+import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
+import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
+import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -36,11 +37,14 @@ public class GeneralServiceImpl implements GeneralService {
     private final AvailabilityService availabilityService;
     private final ProductService productService;
     private final ModelMapper modelMapper;
-    private final ProductRepository productRepository;
     private final ProductOrderService productOrderService;
     private final OrderService orderService;
     private final RestTemplate restTemplate;
+    private final LastViewService lastViewService;
+    private final ReviewService reviewService;
 
+    @PersistenceContext
+    private final EntityManager entityManager;
 
     @Override
     public boolean addProduct(ProductDTO sendProductDTO) {
@@ -68,17 +72,6 @@ public class GeneralServiceImpl implements GeneralService {
         return List.of();
     }
 
-    @Override
-    public List<Availability> getAvailabilityByProductID(UUID productID) {
-        List<Availability> availabilities = new ArrayList<>();
-        for(Availability availability : availabilityService.getAll()) {
-            if(availability.getProduct().getId().equals(productID)) {
-                availabilities.add(availability);
-
-            }
-        }
-        return availabilities;
-    }
 
     @Override
     public List<ImageDTO> getAllProductImages(UUID productID) {
@@ -104,7 +97,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-    public boolean updateOrder(String username, BuyDTO buyDTO) {
+    public boolean createOrder(String username, BuyDTO buyDTO) {
 
         if(buyDTO.getAddressID() == null || buyDTO.getCardID() == null)
             return false;
@@ -126,6 +119,7 @@ public class GeneralServiceImpl implements GeneralService {
         orderDTO.setRefund(false);
         orderDTO.setAddressID(buyDTO.getAddressID());
         orderDTO.setCardID(buyDTO.getCardID());
+        orderDTO.setUsername(username);
 
         orderDTO.setTotalOrder(productOrderDTOs.stream().mapToDouble(ProductOrderDTO::getTotal).sum());
 
@@ -170,15 +164,74 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public ProductDTO getProductAndAvailabilitiesAndImages(UUID id){
+    public ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id){
         ProductDTO productDTO = productService.getProductById(id);
         if(productService.getProductById(id) != null){
-            List<AvailabilityDTO> availabilities = availabilitySe rvice.getAvailabilitiesByProductID(productDTO);
+            List<AvailabilityDTO> availabilities = availabilityService.getAvailabilitiesByProductID(productDTO);
             productDTO.setAvailabilities(availabilities);
+            lastViewService.save(username, productDTO);
             return productDTO;
         }
         return null;
     }
+
+
+    public List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
+        List<ProductDTO> productDTO = productService.searchProducts(searchText, minPrice, maxPrice, isClothing);
+
+        List<ProductSearchDTO> productSearchDTO = new Vector<>();
+        ProductSearchDTO productSearchDTO1;
+        AverageDTO averageDTO;
+
+        for(ProductDTO p: productDTO){
+            productSearchDTO1 = new ProductSearchDTO();
+            averageDTO = reviewService.getProductAverage(p.getId());
+
+            productSearchDTO1.setAverageReview(averageDTO.getAverage());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReviews());
+
+            productSearchDTO1.setProductName(p.getName());
+            productSearchDTO1.setPrice(p.getPrice());
+
+            productSearchDTO.add(productSearchDTO1);
+        }
+
+        return productSearchDTO;
+    }
+
+    public List<ProductSearchDTO> getLastView(String username){
+        //Metodo per prendere tutte le tuple dei prodotti visti
+        List<LastViewDTO> lastViewDTOS = lastViewService.getAllViewed(username);
+
+        //Lista degli utlimi prodotti cliccati
+        List<ProductDTO> productDTOS = new Vector<>();
+
+        List<ProductSearchDTO> productSearchDTOS = new Vector<>();
+
+        ProductSearchDTO productSearchDTO1;
+
+        AverageDTO averageDTO;
+
+        for(LastViewDTO l: lastViewDTOS){
+            productDTOS.add(productService.getProductById(l.getId()));
+        }
+
+        for(ProductDTO p: productDTOS){
+            productSearchDTO1 = new ProductSearchDTO();
+            averageDTO = reviewService.getProductAverage(p.getId());
+
+            productSearchDTO1.setAverageReview(averageDTO.getAverage());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReviews());
+
+            productSearchDTO1.setProductName(p.getName());
+            productSearchDTO1.setPrice(p.getPrice());
+
+            productSearchDTOS.add(productSearchDTO1);
+        }
+
+        return productSearchDTOS;
+    }
+
 
 
 }
