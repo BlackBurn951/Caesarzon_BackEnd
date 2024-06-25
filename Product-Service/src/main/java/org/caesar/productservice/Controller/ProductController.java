@@ -9,7 +9,6 @@ import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.AvailabilityDTO;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
-import org.caesar.productservice.Dto.SendProductDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -33,7 +32,7 @@ public class ProductController {
     private final ModelMapper model;
 
     @PostMapping("/product")
-    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody SendProductDTO sendProductDTO) {
+    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody ProductDTO sendProductDTO) {
 
         if(generalService.addProduct(sendProductDTO))
             return new ResponseEntity<>("Product aggiunto", HttpStatus.OK);
@@ -41,14 +40,6 @@ public class ProductController {
             return new ResponseEntity<>("Prodotto non aggiunto", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PostMapping("/products")
-    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody List<SendProductDTO> sendProductDTO) {
-
-        for(SendProductDTO sendProductDTO1: sendProductDTO){
-            generalService.addProduct(sendProductDTO1);
-        }
-        return new ResponseEntity<>("Prodotti aggiunti correttamente", HttpStatus.OK);
-    }
 
     @GetMapping("/product")
     public ResponseEntity<ProductDTO> getProductAndAvailabilitiesAndImages(@RequestParam String name) {
@@ -86,8 +77,8 @@ public class ProductController {
     }
 
     @GetMapping("/price")
-    public ResponseEntity<List<SendProductDTO>> getProductByPriceRange(@RequestParam double lower, @RequestParam double upper) {
-        List<SendProductDTO> productDTOS = productService.getProductByPrice(lower, upper);
+    public ResponseEntity<List<ProductDTO>> getProductByPriceRange(@RequestParam double lower, @RequestParam double upper) {
+        List<ProductDTO> productDTOS = productService.getProductByPrice(lower, upper);
         if(productDTOS.isEmpty())
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         else

@@ -1,23 +1,23 @@
 package org.caesar.productservice.Data.Services;
 
 import org.caesar.productservice.Data.Entities.Product;
-import org.caesar.productservice.Dto.SendProductDTO;
+import org.caesar.productservice.Dto.ProductDTO;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface ProductService {
 
-    Product addOrUpdateProduct(SendProductDTO product);
+    Product addOrUpdateProduct(ProductDTO product);
 
     UUID getProductIDByName(String name);
 
     Product getProductById(UUID id);
 
 
-    public List<SendProductDTO> getProductByPrice(double priceMin, double priceMax);
+    public List<ProductDTO> getProductByPrice(double priceMin, double priceMax);
 
-    List<SendProductDTO> getAllProducts();
+    List<ProductDTO> getAllProducts();
 
     boolean deleteProductById(UUID id);
 

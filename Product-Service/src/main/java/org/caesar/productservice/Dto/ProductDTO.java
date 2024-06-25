@@ -21,10 +21,12 @@ public class ProductDTO {
     private String secondaryColor;
     private Boolean is_clothing;
     List<AvailabilityDTO> availabilities;
+    private String sport;
 
     public ProductDTO() {}
 
     public ProductDTO(Product product, List<AvailabilityDTO> availabilities) {
+        this.id = product.getId();
         this.name = product.getName();
         this.description = product.getDescription();
         this.brand = product.getBrand();
@@ -34,6 +36,7 @@ public class ProductDTO {
         this.secondaryColor = product.getSecondaryColor();
         this.is_clothing = product.getIs_clothing();
         this.availabilities = availabilities;
+        this.sport = product.getSport();
     }
 
 }

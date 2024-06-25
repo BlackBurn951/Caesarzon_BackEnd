@@ -8,7 +8,6 @@ import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
-import org.caesar.productservice.Dto.SendProductDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -22,19 +21,19 @@ import java.util.UUID;
 @Transactional
 public class GeneralServiceImpl implements GeneralService {
 
-    private final ProductService productService;
     private final AvailabilityService availabilityService;
+    private final ProductService productService;
     private final ModelMapper modelMapper;
 
 
     @Override
-    public boolean addProduct(SendProductDTO sendProductDTO) {
+    public boolean addProduct(ProductDTO sendProductDTO) {
 
         // Mappa sendProductDTO a ProductDTO
         ProductDTO productDTO = modelMapper.map(sendProductDTO, ProductDTO.class);
 
         // Aggiorna l'ID del productDTO dopo averlo salvato
-        //productDTO.setId(productService.addOrUpdateProduct(productDTO).getId());
+        productDTO.setId(productService.addOrUpdateProduct(productDTO).getId());
 
         availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), productDTO);
 

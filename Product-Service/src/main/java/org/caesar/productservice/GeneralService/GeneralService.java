@@ -2,17 +2,15 @@ package org.caesar.productservice.GeneralService;
 
 import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Dto.ImageDTO;
-import org.caesar.productservice.Dto.SendProductDTO;
-import org.springframework.web.multipart.MultipartFile;
+import org.caesar.productservice.Dto.ProductDTO;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
 public interface GeneralService {
 
 
-    boolean addProduct(SendProductDTO sendProductDTO);
+    boolean addProduct(ProductDTO ProductDTO);
     boolean deleteProduct(UUID id);
     List<ImageDTO> getProductImages(UUID id);
     List<Availability> getAvailabilityByProductID(UUID productID);

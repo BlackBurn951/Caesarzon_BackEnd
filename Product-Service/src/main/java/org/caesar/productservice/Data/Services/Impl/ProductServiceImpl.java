@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
-import org.caesar.productservice.Dto.SendProductDTO;
 //import org.hibernate.search.mapper.orm.Search;
+import org.caesar.productservice.Dto.ProductDTO;
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
 import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
@@ -33,7 +33,7 @@ public class ProductServiceImpl implements ProductService{
     private final EntityManager entityManager;
 
     @Override
-    public Product addOrUpdateProduct(SendProductDTO productDTO) {
+    public Product addOrUpdateProduct(ProductDTO productDTO) {
 
 
         if(!checkDescription(productDTO.getDescription()) || !checkDiscount(productDTO.getDiscount())
@@ -44,9 +44,9 @@ public class ProductServiceImpl implements ProductService{
 
         try{
             Product product = new Product();
-            if(productDTO.getProductId() != null && productRepository.findById(productDTO.getProductId()).isPresent())
+            if(productDTO.getId() != null && productRepository.findById(productDTO.getId()).isPresent())
             {
-                product.setId(productDTO.getProductId());
+                product.setId(productDTO.getId());
                 product.setDescription(productDTO.getDescription());
                 product.setDiscount(productDTO.getDiscount());
                 product.setName(productDTO.getName());
@@ -79,12 +79,12 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public List<SendProductDTO> getProductByPrice(double priceMin, double priceMax) {
+    public List<ProductDTO> getProductByPrice(double priceMin, double priceMax) {
         List<Product> products = productRepository.findAll();
-        List<SendProductDTO> sendProductDTOs = new ArrayList<>();
+        List<ProductDTO> sendProductDTOs = new ArrayList<>();
         for(Product product : products){
             if(product.getPrice() >= priceMin && product.getPrice() <= priceMax){
-                sendProductDTOs.add(modelMapper.map(product, SendProductDTO.class));
+                sendProductDTOs.add(modelMapper.map(product, ProductDTO.class));
             }
         }
         return sendProductDTOs;
@@ -96,10 +96,10 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public List<SendProductDTO> getAllProducts() {
+    public List<ProductDTO> getAllProducts() {
         return productRepository.findAll()
                 .stream()
-                .map(product -> modelMapper.map(product, SendProductDTO.class))
+                .map(product -> modelMapper.map(product, ProductDTO.class))
                 .collect(Collectors.toList());
     }
 
