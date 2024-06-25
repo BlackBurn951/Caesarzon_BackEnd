@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
-import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.SendProductDTO;
 //import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.Search;
@@ -33,7 +32,7 @@ public class ProductServiceImpl implements ProductService{
     private final EntityManager entityManager;
 
     @Override
-    public Product addOrUpdateProduct(ProductDTO productDTO) {
+    public Product addOrUpdateProduct(SendProductDTO productDTO) {
 
 
         if(!checkDescription(productDTO.getDescription()) || !checkDiscount(productDTO.getDiscount())
@@ -44,9 +43,9 @@ public class ProductServiceImpl implements ProductService{
 
         try{
             Product product = new Product();
-            if(productDTO != null && productRepository.findById(productDTO.getId()).isPresent())
+            if(productDTO.getProductId() != null && productRepository.findById(productDTO.getProductId()).isPresent())
             {
-                product.setId(productDTO.getId());
+                product.setId(productDTO.getProductId());
                 product.setDescription(productDTO.getDescription());
                 product.setDiscount(productDTO.getDiscount());
                 product.setName(productDTO.getName());

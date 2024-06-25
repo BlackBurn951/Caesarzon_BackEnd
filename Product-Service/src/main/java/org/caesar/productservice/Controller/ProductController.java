@@ -68,7 +68,8 @@ public class ProductController {
                 availabilityDTOS.add(modelMapper.map(availability, AvailabilityDTO.class));
             }
 
-            ProductDTO finalProduct = new ProductDTO(productService.getProductById(product), availabilityDTOS, images);
+            ProductDTO finalProduct = new ProductDTO();
+            // = new ProductDTO(productService.getProductById(product), availabilityDTOS, images);
 
             return new ResponseEntity<>(finalProduct, HttpStatus.OK);
         }

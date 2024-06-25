@@ -64,6 +64,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.DELETE, "/product-api/product").permitAll()
                         .pathMatchers(HttpMethod.POST, "/product-api/review").permitAll()
                         .pathMatchers(HttpMethod.GET, "/product-api/image").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/product-api/image").permitAll()
 
                         .pathMatchers(HttpMethod.GET, "/product-api/review").permitAll()
                         .pathMatchers(HttpMethod.POST, "/product-api/review").permitAll()

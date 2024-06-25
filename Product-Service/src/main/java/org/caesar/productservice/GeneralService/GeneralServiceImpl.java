@@ -59,12 +59,12 @@ public class GeneralServiceImpl implements GeneralService {
         System.out.println("SecondaryColor: " + productDTO.getSecondaryColor());
 
         // Aggiorna l'ID del productDTO dopo averlo salvato
-        productDTO.setId(productService.addOrUpdateProduct(productDTO).getId());
+        //productDTO.setId(productService.addOrUpdateProduct(productDTO).getId());
 
         // Stampa dettagli di productDTO dopo aver aggiornato l'ID
         System.out.println("productDTO after updating ID:");
         System.out.println("ID: " + productDTO.getId());
-        availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), productDTO);
+        //availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), productDTO);
         for(SportDTO sport: sportService.getAllSports()) {
             for(int i = 0; i<sendProductDTO.getSportList().size(); i++) {
                 if(sendProductDTO.getSportList().get(i).equals(sport.getName()))

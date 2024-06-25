@@ -4,10 +4,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ImageRepository;
+import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Entities.Image;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ImageService;
 import org.caesar.productservice.Dto.ImageDTO;
+import org.caesar.productservice.Dto.ImagesDTO;
 import org.caesar.productservice.utils.ImageUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.apache.logging.log4j.ThreadContext.isEmpty;
 
@@ -26,16 +29,18 @@ public class ImageServiceImpl implements ImageService {
 
     private final ModelMapper modelMapper;
     private final ImageRepository imageRepository;
+    private final ProductRepository productRepository;
 
     //fare modifica dell'immagine con eventuale eliminazione delle singole immagini
     @Override
-    public boolean addOrUpdateImage(Product product, MultipartFile file) {
+    public boolean addOrUpdateImage(UUID productID, MultipartFile file) {
 
-        if(file == null || file.isEmpty()){
+        if(file == null){
             return false;
         }
 
         try {
+                Product product = productRepository.getReferenceById(productID);
                 Image imageEntity = new Image();
 
                 imageEntity.setFile(file.getBytes());

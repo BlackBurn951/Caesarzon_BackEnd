@@ -23,7 +23,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     //fare la modifica delle disponibilità e eventuale eliminazione
     @Override
-    public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, ProductDTO product) {
+    public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, Product product) {
         if (availabilities.isEmpty()) {
             return false;
         }
