@@ -3,10 +3,7 @@ package org.caesar.productservice.GeneralService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Data.Dao.AvailabilityRepository;
-import org.caesar.productservice.Data.Dao.SportProductRepository;
 import org.caesar.productservice.Data.Entities.Availability;
-import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Data.Services.SportProductService;
@@ -45,7 +42,7 @@ public class GeneralServiceImpl implements GeneralService {
         System.out.println("PrimaryColor: " + sendProductDTO.getPrimaryColor());
         System.out.println("SecondaryColor: " + sendProductDTO.getSecondaryColor());
         System.out.println("Availabilities: " + sendProductDTO.getAvailabilities());
-        System.out.println("ListaSport: " + sendProductDTO.getListaSport());
+        System.out.println("ListaSport: " + sendProductDTO.getSportList());
 
         // Mappa sendProductDTO a ProductDTO
         ProductDTO productDTO = modelMapper.map(sendProductDTO, ProductDTO.class);
@@ -69,8 +66,8 @@ public class GeneralServiceImpl implements GeneralService {
         System.out.println("ID: " + productDTO.getId());
         availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), productDTO);
         for(SportDTO sport: sportService.getAllSports()) {
-            for(int i=0; i<sendProductDTO.getListaSport().size(); i++) {
-                if(sendProductDTO.getListaSport().get(i).equals(sport.getName()))
+            for(int i = 0; i<sendProductDTO.getSportList().size(); i++) {
+                if(sendProductDTO.getSportList().get(i).equals(sport.getName()))
                     sportProductService.addSportProduct(productDTO, sport);
             }
         }

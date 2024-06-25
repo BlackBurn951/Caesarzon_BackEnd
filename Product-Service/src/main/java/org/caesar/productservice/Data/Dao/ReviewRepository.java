@@ -15,7 +15,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
 	
     Review findByuserIDAndProductID(String username, Product product);
 	
-    boolean findReviewByReviewCode(String code);
+    Review findByProductID(Product product);
 
 
 }

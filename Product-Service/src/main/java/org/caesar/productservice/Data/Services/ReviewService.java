@@ -11,8 +11,7 @@ import java.util.UUID;
 public interface ReviewService {
 
     UUID addOrUpdateReview(ReviewDTO review, Product product);
-    Review getReviewById(UUID id);
-    Review getReview(String username, Product product);
+    Review getReviewById(Product product);
     List<ReviewDTO> getReviewsByProductId(Product product);
     boolean deleteReview(UUID id);
 }

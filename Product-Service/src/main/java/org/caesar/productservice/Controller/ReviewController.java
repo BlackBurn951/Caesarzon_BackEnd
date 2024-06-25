@@ -63,7 +63,7 @@ public class ReviewController {
     public ResponseEntity<ReviewDTO> deleteReview(@RequestParam String username, @RequestParam UUID productID){
 
         Product product = productService.getProductById(productID);
-        Review review = reviewService.getReview(username, product);
+        Review review = reviewService.getReviewById(product);
         UUID reviewID = review.getId();
         if (review != null) {
             reviewService.deleteReview(review.getId());

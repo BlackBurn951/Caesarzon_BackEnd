@@ -2,6 +2,7 @@ package org.caesar.productservice.Controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.productservice.Config.Indexer;
 import org.caesar.productservice.Data.Dao.SportRepository;
 import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Entities.Product;
@@ -36,6 +37,7 @@ public class ProductController {
     private final GeneralService generalService;
     private final SportRepository sportRepository;
     private final ModelMapper model;
+    private final Indexer indexer;
 
     @PostMapping("/product")
     public ResponseEntity<String> addProductAndAvailabilities(@RequestBody SendProductDTO sendProductDTO) {
@@ -110,6 +112,7 @@ public class ProductController {
 
     @GetMapping("/search")
     public List<Product> searchProducts(@RequestParam("query") String query) {
+        //indexer.reindex();
         return productService.searchProducts(query);
     }
 
