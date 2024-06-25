@@ -24,19 +24,10 @@ public class SendProductDTO {
     private String secondaryColor;
     private Boolean is_clothing;
     private List<AvailabilityDTO> availabilities;
-    private List<String> sportList;
+    private String sport;
 
-    public SendProductDTO(Product product, List<AvailabilityDTO> availabilities, List<MultipartFile> images) {
-        this.name = product.getName();
-        this.description = product.getDescription();
-        this.brand = product.getBrand();
-        this.price = product.getPrice();
-        this.discount = product.getDiscount();
-        this.primaryColor = product.getPrimaryColor();
-        this.secondaryColor = product.getSecondaryColor();
-        this.is_clothing = product.getIs_clothing();
-        this.availabilities = availabilities;
-    }
+
+
 
 
 }

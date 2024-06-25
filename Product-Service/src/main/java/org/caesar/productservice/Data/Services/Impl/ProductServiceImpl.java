@@ -8,6 +8,7 @@ import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.SendProductDTO;
 //import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
 import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -154,15 +155,45 @@ public class ProductServiceImpl implements ProductService{
 
 
 
-    public List<Product> searchProducts(String searchText) {
+    public List<Product> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         try {
             System.out.println("Searching for: " + searchText);
+
             List<Product> results = Search.session(entityManager)
                     .search(Product.class)
-                    .where(f -> f.match()
-                            .fields("name", "description", "brand", "primaryColor", "secondaryColor")
-                            .matching(searchText)
-                            .fuzzy(2))
+                    .where(f -> {
+                        BooleanPredicateClausesStep<?> bool = f.bool();
+
+                        // Clausola per il testo di ricerca
+                        bool.must(f.match()
+                                .fields("name", "description", "brand", "primaryColor", "secondaryColor", "sport")
+                                .matching(searchText)
+                                .fuzzy(2));
+
+                        // Clausola per il prezzo minimo e massimo
+                        if (minPrice != null && maxPrice != null) {
+                            bool.must(f.range()
+                                    .field("price")
+                                    .between(minPrice, maxPrice));
+                        } else if (minPrice != null) {
+                            bool.must(f.range()
+                                    .field("price")
+                                    .atLeast(minPrice));
+                        } else if (maxPrice != null) {
+                            bool.must(f.range()
+                                    .field("price")
+                                    .atMost(maxPrice));
+                        }
+
+                        // Clausola per isClothing
+                        if (isClothing != null) {
+                            bool.must(f.match()
+                                    .field("is_clothing")
+                                    .matching(isClothing));
+                        }
+
+                        return bool;
+                    })
                     .fetchHits(20);
 
             System.out.println("Search results: " + results.size());
@@ -170,9 +201,11 @@ public class ProductServiceImpl implements ProductService{
 
         } catch (Exception e) {
             log.error("Error while searching for products", e);
-            return Collections.emptyList(); // oppure gestisci l'errore a seconda delle tue esigenze
+            return Collections.emptyList();
         }
     }
+
+
 
 
 }

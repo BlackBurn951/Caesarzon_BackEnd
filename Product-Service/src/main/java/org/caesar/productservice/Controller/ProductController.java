@@ -2,26 +2,20 @@ package org.caesar.productservice.Controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Config.Indexer;
-import org.caesar.productservice.Data.Dao.SportRepository;
+import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Entities.Product;
-import org.caesar.productservice.Data.Entities.Sport;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.AvailabilityDTO;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
-import org.caesar.productservice.Dto.GeneralDTO;
 import org.caesar.productservice.Dto.SendProductDTO;
-import org.caesar.productservice.Dto.SportDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -37,7 +31,6 @@ public class ProductController {
     private final GeneralService generalService;
     private final SportRepository sportRepository;
     private final ModelMapper model;
-    private final Indexer indexer;
 
     @PostMapping("/product")
     public ResponseEntity<String> addProductAndAvailabilities(@RequestBody SendProductDTO sendProductDTO) {
@@ -111,14 +104,15 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    public List<Product> searchProducts(@RequestParam("query") String query) {
-        //indexer.reindex();
-        return productService.searchProducts(query);
+    public List<Product> searchProducts(
+            @RequestParam("search-text") String query,
+            @RequestParam(value = "min-price", required = false) Double minPrice,
+            @RequestParam(value = "max-price", required = false) Double maxPrice,
+            @RequestParam(value = "is-clothing", required = false) Boolean isClothing) {
+        System.out.println("min-price "+minPrice);
+        System.out.println("max-price "+maxPrice);
+        System.out.println("is-clothing "+isClothing);
+        return productService.searchProducts(query, minPrice, maxPrice, isClothing);
     }
 
-
-    @PostMapping("/add")
-    public void addProduct(@RequestBody SportDTO generalDTO) {
-        sportRepository.save(model.map(generalDTO, Sport.class));
-    }
 }
