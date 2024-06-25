@@ -20,13 +20,10 @@ public class WishlistServiceImpl implements WishlistService {
 
     private final ModelMapper modelMapper;
     private final WishlistRepository wishlistRepository;
+    private final WishlistProductServiceImpl wishlistProductServiceImpl;
 
     @Override
     public UUID addOrUpdateWishlist(WishlistDTO wishlistDTO) {
-
-        if (!wishlistRepository.existsById(wishlistDTO.getId())) {
-            return null;
-        }
         try {
             Wishlist wishlistEntity = modelMapper.map(wishlistDTO, Wishlist.class);
             return wishlistRepository.save(wishlistEntity).getId();
@@ -54,6 +51,7 @@ public class WishlistServiceImpl implements WishlistService {
     @Override
     public boolean deleteWishlist(UUID id) {
         try {
+            wishlistProductServiceImpl.deleteAllWishlistProductsByWishlistID(id);
             wishlistRepository.deleteById(id);
             return true;
         } catch (Exception e) {

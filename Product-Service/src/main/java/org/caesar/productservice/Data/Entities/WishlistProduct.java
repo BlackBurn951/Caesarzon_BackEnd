@@ -18,7 +18,7 @@ public class WishlistProduct {
 
     @ManyToOne
     @JoinColumn(name= "id_lista_desideri")
-    private Wishlist wishilistID;
+    private Wishlist wishlistID;
 
     @ManyToOne
     @JoinColumn(name= "id_prodotto")
