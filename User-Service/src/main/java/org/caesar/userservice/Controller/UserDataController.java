@@ -124,7 +124,6 @@ public class UserDataController {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-
         if(profilePicService.saveImage(username, file, false))
             return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
         else
