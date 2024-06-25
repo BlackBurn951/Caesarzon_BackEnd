@@ -27,9 +27,12 @@ public class ProductOrder {
     @JoinColumn(name= "id_prodotto")
     private Product productID;
 
-    @Column(name= "id_utente")
-    private long userID;
+    @Column(name= "username_utente")
+    private String username;
 
     @Column(name= "quantita")
     private int quantity;
+
+    @Column(name= "per_dopo")
+    private boolean buyLater;
 }

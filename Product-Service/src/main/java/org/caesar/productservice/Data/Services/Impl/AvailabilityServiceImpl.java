@@ -74,8 +74,10 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     @Override
-    public List<AvailabilityDTO> getAvailabilitiesByProductID(UUID productId) {
-        return List.of();
+    public List<AvailabilityDTO> getAvailabilitiesByProductID(ProductDTO productDTO) {
+        return availabilityRepository.findAllByProduct(modelMapper.map(productDTO, Product.class))
+                .stream().map(a -> modelMapper.map(a, AvailabilityDTO.class)).toList();
+
     }
 
 

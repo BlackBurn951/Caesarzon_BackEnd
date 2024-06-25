@@ -1,9 +1,11 @@
 package org.caesar.productservice.Data.Services;
 
 import org.caesar.productservice.Data.Entities.Order;
+import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.PurchaseOrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.ReturnOrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.SimpleOrderDTO;
+import org.caesar.productservice.Dto.SendProductOrderDTO;
 
 import java.util.List;
 import java.util.UUID;
@@ -36,4 +38,7 @@ public interface OrderService {
     List<ReturnOrderDTO> getAllReturnOrders();
 
     boolean deleteReturnOrderById(UUID id);
+
+    OrderDTO addOrder(OrderDTO orderDTO);
+
 }

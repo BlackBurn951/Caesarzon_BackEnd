@@ -2,6 +2,7 @@ package org.caesar.productservice.Dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 
 import java.util.UUID;
 
@@ -10,9 +11,11 @@ import java.util.UUID;
 public class ProductOrderDTO {
 
     private UUID id;
-    private UUID productId;
-    private UUID orderId;
+    private OrderDTO orderID;
+
+    private ProductDTO productDTO;
+    private double total;
     private int quantity;
-    private double totalPrice;
-    private String userUsername;
+    private String username;
+    private boolean buyLater;
 }

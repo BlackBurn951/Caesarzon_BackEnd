@@ -43,18 +43,8 @@ public class ProductController {
 
     @GetMapping("/product/{id}")
     public ResponseEntity<ProductDTO> getProductAndAvailabilitiesAndImages(@PathVariable UUID id) {
-        Product product = productService.getProductById(id);
-        if(product != null) {
-            List<Availability> availabilities = generalService.getAvailabilityByProductID(product.getId());
-            List<AvailabilityDTO> availabilityDTOS = new ArrayList<>();
-            for(Availability availability : availabilities) {
-                availabilityDTOS.add(modelMapper.map(availability, AvailabilityDTO.class));
-            }
-
-            ProductDTO finalProduct = new ProductDTO(product, availabilityDTOS);
-
-
-            return new ResponseEntity<>(finalProduct, HttpStatus.OK);
+        if(generalService.getProductAndAvailabilitiesAndImages(id) != null){
+            return new ResponseEntity<>(generalService.getProductAndAvailabilitiesAndImages(id), HttpStatus.OK);
         }
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
