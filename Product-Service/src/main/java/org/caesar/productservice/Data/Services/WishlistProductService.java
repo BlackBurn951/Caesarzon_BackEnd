@@ -10,6 +10,6 @@ public interface WishlistProductService {
 
     boolean addOrUpdateWishlistProduct(WishlistProductDTO wishlistProduct);
     List<WishlistProductDTO> getWishlistProductsByWishlistID(UUID wishlistId);
-    boolean deleteWishlistProductById(UUID id);
+    boolean deleteWishlistProductByProductId(UUID productID);
     boolean deleteAllWishlistProductsByWishlistID(UUID wishlistID);
 }

@@ -52,7 +52,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
     }
 
     @Override
-    public boolean deleteWishlistProductById(UUID productID) {
+    public boolean deleteWishlistProductByProductId(UUID productID) {
 
         Product product = productRepository.findById(productID).orElse(null);
         for(WishlistProduct wishlistProduct: wishlistProductRepository.findAll()) {

@@ -51,8 +51,8 @@ public class WishlistServiceImpl implements WishlistService {
     @Override
     public boolean deleteWishlist(UUID id) {
         try {
-            wishlistProductServiceImpl.deleteAllWishlistProductsByWishlistID(id);
             wishlistRepository.deleteById(id);
+            log.debug("Lista desideri eliminata correttamente");
             return true;
         } catch (Exception e) {
             log.debug("Errore nella cancellazione della lista desideri");
