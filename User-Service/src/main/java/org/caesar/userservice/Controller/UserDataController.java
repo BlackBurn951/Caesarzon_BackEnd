@@ -58,6 +58,28 @@ public class UserDataController {
             return new ResponseEntity<>("Problemi nell'aggiornamento...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @PutMapping("/password/{username}")
+    public ResponseEntity<String> forgottenPassword(@PathVariable String username, @RequestBody PasswordChangeDTO passwordChangeDTO){
+        boolean result = userService.changePassword(passwordChangeDTO, username);
+
+        if(result)
+            return new ResponseEntity<>("Password cambiata", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore cambio password...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDTO passwordChangeDTO){
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result = userService.changePassword(passwordChangeDTO, username);
+
+        if(result)
+            return new ResponseEntity<>("Password cambiata", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore cambio password...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @DeleteMapping("/user")
     public ResponseEntity<String> deleteUser() {
         //Prendendo l'username dell'utente che ha fatto la chiamata
@@ -70,7 +92,6 @@ public class UserDataController {
         else
             return new ResponseEntity<>("Errore nella cancellazione dell'user...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
 
     //End-point per manipolare la foto profilo
@@ -110,9 +131,9 @@ public class UserDataController {
     }
 
 
-    //End-point per gli utenti
+    //End-point per prendere più utenti
     @GetMapping("/users")
-    public ResponseEntity<List<UserFindDTO>> getUsersSearch(@RequestParam("str") int start) {
+    public ResponseEntity<List<UserFindDTO>> getAllUsers(@RequestParam("str") int start) {
         List<UserFindDTO> result= generalService.getUserFind(start);
 
         if(result!=null)
@@ -121,28 +142,8 @@ public class UserDataController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
-
-    //Metodo di prova, fatto da ciccio, bifano e cesare <3
-    //prendere tutti gli utenti
-    @GetMapping("/usersByUsername")
-    public List<String> getUsernames(@RequestParam("username") String username) {  //TODO FATTO DA CICCIO
-        System.out.printf("oh dio mi hanno chiamato");
-        return (userService.getUsersByUsername(username));
-    }  //FIXME deve tornare userSerarch (mantanere per luca)
-
-
-    @PostMapping("/password")
-    public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDTO passwordChangeDTO){
-
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
-
-        boolean result = userService.changePassword(passwordChangeDTO, username);
-
-        if(result)
-            return new ResponseEntity<>("Password cambiata", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Errore cambio password", HttpStatus.INTERNAL_SERVER_ERROR);
+    @GetMapping("/users/{username}")
+    public List<String> getUsersByUsernames(@PathVariable String username) {
+        return userService.getUsersByUsername(username);
     }
-
 }

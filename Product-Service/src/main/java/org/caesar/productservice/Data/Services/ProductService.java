@@ -20,4 +20,7 @@ public interface ProductService {
     public List<SendProductDTO> getProductByPrice(double priceMin, double priceMax);
 
     boolean deleteProductById(UUID id);
+
+    List<Product> searchProducts(String searchText);
+
 }

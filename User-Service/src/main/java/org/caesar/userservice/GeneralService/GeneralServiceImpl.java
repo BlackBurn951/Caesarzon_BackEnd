@@ -166,17 +166,11 @@ public class GeneralServiceImpl implements GeneralService {
 
 
     //Getters per prendere i dati dalle tabelle di relazione
+
     @Override
-    public CardDTO getUserCard(String userUsername, String cardName) {
-        //Presa del numero della carta desiderata
-        int cardNumber= getNumber(cardName);
+    public CardDTO getUserCard(UUID id) {
 
-
-        if(cardNumber == 0)
-            return null;
-
-        //Presa della carta in posizione cardNumber sulla tabella di relazione
-        UserCardDTO userCardDTO= userCardService.getUserCard(userUsername, cardNumber);
+        UserCardDTO userCardDTO = userCardService.getUserCard(id);
 
         if(userCardDTO == null)
             return null;
@@ -185,20 +179,15 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public List<String> getUserCards(String usernUsername) {
-        return userCardService.getCards(usernUsername);
+    public List<UUID> getUserCards(String userUsername) {
+        return userCardService.getCards(userUsername);
     }
 
     @Override
-    public AddressDTO getUserAddress(String addressName, String username) {
-        //Presa del numero dell'indirizzo desiderato
-        int addressNumber= getNumber(addressName);
-
-        if(addressNumber == 0)
-            return null;
+    public AddressDTO getUserAddress(UUID id) {
 
         //Presa dell'indirizzo in posizione addressNumber sulla tabella di relazione
-        UserAddressDTO userAddressDTO= userAddressService.getUserAddress(username, addressNumber);
+        UserAddressDTO userAddressDTO = userAddressService.getUserAddress(id);
 
         if(userAddressDTO == null)
             return null;
@@ -207,7 +196,7 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public List<String> getUserAddresses(String userUsername) {
+    public List<UUID> getUserAddresses(String userUsername) {
         return userAddressService.getAddresses(userUsername);
     }
 
@@ -254,16 +243,11 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-    public boolean deleteUserAddress(String userUsername, String addressName) {
-        //Presa del numero dell'indirizzo desiderato
-        int addressNumber= getNumber(addressName);
-
-        if(addressNumber==0)
-            return false;
+    public boolean deleteUserAddress(UUID id) {
 
         try {
             //Presa della tupla di relazione dell'indirizzo richiesto
-            UserAddressDTO userAddressDTO= userAddressService.getUserAddress(userUsername, addressNumber);
+            UserAddressDTO userAddressDTO= userAddressService.getUserAddress(id);
 
             //Controllo che la tupla di relazione esista e eliminazione dell'indirizzo associato più controllo della riuscita dell'operazione
             if(userAddressDTO!=null && userAddressService.deleteUserAddress(userAddressDTO))
@@ -278,16 +262,11 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-    public boolean deleteUserCard(String userUsername, String cardName) {
-        //Presa del numero della carta desiderata
-        int cardNumber= getNumber(cardName);
-
-        if(cardNumber==0)
-            return false;
+    public boolean deleteUserCard(UUID id) {
 
         try {
             //Presa della tupla di relazione della carta richiesta
-            UserCardDTO userCardDTO= userCardService.getUserCard(userUsername, cardNumber);
+            UserCardDTO userCardDTO= userCardService.getUserCard(id);
 
             //Controllo che la tupla di relazione esista e eliminazione della carta associata più controllo della riuscita dell'operazione
             if(userCardDTO!=null && userCardService.deleteUserCard(userCardDTO))

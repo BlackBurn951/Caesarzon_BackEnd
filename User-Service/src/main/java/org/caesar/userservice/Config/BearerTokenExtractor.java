@@ -16,13 +16,6 @@ public class BearerTokenExtractor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-
-//        System.out.println("Uri della richiesta "+request.getRequestURI());
-//        if(request.getRequestURI().matches(".*/user-api/admins.*")) {
-//            System.out.println("Regex riuscita");
-//            return true;
-//        }
-//        System.out.println("Regex non riuscita");
         //Presa del token dall'header della richiesta
         String authorizationHeader = request.getHeader("Authorization");
 

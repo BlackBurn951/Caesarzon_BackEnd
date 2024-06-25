@@ -50,7 +50,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/user-api/cards-name").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/admins").permitAll()
 
-                        .pathMatchers(HttpMethod.GET, "/search-api/search/users").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/search-api/users").permitAll()
 
                         .pathMatchers(HttpMethod.GET, "/notify-api/report").permitAll()
                         .pathMatchers(HttpMethod.POST, "/notify-api/report").permitAll()
@@ -61,7 +61,9 @@ public class SecurityConfig {
 
                         .pathMatchers(HttpMethod.POST, "/product-api/product").permitAll()
                         .pathMatchers(HttpMethod.GET, "/product-api/product").permitAll()
+                        .pathMatchers(HttpMethod.DELETE, "/product-api/product").permitAll()
                         .pathMatchers(HttpMethod.POST, "/product-api/review").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/product-api/image").permitAll()
 
                         .pathMatchers(HttpMethod.GET, "/product-api/review").permitAll()
                         .pathMatchers(HttpMethod.POST, "/product-api/review").permitAll()

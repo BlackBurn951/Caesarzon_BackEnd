@@ -4,8 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.notificationservice.Data.Dao.AdminNotificationRepository;
-import org.caesar.notificationservice.Data.Dao.ReportRepository;
 import org.caesar.notificationservice.Data.Services.*;
 import org.caesar.notificationservice.Dto.*;
 import org.springframework.http.*;
@@ -31,8 +29,6 @@ public class GeneralServiceImpl implements GeneralService{
     private final AdminNotificationService adminNotificationService;
     private final UserNotificationService userNotificationService;
     private final BanService banService;
-    private final AdminNotificationRepository adminNotificationRepository;
-    private final ReportRepository reportRepository;
 
 
     @Override
@@ -42,6 +38,10 @@ public class GeneralServiceImpl implements GeneralService{
             //Aggiungo al DTO la data e l'username che ha inviato la segnalazione
             reportDTO.setReportDate(LocalDate.now());
             reportDTO.setUsernameUser1(username1);
+
+            //Controllo che l'utente che segnala non abbia già segnalato quella stessa recensione
+            if(reportService.findByUsername1AndReviewId(reportDTO.getUsernameUser1(), reportDTO.getReviewId()))
+                return false;
 
             //Aggiungo la segnalazione
             ReportDTO newReportDTO = reportService.addReport(reportDTO);
@@ -57,10 +57,10 @@ public class GeneralServiceImpl implements GeneralService{
                 banDTO.setUserUsername(newReportDTO.getUsernameUser2());
 
                 //Eliminazione delle notifiche relative alla segnalazione per tutti gli admin
-                adminNotificationRepository.deleteByReportId(reportDTO.getReviewId());
+                adminNotificationService.deleteByReport(reportDTO);
 
                 //Eliminazione della segnalazione
-                reportRepository.deleteById(reportDTO.getId());
+                reportService.deleteReport(reportDTO.getReviewId());
 
                 return banService.banUser(banDTO) && deleteReview(reportDTO.getReviewId());
             } else if(newReportDTO != null) {
@@ -81,19 +81,20 @@ public class GeneralServiceImpl implements GeneralService{
                 if(admins==null)
                     return false;
 
-                List<AdminNotificationDTO> notifications= new Vector<>();
-                AdminNotificationDTO notify;
+                List<SaveAdminNotificationDTO> notifications= new Vector<>();
+                SaveAdminNotificationDTO notify;
 
                 for(String ad: admins) {
-                    notify= new AdminNotificationDTO();
+                    notify= new SaveAdminNotificationDTO();
                     notify.setDate(LocalDate.now());
-                    notify.setDescription("C'è una nuova segnalazione da parte dell'utente" + username1 );
+                    notify.setSubject("C'è una nuova segnalazione da parte dell'utente" + username1 );
                     notify.setAdmin(ad);
-                    notify.setReportId(newReportDTO.getId());
+                    notify.setReport(newReportDTO);
                     notify.setRead(false);
 
                     notifications.add(notify);
                 }
+
                 return adminNotificationService.sendNotificationAllAdmin(notifications);
             }
             return false;
@@ -104,14 +105,12 @@ public class GeneralServiceImpl implements GeneralService{
     }
 
     @Override
-    @Transactional //TODO COSI FUNZIONA
+    @Transactional
     public boolean addSupportRequest(String username, SupportDTO supportDTO) {
 
         supportDTO.setDateRequest(LocalDate.now());
         supportDTO.setUsername(username);
-        System.out.println("Sono dentro");
         SupportDTO newSupportDTO = supportRequestService.addSupportRequest(supportDTO);
-        System.out.println("Ho salvato la richiesta");
 
         if(newSupportDTO != null) {
             HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
@@ -130,16 +129,16 @@ public class GeneralServiceImpl implements GeneralService{
             if(admins==null)
                 return false;
 
-            List<AdminNotificationDTO> notifications= new Vector<>();
-            AdminNotificationDTO notify;
+            List<SaveAdminNotificationDTO> notifications= new Vector<>();
+            SaveAdminNotificationDTO notify;
 
             for(String ad: admins) {
-                notify= new AdminNotificationDTO();
+                notify= new SaveAdminNotificationDTO();
                 notify.setDate(LocalDate.now());
-                notify.setDescription("C'è una nuova richiesta di supporto dall'utente " + username);
+                notify.setSubject("C'è una nuova richiesta di supporto dall'utente " + username);
                 notify.setAdmin(ad);
-                notify.setReportId(null);
                 notify.setRead(false);
+                notify.setSupport(newSupportDTO);
 
                 notifications.add(notify);
             }
@@ -153,19 +152,27 @@ public class GeneralServiceImpl implements GeneralService{
     @Override
     @Transactional
     public boolean manageSupportRequest(String username, SupportResponseDTO sendSupportDTO) {
+
         SupportDTO supportDTO= supportRequestService.getSupport(sendSupportDTO.getSupportCode());
 
-        if(supportDTO!=null && supportRequestService.deleteSupportRequest(supportDTO)) {
-            String descr= "Richiesta di supporto " + supportDTO.getId()+ " elaborata dall'admin " + username;
+        boolean delAdminNot = adminNotificationService.deleteBySupport(supportDTO);
 
-            NotificationDTO notificationDTO= new NotificationDTO();
+        boolean delSupport = supportRequestService.deleteSupportRequest(supportDTO);
+        if(supportDTO!=null && delAdminNot && delSupport) {
+            String descr= "Richiesta di supporto elaborata dall'admin " + username;
 
-            notificationDTO.setDate(LocalDate.now().toString());
-            notificationDTO.setSubject(descr);
-            notificationDTO.setRead(false);
-            notificationDTO.setExplanation(sendSupportDTO.getExplain());
+            UserNotificationDTO userNotificationDTO= new UserNotificationDTO();
 
-            return userNotificationService.addUserNotification(notificationDTO, supportDTO.getUsername());
+            System.out.println("codice richiesta" + sendSupportDTO.getSupportCode());
+
+            userNotificationDTO.setDate(LocalDate.now());
+            userNotificationDTO.setSubject(descr);
+            userNotificationDTO.setExplanation(sendSupportDTO.getExplain());
+            userNotificationDTO.setUser(supportDTO.getUsername());
+            userNotificationDTO.setRead(false);
+
+
+            return userNotificationService.addUserNotification(userNotificationDTO);
         }
         return false;
     }
@@ -174,8 +181,11 @@ public class GeneralServiceImpl implements GeneralService{
     @Transactional
     public boolean manageReport(String username, UUID reviewId, boolean product, boolean accept) {
 
+        ReportDTO reportDTO = reportService.getReportByReviewId(reviewId);
+
         reportService.deleteReport(reviewId);
-        adminNotificationRepository.deleteByReportId(reviewId);
+
+        adminNotificationService.deleteByReport(reportDTO);
 
         if(!product && accept){
             return deleteReview(reviewId);
@@ -192,9 +202,42 @@ public class GeneralServiceImpl implements GeneralService{
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        return restTemplate.exchange("http://product-service/product-api/admin/review/?review_id="+reviewId,
-                HttpMethod.POST,
+        return restTemplate.exchange("http://product-service/product-api/admin/review?review_id="+reviewId,
+                HttpMethod.DELETE,
                 entity,
                 String.class).getStatusCode() == HttpStatus.OK;
     }
+
+
+    @Override
+    public boolean updateAdminNotification(List<AdminNotificationDTO> notificationDTO) {
+        try{
+            List<SaveAdminNotificationDTO> saveNotificationDTO = new Vector<>();
+            SaveAdminNotificationDTO saveAdminNotificationDTO;
+
+            for(AdminNotificationDTO notify: notificationDTO){
+                saveAdminNotificationDTO = new SaveAdminNotificationDTO();
+
+                saveAdminNotificationDTO.setId(notify.getId());
+                saveAdminNotificationDTO.setDate(notify.getDate());
+                saveAdminNotificationDTO.setSubject(notify.getSubject());
+                saveAdminNotificationDTO.setAdmin(notify.getAdmin());
+                saveAdminNotificationDTO.setRead(notify.isRead());
+
+                if(notify.getReportId() == null){
+                    saveAdminNotificationDTO.setSupport(supportRequestService.getSupport(notify.getSupportId()));
+                }else{
+                    saveAdminNotificationDTO.setReport(reportService.getReport(notify.getReportId()));
+                }
+                saveNotificationDTO.add(saveAdminNotificationDTO);
+            }
+
+            return adminNotificationService.updateAdminNotification(saveNotificationDTO);
+
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'admin");
+            return false;
+        }
+    }
+
 }

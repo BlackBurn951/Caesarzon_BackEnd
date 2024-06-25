@@ -9,11 +9,12 @@ import java.util.UUID;
 @Getter
 @Setter
 public class AdminNotificationDTO {
-    private Long id;
+    private UUID id;
     private LocalDate date;
-    private String description;
+    private String subject;
     private String admin;
     private boolean read;
     private UUID reportId;
+    private UUID supportId;
 }
 

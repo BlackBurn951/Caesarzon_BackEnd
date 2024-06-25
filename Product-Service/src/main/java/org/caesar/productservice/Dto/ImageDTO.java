@@ -2,13 +2,18 @@ package org.caesar.productservice.Dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.caesar.productservice.Data.Entities.Product;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.UUID;
-
-@Getter
 @Setter
+@Getter
 public class ImageDTO {
 
-    private byte[] image;
-    private UUID productID;
+    private byte[] file;
+    private Product idProduct;
+
+    public ImageDTO(byte[] image, Product idProduct) {
+        this.file = image;
+        this.idProduct = idProduct;
+    }
 }

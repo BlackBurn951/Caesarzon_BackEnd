@@ -16,8 +16,9 @@ public class SportProduct {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name= "id_prodotto")
-    private int quantity;
+    @ManyToOne
+    @JoinColumn(name= "id_prodotto")
+    private Product productId;
 
     @ManyToOne
     @JoinColumn(name= "id_sport")
