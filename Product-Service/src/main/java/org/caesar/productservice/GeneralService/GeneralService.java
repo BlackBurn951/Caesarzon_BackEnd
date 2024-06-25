@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface GeneralService {
 
 
-    boolean addProduct(SendProductDTO sendProductDTO) throws IOException;
+    boolean addProduct(SendProductDTO sendProductDTO);
     boolean deleteProduct(UUID id);
     List<ImageDTO> getProductImages(UUID id);
     List<Availability> getAvailabilityByProductID(UUID productID);

@@ -48,14 +48,15 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public Review getReviewById(UUID id) {
-        return reviewRepository.findById(id).orElse(null);
+    public Review getReviewById(Product product) {
+        return reviewRepository.findByProductID(product);
     }
 
 
     public Review getReview(String username, UUID productID) {
         return reviewRepository.findByuserIDAndProductID(username, productRepository.findById(productID).orElse(null));
     }
+
 
     @Override
     public List<ReviewDTO> getReviewsByProductId(Product product) {

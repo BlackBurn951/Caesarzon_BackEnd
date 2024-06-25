@@ -70,6 +70,8 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.DELETE, "/product-api/review").permitAll()
                         .pathMatchers(HttpMethod.DELETE, "/product-api/admin/review").permitAll()
 
+                        .pathMatchers(HttpMethod.GET, "/product-api/search").permitAll()
+
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));
