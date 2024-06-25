@@ -3,7 +3,6 @@ package org.caesar.productservice.Dto;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.caesar.productservice.Data.Entities.Image;
 import org.caesar.productservice.Data.Entities.Product;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,7 +24,7 @@ public class SendProductDTO {
     private String secondaryColor;
     private Boolean is_clothing;
     private List<AvailabilityDTO> availabilities;
-    private List<String> listaSport;
+    private List<String> sportList;
 
     public SendProductDTO(Product product, List<AvailabilityDTO> availabilities, List<MultipartFile> images) {
         this.name = product.getName();
@@ -37,7 +36,6 @@ public class SendProductDTO {
         this.secondaryColor = product.getSecondaryColor();
         this.is_clothing = product.getIs_clothing();
         this.availabilities = availabilities;
-        this.images = images;
     }
 
 

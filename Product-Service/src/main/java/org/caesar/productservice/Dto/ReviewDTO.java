@@ -11,9 +11,9 @@ import java.util.UUID;
 @Setter
 public class ReviewDTO {
 
+    private UUID id;
     private String text;
     private int evaluation;
     private String userID;
-    private String nameProduct;
     private UUID productID;
 }

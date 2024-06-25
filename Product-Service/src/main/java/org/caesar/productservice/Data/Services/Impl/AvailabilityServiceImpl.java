@@ -23,7 +23,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     //fare la modifica delle disponibilità e eventuale eliminazione
     @Override
-    public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, ProductDTO product) {
+    public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, Product product) {
         if (availabilities.isEmpty()) {
             return false;
         }
@@ -55,18 +55,20 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     public boolean deleteAvailabilityByProduct(Product product) {
         System.out.println("Sono nell'elimina della disponibilità");
         List<Availability> availabilitiesToDelete = new ArrayList<>();
-        for(Availability availability : availabilityRepository.findAll()) {
-            if(availability.getProduct().equals(product)){
+        for (Availability availability : availabilityRepository.findAll()) {
+            if (availability.getProduct().equals(product)) {
                 System.out.println("Disponibilità trovata");
                 availabilitiesToDelete.add(availability);
             }
         }
-        if(!availabilitiesToDelete.isEmpty()) {
+        if (!availabilitiesToDelete.isEmpty()) {
             availabilityRepository.deleteAll(availabilitiesToDelete);
             return true;
-        }else
+        } else
             return false;
-		
+
+    }
+
     public List<Availability> getAll() {
         return availabilityRepository.findAll();
     }

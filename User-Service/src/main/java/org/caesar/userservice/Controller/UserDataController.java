@@ -8,6 +8,7 @@ import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -118,8 +119,8 @@ public class UserDataController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/image")
-    public ResponseEntity<String> uploadImage(@RequestBody MultipartFile file){
+    @PutMapping(value = "/image")
+    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file){
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 

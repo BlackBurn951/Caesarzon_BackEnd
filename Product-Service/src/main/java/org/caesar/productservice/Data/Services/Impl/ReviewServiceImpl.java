@@ -24,21 +24,30 @@ public class ReviewServiceImpl implements ReviewService {
     private final ProductRepository productRepository;
 
     @Override
-    public UUID addOrUpdateReview(ReviewDTO reviewDTO, Product product) {
+    public UUID addOrUpdateReview(ReviewDTO reviewDTO) {
 
         if(reviewDTO == null){
             return null;
         }
         try {
-            System.out.println("Adding review");
             Review review = new Review();
-            review.setProductID(product);
-            review.setDate(LocalDate.now());
-            review.setText(reviewDTO.getText());
-            review.setEvaluation(reviewDTO.getEvaluation());
-            review.setUserID(reviewDTO.getUserID());
+            System.out.println("Review creata");
+            UUID productID = reviewDTO.getProductID();
+            Product product = productRepository.findById(productID).orElse(null);
+            if(product != null){
+                System.out.println("Prodotto non nullo");
+                review.setProduct(product);
+                review.setDate(LocalDate.now());
+                review.setText(reviewDTO.getText());
+                review.setEvaluation(reviewDTO.getEvaluation());
+                review.setUserID(reviewDTO.getUserID());
 
+            }else{
+                System.out.println("Prodotto nullo");
+                return null;
+            }
 
+            System.out.println("Recensione sul prodotto salvata");
             return reviewRepository.save(review).getId();
 
         }catch (RuntimeException | Error e) {
@@ -48,24 +57,28 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public Review getReviewById(UUID id) {
-        return reviewRepository.findById(id).orElse(null);
-    }
+    public Review getReviewById(UUID reviewID) {
 
-
-    public Review getReview(String username, UUID productID) {
-        return reviewRepository.findByuserIDAndProductID(username, productRepository.findById(productID).orElse(null));
+        return reviewRepository.findById(reviewID).orElse(null);
     }
 
     @Override
-    public List<ReviewDTO> getReviewsByProductId(Product product) {
+    public UUID getReviewIDByUsernameAndProductID(String username, UUID productID) {
+        Product product = productRepository.findById(productID).orElse(null);
+        return reviewRepository.findReviewByUserIDAndProduct(username, product).getId();
+    }
+
+
+    @Override
+    public List<ReviewDTO> getReviewsByProductId(UUID productID) {
+        Product product = productRepository.findById(productID).orElse(null);
         List<ReviewDTO> reviewDTOS = new ArrayList<>();
-        for(Review review: reviewRepository.findByproductID(product)){
+        for(Review review: reviewRepository.findByproduct(product)){
             ReviewDTO reviewDTO = modelMapper.map(review, ReviewDTO.class);
             System.out.println("text: "+review.getText());
             System.out.println("evaluation: "+review.getEvaluation());
             System.out.println("userID: "+review.getUserID());
-            System.out.println("productID: "+review.getProductID());
+            System.out.println("productID: "+review.getProduct());
             reviewDTOS.add(reviewDTO);
         }
         return reviewDTOS;

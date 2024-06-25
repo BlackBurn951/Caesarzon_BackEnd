@@ -30,10 +30,8 @@ public class ReviewController {
     //La post funziona
     @PostMapping("/review")
     public ResponseEntity<String> addReview(@RequestBody ReviewDTO reviewDTO) {
-        Product product = new Product();
-        product.setId(productService.getProductIDByName(reviewDTO.getNameProduct()));
 
-        UUID reviewID = reviewService.addOrUpdateReview(reviewDTO, product);
+        UUID reviewID = reviewService.addOrUpdateReview(reviewDTO);
         System.out.println("Review ID: " + reviewID);
         if (reviewID != null) {
             return new ResponseEntity<>("Recensione aggiunta", HttpStatus.OK);
@@ -44,11 +42,8 @@ public class ReviewController {
 
     //La get funziona
     @GetMapping("/review")
-    public ResponseEntity<List<ReviewDTO>> getReview(@RequestParam String productName) {
-        UUID productID = productService.getProductIDByName(productName);
-        Product product = productService.getProductById(productID);
-        System.out.println("Product ID: " + productID);
-        List<ReviewDTO> reviewDTOS = reviewService.getReviewsByProductId(product);
+    public ResponseEntity<List<ReviewDTO>> getReview(@RequestParam UUID productID) {
+        List<ReviewDTO> reviewDTOS = reviewService.getReviewsByProductId(productID);
         for(ReviewDTO reviewDTO : reviewDTOS) {
             System.out.println(reviewDTO);
         }
@@ -58,15 +53,15 @@ public class ReviewController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
+    //Funziona, ma da il risultaato sbagliato
     @DeleteMapping("/review")
-    public ResponseEntity<ReviewDTO> deleteReview(@RequestParam String username, @RequestParam UUID productID){
+    public ResponseEntity<String> deleteReview(@RequestParam String username, @RequestParam UUID productID){
 
-        Product product = productService.getProductById(productID);
-        Review review = reviewService.getReview(username, product);
-        UUID reviewID = review.getId();
-        if (review != null) {
-            reviewService.deleteReview(review.getId());
+        UUID reviewID = reviewService.getReviewIDByUsernameAndProductID(username, productID);
+        System.out.println("Review ID prima delle delete: " + reviewID);
+        if (reviewID != null) {
+            reviewService.deleteReview(reviewID);
+            System.out.println("Review ID dopo delle delete: " + reviewID);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
@@ -79,11 +74,12 @@ public class ReviewController {
             );
 
             if(responseEntity.getStatusCode().is2xxSuccessful()){
-                ReviewDTO reviewDTO = modelMapper.map(responseEntity.getBody(), ReviewDTO.class);
-                return new ResponseEntity<>(reviewDTO, HttpStatus.OK);
+                System.out.println("Sono in questa risposta, la giusta");
+                return new ResponseEntity<>("Recensione eliminata con sucesso!", HttpStatus.OK);
             }
         }
-        return ResponseEntity.internalServerError().build();
+        System.out.println("Sono in questa risposta, la sbagliata");
+        return  new ResponseEntity<>("Problemi nell'eliminazione!", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
@@ -94,7 +90,7 @@ public class ReviewController {
             return new ResponseEntity<>("Recensione non trovata", HttpStatus.NOT_FOUND);
         }else {
             reviewService.deleteReview(review_id);
-            return new ResponseEntity<>("Recensione trovata e scopata", HttpStatus.OK);
+            return new ResponseEntity<>("Recensione trovata", HttpStatus.OK);
         }
     }
 }

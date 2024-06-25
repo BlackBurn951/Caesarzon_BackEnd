@@ -20,10 +20,11 @@ public class ProductDTO {
     private String primaryColor;
     private String secondaryColor;
     private Boolean is_clothing;
-    List<ImageDTO> images;
     List<AvailabilityDTO> availabilities;
 
-    public ProductDTO(Product product, List<AvailabilityDTO> availabilities, List<ImageDTO> images) {
+    public ProductDTO() {}
+
+    public ProductDTO(Product product, List<AvailabilityDTO> availabilities) {
         this.name = product.getName();
         this.description = product.getDescription();
         this.brand = product.getBrand();
@@ -33,7 +34,6 @@ public class ProductDTO {
         this.secondaryColor = product.getSecondaryColor();
         this.is_clothing = product.getIs_clothing();
         this.availabilities = availabilities;
-        this.images = images;
     }
 
 }
