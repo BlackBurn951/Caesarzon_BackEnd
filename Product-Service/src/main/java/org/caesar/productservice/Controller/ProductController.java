@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,7 +48,7 @@ public class ProductController {
     }
 
     @PostMapping("/products")
-    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody List<SendProductDTO> sendProductDTO) {
+    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody List<SendProductDTO> sendProductDTO) throws IOException {
 
         for(SendProductDTO sendProductDTO1: sendProductDTO){
             generalService.addProduct(sendProductDTO1);
@@ -81,7 +82,7 @@ public class ProductController {
 
         if(!images.isEmpty()){
             for(ImageDTO image : images){
-                System.out.println(image.getFile());
+                System.out.println(Arrays.toString(image.getFile()));
             }
             return new ResponseEntity<>(images, HttpStatus.OK);
         }else{
@@ -106,14 +107,5 @@ public class ProductController {
             return new ResponseEntity<>("Prodotto eliminato", HttpStatus.OK);
         else
             return new ResponseEntity<>("Prodotto non eliminato", HttpStatus.INTERNAL_SERVER_ERROR);
-    @GetMapping("/search")
-    public List<Product> searchProducts(@RequestParam("query") String query) {
-        return productService.searchProducts(query);
-    }
-
-
-    @PostMapping("/add")
-    public void addProduct(@RequestBody SportDTO generalDTO) {
-        sportRepository.save(model.map(generalDTO, Sport.class));
     }
 }

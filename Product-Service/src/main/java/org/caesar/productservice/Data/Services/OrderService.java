@@ -15,7 +15,7 @@ public interface OrderService {
 
     SimpleOrderDTO getOrderById(UUID id);
 
-    List<SimpleOrderDTO> getAllSimpleOrders();
+    List<SimpleOrderDTO> getAllSimpleOrders(UUID userID);
 
     boolean deleteOrderById(UUID id);
 

@@ -1,45 +1,71 @@
 package org.caesar.productservice.Data.Services.Impl;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.caesar.productservice.Data.Dao.OrderRepository;
+import org.caesar.productservice.Data.Entities.Order;
 import org.caesar.productservice.Data.Services.OrderService;
 import org.caesar.productservice.Dto.DTOOrder.PurchaseOrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.ReturnOrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.SimpleOrderDTO;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Service
+@RequiredArgsConstructor
+@Slf4j
 public class OrderServiceImpl implements OrderService {
+
+    private final OrderRepository orderRepository;
+    private final ModelMapper modelMapper;
 
     //SimpleOrderService
     @Override
     public boolean addOrUpdateOrder(SimpleOrderDTO order) {
-        return false;
+        return modelMapper.map(order, SimpleOrderDTO.class) != null;
     }
 
     @Override
     public SimpleOrderDTO getOrderById(UUID id) {
-        return null;
+
+        return modelMapper.map(orderRepository.findById(id).orElse(null),
+                SimpleOrderDTO.class);
     }
 
     @Override
-    public List<SimpleOrderDTO> getAllSimpleOrders() {
-        return List.of();
+    public List<SimpleOrderDTO> getAllSimpleOrders(UUID userID) {
+        List<SimpleOrderDTO> orders = new ArrayList<>();
+        for (Order order : orderRepository.findAll()) {
+            orders.add(modelMapper.map(order, SimpleOrderDTO.class));
+        }
+        return orders;
     }
 
     @Override
     public boolean deleteOrderById(UUID id) {
+        for (Order order : orderRepository.findAll()) {
+            if (order.getId().equals(id)) {
+                orderRepository.delete(order);
+                return true;
+            }
+        }
         return false;
     }
 
     //PurchaseOrderDTOService
     @Override
     public boolean addOrUpdateOrder(PurchaseOrderDTO order) {
-        return false;
+        return modelMapper.map(order, PurchaseOrderDTO.class) != null;
     }
 
     @Override
     public PurchaseOrderDTO getPurchaseOrderById(UUID id) {
-        return null;
+        Order purchaseOrder = orderRepository.findById(id).orElse(null);
+        return modelMapper.map(purchaseOrder, PurchaseOrderDTO.class);
     }
 
     @Override

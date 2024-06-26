@@ -65,23 +65,21 @@ public class ReviewController {
         Product product = productService.getProductById(productID);
         Review review = reviewService.getReview(username, product);
         UUID reviewID = review.getId();
-        if (review != null) {
-            reviewService.deleteReview(review.getId());
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+        reviewService.deleteReview(review.getId());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
-            ResponseEntity<Void> responseEntity = restTemplate.exchange(
-                    "http://notification-service/notify-api/user/report?review_id="+reviewID,
-                    HttpMethod.DELETE,
-                    requestEntity,
-                    Void.class
-            );
+        ResponseEntity<Void> responseEntity = restTemplate.exchange(
+                "http://notification-service/notify-api/user/report?review_id="+reviewID,
+                HttpMethod.DELETE,
+                requestEntity,
+                Void.class
+        );
 
-            if(responseEntity.getStatusCode().is2xxSuccessful()){
-                ReviewDTO reviewDTO = modelMapper.map(responseEntity.getBody(), ReviewDTO.class);
-                return new ResponseEntity<>(reviewDTO, HttpStatus.OK);
-            }
+        if(responseEntity.getStatusCode().is2xxSuccessful()){
+            ReviewDTO reviewDTO = modelMapper.map(responseEntity.getBody(), ReviewDTO.class);
+            return new ResponseEntity<>(reviewDTO, HttpStatus.OK);
         }
         return ResponseEntity.internalServerError().build();
     }
