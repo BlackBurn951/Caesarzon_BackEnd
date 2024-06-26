@@ -123,10 +123,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public boolean updateOrder(String username) {
+    public boolean updateOrder(String username, UUID orderId) {
         try {
             LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
-            Order order = orderRepository.findOrdersByUsername(username);
+            Order order = orderRepository.findOrderByIdAndUsername(orderId, username);
             if (order.getPurchaseDate().isBefore(tenDaysAgo)) {
                 utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" rifiutato",
                         "Il reso è possibile solo entro 10 giorni dall'acquisto");
@@ -149,6 +149,12 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDTO getOrder(String username, UUID id) {
         return modelMapper.map(orderRepository.findOrderByIdAndUsername(id, username), OrderDTO.class);
+    }
+
+    @Override
+    public List<OrderDTO> getOrdersByStateAndDeliveryDate(String state, LocalDate date) {
+        return orderRepository.findByOrderStateAndExpectedDeliveryDate(state, date).stream().map(a -> modelMapper.map(a, OrderDTO.class)).toList();
+
     }
 
 
