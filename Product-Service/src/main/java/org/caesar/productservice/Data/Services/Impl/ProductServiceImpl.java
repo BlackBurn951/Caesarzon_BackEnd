@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
-//import org.hibernate.search.mapper.orm.Search;
 import org.caesar.productservice.Dto.ProductDTO;
-import org.caesar.productservice.Dto.ProductSearchDTO;
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
 import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
@@ -21,7 +19,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-//Da capire se devo aggiungere la disponibilità alla lista dei prodotti
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,8 +31,8 @@ public class ProductServiceImpl implements ProductService{
     private final EntityManager entityManager;
 
     @Override
+    // Aggiunge il prodotto passato controllando se supera tutti i check dei parametri
     public Product addOrUpdateProduct(ProductDTO productDTO) {
-
 
         if(!checkDescription(productDTO.getDescription()) || !checkDiscount(productDTO.getDiscount())
         || !checkName(productDTO.getName()) || !checkPrice(productDTO.getPrice())
@@ -63,13 +60,14 @@ public class ProductServiceImpl implements ProductService{
             }
             return productRepository.save(product);
 
-        }catch (RuntimeException e){
-            e.printStackTrace();
+        }catch (RuntimeException | Error e){
+            log.debug(e.getMessage());
             return null;
         }
     }
 
     @Override
+    // Restituisce l'id del prodotto partendo dal suo nome
     public UUID getProductIDByName(String name) {
         System.out.println("Risultato: "+productRepository.findByName(name));
         Product productID = productRepository.findProductByName(name);
@@ -81,6 +79,7 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    //Restituisce una lista di prodotti che rientrano nel range di prezzo selezionato
     public List<ProductDTO> getProductByPrice(double priceMin, double priceMax) {
         List<Product> products = productRepository.findAll();
         List<ProductDTO> sendProductDTOs = new ArrayList<>();
@@ -93,11 +92,13 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    // Restituisce un prodotto partendo dal suo id
     public ProductDTO getProductById(UUID id) {
         return modelMapper.map(productRepository.findById(id), ProductDTO.class);
     }
 
     @Override
+    // Restituisce tutti i prodotti
     public List<ProductDTO> getAllProducts() {
         return productRepository.findAll()
                 .stream()
@@ -107,6 +108,7 @@ public class ProductServiceImpl implements ProductService{
 
 
     @Override
+    // Elimina il prodotto partendo dall'id specificato
     public boolean deleteProductById(UUID id) {
         try{
             productRepository.deleteById(id);
@@ -117,45 +119,53 @@ public class ProductServiceImpl implements ProductService{
         }
     }
 
+    // Controllo della descrizione
     private boolean checkDescription(String description) {
         if(description == null || description.isEmpty())
             log.debug("Descrizione non corretta");
+        assert description != null;
         return !description.isEmpty() && description.length()<=500;
     }
 
+    // Controllo del nome
     private boolean checkName(String name) {
         if(name == null || name.isEmpty())
             log.debug("Nome non salvato");
+        assert name != null;
         return !name.isEmpty() && name.length()<=50;
     }
 
+    // Controllo dello sconto
     private boolean checkDiscount(int discount) {
         if(discount < 0)
             log.debug("Discount non salvato");
         return discount >= 0;
     }
 
+    // Controllo del prezzo
     private boolean checkPrice(Double price)
     {   if(price < 0)
             log.debug("Price non salvato");
         return price>0;
     }
 
+    // Controllo del colore primario
     private boolean checkPrimaryColor(String color) {
         if(color == null || color.isEmpty())
             log.debug("coloreP non salvato");
+        assert color != null;
         return !color.isEmpty() && color.length()<=50;
     }
 
+    // Controllo del colore secondario
     private boolean checkSecondaryColor(String color) {
         if(color == null || color.isEmpty())
             log.debug("coloreS non salvato");
+        assert color != null;
         return !color.isEmpty() && color.length()<50;
     }
 
-
-
-
+    // Effettua la ricerca dei prodotti seguendo i valori dei filtri passati per parametro
     public List<ProductDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         try {
 

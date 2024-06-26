@@ -3,8 +3,6 @@ package org.caesar.productservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Data.Entities.Product;
-import org.caesar.productservice.Data.Entities.Review;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Data.Services.ReviewService;
 import org.caesar.productservice.Dto.AverageDTO;
@@ -32,7 +30,7 @@ public class ReviewController {
     private final ProductService productService;
     private final RestTemplate restTemplate;
 
-    //La post funziona
+    // Endpoint per l'aggiunta di una recensione
     @PostMapping("/review")
     public ResponseEntity<String> addReview(@RequestBody ReviewDTO reviewDTO) {
 
@@ -45,20 +43,17 @@ public class ReviewController {
         }
     }
 
-    //La get funziona
-    @GetMapping("/review")
-    public ResponseEntity<List<ReviewDTO>> getReview(@RequestParam UUID productID) {
+    // Endpoint per ottenere la lista di tutte le recensioni di un prodotto tramite il suo id
+    @GetMapping("/reviews")
+    public ResponseEntity<List<ReviewDTO>> getReviews(@RequestParam UUID productID) {
         List<ReviewDTO> reviewDTOS = reviewService.getReviewsByProductId(productID);
-        for(ReviewDTO reviewDTO : reviewDTOS) {
-            System.out.println(reviewDTO);
-        }
         if (!reviewDTOS.isEmpty()) {
             return new ResponseEntity<>(reviewDTOS, HttpStatus.OK);
         }else{
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    //Funziona, ma da il risultaato sbagliato
+    // Endpoint per l'eliminazione di una recensione e delle eventuali segnalazioni ad essa collegate
     @DeleteMapping("/review")
     public ResponseEntity<String> deleteReview(@RequestParam String username, @RequestParam UUID productID){
         UUID reviewID = reviewService.getReviewIDByUsernameAndProductID(username, productID);
@@ -87,7 +82,7 @@ public class ReviewController {
         return  new ResponseEntity<>("Problemi nell'eliminazione!", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
+    // Endpoint per l'eliminazione della recensione tramite id
     @DeleteMapping("/admin/review")
     public ResponseEntity<String> deleteReview(@RequestParam("review_id") UUID review_id) {
 
@@ -99,6 +94,7 @@ public class ReviewController {
         }
     }
 
+    // Endpoint per ottenere la media delle valutazioni di un prodotto
     @GetMapping("/review/average")
     public ResponseEntity<AverageDTO> getReviewAverage(@RequestParam UUID productID) {
 

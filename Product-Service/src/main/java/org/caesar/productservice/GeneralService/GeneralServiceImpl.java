@@ -1,21 +1,13 @@
 package org.caesar.productservice.GeneralService;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Data.Dao.ProductRepository;
-import org.caesar.productservice.Data.Entities.Availability;
-import org.caesar.productservice.Data.Entities.Product;
-import org.caesar.productservice.Data.Entities.ProductOrder;
 import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
-import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
-import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -28,17 +20,11 @@ import org.caesar.productservice.Data.Services.WishlistProductService;
 import org.caesar.productservice.Data.Services.WishlistService;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -57,33 +43,26 @@ public class GeneralServiceImpl implements GeneralService {
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
 
-    @PersistenceContext
-    private final EntityManager entityManager;
 
     @Override
+    // Aggiunge il prodotto ricevuto da front al db dei prodotti
     public boolean addProduct(ProductDTO sendProductDTO) {
-
         // Mappa sendProductDTO a ProductDTO
         ProductDTO productDTO = modelMapper.map(sendProductDTO, ProductDTO.class);
-
         // Aggiorna l'ID del productDTO dopo averlo salvato
         productDTO.setId(productService.addOrUpdateProduct(productDTO).getId());
-
         availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), productDTO);
-
-
         return true;
 
     }
 
     @Override
+    // Restituisce il carrello dell'utente con la lista dei prodotti al suo interno
     public List<ProductCartDTO> getCart(String username) {
         List<ProductOrderDTO> productCart= productOrderService.getProductOrdersByUsername(username);
 
-
         if(productCart==null || productCart.isEmpty())
             return null;
-
 
         List<ProductCartDTO> result= new Vector<>();
         ProductCartDTO prod;
@@ -96,7 +75,6 @@ public class GeneralServiceImpl implements GeneralService {
 
             result.add(prod);
         }
-
         return result;
     }
 
@@ -119,6 +97,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
+    // Genera un nuovo carrello alla scelta del primo prodotto dell'utente
     public boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO) {
         ProductDTO productDTO = productService.getProductById(sendProductOrderDTO.getProductID());
 
@@ -137,6 +116,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
+    // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
     public boolean createOrder(String username, BuyDTO buyDTO) {
 
         if(buyDTO.getAddressID() == null || buyDTO.getCardID() == null)
@@ -193,8 +173,7 @@ public class GeneralServiceImpl implements GeneralService {
         return false; //☺
     }
 
-
-
+    // Generatore di codici per gli ordini
     public static String generaCodice(int lunghezza) {
         String CHARACTERS = "5LDG8OKXCSV4EZ1YU9IR0HT7WMAJB2FN3P6Q";
         SecureRandom RANDOM = new SecureRandom();
@@ -208,6 +187,7 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
+    // Restituisce il prodotto con le sue disponibilità e immagini
     public ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id){
         ProductDTO productDTO = productService.getProductById(id);
         if(productService.getProductById(id) != null){
@@ -219,7 +199,7 @@ public class GeneralServiceImpl implements GeneralService {
         return null;
     }
 
-
+    // Resituisce una lista di prodotti, risultato della ricerca coi valori dei parametri passati
     public List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         List<ProductDTO> productDTO = productService.searchProducts(searchText, minPrice, maxPrice, isClothing);
 
@@ -243,6 +223,7 @@ public class GeneralServiceImpl implements GeneralService {
         return productSearchDTO;
     }
 
+    // Restituisce i prodotti visti di recente dall'utente
     public List<ProductSearchDTO> getLastView(String username){
         //Metodo per prendere tutte le tuple dei prodotti visti
         List<LastViewDTO> lastViewDTOS = lastViewService.getAllViewed(username);
@@ -280,6 +261,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Transactional
     @Override
+    // Elimina l'intera wishlist dell'utente assieme a tutti i prodotti in essa contenuti
     public boolean deleteWishlist(UUID wishlistID){
         return wishlistProductService.deleteAllWishlistProductsByWishlistID(wishlistID) && wishlistService.deleteWishlist(wishlistID);
     }

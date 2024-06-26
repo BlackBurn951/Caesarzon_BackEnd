@@ -14,8 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -31,7 +29,7 @@ public class ProductController {
     private final HttpServletRequest httpServletRequest;
     private final SearchService searchService;
 
-    @PostMapping("/product")
+    @PostMapping("/product") //Aggiunge il prodotto inviato con le sue disponibilità al db
     public ResponseEntity<String> addProductAndAvailabilities(@RequestBody ProductDTO sendProductDTO) {
 
         if(generalService.addProduct(sendProductDTO))
@@ -41,7 +39,7 @@ public class ProductController {
     }
 
 
-    @GetMapping("/product/{id}")
+    @GetMapping("/product/{id}") //Restituisce un prodotto con le sue disponibilità e immagini partendo dal suo id
     public ResponseEntity<ProductDTO> getProductAndAvailabilitiesAndImages(@PathVariable UUID id) {
         String username = httpServletRequest.getAttribute("preferred_username").toString();
         ProductDTO productDTO = generalService.getProductAndAvailabilitiesAndImages(username, id);
@@ -53,7 +51,7 @@ public class ProductController {
 
     }
 
-    @GetMapping("/image")
+    @GetMapping("/image") //Restituisce le immagini del prodotto tramite l'id
     public ResponseEntity<List<ImageDTO>> getProductImages(@RequestParam UUID productID) {
         List<ImageDTO> images = generalService.getProductImages(productID);
 
@@ -67,18 +65,7 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/price")
-    public ResponseEntity<List<ProductDTO>> getProductByPriceRange(@RequestParam double lower, @RequestParam double upper) {
-        List<ProductDTO> productDTOS = productService.getProductByPrice(lower, upper);
-        if (productDTOS.isEmpty())
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        else
-            return new ResponseEntity<>(productDTOS, HttpStatus.OK);
-    }
-
-
-
-    @DeleteMapping("/product")
+    @DeleteMapping("/product") //Elimina il prodotto e le sue disponibilità dal db tramite id
     public ResponseEntity<String> deleteProductAndAvailabilities(@RequestParam UUID productID) {
         if (generalService.deleteProduct(productID))
             return new ResponseEntity<>("Prodotto eliminato", HttpStatus.OK);
@@ -86,7 +73,7 @@ public class ProductController {
             return new ResponseEntity<>("Prodotto non eliminato", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @GetMapping("/search")
+    @GetMapping("/search") //Effettua una ricerca sul db e ritorna una lista di prodotti con i filtri selezionati
     public ResponseEntity<List<ProductSearchDTO>> searchProducts(
             @RequestParam("search-text") String query,
             @RequestParam(value = "min-price", required = false) Double minPrice,
@@ -102,7 +89,7 @@ public class ProductController {
     }
 
 
-    @GetMapping("/lastSearchs")
+    @GetMapping("/lastSearchs") //Restituisce le ricerche dell'utente
     public ResponseEntity<List<String>> searchs(){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
@@ -114,7 +101,7 @@ public class ProductController {
     }
 
 
-    @GetMapping("/lastView")
+    @GetMapping("/lastView") //Restituisce i prodotti visti di recente dall'utente
     public ResponseEntity<List<ProductSearchDTO>> lastView(){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
