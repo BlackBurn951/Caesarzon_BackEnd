@@ -7,9 +7,8 @@ import java.util.UUID;
 
 @Setter
 @Getter
-public class WishlistProductDTO {
+public class SendWishlistProductDTO {
 
-    private UUID Id;
     private UUID productID;
     private UUID wishlistID  ;
 }

@@ -1,15 +1,17 @@
 package org.caesar.productservice.Data.Services;
 
-import org.caesar.productservice.Data.Entities.WishlistProduct;
-import org.caesar.productservice.Dto.WishlistProductDTO;
+import org.caesar.productservice.Dto.SingleWishListProductDTO;
+import org.caesar.productservice.Dto.WishListProductDTO;
+import org.caesar.productservice.Dto.WishlistDTO;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface WishlistProductService {
 
-    boolean addOrUpdateWishlistProduct(WishlistProductDTO wishlistProduct);
-    List<WishlistProductDTO> getWishlistProductsByWishlistID(UUID wishlistId);
-    boolean deleteWishlistProductByProductId(UUID productID);
-    boolean deleteAllWishlistProductsByWishlistID(UUID wishlistID);
+    boolean addOrUpdateWishlistProduct(WishListProductDTO wishlistProduct);
+    boolean deleteAllProductsFromWishlist(WishlistDTO wishlistID);
+    boolean deleteProductFromWishlist(WishListProductDTO wishListProductDTO);
+    List<WishListProductDTO> getWishlistProductsByWishlistID(UUID wishListId);
+
 }

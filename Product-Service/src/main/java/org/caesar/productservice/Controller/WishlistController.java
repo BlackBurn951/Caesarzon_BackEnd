@@ -5,14 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Services.WishlistProductService;
 import org.caesar.productservice.Data.Services.WishlistService;
-import org.caesar.productservice.Dto.WishlistDTO;
-import org.caesar.productservice.Dto.WishlistProductDTO;
+import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,8 +37,9 @@ public class WishlistController {
 
 
     @PostMapping("/wishlist/product")
-    public ResponseEntity<String> addProductIntoList(@RequestBody WishlistProductDTO wishlistDTO){
-        if(wishlistProductService.addOrUpdateWishlistProduct(wishlistDTO))
+    public ResponseEntity<String> addProductIntoList(@RequestBody SendWishlistProductDTO wishlistDTO){
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
+        if(generalService.addProductIntoWishList(username, wishlistDTO))
             return new ResponseEntity<>("Prodotto aggiunto alla lista", HttpStatus.OK);
         else
             return new ResponseEntity<>("Prodotto non aggiunto alla lista", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -55,14 +54,17 @@ public class WishlistController {
         else return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/wishlistProduct") // Endpoint per ottenere tutti i prodotti da una lista desideri di un utente
-    public ResponseEntity<List<WishlistProductDTO>> getWishlistProductsByWishlistID(UUID wishlistID){
-        List<WishlistProductDTO> allWishlistProducts;
-        allWishlistProducts = wishlistProductService.getWishlistProductsByWishlistID(wishlistID);
-        if(allWishlistProducts != null)
-            return new ResponseEntity<>(allWishlistProducts, HttpStatus.OK);
-        else return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @GetMapping("/wishlist/product") // Endpoint per ottenere tutti i prodotti da una lista desideri di un utente
+    public ResponseEntity<WishProductDTO> getWishlistProductsByWishlistID(@RequestParam("wish-id") UUID wishlistID){
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
+        WishProductDTO wishProductDTO = generalService.getWishlistProductsByWishlistID(wishlistID, username);
+        if(wishProductDTO != null)
+            return new ResponseEntity<>(wishProductDTO, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+
+
 
     @GetMapping("/wishlists") // Endpoint per ottenere tutte le liste desideri di una determinata visibilità di un utente
     public ResponseEntity<List<WishlistDTO>> getUserWishlists(String username, String visibility){
@@ -71,9 +73,10 @@ public class WishlistController {
         return new ResponseEntity<>(allUserWishlist, HttpStatus.OK);
     }
 
-    @DeleteMapping("/wishlist") // Endpoint per l'eliminazione di una lista desideri di un utente
-    public ResponseEntity<String> deleteWishlist(@RequestParam UUID wishlistID){
-        if(generalService.deleteWishlist(wishlistID))
+    @DeleteMapping("/wishlist/{id}") // Endpoint per l'eliminazione di una lista desideri di un utente
+    public ResponseEntity<String> deleteWishlist(@PathVariable UUID id){
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
+        if(generalService.deleteWishlist(username, id))
             return new ResponseEntity<>("Lista desideri eliminata correttamente", HttpStatus.OK);
         else return new ResponseEntity<>("Errore nella cancellazione della lista desideri", HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -88,8 +91,10 @@ public class WishlistController {
 
 
     @DeleteMapping("/wishlist/products")
-    public ResponseEntity<String> deleteAllWishlistProductsByWishlistID(@RequestParam UUID wishlistID){
-        if(wishlistProductService.deleteAllWishlistProductsByWishlistID(wishlistID))
+    public ResponseEntity<String> deleteAllWishlistProductsByWishlistID(@RequestParam("wish-id") UUID wishlistID){
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
+
+        if(generalService.deleteProductsFromWishList(username, wishlistID))
             return new ResponseEntity<>("Lista desideri svuotata", HttpStatus.OK);
         else return new ResponseEntity<>("Errore nello svuotamento della lista desideri", HttpStatus.INTERNAL_SERVER_ERROR);
     }
