@@ -83,16 +83,6 @@ public class OrderController {
             return new ResponseEntity<>("Problemi nel svuotamento del carello...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PostMapping("/purchase")  //Metodo per effettuare l'acquisto del carrello
-    public ResponseEntity<OrderDTO> makeOrder(@RequestBody BuyDTO buyDTO){
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
-
-        OrderDTO orderDTO = orderService.getOrder(username, );
-        if(orderDTO != null)
-            return new ResponseEntity<>(orderDTO, HttpStatus.OK);
-        else
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-    }
 
     @GetMapping("/purchases") // Metodo per ottenere tutti gli ordini di un utente
     public ResponseEntity<List<OrderDTO>> getOrders(){

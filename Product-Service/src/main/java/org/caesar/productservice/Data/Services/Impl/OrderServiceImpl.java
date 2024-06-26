@@ -128,17 +128,18 @@ public class OrderServiceImpl implements OrderService {
             LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
             Order order = orderRepository.findOrdersByUsername(username);
             if (order.getPurchaseDate().isBefore(tenDaysAgo)) {
+                utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" rifiutato",
+                        "Il reso è possibile solo entro 10 giorni dall'acquisto");
                 return false;
             }else{
                 order.setRefundDate(LocalDate.now());
                 order.setOrderState("Rimborsato");
                 order.setRefund(true);
                 orderRepository.save(order);
-                utils.sendNotify(username, "Reso sull'ordine")
+                return utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" accettato",
+                        "Il rimborso sarà effettuato sulla carta utilizzata al momento del pagamento");
 
             }
-
-            return true;
         }catch (Exception | Error e) {
             log.debug("Errore nell'update dell'ordine");
             return false;
