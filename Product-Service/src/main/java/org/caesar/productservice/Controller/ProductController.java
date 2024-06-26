@@ -14,8 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -33,13 +31,11 @@ public class ProductController {
 
     @PostMapping("/product")
     public ResponseEntity<String> addProductAndAvailabilities(@RequestBody ProductDTO sendProductDTO) {
-
         if(generalService.addProduct(sendProductDTO))
             return new ResponseEntity<>("Product aggiunto", HttpStatus.OK);
         else
             return new ResponseEntity<>("Prodotto non aggiunto", HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     @GetMapping("/product/{id}")
     public ResponseEntity<ProductDTO> getProductAndAvailabilitiesAndImages(@PathVariable UUID id) {
@@ -50,7 +46,14 @@ public class ProductController {
         }
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
 
+    @DeleteMapping("/product")
+    public ResponseEntity<String> deleteProductAndAvailabilities(@RequestParam UUID productID) {
+        if (generalService.deleteProduct(productID))
+            return new ResponseEntity<>("Prodotto eliminato", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Prodotto non eliminato", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @GetMapping("/image")
@@ -67,24 +70,6 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/price")
-    public ResponseEntity<List<ProductDTO>> getProductByPriceRange(@RequestParam double lower, @RequestParam double upper) {
-        List<ProductDTO> productDTOS = productService.getProductByPrice(lower, upper);
-        if (productDTOS.isEmpty())
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        else
-            return new ResponseEntity<>(productDTOS, HttpStatus.OK);
-    }
-
-
-
-    @DeleteMapping("/product")
-    public ResponseEntity<String> deleteProductAndAvailabilities(@RequestParam UUID productID) {
-        if (generalService.deleteProduct(productID))
-            return new ResponseEntity<>("Prodotto eliminato", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Prodotto non eliminato", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
 
     @GetMapping("/search")
     public ResponseEntity<List<ProductSearchDTO>> searchProducts(
@@ -98,14 +83,12 @@ public class ProductController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         else
             return new ResponseEntity<>(searchProduct, HttpStatus.OK);
-
     }
 
 
     @GetMapping("/lastSearchs")
     public ResponseEntity<List<String>> searchs(){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
-
         List<String> ricerche = searchService.getAllSearchs(username);
         if (ricerche != null)
             return new ResponseEntity<>(ricerche, HttpStatus.OK);
@@ -117,7 +100,6 @@ public class ProductController {
     @GetMapping("/lastView")
     public ResponseEntity<List<ProductSearchDTO>> lastView(){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
-
         List<ProductSearchDTO> searchProduct = generalService.getLastView(username);
 
         if(searchProduct.isEmpty())

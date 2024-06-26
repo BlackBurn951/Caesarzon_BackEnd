@@ -25,30 +25,25 @@ public class ReviewServiceImpl implements ReviewService {
     private final ProductRepository productRepository;
 
     @Override
-    public UUID addOrUpdateReview(ReviewDTO reviewDTO) {
-
+    public UUID addReview(ReviewDTO reviewDTO, String username) {
         if(reviewDTO == null){
             return null;
         }
         try {
             Review review = new Review();
-            System.out.println("Review creata");
             UUID productID = reviewDTO.getProductID();
+            reviewDTO.setUsername(username);
             Product product = productRepository.findById(productID).orElse(null);
             if(product != null){
-                System.out.println("Prodotto non nullo");
                 review.setProduct(product);
                 review.setDate(LocalDate.now());
                 review.setText(reviewDTO.getText());
                 review.setEvaluation(reviewDTO.getEvaluation());
-                review.setUserID(reviewDTO.getUserID());
+                review.setUserID(reviewDTO.getUsername());
 
             }else{
-                System.out.println("Prodotto nullo");
                 return null;
             }
-
-            System.out.println("Recensione sul prodotto salvata");
             return reviewRepository.save(review).getId();
 
         }catch (RuntimeException | Error e) {
@@ -99,7 +94,7 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-    public AverageDTO getProductAverage(UUID productID) {
+    public AverageDTO getReviewAverage(UUID productID) {
         Product product = productRepository.findById(productID).orElse(null);
         if(product != null){
             List<Review> reviewDTOS = reviewRepository.findByproduct(product);

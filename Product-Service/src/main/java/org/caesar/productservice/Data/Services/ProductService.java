@@ -14,9 +14,6 @@ public interface ProductService {
 
     ProductDTO getProductById(UUID id);
 
-
-    public List<ProductDTO> getProductByPrice(double priceMin, double priceMax);
-
     List<ProductDTO> getAllProducts();
 
     boolean deleteProductById(UUID id);

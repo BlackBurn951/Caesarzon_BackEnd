@@ -80,17 +80,6 @@ public class ProductServiceImpl implements ProductService{
         return null;
     }
 
-    @Override
-    public List<ProductDTO> getProductByPrice(double priceMin, double priceMax) {
-        List<Product> products = productRepository.findAll();
-        List<ProductDTO> sendProductDTOs = new ArrayList<>();
-        for(Product product : products){
-            if(product.getPrice() >= priceMin && product.getPrice() <= priceMax){
-                sendProductDTOs.add(modelMapper.map(product, ProductDTO.class));
-            }
-        }
-        return sendProductDTOs;
-    }
 
     @Override
     public ProductDTO getProductById(UUID id) {

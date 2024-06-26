@@ -6,16 +6,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Data.Dao.ProductRepository;
-import org.caesar.productservice.Data.Entities.Availability;
-import org.caesar.productservice.Data.Entities.Product;
-import org.caesar.productservice.Data.Entities.ProductOrder;
 import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
-import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
-import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -28,17 +22,11 @@ import org.caesar.productservice.Data.Services.WishlistProductService;
 import org.caesar.productservice.Data.Services.WishlistService;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -229,7 +217,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         for(ProductDTO p: productDTO){
             productSearchDTO1 = new ProductSearchDTO();
-            averageDTO = reviewService.getProductAverage(p.getId());
+            averageDTO = reviewService.getReviewAverage(p.getId());
 
             productSearchDTO1.setAverageReview(averageDTO.getAverage());
             productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReviews());
@@ -262,7 +250,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         for(ProductDTO p: productDTOS){
             productSearchDTO1 = new ProductSearchDTO();
-            averageDTO = reviewService.getProductAverage(p.getId());
+            averageDTO = reviewService.getReviewAverage(p.getId());
 
             productSearchDTO1.setAverageReview(averageDTO.getAverage());
             productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReviews());
