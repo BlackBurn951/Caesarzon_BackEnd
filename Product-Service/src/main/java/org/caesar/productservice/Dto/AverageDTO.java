@@ -1,6 +1,5 @@
 package org.caesar.productservice.Dto;
 
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +7,6 @@ import lombok.Setter;
 @Setter
 public class AverageDTO {
 
-    private double average;
-    private int numberOfReviews;
+    private double avarege;
+    private int nummberOfReview;
 }

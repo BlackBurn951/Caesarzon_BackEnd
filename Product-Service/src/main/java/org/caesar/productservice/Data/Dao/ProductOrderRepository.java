@@ -12,9 +12,10 @@ import java.util.UUID;
 @Repository
 public interface ProductOrderRepository extends JpaRepository<ProductOrder, UUID> {
 
-    List<ProductOrder> findAllByUsernameAndOrderIDNull(String username);
+    List<ProductOrder> findAllByUsernameAndOrderIDIsNull(String username);
 
-    List<ProductOrder> findAllByUsernameAndOrderIDNullAndProductID(String username, Product productId);
+
+    List<ProductOrder> findAllByUsernameAndOrderIDIsNullAndProductID(String username, Product productID);
 
     void deleteByUsernameAndOrderIDNullAndProductID(String username, Product productId);
 

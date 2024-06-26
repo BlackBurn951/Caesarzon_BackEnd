@@ -1,6 +1,7 @@
 package org.caesar.productservice.Data.Services;
 
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
+import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.ProductOrderDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
 
@@ -15,19 +16,19 @@ public interface ProductOrderService {
 
     List<SendProductOrderDTO> getProductOrders();
 
-    boolean deleteProductCart(String username, UUID id);
-
     boolean deleteProductCarts(String username);
 
     boolean save(ProductOrderDTO productOrderDTO);
 
     List<ProductOrderDTO> getProductOrdersByUsername(String username);
 
+    boolean deleteProductCart(String username, ProductDTO productDTO);
+
     boolean saveAll(List<ProductOrderDTO> orderDTOS);
 
-    boolean saveLater(String username, UUID productId);
+    boolean saveLater(String username, ProductDTO productDTO);
 
-    boolean changeQuantity(String username, UUID productId, int quantity);
+    boolean changeQuantity(String username, ProductDTO productDTO, int quantity);
 
     List<ProductOrderDTO> getProductInOrder(String username, OrderDTO orderDTO);
 }
