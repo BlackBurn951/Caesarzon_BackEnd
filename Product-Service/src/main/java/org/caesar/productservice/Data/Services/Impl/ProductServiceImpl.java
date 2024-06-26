@@ -30,8 +30,8 @@ public class ProductServiceImpl implements ProductService{
     private final EntityManager entityManager;
 
     @Override
+    // Aggiunge il prodotto passato controllando se supera tutti i check dei parametri
     public Product addOrUpdateProduct(ProductDTO productDTO) {
-
 
         if(!checkDescription(productDTO.getDescription()) || !checkDiscount(productDTO.getDiscount())
         || !checkName(productDTO.getName()) || !checkPrice(productDTO.getPrice())
@@ -66,6 +66,7 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    // Restituisce l'id del prodotto partendo dal suo nome
     public UUID getProductIDByName(String name) {
         Product productID = productRepository.findProductByName(name);
         if(productID != null)
@@ -77,11 +78,13 @@ public class ProductServiceImpl implements ProductService{
 
 
     @Override
+    // Restituisce un prodotto partendo dal suo id
     public ProductDTO getProductById(UUID id) {
         return modelMapper.map(productRepository.findById(id), ProductDTO.class);
     }
 
     @Override
+    // Restituisce tutti i prodotti
     public List<ProductDTO> getAllProducts() {
         return productRepository.findAll()
                 .stream()
@@ -91,6 +94,7 @@ public class ProductServiceImpl implements ProductService{
 
 
     @Override
+    // Elimina il prodotto partendo dall'id specificato
     public boolean deleteProductById(UUID id) {
         try{
             productRepository.deleteById(id);
@@ -101,31 +105,40 @@ public class ProductServiceImpl implements ProductService{
         }
     }
 
+    // Controllo della descrizione
     private boolean checkDescription(String description) {
         return !description.isEmpty() && description.length()<=500;
     }
 
+    // Controllo del nome
     private boolean checkName(String name) {
         return !name.isEmpty() && name.length()<=50;
     }
 
+    // Controllo dello sconto
     private boolean checkDiscount(int discount) {
         return discount >= 0;
     }
 
     private boolean checkPrice(Double price){
+    // Controllo del prezzo
+    private boolean checkPrice(Double price){
         return price>0;
     }
 
+    // Controllo del colore primario
     private boolean checkPrimaryColor(String color) {
         return !color.isEmpty() && color.length()<=50;
     }
 
+    // Controllo del colore secondario
     private boolean checkSecondaryColor(String color) {
         return !color.isEmpty() && color.length()<50;
     }
 
+   
 
+    // Effettua la ricerca dei prodotti seguendo i valori dei filtri passati per parametro
     public List<ProductDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         try {
 

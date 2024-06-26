@@ -25,8 +25,9 @@ public class ProductController {
     private final HttpServletRequest httpServletRequest;
     private final SearchService searchService;
 
-    @PostMapping("/product")
+    @PostMapping("/product") //Aggiunge il prodotto inviato con le sue disponibilità al db
     public ResponseEntity<String> addProductAndAvailabilities(@RequestBody ProductDTO sendProductDTO) {
+
         if(generalService.addProduct(sendProductDTO))
             return new ResponseEntity<>("Product aggiunto", HttpStatus.OK);
         else
@@ -64,7 +65,7 @@ public class ProductController {
     }
 
 
-    @GetMapping("/search")
+    @GetMapping("/search") //Effettua una ricerca sul db e ritorna una lista di prodotti con i filtri selezionati
     public ResponseEntity<List<ProductSearchDTO>> searchProducts(
             @RequestParam("search-text") String query,
             @RequestParam(value = "min-price", required = false) Double minPrice,
@@ -79,7 +80,7 @@ public class ProductController {
     }
 
 
-    @GetMapping("/lastSearchs")
+    @GetMapping("/lastSearchs") //Restituisce le ricerche dell'utente
     public ResponseEntity<List<String>> searchs(){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
         List<String> ricerche = searchService.getAllSearchs(username);
@@ -90,7 +91,7 @@ public class ProductController {
     }
 
 
-    @GetMapping("/lastView")
+    @GetMapping("/lastView") //Restituisce i prodotti visti di recente dall'utente
     public ResponseEntity<List<ProductSearchDTO>> lastView(){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
         List<ProductSearchDTO> searchProduct = generalService.getLastView(username);
