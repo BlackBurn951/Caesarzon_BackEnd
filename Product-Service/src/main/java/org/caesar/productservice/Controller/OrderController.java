@@ -124,8 +124,12 @@ public class OrderController {
     }
 
     @PutMapping("/purchase")  //Metodo per effettuare il reso
-    public ResponseEntity<String> updateOrder(@RequestBody BuyDTO buyDTO) {
-
+    public ResponseEntity<String> updateOrder(@RequestParam("order-id") UUID orderId) {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+        if(orderService.updateOrder(username))
+            return new ResponseEntity<>("Ordine creato con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 

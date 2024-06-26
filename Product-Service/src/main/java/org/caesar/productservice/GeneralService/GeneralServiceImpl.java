@@ -10,6 +10,7 @@ import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
+import org.caesar.productservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -39,11 +40,11 @@ public class GeneralServiceImpl implements GeneralService {
     private final ModelMapper modelMapper;
     private final ProductOrderService productOrderService;
     private final OrderService orderService;
-    private final RestTemplate restTemplate;
     private final LastViewService lastViewService;
     private final ReviewService reviewService;
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
+    private final Utils utils;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -158,26 +159,12 @@ public class GeneralServiceImpl implements GeneralService {
             return false;
 
         productInOrder.forEach(productOrderDTO -> productOrderDTO.setOrderID(savedOrder));
-
         if(productOrderService.saveAll(productOrderDTOs)) {
-            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Authorization", request.getHeader("Authorization"));
+            return  utils.sendNotify(username,
+                    "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
+                    "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate()
+            );
 
-            Map<String, String> requestBody = new HashMap<>();
-            requestBody.put("date", String.valueOf(LocalDate.now()));
-            requestBody.put("subject", "Ordine numero "+savedOrder.getOrderNumber()+" effettuato");
-            requestBody.put("user", username);
-            requestBody.put("read", "false");
-            requestBody.put("explaination", "Il tuo ordine è in fase di elaborazione e sarà il "+ String.valueOf(savedOrder.getExpectedDeliveryDate()));
-
-            HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
-            return restTemplate.exchange(
-                    "http://notification-service/notification",
-                    HttpMethod.POST,
-                    entity,
-                    String.class
-            ).getStatusCode()== HttpStatus.OK;
         }
         return false; //☺
     }
@@ -265,6 +252,10 @@ public class GeneralServiceImpl implements GeneralService {
         return productSearchDTOS;
     }
 
+    @Override
+    public List<ProductCartDTO> getOrder(String username, UUID orderId) {
+        return List.of();
+    }
 
 
     @Transactional

@@ -10,14 +10,13 @@ import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.PurchaseOrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.ReturnOrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.SimpleOrderDTO;
-import org.caesar.productservice.Dto.ProductOrderDTO;
-import org.caesar.productservice.Dto.SendProductOrderDTO;
-import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
+import org.caesar.productservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +28,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final ModelMapper modelMapper;
+    private final Utils utils;
 
     //SimpleOrderService
     @Override
@@ -119,7 +119,30 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderDTO> getOrders(String username) {
-        return orderRepository.findOrderByUsername(username).stream().map(a -> modelMapper.map(a, OrderDTO.class)).toList();
+        return orderRepository.findAllOrdersByUsername(username).stream().map(a -> modelMapper.map(a, OrderDTO.class)).toList();
+    }
+
+    @Override
+    public boolean updateOrder(String username) {
+        try {
+            LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
+            Order order = orderRepository.findOrdersByUsername(username);
+            if (order.getPurchaseDate().isBefore(tenDaysAgo)) {
+                return false;
+            }else{
+                order.setRefundDate(LocalDate.now());
+                order.setOrderState("Rimborsato");
+                order.setRefund(true);
+                orderRepository.save(order);
+                utils.sendNotify(username, "Reso sull'ordine")
+
+            }
+
+            return true;
+        }catch (Exception | Error e) {
+            log.debug("Errore nell'update dell'ordine");
+            return false;
+        }
     }
 
     @Override

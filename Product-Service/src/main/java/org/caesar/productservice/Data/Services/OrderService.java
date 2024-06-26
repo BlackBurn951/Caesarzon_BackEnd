@@ -42,6 +42,9 @@ public interface OrderService {
     OrderDTO addOrder(OrderDTO orderDTO);
 
     List<OrderDTO> getOrders(String username);
+
+    boolean updateOrder(String username);
+
     OrderDTO getOrder(String username, UUID id);
 
 }

@@ -35,9 +35,6 @@ public class Order {
     @Column(name= "reso")
     private boolean refund;
 
-    @Column(name= "stato_reso")
-    private String refundState;
-
     @Column(name= "id_indirizzo")
     private UUID addressID;
 
