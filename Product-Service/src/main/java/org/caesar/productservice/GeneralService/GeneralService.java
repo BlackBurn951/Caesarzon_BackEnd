@@ -31,6 +31,5 @@ public interface GeneralService {
     boolean deleteProductFromWishList(String username, SendWishlistProductDTO wishlistProductDTO);
     boolean deleteProductsFromWishList(String username, UUID wishlistId);
     WishProductDTO getWishlistProductsByWishlistID(UUID wishlistId, String username);
-    List<BasicWishlistDTO> getAllWishlists(UUID wishlistId, String ownerUsername, String accessUsername);
 
 }

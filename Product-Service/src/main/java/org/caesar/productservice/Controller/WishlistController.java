@@ -69,10 +69,10 @@ public class WishlistController {
 
 
     @GetMapping("/wishlists/{id}") // Endpoint per ottenere tutte le liste desideri di una determinata visibilità di un utente
-    public ResponseEntity<List<BasicWishlistDTO>> getUserWishlists(@PathVariable UUID id, String ownerUsername){      //TODO da far tornare solo nome e id wishlist
+    public ResponseEntity<List<BasicWishlistDTO>> getUserWishlists(@PathVariable UUID id, String ownerUsername, @RequestParam(value= "visibility", required = false) int visibility){      //TODO da far tornare solo nome e id wishlist
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
-        List<BasicWishlistDTO> result= wishlistService.getAllWishlists(id, ownerUsername, username);
+        List<BasicWishlistDTO> result= wishlistService.getAllWishlists(ownerUsername, username, visibility);
         if(result==null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
