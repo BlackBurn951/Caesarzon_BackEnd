@@ -6,10 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.OrderRepository;
 import org.caesar.productservice.Data.Entities.Order;
 import org.caesar.productservice.Data.Services.OrderService;
-import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
-import org.caesar.productservice.Dto.DTOOrder.PurchaseOrderDTO;
-import org.caesar.productservice.Dto.DTOOrder.ReturnOrderDTO;
-import org.caesar.productservice.Dto.DTOOrder.SimpleOrderDTO;
+import org.caesar.productservice.Dto.DTOOrder.*;
 import org.caesar.productservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 
@@ -30,20 +27,21 @@ public class OrderServiceImpl implements OrderService {
     private final ModelMapper modelMapper;
     private final Utils utils;
 
-    //SimpleOrderService
+    //Aggiunge o modifica un SimpleOrder
     @Override
     public boolean addOrUpdateOrder(SimpleOrderDTO order) {
         return modelMapper.map(order, SimpleOrderDTO.class) != null;
     }
 
     @Override
+    // Restituisce un SimpleOrder tramite l'id passato
     public SimpleOrderDTO getOrderById(UUID id) {
-
         return modelMapper.map(orderRepository.findById(id).orElse(null),
                 SimpleOrderDTO.class);
     }
 
     @Override
+    // Restituisce tutti i SimpleOrders presenti nel db
     public List<SimpleOrderDTO> getAllSimpleOrders(UUID userID) {
         List<SimpleOrderDTO> orders = new ArrayList<>();
         for (Order order : orderRepository.findAll()) {
@@ -53,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    // Elimina l'ordine dal db tramite il suo id
     public boolean deleteOrderById(UUID id) {
         for (Order order : orderRepository.findAll()) {
             if (order.getId().equals(id)) {
@@ -63,24 +62,31 @@ public class OrderServiceImpl implements OrderService {
         return false;
     }
 
-    //PurchaseOrderDTOService
+    // Aggiunge o modifica un PurchaseOrder
     @Override
     public boolean addOrUpdateOrder(PurchaseOrderDTO order) {
         return modelMapper.map(order, PurchaseOrderDTO.class) != null;
     }
 
     @Override
+    // Restituisce un PurchaseOrder tramite l'id passato
     public PurchaseOrderDTO getPurchaseOrderById(UUID id) {
         Order purchaseOrder = orderRepository.findById(id).orElse(null);
         return modelMapper.map(purchaseOrder, PurchaseOrderDTO.class);
     }
 
     @Override
+    // Restituisce tutti i purchaseOrder
     public List<PurchaseOrderDTO> getAllPurchaseOrders() {
-        return List.of();
+        List<PurchaseOrderDTO> orders = new ArrayList<>();
+        for (Order order : orderRepository.findAll()) {
+            orders.add(modelMapper.map(order, PurchaseOrderDTO.class));
+        }
+        return orders;
     }
 
     @Override
+    // Elimina un PurchaseOrder tramite il suo id
     public boolean deletePurchaseOrderById(UUID id) {
         return false;
     }
@@ -107,6 +113,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    // Aggiunge un ordine al db e lo restituisce
     public OrderDTO addOrder(OrderDTO orderDTO) {
         try {
             return modelMapper.map(orderRepository.save(modelMapper.map(orderDTO, Order.class)), OrderDTO.class);
@@ -118,11 +125,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    // Restituisce tutti gli ordini di un determinato utente
     public List<OrderDTO> getOrders(String username) {
         return orderRepository.findAllOrdersByUsername(username).stream().map(a -> modelMapper.map(a, OrderDTO.class)).toList();
     }
 
     @Override
+    // Aggiorna l'ordine di un determinato utente quando chiede il reso
     public boolean updateOrder(String username) {
         try {
             LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
@@ -147,6 +156,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    // Restituisce un determinato ordine di un utente
     public OrderDTO getOrder(String username, UUID id) {
         return modelMapper.map(orderRepository.findOrderByIdAndUsername(id, username), OrderDTO.class);
     }

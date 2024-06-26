@@ -100,7 +100,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             return true;
 
         }catch (Exception | Error e){
-            log.debug("Errore nell'aggiornamento dell'ordine'");
+            log.debug("Errore nel salvataggio dell'ordine");
             return false;
         }
     }
@@ -116,7 +116,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             return true;
 
         }catch (Exception | Error e){
-            log.debug("Errore nell'aggiornamento dell'ordine'");
+            log.debug("Errore nell'aggiornamento dell'ordine");
             return false;
         }
     }
@@ -127,7 +127,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             return productOrderRepository.findAllByUsernameAndOrderID(username, modelMapper.map(orderDTO, Order.class))
                     .stream().map(a -> modelMapper.map(a, ProductOrderDTO.class)).toList();
         } catch (Exception | Error e) {
-//            log.debug("Errore nella presa dei prodotti nell'ordine");
+                log.debug("Errore nella presa dei prodotti nell'ordine");
             return null;
         }
     }
