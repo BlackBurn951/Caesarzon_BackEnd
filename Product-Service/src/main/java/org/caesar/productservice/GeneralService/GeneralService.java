@@ -22,6 +22,7 @@ public interface GeneralService {
     ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id);
     List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing);
     List<ProductSearchDTO> getLastView(String username);
+    List<ProductCartDTO> getOrder(String username, UUID orderId);
 
     boolean deleteWishlist( UUID wishlistID);
 }

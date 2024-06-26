@@ -107,6 +107,13 @@ public class OrderController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
+    @GetMapping("/purchase/products")
+    public ResponseEntity<List<ProductCartDTO>> getProductsInCart() {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+
+    }
+
     @PostMapping("/purchase")  //Metodo per effettuare l'acquisto del carello
     public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
@@ -116,9 +123,11 @@ public class OrderController {
             return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/purchase")
+    @PutMapping("/purchase")  //Metodo per effettuare il reso
     public ResponseEntity<String> updateOrder(@RequestBody BuyDTO buyDTO) {
 
     }
+
+
 
 }
