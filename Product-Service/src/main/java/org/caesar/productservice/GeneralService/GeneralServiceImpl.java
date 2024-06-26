@@ -1,5 +1,6 @@
 package org.caesar.productservice.GeneralService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Data.Services.ProductService;
@@ -16,6 +18,9 @@ import org.caesar.productservice.Data.Services.WishlistProductService;
 import org.caesar.productservice.Data.Services.WishlistService;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -37,6 +42,8 @@ public class GeneralServiceImpl implements GeneralService {
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
     private final Utils utils;
+    private final OrderSchedulerService orderSchedulerService;
+    private final RestTemplate restTemplate;
 
 
     @Override
