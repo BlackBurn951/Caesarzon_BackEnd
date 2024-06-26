@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.productservice.Data.Entities.Product;
+import org.caesar.productservice.Data.Entities.ProductOrder;
 import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
@@ -219,8 +221,8 @@ public class GeneralServiceImpl implements GeneralService {
             productSearchDTO1 = new ProductSearchDTO();
             averageDTO = reviewService.getReviewAverage(p.getId());
 
-            productSearchDTO1.setAverageReview(averageDTO.getAverage());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReviews());
+            productSearchDTO1.setAverageReview(averageDTO.getAvarege());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
 
             productSearchDTO1.setProductName(p.getName());
             productSearchDTO1.setPrice(p.getPrice());
@@ -252,8 +254,8 @@ public class GeneralServiceImpl implements GeneralService {
             productSearchDTO1 = new ProductSearchDTO();
             averageDTO = reviewService.getReviewAverage(p.getId());
 
-            productSearchDTO1.setAverageReview(averageDTO.getAverage());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReviews());
+            productSearchDTO1.setAverageReview(averageDTO.getAvarege());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
 
             productSearchDTO1.setProductName(p.getName());
             productSearchDTO1.setPrice(p.getPrice());
@@ -271,5 +273,24 @@ public class GeneralServiceImpl implements GeneralService {
     public boolean deleteWishlist(UUID wishlistID){
         return wishlistProductService.deleteAllWishlistProductsByWishlistID(wishlistID) && wishlistService.deleteWishlist(wishlistID);
     }
+
+
+    public boolean deleteProductCart(String username, UUID productID){
+        ProductDTO productDTO = productService.getProductById(productID);
+        return productOrderService.deleteProductCart(username,productDTO);
+    }
+
+    @Override
+    public boolean changeQuantity(String username, UUID productID, int quantity){
+        ProductDTO productDTO = productService.getProductById(productID);
+        return productOrderService.changeQuantity(username,productDTO,quantity);
+    }
+
+    @Override
+    public boolean saveLater(String username, UUID productID) {
+        ProductDTO productDTO = modelMapper.map(productService.getProductById(productID), ProductDTO.class);
+        return productOrderService.saveLater(username,productDTO);
+    }
+
 
 }

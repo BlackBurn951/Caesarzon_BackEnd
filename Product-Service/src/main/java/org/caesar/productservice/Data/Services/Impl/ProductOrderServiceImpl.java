@@ -2,8 +2,11 @@ package org.caesar.productservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
 import org.caesar.productservice.Data.Dao.ProductOrderRepository;
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.ProductOrder;
 import org.caesar.productservice.Data.Services.ProductOrderService;
+import org.caesar.productservice.Data.Services.ProductService;
+import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.ProductOrderDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
 import org.modelmapper.ModelMapper;
@@ -33,17 +36,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         return List.of();
     }
 
-    @Override
-    public boolean deleteProductCart(String username, UUID id) {
-        try {
-            productOrderRepository.deleteByUsernameAndOrderIDNullAndProductID(username, id);
-
-            return true;
-        } catch (Exception | Error e) {
-//            log.debug("Errore nell'eliminazione del singolo prodotto dalla lista desideri");
-            return false;
-        }
-    }
 
     @Override
     public boolean deleteProductCarts(String username) {
@@ -69,7 +61,19 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
     @Override
     public List<ProductOrderDTO> getProductOrdersByUsername(String username){
-        return productOrderRepository.findAllByUsernameAndOrderIDNull(username).stream().map(a -> modelMapper.map(a, ProductOrderDTO.class)).toList();
+        return productOrderRepository.findAllByUsernameAndOrderIDIsNull(username).stream().map(a -> modelMapper.map(a, ProductOrderDTO.class)).toList();
+    }
+
+    @Override
+    public boolean deleteProductCart(String username, ProductDTO productDTO) {
+        try {
+            productOrderRepository.deleteByUsernameAndOrderIDNullAndProductID(username, modelMapper.map(productDTO, Product.class));
+
+            return true;
+        } catch (Exception | Error e) {
+
+            return false;
+        }
     }
 
     @Override
@@ -86,9 +90,11 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
 
     @Override
-    public boolean saveLater(String username, UUID productId) {
+    public boolean saveLater(String username, ProductDTO productDTO) {
         try{
-            ProductOrderDTO productOrderDTO = modelMapper.map(productOrderRepository.findAllByUsernameAndOrderIDNullAndProductID(username, productId).getFirst(), ProductOrderDTO.class);
+            ProductOrderDTO productOrderDTO = modelMapper.map(productOrderRepository
+            .findAllByUsernameAndOrderIDIsNullAndProductID(username, modelMapper.map(productDTO, Product.class)), ProductOrderDTO.class);
+
             if(productOrderDTO == null)
                 return false;
             productOrderDTO.setBuyLater(true);
@@ -102,9 +108,11 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     }
 
     @Override
-    public boolean changeQuantity(String username, UUID productId, int quantity) {
+    public boolean changeQuantity(String username, ProductDTO productDTO, int quantity) {
         try{
-            ProductOrderDTO productOrderDTO = modelMapper.map(productOrderRepository.findAllByUsernameAndOrderIDNullAndProductID(username, productId).getFirst(), ProductOrderDTO.class);
+            ProductOrderDTO productOrderDTO = modelMapper.map(productOrderRepository
+                    .findAllByUsernameAndOrderIDIsNullAndProductID(username, modelMapper.map(productDTO, Product.class)).getFirst(), ProductOrderDTO.class);
+
             if(productOrderDTO == null)
                 return false;
             productOrderDTO.setQuantity(quantity);

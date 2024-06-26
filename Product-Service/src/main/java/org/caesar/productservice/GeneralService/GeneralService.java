@@ -22,6 +22,8 @@ public interface GeneralService {
     ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id);
     List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing);
     List<ProductSearchDTO> getLastView(String username);
-
     boolean deleteWishlist( UUID wishlistID);
+    boolean deleteProductCart(String username, UUID productID);
+    boolean changeQuantity(String username, UUID productID, int quantity);
+    boolean saveLater(String username, UUID productDTO);
 }

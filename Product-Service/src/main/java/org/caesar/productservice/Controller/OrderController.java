@@ -56,7 +56,7 @@ public class OrderController {
     public ResponseEntity<String> changeCart(@PathVariable UUID id, @RequestParam(value= "quanity", required = false) int quantity, @RequestParam("action") int action) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        boolean result= action==0? productOrderService.saveLater(username, id): productOrderService.changeQuantity(username, id, quantity);
+        boolean result= action==0? generalService.saveLater(username, id): generalService.changeQuantity(username, id, quantity);
         if(result)
             return new ResponseEntity<>("Ordine modificato con successo!", HttpStatus.OK);
         else
@@ -67,7 +67,7 @@ public class OrderController {
     public ResponseEntity<String> deleteProductInCart(@PathVariable UUID id){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(productOrderService.deleteProductCart(username, id))
+        if(generalService.deleteProductCart(username, id))
             return new ResponseEntity<>("Prodotto cancellato con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nella cancellazione del prodotto...", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -116,9 +116,9 @@ public class OrderController {
             return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/purchase")
+    /*@PutMapping("/purchase")
     public ResponseEntity<String> updateOrder(@RequestBody BuyDTO buyDTO) {
 
-    }
+    }*/
 
 }
