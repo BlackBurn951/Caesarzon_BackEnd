@@ -68,16 +68,16 @@ public class WishlistController {
 
 
 
-    @GetMapping("/wishlists/{id}") // Endpoint per ottenere tutte le liste desideri di una determinata visibilità di un utente
-    public ResponseEntity<List<BasicWishlistDTO>> getUserWishlists(@PathVariable UUID id, String ownerUsername){      //TODO da far tornare solo nome e id wishlist
-        String username = httpServletRequest.getAttribute("preferred_username").toString();
-
-        List<BasicWishlistDTO> result= wishlistService.getAllWishlists(id, ownerUsername, username);
-        if(result==null)
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        else
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-    }
+//    @GetMapping("/wishlists/{id}") // Endpoint per ottenere tutte le liste desideri di una determinata visibilità di un utente
+//    public ResponseEntity<List<BasicWishlistDTO>> getUserWishlists(@PathVariable UUID id, String ownerUsername){      //TODO da far tornare solo nome e id wishlist
+//        String username = httpServletRequest.getAttribute("preferred_username").toString();
+//
+//        List<BasicWishlistDTO> result= wishlistService.getAllWishlists(id, ownerUsername, username);
+//        if(result==null)
+//            return new ResponseEntity<>(result, HttpStatus.OK);
+//        else
+//            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+//    }
 
     @DeleteMapping("/wishlist/{id}") // Endpoint per l'eliminazione di una lista desideri di un utente
     public ResponseEntity<String> deleteWishlist(@PathVariable UUID id){

@@ -37,20 +37,10 @@ public class WishlistServiceImpl implements WishlistService {
         }
     }
 
-    //Metodo per prendere la lista dei desideri dell'utente
-
 
     @Override
-    public List<BasicWishlistDTO> getAllWishlists(UUID wishlistId, String ownerUsername, String accessUsername) {
-        //Caso in cui l'utente vuole accedere alle sue liste desideri
-        if(ownerUsername.equals(accessUsername)) {
-            return wishlistRepository.findAllByUserUsername(ownerUsername)
-                    .stream()
-                    .map(wishlist -> modelMapper.map(wishlist, BasicWishlistDTO.class))
-                    .toList();
-        } else {  //Caso in cui l'utente vuole accedere alle wishlist di un altro utente
-
-        }
+    public WishlistDTO getWishlist(UUID id, String username) {
+        return modelMapper.map(wishlistRepository.findWishlistByIdAndUserUsername(id, username), WishlistDTO.class);
     }
 
     @Override

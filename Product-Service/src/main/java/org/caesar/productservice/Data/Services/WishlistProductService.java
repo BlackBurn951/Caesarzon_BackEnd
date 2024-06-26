@@ -12,6 +12,6 @@ public interface WishlistProductService {
     boolean addOrUpdateWishlistProduct(WishListProductDTO wishlistProduct);
     boolean deleteAllProductsFromWishlist(WishlistDTO wishlistID);
     boolean deleteProductFromWishlist(WishListProductDTO wishListProductDTO);
-    List<WishListProductDTO> getWishlistProductsByWishlistID(UUID wishListId);
+    List<WishListProductDTO> getWishlistProductsByWishlistID(WishlistDTO wishListId);
 
 }

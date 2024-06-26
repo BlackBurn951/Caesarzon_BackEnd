@@ -9,7 +9,7 @@ import java.util.UUID;
 @Setter
 public class WishListProductDTO {
 
-    private UUID id;
-    private WishlistDTO wishlistDTO;
-    private ProductDTO productDTO;
+    private UUID Id;
+    private WishlistDTO wishlistID;
+    private ProductDTO productID;
 }

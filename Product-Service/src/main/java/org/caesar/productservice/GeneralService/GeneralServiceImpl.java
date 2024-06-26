@@ -7,7 +7,6 @@ import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
-import org.caesar.productservice.Utils.OrderSchedulerService;
 import org.caesar.productservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -38,7 +37,6 @@ public class GeneralServiceImpl implements GeneralService {
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
     private final Utils utils;
-    private final OrderSchedulerService orderSchedulerService;
 
 
     @Override
@@ -92,10 +90,6 @@ public class GeneralServiceImpl implements GeneralService {
         return List.of();
     }
 
-    @Override
-    public WishlistDTO getWishlist(UUID id, String username) {
-        return modelMapper.map(wishlistRepository.findWishlistByIdAndUserUsername(id, username), WishlistDTO.class);
-    }
 
     @Override
     @Transactional
@@ -316,7 +310,11 @@ public class GeneralServiceImpl implements GeneralService {
     @Override
     @Transactional
     public boolean addProductIntoWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
-        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, wishlistProductDTO);
+
+        WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO);
+
+        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistID().getId());
+        System.out.println("productID: "+ wishListProductDTO.getProductID().getId());
 
         if(wishListProductDTO==null)
             return false;
@@ -328,6 +326,9 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     public boolean deleteProductFromWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
         WishListProductDTO wishListProductDTO= getWishListProductDTO(username, wishlistProductDTO);
+
+        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistID().getId());
+        System.out.println("productID: "+ wishListProductDTO.getProductID().getId());
 
         if(wishListProductDTO==null)
             return false;
@@ -361,8 +362,11 @@ public class GeneralServiceImpl implements GeneralService {
 
         WishListProductDTO wishListProductDTO= new WishListProductDTO();
 
-        wishListProductDTO.setWishlistDTO(wishlistDTO);
-        wishListProductDTO.setProductDTO(productDTO);
+        wishListProductDTO.setWishlistID(wishlistDTO);
+        wishListProductDTO.setProductID(productDTO);
+
+        System.out.println("wishlistID: "+ wishlistDTO.getId());
+        System.out.println("productID: "+ productDTO.getId());
 
         return wishListProductDTO;
     }
@@ -371,26 +375,33 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String username) {
+
         WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
 
         if(wishlistDTO==null){
             return null;
         }
 
-        List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlistID);
+        List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlistDTO);
 
-        WishProductDTO  wishProductDTO = new WishProductDTO();
+        if(wishListProductDTOS == null){
+            System.out.println("SOno vuotas");
+            return null;
+        }
+
+        WishProductDTO wishProductDTO = new WishProductDTO();
 
         SingleWishListProductDTO singleWishListProductDTO;
 
         List<SingleWishListProductDTO> singleWishListProductDTOS = new Vector<>();
 
         for(WishListProductDTO wishListProductDTO: wishListProductDTOS){
-
+            System.out.println("Nome prodotto: " + wishListProductDTO.getProductID().getName());
+            System.out.println("Prezzo: " + wishListProductDTO.getProductID().getPrice());
             singleWishListProductDTO = new SingleWishListProductDTO();
 
-            singleWishListProductDTO.setProductName(wishListProductDTO.getProductDTO().getName());
-            singleWishListProductDTO.setPrice(wishListProductDTO.getProductDTO().getPrice());
+            singleWishListProductDTO.setProductName(wishListProductDTO.getProductID().getName());
+            singleWishListProductDTO.setPrice(wishListProductDTO.getProductID().getPrice());
 
             singleWishListProductDTOS.add(singleWishListProductDTO);
 
