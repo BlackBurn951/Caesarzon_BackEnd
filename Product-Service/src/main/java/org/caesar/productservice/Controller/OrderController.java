@@ -87,7 +87,7 @@ public class OrderController {
     public ResponseEntity<OrderDTO> makeOrder(@RequestBody BuyDTO buyDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        OrderDTO orderDTO = orderService.getOrder(username, id);
+        OrderDTO orderDTO = orderService.getOrder(username, );
         if(orderDTO != null)
             return new ResponseEntity<>(orderDTO, HttpStatus.OK);
         else
@@ -102,15 +102,6 @@ public class OrderController {
             return new ResponseEntity<>(orders, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-    }
-
-    @PostMapping("/purchase")  //Metodo per effettuare l'acquisto del carello
-    public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO){
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
-        if(generalService.createOrder(username, buyDTO))
-            return new ResponseEntity<>("Ordine creato con successo!", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PutMapping("/purchase")
