@@ -87,8 +87,8 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public List<ProductDTO> getAllProducts() {
-        return productRepository.findAll()
+    public List<ProductDTO> getAllProductsById(List<UUID> ids) {
+       return productRepository.findAllById(ids)
                 .stream()
                 .map(product -> modelMapper.map(product, ProductDTO.class))
                 .collect(Collectors.toList());

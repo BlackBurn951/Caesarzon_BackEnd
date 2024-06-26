@@ -2,8 +2,10 @@ package org.caesar.productservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
 import org.caesar.productservice.Data.Dao.ProductOrderRepository;
+import org.caesar.productservice.Data.Entities.Order;
 import org.caesar.productservice.Data.Entities.ProductOrder;
 import org.caesar.productservice.Data.Services.ProductOrderService;
+import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.ProductOrderDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
 import org.modelmapper.ModelMapper;
@@ -114,6 +116,17 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         }catch (Exception | Error e){
 //            log.debug("Errore nell'aggiornamento dell'ordine'");
             return false;
+        }
+    }
+
+    @Override
+    public List<ProductOrderDTO> getProductInOrder(String username, OrderDTO orderDTO) {
+        try {
+            return productOrderRepository.findAllByUsernameAndOrderID(username, modelMapper.map(orderDTO, Order.class))
+                    .stream().map(a -> modelMapper.map(a, ProductOrderDTO.class)).toList();
+        } catch (Exception | Error e) {
+//            log.debug("Errore nella presa dei prodotti nell'ordine");
+            return null;
         }
     }
 }

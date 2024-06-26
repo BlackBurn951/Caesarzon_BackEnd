@@ -14,10 +14,11 @@ public interface ProductService {
 
     ProductDTO getProductById(UUID id);
 
-    List<ProductDTO> getAllProducts();
+    List<ProductDTO> getAllProductsById(List<UUID> ids);
 
     boolean deleteProductById(UUID id);
 
     List<ProductDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing);
+
 
 }

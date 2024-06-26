@@ -72,7 +72,7 @@ public class WishlistController {
         return new ResponseEntity<>(allUserWishlist, HttpStatus.OK);
     }
 
-    @DeleteMapping("/wishlist")
+    @DeleteMapping("/wishlist") 
     public ResponseEntity<String> deleteWishlist(@RequestParam UUID wishlistID){
         if(generalService.deleteWishlist(wishlistID))
             return new ResponseEntity<>("Lista desideri eliminata correttamente", HttpStatus.OK);

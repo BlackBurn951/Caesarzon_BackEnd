@@ -107,12 +107,18 @@ public class OrderController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/purchase/products")
-    public ResponseEntity<List<ProductCartDTO>> getProductsInCart() {
+    @GetMapping("/purchase/{id}/products")
+    public ResponseEntity<List<ProductCartDTO>> getProductsInCart(@PathVariable UUID id) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
+        List<ProductCartDTO> result= generalService.getOrder(username, id);
 
+        if(result==null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
+
 
     @PostMapping("/purchase")  //Metodo per effettuare l'acquisto del carello
     public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO){
@@ -127,7 +133,4 @@ public class OrderController {
     public ResponseEntity<String> updateOrder(@RequestBody BuyDTO buyDTO) {
 
     }
-
-
-
 }
