@@ -164,5 +164,10 @@ public class OrderServiceImpl implements OrderService {
         return modelMapper.map(orderRepository.findOrderByIdAndUsername(id, username), OrderDTO.class);
     }
 
+    @Override
+    public List<OrderDTO> getOrdersByStateAndDeliveryDate(String state, LocalDate date) {
+        return List.of();
+    }
+
 
 }
