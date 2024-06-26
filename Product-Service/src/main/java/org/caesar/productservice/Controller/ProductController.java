@@ -13,6 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -55,7 +59,7 @@ public class ProductController {
 
         if(!images.isEmpty()){
             for(ImageDTO image : images){
-                System.out.println(image.getFile());
+                System.out.println(Arrays.toString(image.getFile()));
             }
             return new ResponseEntity<>(images, HttpStatus.OK);
         }else{

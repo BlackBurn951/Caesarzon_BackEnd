@@ -61,7 +61,6 @@ public class ReviewController {
     //Funziona, ma da il risultaato sbagliato
     @DeleteMapping("/review")
     public ResponseEntity<String> deleteReview(@RequestParam String username, @RequestParam UUID productID){
-
         UUID reviewID = reviewService.getReviewIDByUsernameAndProductID(username, productID);
         if (reviewID != null) {
             reviewService.deleteReview(reviewID);
