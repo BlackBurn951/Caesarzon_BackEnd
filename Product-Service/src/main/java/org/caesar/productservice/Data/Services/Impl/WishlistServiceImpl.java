@@ -117,4 +117,22 @@ public class WishlistServiceImpl implements WishlistService {
             return false;
         }
     }
+
+    @Override
+    public boolean changeVisibility(int visibility, String username, UUID whisListId) {
+        try{
+            Wishlist wishlist = wishlistRepository.findWishlistByIdAndUserUsername(whisListId, username);
+
+            switch (visibility) {
+                case 0 -> wishlist.setVisibility("Privata");
+                case 1 -> wishlist.setVisibility("Pubblica");
+                case 2 -> wishlist.setVisibility("Besties");
+            }
+            wishlistRepository.save(wishlist);
+            return true;
+        } catch (Exception e) {
+            log.debug("Errore nella cancellazione della lista desideri");
+            return false;
+        }
+    }
 }

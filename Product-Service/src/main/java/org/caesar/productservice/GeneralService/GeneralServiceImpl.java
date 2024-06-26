@@ -1,6 +1,5 @@
 package org.caesar.productservice.GeneralService;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +9,6 @@ import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Data.Services.ProductService;
@@ -18,9 +16,6 @@ import org.caesar.productservice.Data.Services.WishlistProductService;
 import org.caesar.productservice.Data.Services.WishlistService;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -42,8 +37,6 @@ public class GeneralServiceImpl implements GeneralService {
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
     private final Utils utils;
-    private final OrderSchedulerService orderSchedulerService;
-    private final RestTemplate restTemplate;
 
 
     @Override
@@ -127,6 +120,8 @@ public class GeneralServiceImpl implements GeneralService {
 
         List<ProductOrderDTO> productInOrder = productOrderService.getProductOrdersByUsername(username);
 
+        productInOrder.forEach(a -> System.out.println("Id prodotto " + a.getProductDTO().getId()));
+
         if(productInOrder==null || productInOrder.isEmpty())
             return false;
 
@@ -137,6 +132,7 @@ public class GeneralServiceImpl implements GeneralService {
         OrderDTO orderDTO= new OrderDTO();
         orderDTO.setOrderNumber(generaCodice(8));
         orderDTO.setOrderState("Ricevuto");
+        orderDTO.setOrderTotal(productOrderDTOs.stream().mapToDouble(ProductOrderDTO::getTotal).sum());
         orderDTO.setExpectedDeliveryDate(LocalDate.now().plusDays(5));
         orderDTO.setPurchaseDate(LocalDate.now());
         orderDTO.setRefund(false);
@@ -144,14 +140,16 @@ public class GeneralServiceImpl implements GeneralService {
         orderDTO.setCardID(buyDTO.getCardID());
         orderDTO.setUsername(username);
 
-        orderDTO.setTotalOrder(productOrderDTOs.stream().mapToDouble(ProductOrderDTO::getTotal).sum());
 
         OrderDTO savedOrder = orderService.addOrder(orderDTO);
 
         if(savedOrder==null)
             return false;
 
-        productInOrder.forEach(productOrderDTO -> productOrderDTO.setOrderID(savedOrder));
+        for(ProductOrderDTO productOrderDTO : productOrderDTOs){
+            productOrderDTO.setOrderID(savedOrder);
+        }
+
         if(productOrderService.saveAll(productOrderDTOs)) {
 
             return  utils.sendNotify(username,

@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -68,12 +69,12 @@ public class WishlistController {
 
 
 
-    @GetMapping("/wishlists/{id}") // Endpoint per ottenere tutte le liste desideri di una determinata visibilità di un utente
-    public ResponseEntity<List<BasicWishlistDTO>> getUserWishlists(@PathVariable UUID id, String ownerUsername, @RequestParam(value= "visibility", required = false) int visibility){      //TODO da far tornare solo nome e id wishlist
+    @GetMapping("/wishlists") // Endpoint per ottenere tutte le liste desideri di una determinata visibilità di un utente
+    public ResponseEntity<List<BasicWishlistDTO>> getUserWishlists(@RequestParam("usr") String ownerUsername, @RequestParam(value= "visibility", required = false) Integer visibility){      //TODO da far tornare solo nome e id wishlist
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
-        List<BasicWishlistDTO> result= wishlistService.getAllWishlists(ownerUsername, username, visibility);
-        if(result==null)
+        List<BasicWishlistDTO> result = wishlistService.getAllWishlists(ownerUsername, username, Objects.requireNonNullElse(visibility, 0));;
+        if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);

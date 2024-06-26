@@ -1,5 +1,6 @@
 package org.caesar.productservice.Data.Dao;
 
+import jakarta.transaction.Transactional;
 import org.caesar.productservice.Data.Entities.Order;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.ProductOrder;

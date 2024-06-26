@@ -20,6 +20,6 @@ public class OrderDTO {
     private String refundState;
     private UUID addressID;
     private UUID cardID;
-    private double totalOrder;
+    private double orderTotal;
     private String username;
 }
