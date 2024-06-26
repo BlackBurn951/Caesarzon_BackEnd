@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.WishlistRepository;
 import org.caesar.productservice.Data.Entities.Wishlist;
 import org.caesar.productservice.Data.Services.WishlistService;
+import org.caesar.productservice.Dto.BasicWishlistDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 import org.caesar.productservice.Dto.WishlistDTO;
 import org.modelmapper.ModelMapper;
@@ -37,18 +38,19 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     //Metodo per prendere la lista dei desideri dell'utente
-    @Override
-    public WishlistDTO getWishlist(UUID id, String username) {
-        return modelMapper.map(wishlistRepository.findWishlistByIdAndUserUsername(id, username), WishlistDTO.class);
-    }
+
 
     @Override
-    public List<WishlistDTO> getAllWishlists(String userUsername, String visibility) {
-        //Restituisce una lista di "liste desideri" dell'utente specificato in base alla visibilità richiesta
-            return wishlistRepository.findAllByUserUsernameAndVisibility(userUsername, visibility)
-                           .stream()
-                           .map(wishlist -> modelMapper.map(wishlist, WishlistDTO.class))
-                           .toList();
+    public List<BasicWishlistDTO> getAllWishlists(UUID wishlistId, String ownerUsername, String accessUsername) {
+        //Caso in cui l'utente vuole accedere alle sue liste desideri
+        if(ownerUsername.equals(accessUsername)) {
+            return wishlistRepository.findAllByUserUsername(ownerUsername)
+                    .stream()
+                    .map(wishlist -> modelMapper.map(wishlist, BasicWishlistDTO.class))
+                    .toList();
+        } else {  //Caso in cui l'utente vuole accedere alle wishlist di un altro utente
+
+        }
     }
 
     @Override

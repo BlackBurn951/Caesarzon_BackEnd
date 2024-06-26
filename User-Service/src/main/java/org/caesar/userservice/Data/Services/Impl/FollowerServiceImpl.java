@@ -84,6 +84,10 @@ public class FollowerServiceImpl implements FollowerService {
         }
     }
 
+    @Override
+    public boolean isFriend(String username, String friendUsername) {
+        return followerRepository.findByUserUsername1AndUserUsername2(username, friendUsername)!=null;
+    }
     //Eliminazione del singolo follower
     @Override
     public boolean deleteFollowers(String username1, List<String> followers) {

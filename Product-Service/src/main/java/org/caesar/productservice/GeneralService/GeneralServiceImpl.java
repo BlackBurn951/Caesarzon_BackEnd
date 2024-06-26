@@ -92,6 +92,10 @@ public class GeneralServiceImpl implements GeneralService {
         return List.of();
     }
 
+    @Override
+    public WishlistDTO getWishlist(UUID id, String username) {
+        return modelMapper.map(wishlistRepository.findWishlistByIdAndUserUsername(id, username), WishlistDTO.class);
+    }
 
     @Override
     @Transactional
@@ -309,5 +313,93 @@ public class GeneralServiceImpl implements GeneralService {
         return productOrderService.saveLater(username,productDTO);
     }
 
+    @Override
+    @Transactional
+    public boolean addProductIntoWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
+        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, wishlistProductDTO);
+
+        if(wishListProductDTO==null)
+            return false;
+
+        return wishlistProductService.addOrUpdateWishlistProduct(wishListProductDTO);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteProductFromWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
+        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, wishlistProductDTO);
+
+        if(wishListProductDTO==null)
+            return false;
+
+        return wishlistProductService.deleteProductFromWishlist(wishListProductDTO);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteProductsFromWishList(String username, UUID wishlistId) {
+        WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistId, username);
+
+        if(wishlistDTO==null)
+            return false;
+
+        return wishlistProductService.deleteAllProductsFromWishlist(wishlistDTO);
+    }
+
+
+    //Metodi di servizio
+    private WishListProductDTO getWishListProductDTO(String username, SendWishlistProductDTO wishlistProductDTO) {
+        ProductDTO productDTO= productService.getProductById(wishlistProductDTO.getProductID());
+
+        if(productDTO==null)
+            return null;
+
+        WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistProductDTO.getWishlistID(), username);
+
+        if(wishlistDTO==null)
+            return null;
+
+        WishListProductDTO wishListProductDTO= new WishListProductDTO();
+
+        wishListProductDTO.setWishlistDTO(wishlistDTO);
+        wishListProductDTO.setProductDTO(productDTO);
+
+        return wishListProductDTO;
+    }
+
+
+
+    @Override
+    public WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String username) {
+        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
+
+        if(wishlistDTO==null){
+            return null;
+        }
+
+        List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlistID);
+
+        WishProductDTO  wishProductDTO = new WishProductDTO();
+
+        SingleWishListProductDTO singleWishListProductDTO;
+
+        List<SingleWishListProductDTO> singleWishListProductDTOS = new Vector<>();
+
+        for(WishListProductDTO wishListProductDTO: wishListProductDTOS){
+
+            singleWishListProductDTO = new SingleWishListProductDTO();
+
+            singleWishListProductDTO.setProductName(wishListProductDTO.getProductDTO().getName());
+            singleWishListProductDTO.setPrice(wishListProductDTO.getProductDTO().getPrice());
+
+            singleWishListProductDTOS.add(singleWishListProductDTO);
+
+        }
+
+        wishProductDTO.setSingleWishListProductDTOS(singleWishListProductDTOS);
+        wishProductDTO.setVisibility(wishlistDTO.getVisibility());
+
+        return wishProductDTO;
+    }
 
 }

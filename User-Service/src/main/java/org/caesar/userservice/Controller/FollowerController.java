@@ -30,6 +30,11 @@ public class FollowerController {
         return new ResponseEntity<>(generalService.getFollowersOrFriend(username, flw, friend), HttpStatus.OK);
     }
 
+    @GetMapping("/follower/{friendId}")
+    public boolean isFriend(@PathVariable String friendId, @RequestParam("username") String username) {
+        return followerService.isFriend(username, friendId);
+    }
+
     @PostMapping("/followers")
     public ResponseEntity<String> addUpdateFollower(@RequestBody List<UserSearchDTO> followers) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
