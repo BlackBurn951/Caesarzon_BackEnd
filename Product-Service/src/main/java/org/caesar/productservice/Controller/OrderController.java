@@ -51,6 +51,7 @@ public class OrderController {
             return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @PutMapping("/cart/{id}")  //Metodo per il salva più tardi e la modifica della quantità del singolo prodotto
     public ResponseEntity<String> changeCart(@PathVariable UUID id, @RequestParam(value= "quanity", required = false) int quantity, @RequestParam("action") int action){
         String username= httpServletRequest.getAttribute("preferred_username").toString();

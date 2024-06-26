@@ -1,5 +1,6 @@
 package org.caesar.productservice.Controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Services.WishlistProductService;
@@ -26,11 +27,13 @@ public class WishlistController {
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
     private final GeneralService generalService;
+    private final HttpServletRequest httpServletRequest;
 
 
     @PostMapping("/wishlist")
     public ResponseEntity<String> addWishList(@RequestBody WishlistDTO wishlistDTO){
-        if(wishlistService.addOrUpdateWishlist(wishlistDTO) != null)
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
+        if(wishlistService.addOrUpdateWishlist(wishlistDTO, username) != null)
             return new ResponseEntity<>("Product aggiunto", HttpStatus.OK);
         else
             return new ResponseEntity<>("Prodotto non aggiunto", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -45,9 +48,11 @@ public class WishlistController {
     }
 
     @GetMapping("/wishlist")
-    public ResponseEntity<WishlistDTO> getWishlist( UUID wishlistID){
-        if(wishlistService.getWishlist(wishlistID) != null)
-            return new ResponseEntity<>(wishlistService.getWishlist(wishlistID), HttpStatus.OK);
+    public ResponseEntity<WishlistDTO> getWishlist(UUID wishlistID){
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
+        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
+        if(wishlistDTO != null)
+            return new ResponseEntity<>(wishlistDTO, HttpStatus.OK);
         else return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 

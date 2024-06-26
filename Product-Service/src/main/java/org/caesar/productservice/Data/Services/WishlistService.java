@@ -8,8 +8,8 @@ import java.util.UUID;
 
 public interface WishlistService {
 
-    UUID addOrUpdateWishlist(WishlistDTO wishlist);
-    WishlistDTO getWishlist(UUID id);
+    UUID addOrUpdateWishlist(WishlistDTO wishlist, String username);
+    WishlistDTO getWishlist(UUID id, String username);
     List<WishlistDTO> getAllWishlists(String userUsername, String visibility);
     boolean deleteWishlist(UUID id);
 }
