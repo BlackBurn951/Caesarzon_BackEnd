@@ -35,6 +35,7 @@ public class GeneralServiceImpl implements GeneralService {
     private final FollowerService followerService;
 
 
+    //Metodo per agggiungere un utente
     @Override
     @Transactional
     public boolean addUser(UserRegistrationDTO user) {
@@ -51,6 +52,7 @@ public class GeneralServiceImpl implements GeneralService {
         return false;
     }
 
+    //Metodo per aggiungere un indirizzo
     @Override
     @Transactional
     public int addAddress(String userUsername, AddressDTO addressDTO) {
@@ -122,7 +124,7 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
 
-
+    //Metodo per prendere la lista di utenti nella ricerca con username e fotoprofilo
     @Override
     public List<UserFindDTO> getUserFind(int start) {
         List<UserDTO> users= userService.getUsers(start);
@@ -142,9 +144,9 @@ public class GeneralServiceImpl implements GeneralService {
         }
 
         return userFindDTOs;
-}
+    }
 
-
+    //Metodo per prendere l'utente con follower e amici
     @Override
     public List<UserSearchDTO> getFollowersOrFriend(String username, int flw, boolean friend) {
         List<FollowerDTO> followers= followerService.getFollowersOrFriends(username, flw, friend);
@@ -166,7 +168,6 @@ public class GeneralServiceImpl implements GeneralService {
 
 
     //Getters per prendere i dati dalle tabelle di relazione
-
     @Override
     public CardDTO getUserCard(UUID id) {
 
@@ -178,14 +179,15 @@ public class GeneralServiceImpl implements GeneralService {
         return cardService.getCard(userCardDTO.getCardId());
     }
 
+    //Metodo per prendere le carte dell'utente
     @Override
     public List<UUID> getUserCards(String userUsername) {
         return userCardService.getCards(userUsername);
     }
 
+
     @Override
     public AddressDTO getUserAddress(UUID id) {
-
         //Presa dell'indirizzo in posizione addressNumber sulla tabella di relazione
         UserAddressDTO userAddressDTO = userAddressService.getUserAddress(id);
 
@@ -195,6 +197,7 @@ public class GeneralServiceImpl implements GeneralService {
         return addressService.getAddress(userAddressDTO.getAddressId());
     }
 
+    //Metodo per prendere gli indirizzi dell'utente
     @Override
     public List<UUID> getUserAddresses(String userUsername) {
         return userAddressService.getAddresses(userUsername);
@@ -244,7 +247,6 @@ public class GeneralServiceImpl implements GeneralService {
     @Override
     @Transactional
     public boolean deleteUserAddress(UUID id) {
-
         try {
             //Presa della tupla di relazione dell'indirizzo richiesto
             UserAddressDTO userAddressDTO= userAddressService.getUserAddress(id);
@@ -280,16 +282,4 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
 
-    //Metodi di servizio
-    private int getNumber(String name) {
-        //Creazione della regex per prendersi il numero dell'indirizzo mandato dall'utente
-        Pattern pattern = Pattern.compile(".*([0-9]+)"); //TODO CHECK DELLA REGEX
-        Matcher matcher = pattern.matcher(name);
-
-        int number= 0;
-        if(matcher.matches())
-            number = Integer.parseInt(matcher.group(1));
-
-        return number;
-    }
 }

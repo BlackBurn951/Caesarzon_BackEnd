@@ -36,26 +36,18 @@ public class AddressController {
         return cityDataService.getCityData(city);
     }
 
-
-    //End-point per la presa del numero degli indirizzi posseduti dall'utente
-
-
-    //TODO RESTITUIRE LISTA DI ID
     @GetMapping("/addresses")
     public List<UUID> getAddressesNames() {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-
         return generalService.getUserAddresses(username);
     }
 
 
-
+    //Metodo per prendere i dati dell'indirizzo con l'id passato come parametro
     @GetMapping("/address")
     public ResponseEntity<AddressDTO> getAddressData(@RequestParam("address_id") UUID id) {
-
         AddressDTO addressDTO = generalService.getUserAddress(id);
-
         if(addressDTO!=null)
             return new ResponseEntity<>(addressDTO, HttpStatus.OK);
         else
@@ -67,7 +59,6 @@ public class AddressController {
     public ResponseEntity<String> saveUserAddressData(@RequestBody AddressDTO addressDTO) {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-
         int result= generalService.addAddress(username, addressDTO);
         if(result==0)
             return new ResponseEntity<>("Indirizzo salvato!", HttpStatus.OK);
@@ -79,7 +70,6 @@ public class AddressController {
 
     @DeleteMapping("/address")
     public ResponseEntity<String> deleteAddress(@RequestParam("address_id") UUID id) {
-
         boolean result= generalService.deleteUserAddress(id);
 
         if(result)
