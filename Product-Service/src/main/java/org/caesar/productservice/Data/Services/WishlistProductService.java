@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface WishlistProductService {
 
     boolean addOrUpdateWishlistProduct(WishlistProductDTO wishlistProduct);
-    WishlistProduct getWishlistProductById(UUID id);
-    List<WishlistProductDTO> getWishlistProducts();
-    boolean deleteWishlistProductById(UUID id);
+    List<WishlistProductDTO> getWishlistProductsByWishlistID(UUID wishlistId);
+    boolean deleteWishlistProductByProductId(UUID productID);
+    boolean deleteAllWishlistProductsByWishlistID(UUID wishlistID);
 }

@@ -60,9 +60,9 @@ public class GeneralServiceImpl implements GeneralService{
                 adminNotificationService.deleteByReport(reportDTO);
 
                 //Eliminazione della segnalazione
-                reportService.deleteReport(reportDTO.getReviewId());
+                if(reportService.deleteReport(reportDTO.getReviewId()))
+                    return banService.banUser(banDTO) && deleteReview(reportDTO.getReviewId());
 
-                return banService.banUser(banDTO) && deleteReview(reportDTO.getReviewId());
             } else if(newReportDTO != null) {
                 HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
                 HttpHeaders headers = new HttpHeaders();
@@ -162,8 +162,6 @@ public class GeneralServiceImpl implements GeneralService{
             String descr= "Richiesta di supporto elaborata dall'admin " + username;
 
             UserNotificationDTO userNotificationDTO= new UserNotificationDTO();
-
-            System.out.println("codice richiesta" + sendSupportDTO.getSupportCode());
 
             userNotificationDTO.setDate(LocalDate.now());
             userNotificationDTO.setSubject(descr);

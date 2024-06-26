@@ -20,14 +20,13 @@ public class WishlistServiceImpl implements WishlistService {
 
     private final ModelMapper modelMapper;
     private final WishlistRepository wishlistRepository;
+    private final WishlistProductServiceImpl wishlistProductServiceImpl;
 
+    //Metodo per creare una lista dei desideri per l'utente
     @Override
-    public UUID addOrUpdateWishlist(WishlistDTO wishlistDTO) {
-
-        if (!wishlistRepository.existsById(wishlistDTO.getId())) {
-            return null;
-        }
+    public UUID addOrUpdateWishlist(WishlistDTO wishlistDTO, String username) {
         try {
+            wishlistDTO.setUserUsername(username);
             Wishlist wishlistEntity = modelMapper.map(wishlistDTO, Wishlist.class);
             return wishlistRepository.save(wishlistEntity).getId();
         }
@@ -37,9 +36,10 @@ public class WishlistServiceImpl implements WishlistService {
         }
     }
 
+    //Metodo per prendere la lista dei desideri dell'utente
     @Override
-    public WishlistDTO getWishlist(UUID id) {
-        return modelMapper.map(wishlistRepository.findById(id), WishlistDTO.class);
+    public WishlistDTO getWishlist(UUID id, String username) {
+        return modelMapper.map(wishlistRepository.findWishlistByIdAndUserUsername(id, username), WishlistDTO.class);
     }
 
     @Override
@@ -55,6 +55,7 @@ public class WishlistServiceImpl implements WishlistService {
     public boolean deleteWishlist(UUID id) {
         try {
             wishlistRepository.deleteById(id);
+            log.debug("Lista desideri eliminata correttamente");
             return true;
         } catch (Exception e) {
             log.debug("Errore nella cancellazione della lista desideri");

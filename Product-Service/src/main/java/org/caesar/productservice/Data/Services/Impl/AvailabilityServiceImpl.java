@@ -53,22 +53,29 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     @Override
     public boolean deleteAvailabilityByProduct(Product product) {
-        System.out.println("Sono nell'elimina della disponibilità");
         List<Availability> availabilitiesToDelete = new ArrayList<>();
-        for(Availability availability : availabilityRepository.findAll()) {
-            if(availability.getProduct().equals(product)){
-                System.out.println("Disponibilità trovata");
+        for (Availability availability : availabilityRepository.findAll()) {
+            if (availability.getProduct().equals(product)) {
                 availabilitiesToDelete.add(availability);
             }
         }
-        if(!availabilitiesToDelete.isEmpty()) {
+        if (!availabilitiesToDelete.isEmpty()) {
             availabilityRepository.deleteAll(availabilitiesToDelete);
             return true;
-        }else
+        } else
             return false;
-		
+
+    }
+
     public List<Availability> getAll() {
         return availabilityRepository.findAll();
+    }
+
+    @Override
+    public List<AvailabilityDTO> getAvailabilitiesByProductID(ProductDTO productDTO) {
+        return availabilityRepository.findAllByProduct(modelMapper.map(productDTO, Product.class))
+                .stream().map(a -> modelMapper.map(a, AvailabilityDTO.class)).toList();
+
     }
 
 

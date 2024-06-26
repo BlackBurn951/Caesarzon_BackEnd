@@ -11,9 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.security.SecureRandom;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -24,21 +22,22 @@ public class SupportRequestServiceImpl implements SupportRequestService {
     private final SupportRequestRepository supportRequestRepository;
     private final ModelMapper modelMapper;
 
-
+    //Metodo per prendere tutte le richieste di supporto
     @Override
     public List<SupportDTO> getAllSupportRequest(int num) {
         Page<Support> result = supportRequestRepository.findAll(PageRequest.of(num, 20));
         return result.stream().map(a -> modelMapper.map(a, SupportDTO.class)).toList();
     }
 
+    //Metodo per prendere la singola richiesta di supporto
     @Override
     public SupportDTO getSupport(UUID id) {
         Support support = supportRequestRepository.findById(id).orElse(null);
         assert support != null;
-        System.out.println("sono nella get del support: " + support.getId());
         return modelMapper.map(supportRequestRepository.findById(id), SupportDTO.class);
     }
 
+    //Metodo per aggiungere una richiesta di supporto
     @Override
     public SupportDTO addSupportRequest(SupportDTO supportDTO) {
         try {
@@ -50,6 +49,7 @@ public class SupportRequestServiceImpl implements SupportRequestService {
         }
     }
 
+    //Metodo per eliminare una richiesta di supporto
     @Override
     public boolean deleteSupportRequest(SupportDTO supportDTO) {
         try {

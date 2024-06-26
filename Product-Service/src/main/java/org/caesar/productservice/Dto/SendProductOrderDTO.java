@@ -7,8 +7,9 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class SportDTO {
+public class SendProductOrderDTO {
 
-    private UUID id;
-    private String name;
+    private UUID productID;
+    private int quantity;
+
 }

@@ -20,11 +20,13 @@ public class BanServiceImpl implements BanService {
     private final BanRepository banRepository;
     private final ModelMapper modelMapper;
 
+    //Metodo per restituire tutti gli utenti bannati
     public List<BanDTO> getAllBans() {
         List<Ban> bans = banRepository.findAll();
         return bans.stream().map(a -> modelMapper.map(a, BanDTO.class)).toList();
     }
 
+    //Metodo per bannare un utente
     @Override
     public boolean banUser(BanDTO banDTO) {
         try {
@@ -37,6 +39,7 @@ public class BanServiceImpl implements BanService {
         }
     }
 
+    //Metodo per sbannare un utente
     @Override
     public boolean sbanUser(String username) {
         try {

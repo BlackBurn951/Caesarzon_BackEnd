@@ -61,14 +61,29 @@ public class SecurityConfig {
 
                         .pathMatchers(HttpMethod.POST, "/product-api/product").permitAll()
                         .pathMatchers(HttpMethod.GET, "/product-api/product").permitAll()
+
+                        .pathMatchers(HttpMethod.POST, "/product-api/wishlist").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/product-api/wishlist").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/product-api/wishlists").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/product-api/wishlistProduct").permitAll()
+                        .pathMatchers(HttpMethod.DELETE, "/product-api/wishlist").permitAll()
+                        .pathMatchers(HttpMethod.DELETE, "/product-api/wishlistProduct").permitAll()
+                        .pathMatchers(HttpMethod.DELETE, "/product-api/wishlistProducts").permitAll()
+
                         .pathMatchers(HttpMethod.DELETE, "/product-api/product").permitAll()
                         .pathMatchers(HttpMethod.POST, "/product-api/review").permitAll()
                         .pathMatchers(HttpMethod.GET, "/product-api/image").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/product-api/image").permitAll()
 
-                        .pathMatchers(HttpMethod.GET, "/product-api/review").permitAll()
+                        .pathMatchers(HttpMethod.PUT, "/user-api/image").permitAll()
+
+                        .pathMatchers(HttpMethod.GET, "/product-api/reviews").permitAll()
                         .pathMatchers(HttpMethod.POST, "/product-api/review").permitAll()
                         .pathMatchers(HttpMethod.DELETE, "/product-api/review").permitAll()
                         .pathMatchers(HttpMethod.DELETE, "/product-api/admin/review").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/product-api/search").permitAll()
+
+                        .pathMatchers(HttpMethod.GET, "/product-api/search").permitAll()
 
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

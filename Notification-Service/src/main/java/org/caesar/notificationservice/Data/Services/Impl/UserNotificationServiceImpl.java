@@ -20,6 +20,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     private final UserNotificationRepository userNotificationRepository;
     private final ModelMapper modelMapper;
 
+    //Metodo per prendere tutte le notifiche di un utente
     @Override
     public List<UserNotificationDTO> getUserNotification(String username) {
         try {
@@ -37,6 +38,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
         }
     }
 
+    //Metodo per aggiungere una notifica all'utente
     @Override
     public boolean addUserNotification(UserNotificationDTO notificationDTO) {
         try{
@@ -49,6 +51,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
         }
     }
 
+    //Metodo per aggiornare lo stato di lettura delle notifiche dell'utente
     @Override
     public boolean updateUserNotification(List<UserNotificationDTO> notificationDTO) {
         try{
@@ -61,10 +64,23 @@ public class UserNotificationServiceImpl implements UserNotificationService {
         }
     }
 
+    //Metodo per eliminare la singola notifica dell'utente
     @Override
     public boolean deleteUserNotification(UUID id){
         try{
             userNotificationRepository.deleteById(id);
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'eliminazione");
+            return false;
+        }
+    }
+
+    //Metodo per eliminare tutte le notifiche dell'utente
+    @Override
+    public boolean deleteAllUserNotification(String username){
+        try{
+            userNotificationRepository.deleteAllByUser(username);
             return true;
         }catch(Exception | Error e){
             log.debug("Errore nell'eliminazione");

@@ -10,5 +10,7 @@ public interface UserNotificationService {
     boolean addUserNotification(UserNotificationDTO notificationDTO);
     boolean updateUserNotification(List<UserNotificationDTO> notificationDTO);
     boolean deleteUserNotification(UUID id);
+    boolean deleteAllUserNotification(String username);
+
 
 }

@@ -22,7 +22,7 @@ public class UserCardServiceImpl implements UserCardService {
     private final UserCardRepository userCardRepository;
     private final ModelMapper modelMapper;
 
-
+    //Prende la carta dell'utente tramite id
     @Override
     public UserCardDTO getUserCard(UUID id) {
 
@@ -32,6 +32,7 @@ public class UserCardServiceImpl implements UserCardService {
         return modelMapper.map(userCard, UserCardDTO.class);
     }
 
+    //Prende gli id di tutte le carte dell'utente
     @Override
     public List<UUID> getCards(String userUsername) {
 
@@ -46,7 +47,6 @@ public class UserCardServiceImpl implements UserCardService {
         return result;
     }
 
-
     @Override
     public List<UserCardDTO> getUserCards(String userUsername) {
         List<UserCardDTO> result= new Vector<>();
@@ -60,6 +60,7 @@ public class UserCardServiceImpl implements UserCardService {
         return result;
     }
 
+    //Aggiunta della relazione carta utente
     @Override
     public boolean addUserCards(UserCardDTO userCard) {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
@@ -74,6 +75,7 @@ public class UserCardServiceImpl implements UserCardService {
         }
     }
 
+    //Eliminazione
     @Override
     public boolean deleteUserCard(UserCardDTO userCardDTO) {
         try {
@@ -85,6 +87,7 @@ public class UserCardServiceImpl implements UserCardService {
         }
     }
 
+    //Eliminazione
     @Override
     public boolean deleteUserCards(String userUsername) {
         try {

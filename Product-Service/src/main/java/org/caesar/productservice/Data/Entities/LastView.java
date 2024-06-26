@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -17,9 +16,9 @@ public class LastView {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "id_prodotto")
-    @OneToMany
-    private List<Product> idProduct;
+    @JoinColumn(name = "id_prodotto")
+    @OneToOne
+    private Product idProduct;
 
     @Column(name = "username")
     private String username;

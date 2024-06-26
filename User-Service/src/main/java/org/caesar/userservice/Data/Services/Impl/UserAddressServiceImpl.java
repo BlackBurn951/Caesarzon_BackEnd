@@ -22,7 +22,7 @@ public class UserAddressServiceImpl implements UserAddressService {
     private final UserAddressRepository userAddressRepository;
     private final ModelMapper modelMapper;
 
-
+    //Prende l'indirizzo dell'utente tramite id
     @Override
     public UserAddressDTO getUserAddress(UUID id) {
 
@@ -31,6 +31,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         return modelMapper.map(userAddress, UserAddressDTO.class);
     }
 
+    //Prende gli id di tutti gli indirizzi dell'utente
     @Override
     public List<UUID> getAddresses(String userUsername) {
 
@@ -58,6 +59,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         return result;
     }
 
+    //Aggiunta della relazione indirizzo utente
     @Override
     public boolean addUserAddreses(UserAddressDTO userAddress) {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
@@ -72,6 +74,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         }
     }
 
+    //Eliminazione
     @Override
     public boolean deleteUserAddress(UserAddressDTO userAddressDTO) {
         try {
@@ -83,6 +86,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         }
     }
 
+    //Eliminazione
     @Override
     public boolean deleteUserAddresses(String userUsername) {
         try {

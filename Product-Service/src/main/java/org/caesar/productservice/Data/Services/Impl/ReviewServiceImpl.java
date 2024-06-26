@@ -7,6 +7,7 @@ import org.caesar.productservice.Data.Dao.ReviewRepository;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
 import org.caesar.productservice.Data.Services.ReviewService;
+import org.caesar.productservice.Dto.AverageDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -24,21 +25,25 @@ public class ReviewServiceImpl implements ReviewService {
     private final ProductRepository productRepository;
 
     @Override
-    public UUID addOrUpdateReview(ReviewDTO reviewDTO, Product product) {
-
+    public UUID addReview(ReviewDTO reviewDTO, String username) {
         if(reviewDTO == null){
             return null;
         }
         try {
-            System.out.println("Adding review");
             Review review = new Review();
-            review.setProductID(product);
-            review.setDate(LocalDate.now());
-            review.setText(reviewDTO.getText());
-            review.setEvaluation(reviewDTO.getEvaluation());
-            review.setUserID(reviewDTO.getUserID());
+            UUID productID = reviewDTO.getProductID();
+            reviewDTO.setUsername(username);
+            Product product = productRepository.findById(productID).orElse(null);
+            if(product != null){
+                review.setProduct(product);
+                review.setDate(LocalDate.now());
+                review.setText(reviewDTO.getText());
+                review.setEvaluation(reviewDTO.getEvaluation());
+                review.setUserID(reviewDTO.getUsername());
 
-
+            }else{
+                return null;
+            }
             return reviewRepository.save(review).getId();
 
         }catch (RuntimeException | Error e) {
@@ -48,24 +53,24 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public Review getReviewById(UUID id) {
-        return reviewRepository.findById(id).orElse(null);
-    }
+    public Review getReviewById(UUID reviewID) {
 
-
-    public Review getReview(String username, UUID productID) {
-        return reviewRepository.findByuserIDAndProductID(username, productRepository.findById(productID).orElse(null));
+        return reviewRepository.findById(reviewID).orElse(null);
     }
 
     @Override
-    public List<ReviewDTO> getReviewsByProductId(Product product) {
+    public UUID getReviewIDByUsernameAndProductID(String username, UUID productID) {
+        Product product = productRepository.findById(productID).orElse(null);
+        return reviewRepository.findReviewByUserIDAndProduct(username, product).getId();
+    }
+
+
+    @Override
+    public List<ReviewDTO> getReviewsByProductId(UUID productID) {
+        Product product = productRepository.findById(productID).orElse(null);
         List<ReviewDTO> reviewDTOS = new ArrayList<>();
-        for(Review review: reviewRepository.findByproductID(product)){
+        for(Review review: reviewRepository.findByproduct(product)){
             ReviewDTO reviewDTO = modelMapper.map(review, ReviewDTO.class);
-            System.out.println("text: "+review.getText());
-            System.out.println("evaluation: "+review.getEvaluation());
-            System.out.println("userID: "+review.getUserID());
-            System.out.println("productID: "+review.getProductID());
             reviewDTOS.add(reviewDTO);
         }
         return reviewDTOS;
@@ -81,6 +86,24 @@ public class ReviewServiceImpl implements ReviewService {
             log.debug("Errore nella cancellazione della recensione");
             return false;
         }
+    }
+
+
+    @Override
+    public AverageDTO getReviewAverage(UUID productID) {
+        Product product = productRepository.findById(productID).orElse(null);
+        if(product != null){
+            List<Review> reviewDTOS = reviewRepository.findByproduct(product);
+            double average = 0;
+            for(Review review : reviewDTOS){
+                average += review.getEvaluation();
+            }
+            AverageDTO averageDTO = new AverageDTO();
+            averageDTO.setAvarege(average/reviewDTOS.size());
+            averageDTO.setNummberOfReview(reviewDTOS.size());
+            return averageDTO;
+        }
+        return null;
     }
 
 }

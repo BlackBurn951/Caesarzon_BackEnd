@@ -33,14 +33,17 @@ public class Order {
     private LocalDate refundDate;
 
     @Column(name= "reso")
-    private Boolean refund;
-
-    @Column(name= "stato_reso")
-    private String refundState;
+    private boolean refund;
 
     @Column(name= "id_indirizzo")
-    private long addressID;
+    private UUID addressID;
 
     @Column(name= "id_metodo_pagamento")
-    private long paymentMethodID;
+    private UUID cardID;
+
+    @Column(name= "totale_ordine")
+    private double orderTotal;
+
+    @Column(name = "username")
+    private String username;
 }

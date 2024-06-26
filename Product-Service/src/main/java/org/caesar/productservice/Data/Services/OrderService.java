@@ -1,10 +1,13 @@
 package org.caesar.productservice.Data.Services;
 
 import org.caesar.productservice.Data.Entities.Order;
+import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.PurchaseOrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.ReturnOrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.SimpleOrderDTO;
+import org.caesar.productservice.Dto.SendProductOrderDTO;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,7 +18,7 @@ public interface OrderService {
 
     SimpleOrderDTO getOrderById(UUID id);
 
-    List<SimpleOrderDTO> getAllSimpleOrders();
+    List<SimpleOrderDTO> getAllSimpleOrders(UUID userID);
 
     boolean deleteOrderById(UUID id);
 
@@ -36,4 +39,16 @@ public interface OrderService {
     List<ReturnOrderDTO> getAllReturnOrders();
 
     boolean deleteReturnOrderById(UUID id);
+
+    OrderDTO addOrder(OrderDTO orderDTO);
+
+    List<OrderDTO> getOrders(String username);
+
+    boolean updateOrder(String username, UUID orderId);
+
+    OrderDTO getOrder(String username, UUID id);
+
+    List<OrderDTO> getOrdersByStateAndDeliveryDate(String state, LocalDate date);
+
+
 }

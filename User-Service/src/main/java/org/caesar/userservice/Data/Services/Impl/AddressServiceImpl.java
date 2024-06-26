@@ -26,7 +26,7 @@ public class AddressServiceImpl implements AddressService {
     private final ModelMapper modelMapper;
     private final AddressRepository addressRepository;
 
-
+    //Metodo per prendere un indirizzo
     @Override
     public AddressDTO getAddress(UUID addressId) {
         AddressDTO addressDTO = modelMapper.map(addressRepository.findById(addressId), AddressDTO.class);
@@ -34,6 +34,7 @@ public class AddressServiceImpl implements AddressService {
         return addressDTO;
     }
 
+    //Metodo per aggiungere un indirizzo
     @Override
     public UUID addAddress(AddressDTO addressDTO) {
         //Controllo che i campi inviati rispettino i criteri
@@ -41,10 +42,8 @@ public class AddressServiceImpl implements AddressService {
                 !checkHouseNumber(addressDTO.getHouseNumber()) ||
                 !checkRoadType(addressDTO.getRoadType()))
             return null;
-
         try{
             Address address = modelMapper.map(addressDTO, Address.class);
-
             // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
             return addressRepository.save(address).getId();
         }catch(RuntimeException | Error e){
@@ -53,6 +52,7 @@ public class AddressServiceImpl implements AddressService {
         }
     }
 
+    //Metodo per eliminare un indirizzo tramite id
     @Override
     public boolean deleteAddress(UUID addressId) {
         try {
@@ -64,6 +64,7 @@ public class AddressServiceImpl implements AddressService {
         }
     }
 
+    //Metodo per eliminare tutti gli indirizzi associati ad un utente
     @Override
     public boolean deleteAllUserAddresses(List<UserAddressDTO> userAddresses) {
         //Presa degli id dei indirizzi dalle tuple di relazione
@@ -80,7 +81,6 @@ public class AddressServiceImpl implements AddressService {
             return false;
         }
     }
-
 
     //Metodi per la convalida
     private boolean checkRoadName(String roadName) {

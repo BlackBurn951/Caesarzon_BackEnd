@@ -26,8 +26,6 @@ public class SupportController {
     @GetMapping("/support")
     public ResponseEntity<List<SupportDTO>> getSupports(@RequestParam("num") int num) {
         List<SupportDTO> result = supportRequestService.getAllSupportRequest(num);
-
-        log.debug("Sono nell'end-point del get support");
         if(result != null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else

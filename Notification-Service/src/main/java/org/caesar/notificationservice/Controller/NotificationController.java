@@ -88,4 +88,14 @@ public class NotificationController {
             return new ResponseEntity<>("Errore", HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
+
+    @DeleteMapping("/notifications/{username}")
+    public ResponseEntity<String> deleteNotifications(@PathVariable String username) {
+        boolean result = userNotificationService.deleteAllUserNotification(username);
+        if(result)
+            return new ResponseEntity<>("Eliminata", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore", HttpStatus.INTERNAL_SERVER_ERROR);
+
+    }
 }

@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface UserNotificationRepository extends JpaRepository<UserNotification, UUID> {
 
     List<UserNotification> findAllByUser(String username);
+    void deleteAllByUser(String username);
 }
