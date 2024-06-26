@@ -12,7 +12,6 @@ public class ProductOrderDTO {
 
     private UUID id;
     private OrderDTO orderID;
-
     private ProductDTO productDTO;
     private double total;
     private int quantity;

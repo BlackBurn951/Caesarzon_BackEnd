@@ -38,8 +38,7 @@ public class ProductController {
             return new ResponseEntity<>("Prodotto non aggiunto", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
-    @GetMapping("/product/{id}") //Restituisce un prodotto con le sue disponibilità e immagini partendo dal suo id
+    @GetMapping("/product/{id}")
     public ResponseEntity<ProductDTO> getProductAndAvailabilitiesAndImages(@PathVariable UUID id) {
         String username = httpServletRequest.getAttribute("preferred_username").toString();
         ProductDTO productDTO = generalService.getProductAndAvailabilitiesAndImages(username, id);
@@ -48,10 +47,17 @@ public class ProductController {
         }
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
     }
 
-    @GetMapping("/image") //Restituisce le immagini del prodotto tramite l'id
+    @DeleteMapping("/product")
+    public ResponseEntity<String> deleteProductAndAvailabilities(@RequestParam UUID productID) {
+        if (generalService.deleteProduct(productID))
+            return new ResponseEntity<>("Prodotto eliminato", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Prodotto non eliminato", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @GetMapping("/image")
     public ResponseEntity<List<ImageDTO>> getProductImages(@RequestParam UUID productID) {
         List<ImageDTO> images = generalService.getProductImages(productID);
 
@@ -65,13 +71,6 @@ public class ProductController {
         }
     }
 
-    @DeleteMapping("/product") //Elimina il prodotto e le sue disponibilità dal db tramite id
-    public ResponseEntity<String> deleteProductAndAvailabilities(@RequestParam UUID productID) {
-        if (generalService.deleteProduct(productID))
-            return new ResponseEntity<>("Prodotto eliminato", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Prodotto non eliminato", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
 
     @GetMapping("/search") //Effettua una ricerca sul db e ritorna una lista di prodotti con i filtri selezionati
     public ResponseEntity<List<ProductSearchDTO>> searchProducts(
@@ -85,14 +84,12 @@ public class ProductController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         else
             return new ResponseEntity<>(searchProduct, HttpStatus.OK);
-
     }
 
 
     @GetMapping("/lastSearchs") //Restituisce le ricerche dell'utente
     public ResponseEntity<List<String>> searchs(){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
-
         List<String> ricerche = searchService.getAllSearchs(username);
         if (ricerche != null)
             return new ResponseEntity<>(ricerche, HttpStatus.OK);
@@ -104,7 +101,6 @@ public class ProductController {
     @GetMapping("/lastView") //Restituisce i prodotti visti di recente dall'utente
     public ResponseEntity<List<ProductSearchDTO>> lastView(){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
-
         List<ProductSearchDTO> searchProduct = generalService.getLastView(username);
 
         if(searchProduct.isEmpty())

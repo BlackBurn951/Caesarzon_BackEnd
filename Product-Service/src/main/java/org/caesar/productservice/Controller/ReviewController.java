@@ -7,7 +7,6 @@ import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Data.Services.ReviewService;
 import org.caesar.productservice.Dto.AverageDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -25,17 +24,15 @@ import java.util.UUID;
 public class ReviewController {
 
 
-    private final ModelMapper modelMapper;
     private final ReviewService reviewService;
-    private final ProductService productService;
     private final RestTemplate restTemplate;
+    private final HttpServletRequest httpServletRequest;
 
     // Endpoint per l'aggiunta di una recensione
     @PostMapping("/review")
     public ResponseEntity<String> addReview(@RequestBody ReviewDTO reviewDTO) {
-
-        UUID reviewID = reviewService.addOrUpdateReview(reviewDTO);
-        System.out.println("Review ID: " + reviewID);
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
+        UUID reviewID = reviewService.addReview(reviewDTO, username);
         if (reviewID != null) {
             return new ResponseEntity<>("Recensione aggiunta", HttpStatus.OK);
         } else {
@@ -55,7 +52,8 @@ public class ReviewController {
     }
     // Endpoint per l'eliminazione di una recensione e delle eventuali segnalazioni ad essa collegate
     @DeleteMapping("/review")
-    public ResponseEntity<String> deleteReview(@RequestParam String username, @RequestParam UUID productID){
+    public ResponseEntity<String> deleteReviewByUser(@RequestParam("product-id") UUID productID){
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
         UUID reviewID = reviewService.getReviewIDByUsernameAndProductID(username, productID);
         if (reviewID != null) {
             reviewService.deleteReview(reviewID);
@@ -84,7 +82,7 @@ public class ReviewController {
 
     // Endpoint per l'eliminazione della recensione tramite id
     @DeleteMapping("/admin/review")
-    public ResponseEntity<String> deleteReview(@RequestParam("review_id") UUID review_id) {
+    public ResponseEntity<String> deleteReviewById(@RequestParam("review_id") UUID review_id) {
 
         if(review_id == null) {
             return new ResponseEntity<>("Recensione non trovata", HttpStatus.NOT_FOUND);
@@ -94,12 +92,11 @@ public class ReviewController {
         }
     }
 
-    // Endpoint per ottenere la media delle valutazioni di un prodotto
     @GetMapping("/review/average")
     public ResponseEntity<AverageDTO> getReviewAverage(@RequestParam UUID productID) {
 
         if(productID != null) {
-            AverageDTO averageDTO = reviewService.getProductAverage(productID);
+            AverageDTO averageDTO = reviewService.getReviewAverage(productID);
             if(averageDTO != null){
                 return new ResponseEntity<>(averageDTO, HttpStatus.OK);
             }
@@ -107,4 +104,5 @@ public class ReviewController {
         }
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 }

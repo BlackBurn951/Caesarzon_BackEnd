@@ -29,7 +29,8 @@ public class OrderController {
     private final OrderService orderService;
 
 
-    @GetMapping("/cart") //Metodo per prendere il carrello con tutti i prodotti al suo interno
+    //Metodi per la gestione del carrello
+    @GetMapping("/cart")
     public ResponseEntity<List<ProductCartDTO>> getCart(){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
@@ -51,9 +52,8 @@ public class OrderController {
             return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
-    @PutMapping("/cart/{id}")  //Metodo per il salva più tardi e la modifica della quantità del singolo prodotto
-    public ResponseEntity<String> changeCart(@PathVariable UUID id, @RequestParam(value= "quanity", required = false) int quantity, @RequestParam("action") int action){
+    @PutMapping("/cart/product/{id}")  //Metodo per il salva più tardi e la modifica della quantità del singolo prodotto
+    public ResponseEntity<String> changeCart(@PathVariable UUID id, @RequestParam(value= "quanity", required = false) int quantity, @RequestParam("action") int action) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         boolean result= action==0? productOrderService.saveLater(username, id): productOrderService.changeQuantity(username, id, quantity);
@@ -84,12 +84,14 @@ public class OrderController {
     }
 
     @PostMapping("/purchase")  //Metodo per effettuare l'acquisto del carrello
-    public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO){
+    public ResponseEntity<OrderDTO> makeOrder(@RequestBody BuyDTO buyDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-        if(generalService.createOrder(username, buyDTO))
-            return new ResponseEntity<>("Ordine creato con successo!", HttpStatus.OK);
+
+        OrderDTO orderDTO = orderService.getOrder(username, id);
+        if(orderDTO != null)
+            return new ResponseEntity<>(orderDTO, HttpStatus.OK);
         else
-            return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/purchases") // Metodo per ottenere tutti gli ordini di un utente
@@ -102,15 +104,19 @@ public class OrderController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/purchase") //Metodo per ottenere un determinato ordine tramite l'id passato
-    public ResponseEntity<OrderDTO> getOrder(@RequestParam("order-id") UUID id){
+    @PostMapping("/purchase")  //Metodo per effettuare l'acquisto del carello
+    public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-        OrderDTO orderDTO = orderService.getOrder(username, id);
-        if(orderDTO != null)
-            return new ResponseEntity<>(orderDTO, HttpStatus.OK);
+        if(generalService.createOrder(username, buyDTO))
+            return new ResponseEntity<>("Ordine creato con successo!", HttpStatus.OK);
         else
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
+    @PutMapping("/purchase")
+    public ResponseEntity<String> updateOrder(@RequestBody BuyDTO buyDTO) {
+
+        return null;
     }
 
 }

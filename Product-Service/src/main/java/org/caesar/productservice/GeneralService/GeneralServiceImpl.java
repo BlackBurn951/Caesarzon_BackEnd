@@ -209,7 +209,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         for(ProductDTO p: productDTO){
             productSearchDTO1 = new ProductSearchDTO();
-            averageDTO = reviewService.getProductAverage(p.getId());
+            averageDTO = reviewService.getReviewAverage(p.getId());
 
             productSearchDTO1.setAverageReview(averageDTO.getAverage());
             productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReviews());
@@ -243,7 +243,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         for(ProductDTO p: productDTOS){
             productSearchDTO1 = new ProductSearchDTO();
-            averageDTO = reviewService.getProductAverage(p.getId());
+            averageDTO = reviewService.getReviewAverage(p.getId());
 
             productSearchDTO1.setAverageReview(averageDTO.getAverage());
             productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReviews());
