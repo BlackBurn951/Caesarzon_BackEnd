@@ -37,7 +37,8 @@ public class WishlistController {
             return new ResponseEntity<>("Problemi nell'aggiunta di una lista", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PostMapping("/wishlistProduct") // Endpoint per l'aggiunta di un prodotto in una lista
+
+    @PostMapping("/wishlist/product")
     public ResponseEntity<String> addProductIntoList(@RequestBody WishlistProductDTO wishlistDTO){
         if(wishlistProductService.addOrUpdateWishlistProduct(wishlistDTO))
             return new ResponseEntity<>("Prodotto aggiunto alla lista", HttpStatus.OK);
@@ -77,14 +78,16 @@ public class WishlistController {
         else return new ResponseEntity<>("Errore nella cancellazione della lista desideri", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @DeleteMapping("/wishlistProduct") // Endpoint per l'eliminazione di un prodotto da una lista desideri di un utente
-    public ResponseEntity<String> deleteWishlistProductByProductID(@RequestParam UUID productID){
+
+    @DeleteMapping("/wishlist/product/{productID}")
+    public ResponseEntity<String> deleteWishlistProductByProductID(@PathVariable UUID productID){
         if(wishlistProductService.deleteWishlistProductByProductId(productID))
             return new ResponseEntity<>("Prodotto eliminato correttamente dalla lista desideri", HttpStatus.OK);
         else return new ResponseEntity<>("Errore nella cancellazione del prodotto dalla lista desideri", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @DeleteMapping("/wishlistProduct") // Endpoint per svuotare una lista desideri di tutti i suoi prodotti
+
+    @DeleteMapping("/wishlist/products")
     public ResponseEntity<String> deleteAllWishlistProductsByWishlistID(@RequestParam UUID wishlistID){
         if(wishlistProductService.deleteAllWishlistProductsByWishlistID(wishlistID))
             return new ResponseEntity<>("Lista desideri svuotata", HttpStatus.OK);

@@ -6,7 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.OrderRepository;
 import org.caesar.productservice.Data.Entities.Order;
 import org.caesar.productservice.Data.Services.OrderService;
-import org.caesar.productservice.Dto.DTOOrder.*;
+import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
+import org.caesar.productservice.Dto.DTOOrder.PurchaseOrderDTO;
+import org.caesar.productservice.Dto.DTOOrder.ReturnOrderDTO;
+import org.caesar.productservice.Dto.DTOOrder.SimpleOrderDTO;
 import org.caesar.productservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 
@@ -36,6 +39,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     // Restituisce un SimpleOrder tramite l'id passato
     public SimpleOrderDTO getOrderById(UUID id) {
+
         return modelMapper.map(orderRepository.findById(id).orElse(null),
                 SimpleOrderDTO.class);
     }
@@ -131,11 +135,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    // Aggiorna l'ordine di un determinato utente quando chiede il reso
-    public boolean updateOrder(String username) {
+    public boolean updateOrder(String username, UUID orderId) {
         try {
             LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
-            Order order = orderRepository.findOrdersByUsername(username);
+            Order order = orderRepository.findOrderByIdAndUsername(orderId, username);
             if (order.getPurchaseDate().isBefore(tenDaysAgo)) {
                 utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" rifiutato",
                         "Il reso è possibile solo entro 10 giorni dall'acquisto");

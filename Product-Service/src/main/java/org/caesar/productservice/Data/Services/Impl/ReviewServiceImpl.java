@@ -99,8 +99,8 @@ public class ReviewServiceImpl implements ReviewService {
                 average += review.getEvaluation();
             }
             AverageDTO averageDTO = new AverageDTO();
-            averageDTO.setAverage(average/reviewDTOS.size());
-            averageDTO.setNumberOfReviews(reviewDTOS.size());
+            averageDTO.setAvarege(average/reviewDTOS.size());
+            averageDTO.setNummberOfReview(reviewDTOS.size());
             return averageDTO;
         }
         return null;
