@@ -1,5 +1,6 @@
 package org.caesar.productservice.Data.Services;
 
+import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.ProductOrderDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
 
@@ -28,4 +29,5 @@ public interface ProductOrderService {
 
     boolean changeQuantity(String username, UUID productId, int quantity);
 
+    List<ProductOrderDTO> getProductInOrder(String username, OrderDTO orderDTO);
 }

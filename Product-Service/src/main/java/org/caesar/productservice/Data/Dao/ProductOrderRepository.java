@@ -1,5 +1,6 @@
 package org.caesar.productservice.Data.Dao;
 
+import org.caesar.productservice.Data.Entities.Order;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.ProductOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,5 +19,7 @@ public interface ProductOrderRepository extends JpaRepository<ProductOrder, UUID
     void deleteByUsernameAndOrderIDNullAndProductID(String username, Product productId);
 
     void deleteAllByUsernameAndOrderIDNull(String username);
+
+    List<ProductOrder> findAllByUsernameAndOrderID(String username, Order order);
 
 }

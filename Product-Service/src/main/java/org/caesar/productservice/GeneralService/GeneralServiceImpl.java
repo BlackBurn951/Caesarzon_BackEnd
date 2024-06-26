@@ -247,7 +247,37 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public List<ProductCartDTO> getOrder(String username, UUID orderId) {
-        return List.of();
+        OrderDTO orderDTO = orderService.getOrder(username, orderId);
+
+        List<ProductOrderDTO> productsOrder= productOrderService.getProductInOrder(username, orderDTO);
+
+        if(productsOrder==null && productsOrder.isEmpty())
+            return null;
+
+        List<ProductDTO> products= productService.getAllProductsById(productsOrder.stream().map(a -> a.getProductDTO().getId()).toList());
+
+        if(products==null && products.isEmpty())
+            return null;
+
+        List<ProductCartDTO> productCartDTOS = new Vector<>();
+        ProductCartDTO productCartDTO;
+
+        for (ProductOrderDTO productOrderDTO : productsOrder) {
+            for (ProductDTO product : products) {
+                if (productOrderDTO.getProductDTO().getId().equals(product.getId())) {
+                    productCartDTO = new ProductCartDTO();
+
+                    productCartDTO.setId(product.getId());
+                    productCartDTO.setName(product.getName());
+                    productCartDTO.setQuantity(productOrderDTO.getQuantity());
+                    productCartDTO.setTotal(productOrderDTO.getTotal());
+
+                    productCartDTOS.add(productCartDTO);
+                }
+            }
+        }
+
+        return productCartDTOS;
     }
 
 
