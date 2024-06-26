@@ -8,6 +8,7 @@ import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
+import org.caesar.productservice.Utils.OrderSchedulerService;
 import org.caesar.productservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
@@ -43,6 +44,7 @@ public class GeneralServiceImpl implements GeneralService {
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
     private final Utils utils;
+    private final OrderSchedulerService orderSchedulerService;
 
 
     @Override
@@ -152,10 +154,12 @@ public class GeneralServiceImpl implements GeneralService {
 
         productInOrder.forEach(productOrderDTO -> productOrderDTO.setOrderID(savedOrder));
         if(productOrderService.saveAll(productOrderDTOs)) {
+
             return  utils.sendNotify(username,
                     "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
                     "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate()
             );
+
 
         }
         return false; //☺
