@@ -31,7 +31,7 @@ public class CityDataServiceimpl implements CityDataService {
         return citiesDTO.stream().map(CityDataDTO::getCity).toList();
     }
 
-
+    //Metodo per restituire i dati di una data città
     @Override
     public CityDataSuggestDTO getCityData(String city){
         return modelMapper.map(cityDataRepository.findByCity(city), CityDataSuggestDTO.class);

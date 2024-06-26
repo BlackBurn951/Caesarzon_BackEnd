@@ -26,8 +26,6 @@ public class ReportController {
     @GetMapping("/report")
     public ResponseEntity<List<ReportDTO>> getReports(@RequestParam("num") int num) {
         List<ReportDTO> result = reportService.getAllReports(num);
-
-        log.debug("Sono nell'end-point del get report");
         if(result != null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
@@ -37,8 +35,6 @@ public class ReportController {
     @PostMapping("/report")
     public ResponseEntity<String> sendReport(@RequestBody ReportDTO reportDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-
-        log.debug("Sono nell'end-point del send report");
         if(generalService.addReportRequest(username, reportDTO))
             return new ResponseEntity<>("Segnalazione inviata con sucesso!", HttpStatus.OK);
         else

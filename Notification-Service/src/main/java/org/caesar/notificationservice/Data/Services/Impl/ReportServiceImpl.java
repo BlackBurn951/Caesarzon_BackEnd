@@ -22,6 +22,7 @@ public class ReportServiceImpl implements ReportService {
     private final ReportRepository reportRepository;
     private final ModelMapper modelMapper;
 
+    //Metodo per aggiungere una segnalazione
     @Override
     public ReportDTO addReport(ReportDTO reportDTO) {
         try {
@@ -33,22 +34,26 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
+    //Metodo per prendere una segnalazione
     @Override
     public ReportDTO getReport(UUID id) {
         return modelMapper.map(reportRepository.findById(id), ReportDTO.class);
     }
 
+    //Metodo per aggiungere una segnalazione tramite l'id della recensione segnalata
     @Override
     public ReportDTO getReportByReviewId(UUID id) {
         return modelMapper.map(reportRepository.findByReviewId(id), ReportDTO.class);
     }
 
+    //Metodo per prendere tutte le segnalazioni
     @Override
     public List<ReportDTO> getAllReports(int num) {
         Page<Report> result = reportRepository.findAll(PageRequest.of(num, 20));
         return result.stream().map(a -> modelMapper.map(a, ReportDTO.class)).toList();
     }
 
+    //Metodo per eliminare una segnalazione
     @Override
     public boolean deleteReport(UUID reviewId) {
         try {
@@ -60,12 +65,13 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-
+    //Metodo per contare le segnalazioni fatte ad un utente
     @Override
     public int countReportForUser(String username, UUID reviewId) {
         return reportRepository.countByUsernameUser2AndReviewId(username, reviewId);
     }
 
+    //Metodo prendere un utente tramite username e id recensione
     @Override
     public boolean findByUsername1AndReviewId(String username, UUID reviewId) {
         return reportRepository.findByUsernameUser1AndReviewId(username, reviewId) != null;

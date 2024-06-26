@@ -5,12 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.ProfilePicRepository;
 import org.caesar.userservice.Data.Entities.ProfilePic;
 import org.caesar.userservice.Data.Services.ProfilePicService;
-import org.caesar.userservice.Dto.ProfilePicDTO;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Arrays;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +16,7 @@ public class ProfilePicServiceImpl implements ProfilePicService {
 
     private final ProfilePicRepository profilePicRepository;
 
-
+    //Salva l'immagine dell'utente
     @Override
     public boolean saveImage(String username, MultipartFile file, boolean save) {
         try {

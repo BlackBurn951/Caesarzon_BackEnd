@@ -1,6 +1,7 @@
 package org.caesar.productservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductOrderRepository;
 import org.caesar.productservice.Data.Entities.ProductOrder;
 import org.caesar.productservice.Data.Services.ProductOrderService;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductOrderServiceImpl implements ProductOrderService {
 
     private final ProductOrderRepository productOrderRepository;
@@ -40,7 +42,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             return true;
         } catch (Exception | Error e) {
-//            log.debug("Errore nell'eliminazione del singolo prodotto dalla lista desideri");
+            log.debug("Errore nell'eliminazione del singolo prodotto dalla lista desideri");
             return false;
         }
     }
@@ -52,7 +54,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             return true;
         } catch (Exception | Error e) {
-//            log.debug("Errore nell'eliminazione del singolo prodotto dalla lista desideri");
+            log.debug("Errore nell'eliminazione dei prodotti dalla lista desideri");
             return false;
         }
     }
@@ -79,7 +81,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             return true;
         } catch (Exception | Error e) {
-            //log.debug("Errore nel salvataggio degli ordini");
+            log.debug("Errore nel salvataggio degli ordini");
             return false;
         }
     }
@@ -96,7 +98,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             return true;
 
         }catch (Exception | Error e){
-//            log.debug("Errore nell'aggiornamento dell'ordine'");
+            log.debug("Errore nell'aggiornamento dell'ordine'");
             return false;
         }
     }
@@ -112,7 +114,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             return true;
 
         }catch (Exception | Error e){
-//            log.debug("Errore nell'aggiornamento dell'ordine'");
+            log.debug("Errore nell'aggiornamento dell'ordine'");
             return false;
         }
     }

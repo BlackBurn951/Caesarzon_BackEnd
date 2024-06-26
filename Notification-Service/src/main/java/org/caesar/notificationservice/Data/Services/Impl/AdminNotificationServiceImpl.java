@@ -23,6 +23,8 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     private final AdminNotificationRepository adminNotificationRepository;
     private final ModelMapper modelMapper;
 
+
+    //Metodo per prendere le notifiche dell'admin
     @Override
     public List<AdminNotificationDTO> getAdminNotification(String username) {
         try {
@@ -58,6 +60,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         }
     }
 
+    //Metodo per inviare le notifiche all'admin
     @Override
     public boolean sendNotificationAllAdmin(List<SaveAdminNotificationDTO> notification) {
         try {
@@ -70,6 +73,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         }
     }
 
+    //Metodo per eliminare le notifiche dell'admin
     @Override
     public boolean deleteAdminNotification(UUID id){
         try{
@@ -81,6 +85,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         }
     }
 
+    //Metodo per eliminare le notifiche dell'admin tramite richiesta di supporto
     @Override
     public boolean deleteBySupport(SupportDTO supportDTO) {
         try{
@@ -93,6 +98,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         }
     }
 
+    //Metodo per eliminare le notifiche dell'admin tramite segnalazione
     @Override
     public boolean deleteByReport(ReportDTO reportDTO) {
         try{
@@ -105,6 +111,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
     }
 
+    //Metodo per aggiornare lo stato di lettura delle notifiche dell'admin
     @Override
     public boolean updateAdminNotification(List<SaveAdminNotificationDTO> notificationDTO) {
         try{

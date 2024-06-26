@@ -29,32 +29,11 @@ public class UserRepositoryImpl implements UserRepository {
 
 
 
-    //Metodi per la ricerca dell'utente
-    @Override
-    public User findUserById(String id) {
-        RealmResource realmResource = keycloak.realm("CaesarRealm");
-        UserResource userResource = realmResource.users().get(id);
-
-        UserRepresentation userRepresentation = userResource.toRepresentation();
-
-        User user = new User();
-
-        user.setId(userRepresentation.getId());
-        user.setFirstName(userRepresentation.getFirstName());
-        user.setLastName(userRepresentation.getLastName());
-        user.setUsername(userRepresentation.getUsername());
-        user.setEmail(userRepresentation.getEmail());
-        user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
-
-        return user;
-    }
-
     @Override
     public List<String> findAllUsersByUsername(String username) {
 
         List<String> usernames = new ArrayList<>();
         try{
-            System.out.printf("sono nel findAllUsersByUsername: %s\n", username);
             RealmResource realmResource = keycloak.realm("CaesarRealm");
             List<UserRepresentation> users = realmResource.users().searchByUsername(username, false);
 
@@ -63,7 +42,7 @@ public class UserRepositoryImpl implements UserRepository {
             }
             return usernames;
         }catch (Exception e) {
-            System.out.printf("Errore: %s\n", e.getMessage());
+            log.debug("Errore nella presa di tutti gli utenti");
             return null;
         }
     } //TODO CHECK
@@ -113,11 +92,6 @@ public class UserRepositoryImpl implements UserRepository {
 
 
     @Override
-    public User findUserByEmail(String email) {
-        return setUser(true, email);
-    }
-
-    @Override
     public User findUserByUsername(String username) {
         return setUser(false, username);
     }
@@ -136,11 +110,6 @@ public class UserRepositoryImpl implements UserRepository {
         //Creazione di un nuovo utente per inserirlo nel realm
         UserRepresentation user = new UserRepresentation();
 
-        System.out.println(userData.getCredentialValue());
-        System.out.println(userData.getUsername());
-        System.out.println(userData.getFirstName());
-        System.out.println(userData.getLastName());
-        System.out.println(userData.getEmail());
 
         //Assegnazione dei campi base offerti da keycloak
         user.setUsername(userData.getUsername());
@@ -216,28 +185,6 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
-    @Override
-    @Transactional
-    public boolean banUser(String username, boolean ban) {
-        RealmResource realmResource = keycloak.realm("CaesarRealm");
-        log.debug("Nella repository dell'user prima di prendere gli utenti");
-        try {
-            //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
-            User userKeycloak = findUserByUsername(username);
-            UserResource userResource = realmResource.users().get(userKeycloak.getId());
-
-            log.debug("Dopo aver preso l'user");
-            UserRepresentation user = userResource.toRepresentation();
-            user.setEnabled(!ban);
-            log.debug("Disabilitato");
-            userResource.update(user);
-            log.debug("Chiamata effettuata");
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nel ban dell'user");
-            return  false;
-        }
-    }
 
     @Override
     @Transactional

@@ -71,10 +71,6 @@ public class ReviewServiceImpl implements ReviewService {
         List<ReviewDTO> reviewDTOS = new ArrayList<>();
         for(Review review: reviewRepository.findByproduct(product)){
             ReviewDTO reviewDTO = modelMapper.map(review, ReviewDTO.class);
-            System.out.println("text: "+review.getText());
-            System.out.println("evaluation: "+review.getEvaluation());
-            System.out.println("userID: "+review.getUserID());
-            System.out.println("productID: "+review.getProduct());
             reviewDTOS.add(reviewDTO);
         }
         return reviewDTOS;

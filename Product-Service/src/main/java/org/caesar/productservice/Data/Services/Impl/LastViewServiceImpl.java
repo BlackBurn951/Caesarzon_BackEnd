@@ -1,6 +1,7 @@
 package org.caesar.productservice.Data.Services.Impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.LastViewRepository;
 import org.caesar.productservice.Data.Entities.LastView;
 import org.caesar.productservice.Data.Services.LastViewService;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LastViewServiceImpl implements LastViewService {
 
     private final LastViewRepository lastViewRepository;
@@ -30,7 +32,7 @@ public class LastViewServiceImpl implements LastViewService {
 
             return true;
         }catch (Exception | Error e){
-            System.out.println("Problema nell'inserimento delle ultime ricerche");
+            log.debug("Problema nell'inserimento delle ultime ricerche");
             return false;
         }
     }
@@ -41,7 +43,7 @@ public class LastViewServiceImpl implements LastViewService {
             return lastViewRepository.getLastViewsByUsername(username).stream().map(a-> modelMapper.map(a, LastViewDTO.class)).toList();
 
         }catch (Exception | Error e){
-            System.out.println("Aidi non funziona");
+            log.debug("Errora nella presa degli ultimi visti");
             return null;
         }
     }

@@ -43,9 +43,6 @@ public class ReviewController {
     @GetMapping("/review")
     public ResponseEntity<List<ReviewDTO>> getReview(@RequestParam UUID productID) {
         List<ReviewDTO> reviewDTOS = reviewService.getReviewsByProductId(productID);
-        for(ReviewDTO reviewDTO : reviewDTOS) {
-            System.out.println(reviewDTO);
-        }
         if (!reviewDTOS.isEmpty()) {
             return new ResponseEntity<>(reviewDTOS, HttpStatus.OK);
         }else{
@@ -74,12 +71,9 @@ public class ReviewController {
             ).getStatusCode() == HttpStatus.OK;
 
             if(responseEntity){
-
-                System.out.println("Sono in questa risposta, la giusta");
                 return new ResponseEntity<>("Recensione eliminata con sucesso!", HttpStatus.OK);
             }
         }
-        System.out.println("Sono in questa risposta, la sbagliata");
         return  new ResponseEntity<>("Problemi nell'eliminazione!", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

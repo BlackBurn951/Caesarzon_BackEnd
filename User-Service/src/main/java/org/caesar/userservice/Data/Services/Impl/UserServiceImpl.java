@@ -1,6 +1,5 @@
 package org.caesar.userservice.Data.Services.Impl;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
@@ -8,20 +7,11 @@ import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.*;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -31,9 +21,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-    private final RestTemplate restTemplate;
 
-
+    //Metodo per prendere i dati di un'utente
     @Override
     public UserDTO getUser(String username) {
         try {
@@ -48,6 +37,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    //Metodo per restituire tutti gli utenti
     @Override
     public List<UserDTO> getUsers(int start) {
         List<User> users= userRepository.findAllUsers(start);
@@ -61,11 +51,13 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
+    //Metodo per prendere la lista di utenti
     @Override
     public List<String> getUsersByUsername(String username) {  //TODO FATTO DA CICCIO
         return userRepository.findAllUsersByUsername(username);
     }
 
+    //Metodo per salvare un utente
     @Override
     public boolean saveUser(UserRegistrationDTO userRegistrationDTO) {
         //Controllo che i campi mandati da front non siano null e che rispettino il formato richiesto
@@ -79,6 +71,7 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
+    //Metodo per aggiornare i dati di un utente
     @Override
     public boolean updateUser(UserDTO userDTO) {
         //Controllo che i campi mandati da front non siano null e che rispettino il formato richiesto
@@ -91,60 +84,7 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
-    @Override
-    public boolean banUser(BanDTO banDTO) {
-        try {
-            if(userRepository.banUser(banDTO.getUserUsername(), true)) {
-                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-
-
-                HttpHeaders headers = new HttpHeaders();
-                headers.add("Authorization", request.getHeader("Authorization"));
-
-                Map<String, String> requestBody = new HashMap<>();
-                requestBody.put("reason", banDTO.getReason());
-                requestBody.put("startDate", String.valueOf(LocalDate.now()));
-                requestBody.put("endDate", null);
-                requestBody.put("userUsername", banDTO.getUserUsername());
-                requestBody.put("adminUsername", banDTO.getAdminUsername());
-
-                HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
-
-
-                return restTemplate.exchange("http://notification-service/notify-api/ban",
-                        HttpMethod.POST,
-                        entity,
-                        String.class).getStatusCode() == HttpStatus.OK;
-            }
-            return false;
-        } catch(Exception | Error e) {
-            log.debug("Errore nel ban dell'utente");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean sbanUser(String username) {
-        try {
-            if(userRepository.banUser(username, false)) {
-                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-                HttpHeaders headers = new HttpHeaders();
-                headers.add("Authorization", request.getHeader("Authorization"));
-
-                HttpEntity<String> entity = new HttpEntity<>(headers);
-
-                return restTemplate.exchange("http://notification-service/notify-api/ban/" + username,
-                        HttpMethod.PUT,
-                        entity,
-                        String.class).getStatusCode() == HttpStatus.OK;
-            }
-            return false;
-        } catch(Exception | Error e) {
-            log.debug("Errore nel ban dell'utente");
-            return false;
-        }
-    }
-
+    //Metodo per eliminare un utente
     @Override
     public boolean deleteUser(String userUsername) {
         try {
@@ -155,6 +95,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    //Metodo per cambiare la password di un utente
     @Override
     public boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username) {
         try {
@@ -164,8 +105,6 @@ public class UserServiceImpl implements UserService {
             return false;
         }
     }
-
-
 
     //Metodi per la convalida dei dati
     private boolean checkUsername(String username) {
@@ -226,4 +165,5 @@ public class UserServiceImpl implements UserService {
         //Controllo che il numero di telefono non sia nullo, contenga solo numeri e sia lungo esattamente 10 caratteri
         return phoneNumber!=null && phoneNumber.matches("[0-9]{10}");
     }
+
 }

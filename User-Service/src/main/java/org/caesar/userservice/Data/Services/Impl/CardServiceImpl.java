@@ -25,7 +25,7 @@ public class CardServiceImpl implements CardService {
     private final ModelMapper modelMapper;
     private final CardRepository cardRepository;
 
-
+    //Metodo per restituire una carta tramite id
     @Override
     public CardDTO getCard(UUID cardId) {
         CardDTO cardDTO = modelMapper.map(cardRepository.findById(cardId), CardDTO.class);
@@ -33,6 +33,7 @@ public class CardServiceImpl implements CardService {
         return cardDTO;
     }
 
+    //Metodo per aggiungere una carta
     @Override
     public UUID addCard(CardDTO cardDTO) {
         //Controllo che i campi mandati rispettino i criteri
@@ -50,6 +51,7 @@ public class CardServiceImpl implements CardService {
         }
     }
 
+    //Metodo per eliminare una carta
     @Override
     public boolean deleteCard(UUID cardId) {
         try {
@@ -61,6 +63,7 @@ public class CardServiceImpl implements CardService {
         }
     }
 
+    //Metodo per eliminare le carte dell'utente
     @Override
     public boolean deleteUserCards(List<UserCardDTO> userCards) {
         //Presa degli id dei indirizzi dalle tuple di relazione
@@ -77,7 +80,6 @@ public class CardServiceImpl implements CardService {
             return false;
         }
     }
-
 
     //Metodi per la convalida
     private boolean checkCardNumber(String cardNumber) {

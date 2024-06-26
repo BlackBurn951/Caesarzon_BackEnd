@@ -22,11 +22,7 @@ public class FollowerServiceImpl implements FollowerService {
     private final FollowerRepository followerRepository;
     private final ModelMapper modelMapper;
 
-    @Override
-    public FollowerDTO getFollower(String username1, String username2) {
-        return modelMapper.map(followerRepository.findByUserUsername1AndUserUsername2(username1, username2), FollowerDTO.class);
-    }  //FIXME POSSIBILE CANCELLAZIONE
-
+    //Rstituisce la lista di seguiti e amici dell'utente
     @Override
     public List<FollowerDTO> getFollowersOrFriends(String username1, int flw, boolean friend) {
         List<Follower> followers;
@@ -47,6 +43,7 @@ public class FollowerServiceImpl implements FollowerService {
         return followerDTOs;
     }
 
+    //Aggiunta del follower
     @Override
     public boolean addFollowers(String username1, List<UserSearchDTO> followers) {
         //Controllo che venga inviato almeno un dato
@@ -59,11 +56,9 @@ public class FollowerServiceImpl implements FollowerService {
         for(UserSearchDTO f: followers) {
             Follower follower  = followerRepository.findByUserUsername1AndUserUsername2(username1, f.getUsername());
             if(follower!=null){
-                System.out.println("TROVATO" + f.getUsername());
                 follower.setFriend(f.isFriend());
                 followerRepository.save(follower);
             }else{
-                System.out.println("NON TROVATO" + f.getUsername());
                 followz.add(f);
             }
 
@@ -89,6 +84,7 @@ public class FollowerServiceImpl implements FollowerService {
         }
     }
 
+    //Eliminazione del singolo follower
     @Override
     public boolean deleteFollowers(String username1, List<String> followers) {
         List<Follower> savedFollowers= new Vector<>();
@@ -108,6 +104,16 @@ public class FollowerServiceImpl implements FollowerService {
         }
     }
 
+    //TODO VA CHIAMATA NEL GENERAL ALL'ELIMINAZIONE DELL'UTENTE
 
-    //TODO DA IMPLEMENTARE CANCELLAZIONE DI TUTTI I FOLLOWER
+    //Metodo per la cancellazione di tutti i follower da tutte e due la parti
+    public boolean deleteFollowersByUsername(String username){
+        try{
+            followerRepository.deleteAllByUserUsername1OrUserUsername2(username, username);
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nell'eliminazione dei follower");
+            return false;
+        }
+    }
 }

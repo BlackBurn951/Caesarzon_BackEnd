@@ -6,8 +6,12 @@ import org.caesar.userservice.Data.Entities.User;
 import java.util.List;
 
 public interface AdminRepository {
-    Admin findAdminById(String id);
-    Admin findAdminByEmail(String email);
-    Admin findAdminByUsername(String username);
+
     List<Admin> findAllAdmin();
+
+    boolean banUser(String username, boolean ban);
+
+    User findUserByUsername(String username);
 }
+
+

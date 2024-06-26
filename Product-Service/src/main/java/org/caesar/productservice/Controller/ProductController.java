@@ -3,7 +3,6 @@ package org.caesar.productservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Data.Services.SearchService;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
@@ -13,8 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +21,6 @@ import java.util.UUID;
 @RequestMapping("/product-api")
 public class ProductController {
 
-    private final ProductService productService;
     private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
     private final SearchService searchService;
@@ -61,9 +57,6 @@ public class ProductController {
         List<ImageDTO> images = generalService.getProductImages(productID);
 
         if(!images.isEmpty()){
-            for(ImageDTO image : images){
-                System.out.println(Arrays.toString(image.getFile()));
-            }
             return new ResponseEntity<>(images, HttpStatus.OK);
         }else{
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

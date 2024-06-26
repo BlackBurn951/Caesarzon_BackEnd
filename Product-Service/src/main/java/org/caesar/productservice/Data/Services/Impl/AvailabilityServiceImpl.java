@@ -53,11 +53,9 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     @Override
     public boolean deleteAvailabilityByProduct(Product product) {
-        System.out.println("Sono nell'elimina della disponibilità");
         List<Availability> availabilitiesToDelete = new ArrayList<>();
         for (Availability availability : availabilityRepository.findAll()) {
             if (availability.getProduct().equals(product)) {
-                System.out.println("Disponibilità trovata");
                 availabilitiesToDelete.add(availability);
             }
         }

@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
-//import org.hibernate.search.mapper.orm.Search;
 import org.caesar.productservice.Dto.ProductDTO;
-import org.caesar.productservice.Dto.ProductSearchDTO;
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
 import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
@@ -15,13 +13,11 @@ import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-//Da capire se devo aggiungere la disponibilità alla lista dei prodotti
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -63,15 +59,14 @@ public class ProductServiceImpl implements ProductService{
             }
             return productRepository.save(product);
 
-        }catch (RuntimeException e){
-            e.printStackTrace();
+        }catch (Exception | Error e){
+            log.debug("Errore nell'aggiunta o modifica di un prodotto");
             return null;
         }
     }
 
     @Override
     public UUID getProductIDByName(String name) {
-        System.out.println("Risultato: "+productRepository.findByName(name));
         Product productID = productRepository.findProductByName(name);
         if(productID != null)
             return productID.getId();
@@ -107,42 +102,28 @@ public class ProductServiceImpl implements ProductService{
     }
 
     private boolean checkDescription(String description) {
-        if(description == null || description.isEmpty())
-            log.debug("Descrizione non corretta");
         return !description.isEmpty() && description.length()<=500;
     }
 
     private boolean checkName(String name) {
-        if(name == null || name.isEmpty())
-            log.debug("Nome non salvato");
         return !name.isEmpty() && name.length()<=50;
     }
 
     private boolean checkDiscount(int discount) {
-        if(discount < 0)
-            log.debug("Discount non salvato");
         return discount >= 0;
     }
 
-    private boolean checkPrice(Double price)
-    {   if(price < 0)
-            log.debug("Price non salvato");
+    private boolean checkPrice(Double price){
         return price>0;
     }
 
     private boolean checkPrimaryColor(String color) {
-        if(color == null || color.isEmpty())
-            log.debug("coloreP non salvato");
         return !color.isEmpty() && color.length()<=50;
     }
 
     private boolean checkSecondaryColor(String color) {
-        if(color == null || color.isEmpty())
-            log.debug("coloreS non salvato");
         return !color.isEmpty() && color.length()<50;
     }
-
-
 
 
     public List<ProductDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {

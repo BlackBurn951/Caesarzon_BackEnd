@@ -27,12 +27,9 @@ public class BearerTokenExtractor implements HandlerInterceptor {
 
                 //Estrazione dell'username dal token
                 String preferredUsername = extractPreferredUsernameFromToken(bearerToken);
-                System.out.println("Estrazione andata a buon fine");
                 //Impostazione di un attributo della chiamata che rappresenta l'username dell'utente che ha effettuato la chiamata
                 request.setAttribute("preferred_username", preferredUsername);
             } catch (ParseException e) {
-
-                System.out.println("Estrazione andata male fine");
                 //Gestione di un token non valido
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 return false;

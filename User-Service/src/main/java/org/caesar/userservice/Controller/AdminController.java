@@ -70,10 +70,9 @@ public class AdminController {
 
     @PostMapping("/ban")
     public ResponseEntity<String> banUser(@RequestBody BanDTO banDTO){
-        log.debug("Sono nella chiamata per bannare l'user");
         String username= httpServletRequest.getAttribute("preferred_username").toString();
         banDTO.setAdminUsername(username);
-        if(userService.banUser(banDTO))
+        if(adminService.banUser(banDTO))
             return new ResponseEntity<>("Utente bannato con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nel ban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -81,7 +80,7 @@ public class AdminController {
 
     @PutMapping("/ban/{username}")
     public ResponseEntity<String> sbanUser(@PathVariable String username) {
-        if(userService.sbanUser(username))
+        if(adminService.sbanUser(username))
             return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nello sban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
