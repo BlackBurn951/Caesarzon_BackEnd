@@ -80,7 +80,7 @@ public class WishlistServiceImpl implements WishlistService {
                         .stream()
                         .map(a -> modelMapper.map(a, BasicWishlistDTO.class))
                         .toList();
-            } else if(visibility==2) { //Besties
+            } else if(visibility==1) { //Besties
                 //Caso in cui l'utente vuole accedere alle wishlist di un altro utente
                 HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
                 HttpHeaders headers = new HttpHeaders();
@@ -89,7 +89,7 @@ public class WishlistServiceImpl implements WishlistService {
                 HttpEntity<String> entity = new HttpEntity<>(headers);
 
                 ResponseEntity<Boolean> response= restTemplate.exchange(
-                        "http://user-service/user-api/follower/" + accessUsername,
+                        "http://user-service/user-api/follower/" + accessUsername+"?username="+ownerUsername,
                         HttpMethod.GET,
                         entity,
                         boolean.class

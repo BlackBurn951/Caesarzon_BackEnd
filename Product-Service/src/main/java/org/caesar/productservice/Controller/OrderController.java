@@ -64,6 +64,7 @@ public class OrderController {
             return new ResponseEntity<>("Errore nella modifica dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @DeleteMapping("/cart/{id}") //Metodo per rimuovere il prodotto passato con l'id dal carrello
     public ResponseEntity<String> deleteProductInCart(@PathVariable UUID id){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
@@ -110,6 +111,7 @@ public class OrderController {
     @PostMapping("/purchase")  //Metodo per effettuare l'acquisto del carello
     public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
+
         if(generalService.createOrder(username, buyDTO))
             return new ResponseEntity<>("Ordine creato con successo!", HttpStatus.OK);
         else
