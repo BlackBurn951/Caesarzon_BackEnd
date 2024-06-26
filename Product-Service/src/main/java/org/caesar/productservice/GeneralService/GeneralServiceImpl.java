@@ -22,6 +22,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.caesar.productservice.Data.Services.AvailabilityService;
+import org.caesar.productservice.Data.Services.ProductService;
+import org.caesar.productservice.Data.Services.WishlistProductService;
+import org.caesar.productservice.Data.Services.WishlistService;
+import org.caesar.productservice.Dto.ImageDTO;
+import org.caesar.productservice.Dto.ProductDTO;
+import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -42,6 +54,8 @@ public class GeneralServiceImpl implements GeneralService {
     private final RestTemplate restTemplate;
     private final LastViewService lastViewService;
     private final ReviewService reviewService;
+    private final WishlistService wishlistService;
+    private final WishlistProductService wishlistProductService;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -263,5 +277,11 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
 
+
+    @Transactional
+    @Override
+    public boolean deleteWishlist(UUID wishlistID){
+        return wishlistProductService.deleteAllWishlistProductsByWishlistID(wishlistID) && wishlistService.deleteWishlist(wishlistID);
+    }
 
 }

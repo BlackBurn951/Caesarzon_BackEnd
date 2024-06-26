@@ -70,7 +70,7 @@ public class ProductController {
     @GetMapping("/price")
     public ResponseEntity<List<ProductDTO>> getProductByPriceRange(@RequestParam double lower, @RequestParam double upper) {
         List<ProductDTO> productDTOS = productService.getProductByPrice(lower, upper);
-        if(productDTOS.isEmpty())
+        if (productDTOS.isEmpty())
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         else
             return new ResponseEntity<>(productDTOS, HttpStatus.OK);
