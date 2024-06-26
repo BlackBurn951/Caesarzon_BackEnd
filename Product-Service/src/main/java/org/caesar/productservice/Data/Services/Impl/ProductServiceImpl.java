@@ -121,8 +121,6 @@ public class ProductServiceImpl implements ProductService{
     }
 
     private boolean checkPrice(Double price){
-    // Controllo del prezzo
-    private boolean checkPrice(Double price){
         return price>0;
     }
 

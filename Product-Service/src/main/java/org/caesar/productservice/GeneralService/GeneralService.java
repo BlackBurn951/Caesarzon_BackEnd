@@ -23,8 +23,13 @@ public interface GeneralService {
     List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing);
     List<ProductSearchDTO> getLastView(String username);
     List<ProductCartDTO> getOrder(String username, UUID orderId);
-    boolean deleteWishlist( UUID wishlistID);
+    boolean deleteWishlist( String username, UUID wishlistID);
     boolean deleteProductCart(String username, UUID productID);
     boolean changeQuantity(String username, UUID productID, int quantity);
     boolean saveLater(String username, UUID productDTO);
+    boolean addProductIntoWishList(String username, SendWishlistProductDTO sendWishlistProductDTO);
+    boolean deleteProductFromWishList(String username, SendWishlistProductDTO wishlistProductDTO);
+    boolean deleteProductsFromWishList(String username, UUID wishlistId);
+    WishProductDTO getWishlistProductsByWishlistID(UUID wishlistId, String username);
+
 }

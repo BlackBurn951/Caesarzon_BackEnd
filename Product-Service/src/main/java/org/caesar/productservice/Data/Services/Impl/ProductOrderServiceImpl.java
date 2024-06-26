@@ -8,9 +8,6 @@ import org.caesar.productservice.Data.Entities.ProductOrder;
 import org.caesar.productservice.Data.Services.ProductOrderService;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Data.Entities.Product;
-import org.caesar.productservice.Data.Entities.ProductOrder;
-import org.caesar.productservice.Data.Services.ProductOrderService;
-import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.ProductDTO;
 
 import org.caesar.productservice.Dto.ProductOrderDTO;
@@ -46,7 +43,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean deleteProductCarts(String username) {
         try {
-            productOrderRepository.deleteAllByUsernameAndOrderIDNull(username);
+            productOrderRepository.deleteAllByUsername(username);
 
             return true;
         } catch (Exception | Error e) {
