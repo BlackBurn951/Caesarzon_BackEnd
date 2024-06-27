@@ -106,7 +106,6 @@ public class OrderController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-
     @PostMapping("/purchase")  //Metodo per effettuare l'acquisto del carello
     public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
@@ -119,11 +118,9 @@ public class OrderController {
     @PutMapping("/purchase")  //Metodo per effettuare il reso
     public ResponseEntity<String> updateOrder(@RequestParam("order-id") UUID orderId) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-        if(orderService.updateOrder(username))
+        if(orderService.updateOrder(username, orderId))
             return new ResponseEntity<>("Ordine creato con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
-
-
 }

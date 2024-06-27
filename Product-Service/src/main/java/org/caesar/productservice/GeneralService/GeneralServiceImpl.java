@@ -4,8 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Data.Entities.Product;
-import org.caesar.productservice.Data.Entities.ProductOrder;
 import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
@@ -14,16 +12,15 @@ import org.caesar.productservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.caesar.productservice.Data.Services.AvailabilityService;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Data.Services.WishlistProductService;
 import org.caesar.productservice.Data.Services.WishlistService;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
-import org.springframework.http.HttpStatus;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -45,6 +42,8 @@ public class GeneralServiceImpl implements GeneralService {
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
     private final Utils utils;
+    private final OrderSchedulerService orderSchedulerService;
+    private final RestTemplate restTemplate;
 
 
     @Override
@@ -154,10 +153,12 @@ public class GeneralServiceImpl implements GeneralService {
 
         productInOrder.forEach(productOrderDTO -> productOrderDTO.setOrderID(savedOrder));
         if(productOrderService.saveAll(productOrderDTOs)) {
+
             return  utils.sendNotify(username,
                     "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
                     "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate()
             );
+
 
         }
         return false; //☺
@@ -286,8 +287,13 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     @Override
     // Elimina l'intera wishlist dell'utente assieme a tutti i prodotti in essa contenuti
-    public boolean deleteWishlist(UUID wishlistID){
-        return wishlistProductService.deleteAllWishlistProductsByWishlistID(wishlistID) && wishlistService.deleteWishlist(wishlistID);
+    public boolean deleteWishlist(String username, UUID wishlistID){
+        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
+
+        if(wishlistDTO==null)
+            return false;
+
+        return wishlistProductService.deleteAllProductsFromWishlist(wishlistDTO) && wishlistService.deleteWishlist(wishlistID);
     }
 
 
@@ -308,5 +314,110 @@ public class GeneralServiceImpl implements GeneralService {
         return productOrderService.saveLater(username,productDTO);
     }
 
+    @Override
+    @Transactional
+    public boolean addProductIntoWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
+
+        WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO);
+
+        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistID().getId());
+        System.out.println("productID: "+ wishListProductDTO.getProductID().getId());
+
+        if(wishListProductDTO==null)
+            return false;
+
+        return wishlistProductService.addOrUpdateWishlistProduct(wishListProductDTO);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteProductFromWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
+        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, wishlistProductDTO);
+
+        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistID().getId());
+        System.out.println("productID: "+ wishListProductDTO.getProductID().getId());
+
+        if(wishListProductDTO==null)
+            return false;
+
+        return wishlistProductService.deleteProductFromWishlist(wishListProductDTO);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteProductsFromWishList(String username, UUID wishlistId) {
+        WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistId, username);
+
+        if(wishlistDTO==null)
+            return false;
+
+        return wishlistProductService.deleteAllProductsFromWishlist(wishlistDTO);
+    }
+
+
+    //Metodi di servizio
+    private WishListProductDTO getWishListProductDTO(String username, SendWishlistProductDTO wishlistProductDTO) {
+        ProductDTO productDTO= productService.getProductById(wishlistProductDTO.getProductID());
+
+        if(productDTO==null)
+            return null;
+
+        WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistProductDTO.getWishlistID(), username);
+
+        if(wishlistDTO==null)
+            return null;
+
+        WishListProductDTO wishListProductDTO= new WishListProductDTO();
+
+        wishListProductDTO.setWishlistID(wishlistDTO);
+        wishListProductDTO.setProductID(productDTO);
+
+        System.out.println("wishlistID: "+ wishlistDTO.getId());
+        System.out.println("productID: "+ productDTO.getId());
+
+        return wishListProductDTO;
+    }
+
+
+
+    @Override
+    public WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String username) {
+
+        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
+
+        if(wishlistDTO==null){
+            return null;
+        }
+
+        List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlistDTO);
+
+        if(wishListProductDTOS == null){
+            System.out.println("SOno vuotas");
+            return null;
+        }
+
+        WishProductDTO wishProductDTO = new WishProductDTO();
+
+        SingleWishListProductDTO singleWishListProductDTO;
+
+        List<SingleWishListProductDTO> singleWishListProductDTOS = new Vector<>();
+
+        for(WishListProductDTO wishListProductDTO: wishListProductDTOS){
+            System.out.println("Nome prodotto: " + wishListProductDTO.getProductID().getName());
+            System.out.println("Prezzo: " + wishListProductDTO.getProductID().getPrice());
+            singleWishListProductDTO = new SingleWishListProductDTO();
+
+            singleWishListProductDTO.setProductName(wishListProductDTO.getProductID().getName());
+            singleWishListProductDTO.setPrice(wishListProductDTO.getProductID().getPrice());
+
+            singleWishListProductDTOS.add(singleWishListProductDTO);
+
+        }
+
+        wishProductDTO.setSingleWishListProductDTOS(singleWishListProductDTOS);
+        wishProductDTO.setVisibility(wishlistDTO.getVisibility());
+
+        return wishProductDTO;
+    }
 
 }
