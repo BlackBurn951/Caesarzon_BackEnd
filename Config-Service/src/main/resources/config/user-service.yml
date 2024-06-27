@@ -19,3 +19,102 @@ spring:
         jwt:
           issuer-uri: http://25.24.244.170:8080/realms/CaesarRealm
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+
+
+
+management:
+  endpoint:
+    health:
+      show-details: "ALWAYS"
+  health:
+    circuitbreakers:
+      enabled: true
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      sliding-window-size: 4
+      permitted-number-of-calls-in-half-open-state: 10
+      wait-duration-in-open-state: 10000
+      failure-rate-threshold: 50
+      event-consumer-buffer-size: 10
+      register-health-indicator: true
+      record-exceptions:
+        - java.io.IOException
+        - java.util.concurrent.TimeoutException
+        - org.springframework.web.client.HttpServerErrorException
+        - org.springframework.web.client.ResourceAccessException
+        - io.netty.handler.timeout.ReadTimeoutException
+
+
+  instances:
+    addressService:
+      base-config: default
+    adminService:
+      base-config: default
+    cardService:
+      base-config: default
+    cityDataService:
+      base-config: default
+    followerService:
+      base-config: default
+    profilePicService:
+      base-config: default
+    userAddressService:
+      base-config: default
+    userCardService:
+      base-config: default
+    userService:
+      base-config: default
+    generalService:
+      base-config: default
+
+
+resilience4j.retry:
+  configs:
+    default:
+      enableExponentialBackoff: true
+      exponentialBackoffMultiplier: 2
+      ignore-exceptions:
+
+  instances:
+    addressService:
+      base-config: default
+      maxAttempts: 3
+      waitDuration: 1000
+    adminService:
+      base-config: default
+      maxAttempts: 2
+      waitDuration: 2000
+    cardService:
+      base-config: default
+      maxAttempts: 3
+      waitDuration: 1000
+    cityDataService:
+      base-config: default
+      maxAttempts: 3
+      waitDuration: 4000
+    followerService:
+      base-config: default
+      maxAttempts: 3
+      waitDuration: 4000
+    profilePicService:
+      base-config: default
+      maxAttempts: 2
+      waitDuration: 2000
+    userAddressService:
+      base-config: default
+      maxAttempts: 2
+      waitDuration: 3000
+    userCardService:
+      base-config: default
+      maxAttempts: 2
+      waitDuration: 3000
+    userService:
+      base-config: default
+      maxAttempts: 3
+      waitDuration: 4000
+    generalService:
+      base-config: default
+      maxAttempts: 3
+      waitDuration: 5000

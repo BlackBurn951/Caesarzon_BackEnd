@@ -149,9 +149,9 @@ public class GeneralServiceImpl implements GeneralService {
                 productWithoutAvailability.add(p.getProductDTO());
         }
 
-        if(productWithoutAvailability.isEmpty()) {
-            return setPossibleAvailability(productWithoutAvailability)
-        }
+//        if(productWithoutAvailability.isEmpty()) {
+//            return setPossibleAvailability(productWithoutAvailability);
+//        }
 
         OrderDTO orderDTO= new OrderDTO();
         orderDTO.setOrderNumber(generaCodice(8));
@@ -589,7 +589,7 @@ public class GeneralServiceImpl implements GeneralService {
         );
 
         if(response.getStatusCode()==HttpStatus.OK)
-            return response.getBody()
+            return response.getBody();
         return false;
     }
 

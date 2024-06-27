@@ -16,3 +16,103 @@ spring:
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId:-},%X{spanId:-}] ${LOG_LEVEL_PATTERN:-%5p} %m%n"
+
+
+management:
+  endpoint:
+    health:
+      show-details: "ALWAYS"
+  health:
+    circuitbreakers:
+      enabled: true
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      sliding-window-size: 4
+      permitted-number-of-calls-in-half-open-state: 10
+      wait-duration-in-open-state: 10000
+      failure-rate-threshold: 50
+      event-consumer-buffer-size: 10
+      register-health-indicator: true
+      record-exceptions:
+        - java.io.IOException
+        - java.util.concurrent.TimeoutException
+        - org.springframework.web.client.HttpServerErrorException
+        - org.springframework.web.client.ResourceAccessException
+        - io.netty.handler.timeout.ReadTimeoutException
+
+
+  instances:
+    availabilityService:
+      base-config: default
+    imageService:
+      base-config: default
+    lastViewService:
+      base-config: default
+    orderService:
+      base-config: default
+    productOrderService:
+      base-config: default
+    productService:
+      base-config: default
+    reviewService:
+      base-config: default
+    searchService:
+      base-config: default
+    wishlistProductService:
+      base-config: default
+    wishlistService:
+      base-config: default
+    generalService:
+      base-config: default
+
+
+resilience4j.retry:
+  configs:
+    default:
+      enableExponentialBackoff: true
+      exponentialBackoffMultiplier: 2
+      ignore-exceptions:
+
+  instances:
+    availabilityService:
+      base-config: default
+      maxAttempts: 4
+      waitDuration: 2000
+    imageService:
+      base-config: default
+      maxAttempts: 3
+      waitDuration: 4000
+    lastViewService:
+      base-config: default
+      maxAttempts: 2
+      waitDuration: 5000
+    orderService:
+      base-config: default
+      maxAttempts: 3
+      waitDuration: 5000
+    productOrderService:
+      base-config: default
+      maxAttempts: 3
+      waitDuration: 5000
+    productService:
+      base-config: default
+      maxAttempts: 4
+      waitDuration: 4000
+    searchService:
+      base-config: default
+      maxAttempts: 3
+      waitDuration: 5000
+    wishlistProductService:
+      base-config: default
+      maxAttempts: 3
+      waitDuration: 3000
+    wishlistService:
+      base-config: default
+      maxAttempts: 2
+      waitDuration: 3000
+    generalService:
+      base-config: default
+      maxAttempts: 3
+      waitDuration: 5000

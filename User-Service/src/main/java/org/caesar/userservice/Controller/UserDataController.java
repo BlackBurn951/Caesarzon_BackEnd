@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.GeneralService.GeneralService;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 
 @RestController
@@ -32,9 +34,11 @@ public class UserDataController {
 
     //End-point per manipolare i dati anagrafici dell'utente
     @GetMapping("/user")
+    
     public ResponseEntity<UserDTO> getUserData() {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
+
 
         UserDTO userDTO = userService.getUser(username);
 
