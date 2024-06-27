@@ -56,7 +56,7 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public ImageDTO getImage(Product product) {
 
-        Image image = imageRepository.findImageByIdProduct(product);
+        Image image = imageRepository.findImageByProduct(product);
         if(image == null){
             return null;
         }

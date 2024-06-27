@@ -55,10 +55,10 @@ public class OrderController {
     }
 
     @PutMapping("/cart/product/{id}")  //Metodo per il salva più tardi e la modifica della quantità del singolo prodotto
-    public ResponseEntity<String> changeCart(@PathVariable UUID id, @RequestParam(value= "quantity", required = false) Integer quantity, @RequestParam("action") int action) {
+    public ResponseEntity<String> changeCart(@PathVariable UUID id, @RequestParam(value= "quantity", required = false) Integer quantity, @RequestParam(value= "size", required = false) String size, @RequestParam("action") int action) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        boolean result= action==0? generalService.saveLater(username, id): generalService.changeQuantity(username, id, Objects.requireNonNullElse(quantity, -1));
+        boolean result= action==0? generalService.saveLater(username, id): generalService.changeQuantity(username, id, Objects.requireNonNullElse(quantity, -1), size);
         if(result)
             return new ResponseEntity<>("Ordine modificato con successo!", HttpStatus.OK);
         else
@@ -90,6 +90,7 @@ public class OrderController {
     @GetMapping("/purchases") // Metodo per ottenere tutti gli ordini di un utente
     public ResponseEntity<List<OrderDTO>> getOrders(){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
+
         List<OrderDTO> orders = orderService.getOrders(username);
         if(!orders.isEmpty())
             return new ResponseEntity<>(orders, HttpStatus.OK);
@@ -119,10 +120,10 @@ public class OrderController {
             return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/purchase")  //Metodo per effettuare il reso
-    public ResponseEntity<String> updateOrder(@RequestParam("order-id") UUID orderId) {
+    @PutMapping("/purchase/{purchaseId}")  //Metodo per effettuare il reso
+    public ResponseEntity<String> updateOrder(@PathVariable UUID purchaseId) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-        if(orderService.updateOrder(username, orderId))
+        if(generalService.updateOrder(username, purchaseId))
             return new ResponseEntity<>("Ordine creato con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);

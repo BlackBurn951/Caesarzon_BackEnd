@@ -17,7 +17,6 @@ public class OrderDTO {
     private LocalDate purchaseDate;
     private LocalDate refundDate;
     private boolean refund;
-    private String refundState;
     private UUID addressID;
     private UUID cardID;
     private double orderTotal;

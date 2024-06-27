@@ -44,9 +44,9 @@ public class WishlistProductServiceImpl implements WishlistProductService {
     @Override
     public boolean deleteProductFromWishlist(WishListProductDTO wishListProductDTO){
         try{
-            wishlistProductRepository.deleteWishlistProductByProductIDAndWishlistID(
-                    modelMapper.map(wishListProductDTO.getProductID(), Product.class),
-                    modelMapper.map(wishListProductDTO.getWishlistID(), Wishlist.class));
+            wishlistProductRepository.deleteWishlistProductByProductAndWishlist(
+                    modelMapper.map(wishListProductDTO.getProductDTO(), Product.class),
+                    modelMapper.map(wishListProductDTO.getWishlistDTO(), Wishlist.class));
             return true;
         }catch(RuntimeException | Error e) {
             log.debug("Errore nella rimozione del prodotto dalla lista desideri");
@@ -87,7 +87,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
     //Rimuove tutti i prodotti della lista desideri passando l'id della stessa
     public boolean deleteAllProductsFromWishlist(WishlistDTO wishlistDTO) {
         try {
-            wishlistProductRepository.deleteAllByWishlistID(modelMapper.map(wishlistDTO, Wishlist.class));
+            wishlistProductRepository.deleteAllByWishlist(modelMapper.map(wishlistDTO, Wishlist.class));
             return true;
         }catch(RuntimeException | Error e) {
             log.debug("Errore nella rimozione dei prodotti dalla lista desideri");

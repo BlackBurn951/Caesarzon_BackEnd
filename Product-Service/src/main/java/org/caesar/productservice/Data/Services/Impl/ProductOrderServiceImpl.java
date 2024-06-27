@@ -65,7 +65,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
     @Override
     public List<ProductOrderDTO> getProductOrdersByUsername(String username){
-        List<ProductOrder> result= productOrderRepository.findAllByUsernameAndOrderIDIsNull(username);
+        List<ProductOrder> result= productOrderRepository.findAllByUsernameAndOrderIsNullAndBuyLaterIsFalse(username);
 
         List<ProductOrderDTO> productOrderDTOList= new Vector<>();
         ProductOrderDTO productOrderDTO;
@@ -74,10 +74,11 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             productOrderDTO.setId(productOrder.getId());
             productOrderDTO.setUsername(productOrder.getUsername());
-            productOrderDTO.setProductDTO(modelMapper.map(productOrder, ProductDTO.class));
+            productOrderDTO.setProductDTO(modelMapper.map(productOrder.getProduct(), ProductDTO.class));
             productOrderDTO.setTotal(productOrder.getTotal());
             productOrderDTO.setQuantity(productOrder.getQuantity());
             productOrderDTO.setBuyLater(productOrder.isBuyLater());
+            productOrderDTO.setSize(productOrder.getSize());
 
             productOrderDTOList.add(productOrderDTO);
         }
@@ -102,6 +103,8 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         try {
             List<ProductOrder> productOrderList= new Vector<>();
             ProductOrder productOrder;
+            System.out.println(orderDTOS.getFirst().getOrderDTO().getId());
+
             for(ProductOrderDTO productOrderDTO: orderDTOS){
                 productOrder = new ProductOrder();
 
@@ -109,8 +112,8 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                 productOrder.setOrder(modelMapper.map(productOrderDTO.getOrderDTO(), Order.class));
                 productOrder.setProduct(modelMapper.map(productOrderDTO.getProductDTO(), Product.class));
                 productOrder.setTotal(productOrderDTO.getTotal());
-                productOrder.setUsername(productOrder.getUsername());
-                productOrder.setBuyLater(productOrder.isBuyLater());
+                productOrder.setUsername(productOrderDTO.getUsername());
+                productOrder.setBuyLater(productOrderDTO.isBuyLater());
 
                 productOrderList.add(productOrder);
             }
@@ -145,7 +148,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     }
 
     @Override
-    public boolean changeQuantity(String username, ProductDTO productDTO, int quantity) {
+    public boolean changeQuantity(String username, ProductDTO productDTO, int quantity, String size) {
         try{
             ProductOrder productOrder = productOrderRepository
                     .findByUsernameAndProduct(username, modelMapper.map(productDTO, Product.class));
@@ -153,6 +156,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             if(productOrder == null)
                 return false;
             productOrder.setQuantity(quantity);
+            productOrder.setSize(size);
             productOrderRepository.save(productOrder);
 
             return true;

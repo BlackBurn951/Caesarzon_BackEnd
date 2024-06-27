@@ -13,7 +13,7 @@ import java.util.UUID;
 @Repository
 public interface ProductOrderRepository extends JpaRepository<ProductOrder, UUID> {
 
-    List<ProductOrder> findAllByUsernameAndOrderIDIsNull(String username);
+    List<ProductOrder> findAllByUsernameAndOrderIsNullAndBuyLaterIsFalse(String username);
 
     ProductOrder findByUsernameAndProduct(String username, Product productID);
 

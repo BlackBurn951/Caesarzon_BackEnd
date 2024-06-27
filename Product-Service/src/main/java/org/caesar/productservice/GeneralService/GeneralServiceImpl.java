@@ -68,6 +68,7 @@ public class GeneralServiceImpl implements GeneralService {
             prod.setId(p.getId());
             prod.setTotal(p.getTotal());
             prod.setQuantity(p.getQuantity());
+            prod.setSize(p.getSize());
 
             result.add(prod);
         }
@@ -97,7 +98,7 @@ public class GeneralServiceImpl implements GeneralService {
     // Genera un nuovo carrello alla scelta del primo prodotto dell'utente
     public boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO) {
         ProductDTO productDTO = productService.getProductById(sendProductOrderDTO.getProductID());
-
+        //TODO CHECK DELLA DISPONIBILITà
         if(productDTO==null)
             return false;
 
@@ -107,6 +108,7 @@ public class GeneralServiceImpl implements GeneralService {
         productOrderDTO.setTotal(productDTO.getPrice()*sendProductOrderDTO.getQuantity());
         productOrderDTO.setQuantity(sendProductOrderDTO.getQuantity());
         productOrderDTO.setUsername(username);
+        productOrderDTO.setSize(sendProductOrderDTO.getSize());
 
         return productOrderService.save(productOrderDTO);
     }
@@ -129,6 +131,7 @@ public class GeneralServiceImpl implements GeneralService {
                 .filter(productOrderDTO -> buyDTO.getProductsIds().contains(productOrderDTO.getProductDTO().getId()))
                 .toList();
 
+
         OrderDTO orderDTO= new OrderDTO();
         orderDTO.setOrderNumber(generaCodice(8));
         orderDTO.setOrderState("Ricevuto");
@@ -149,15 +152,11 @@ public class GeneralServiceImpl implements GeneralService {
         for(ProductOrderDTO productOrderDTO : productOrderDTOs)
             productOrderDTO.setOrderDTO(savedOrder);
 
-        if(productOrderService.saveAll(productOrderDTOs)) {
-
+        if(productOrderService.saveAll(productOrderDTOs))
             return  utils.sendNotify(username,
                     "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
-                    "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate()
-            );
+                    "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate());
 
-
-        }
         return false; //☺
     }
 
@@ -271,6 +270,7 @@ public class GeneralServiceImpl implements GeneralService {
                     productCartDTO.setName(product.getName());
                     productCartDTO.setQuantity(productOrderDTO.getQuantity());
                     productCartDTO.setTotal(productOrderDTO.getTotal());
+                    productCartDTO.setSize(productCartDTO.getSize());
 
                     productCartDTOS.add(productCartDTO);
                 }
@@ -300,9 +300,9 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public boolean changeQuantity(String username, UUID productID, int quantity){
+    public boolean changeQuantity(String username, UUID productID, int quantity, String size){
         ProductDTO productDTO = productService.getProductById(productID);
-        return productOrderService.changeQuantity(username,productDTO,quantity);
+        return productOrderService.changeQuantity(username,productDTO,quantity, size);
     }
 
     @Override

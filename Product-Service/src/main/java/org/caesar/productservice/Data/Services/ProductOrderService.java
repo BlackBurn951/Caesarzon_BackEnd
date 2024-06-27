@@ -28,7 +28,7 @@ public interface ProductOrderService {
 
     boolean saveLater(String username, ProductDTO productDTO);
 
-    boolean changeQuantity(String username, ProductDTO productDTO, int quantity);
+    boolean changeQuantity(String username, ProductDTO productDTO, int quantity, String size);
 
     List<ProductOrderDTO> getProductInOrder(String username, OrderDTO orderDTO);
 }

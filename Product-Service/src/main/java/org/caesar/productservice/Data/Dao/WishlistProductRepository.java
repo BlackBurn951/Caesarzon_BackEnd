@@ -11,12 +11,12 @@ import java.util.UUID;
 
 @Repository
 public interface WishlistProductRepository extends JpaRepository<WishlistProduct, UUID> {
-    void deleteByProductID(Product productID);
-    void deleteByWishlistID(Wishlist wishlistID);
+    void deleteByProduct(Product productID);
+    void deleteByWishlist(Wishlist wishlistID);
 
-    void deleteWishlistProductByProductIDAndWishlistID(Product product, Wishlist wishlist);
+    void deleteWishlistProductByProductAndWishlist(Product product, Wishlist wishlist);
 
-    void deleteAllByWishlistID(Wishlist wishlist);
+    void deleteAllByWishlist(Wishlist wishlist);
 
     List<WishlistProduct> findAllByWishlist(Wishlist wishlist);
 }
