@@ -34,7 +34,7 @@ public interface GeneralService {
     WishProductDTO getWishlistProductsByWishlistID(UUID wishlistId, String username);
     boolean updateOrder(String username, UUID orderId);
     boolean updateNotifyOrder();
-    List<UnavailableDTO> checkAvaibility(String username, BuyDTO buyDTO);
+    List<UnavailableDTO> checkAvaibility(String username, List<UUID> productIds);
 
 
 }

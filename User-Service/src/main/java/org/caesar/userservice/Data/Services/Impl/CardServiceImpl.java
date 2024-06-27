@@ -28,9 +28,7 @@ public class CardServiceImpl implements CardService {
     //Metodo per restituire una carta tramite id
     @Override
     public CardDTO getCard(UUID cardId) {
-        CardDTO cardDTO = modelMapper.map(cardRepository.findById(cardId), CardDTO.class);
-        cardDTO.setId(null);
-        return cardDTO;
+        return modelMapper.map(cardRepository.findById(cardId), CardDTO.class);
     }
 
     //Metodo per aggiungere una carta

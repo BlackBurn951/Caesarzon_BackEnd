@@ -59,17 +59,7 @@ public class GeneralServiceImpl implements GeneralService {
         List<UserAddressDTO> addresses= userAddressService.getUserAddresses(userUsername);
 
         if(addresses==null || addresses.isEmpty()) {
-            UUID addressId= addressService.addAddress(addressDTO);
-
-            if(addressId == null)
-                return 1;
-
-            UserAddressDTO userAddressDTO= new UserAddressDTO();
-
-            userAddressDTO.setAddressId(addressId);
-            userAddressDTO.setUserUsername(userUsername);
-
-            return userAddressService.addUserAddreses(userAddressDTO)? 0: 1;
+            return creadAddress(userUsername, addressDTO);
         } else if(addresses.size()==5)
             return 2;
         else {
@@ -84,7 +74,7 @@ public class GeneralServiceImpl implements GeneralService {
                     return 0;
                 }
             }
-            return 1;
+            return creadAddress(userUsername, addressDTO);
         }
     }
 
@@ -94,17 +84,7 @@ public class GeneralServiceImpl implements GeneralService {
         List<UserCardDTO> cards= userCardService.getUserCards(userUsername);
 
         if(cards==null || cards.isEmpty()) {
-            UUID cardId = cardService.addCard(cardDTO);
-
-            if(cardId == null)
-                return 1;
-
-            UserCardDTO userCardDTO= new UserCardDTO();
-
-            userCardDTO.setCardId(cardId);
-            userCardDTO.setUserUsername(userUsername);
-
-            return userCardService.addUserCards(userCardDTO)? 0: 1;
+            return creatCard(userUsername, cardDTO);
         } else if(cards.size()==5)
             return 2;
         else {
@@ -119,7 +99,7 @@ public class GeneralServiceImpl implements GeneralService {
                     return 0;
                 }
             }
-            return 1;
+            return creatCard(userUsername, cardDTO);
         }
     }
 
@@ -173,6 +153,23 @@ public class GeneralServiceImpl implements GeneralService {
 
         if(cardDTO!=null && addressDTO!=null)
             return userAddressService.checkAddress(username, addressDTO) && userCardService.checkCard(username, cardDTO);
+        return false;
+    }
+
+    @Override
+    @Transactional
+    public boolean pay(String username, UUID cardId, double total) {
+        CardDTO cardDTO= cardService.getCard(cardId);
+
+        if(userCardService.checkCard(username, cardDTO)) {
+            double balance= cardDTO.getBalance();
+
+            if(balance<total)
+                return false;
+
+            cardDTO.setBalance(balance-total);
+            return cardService.addCard(cardDTO)!=null;
+        }
         return false;
     }
 
@@ -292,4 +289,33 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
 
+
+    //Metodi di servizio
+    private int creatCard(String userUsername, CardDTO cardDTO) {
+        cardDTO.setBalance(500.0);
+        UUID cardId = cardService.addCard(cardDTO);
+
+        if(cardId == null)
+            return 1;
+
+        UserCardDTO userCardDTO= new UserCardDTO();
+
+        userCardDTO.setCardId(cardId);
+        userCardDTO.setUserUsername(userUsername);
+
+        return userCardService.addUserCards(userCardDTO)? 0: 1;
+    }
+    private int creadAddress(String userUsername, AddressDTO addressDTO) {
+        UUID addressId= addressService.addAddress(addressDTO);
+
+        if(addressId == null)
+            return 1;
+
+        UserAddressDTO userAddressDTO= new UserAddressDTO();
+
+        userAddressDTO.setAddressId(addressId);
+        userAddressDTO.setUserUsername(userUsername);
+
+        return userAddressService.addUserAddreses(userAddressDTO)? 0: 1;
+    }
 }

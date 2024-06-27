@@ -100,8 +100,7 @@ public class GeneralServiceImpl implements GeneralService {
 
 
     @Override
-    @Transactional
-    // Genera un nuovo carrello alla scelta del primo prodotto dell'utente
+    @Transactional   // Genera un nuovo carrello alla scelta del primo prodotto dell'utente
     public boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO) {
         ProductDTO productDTO = productService.getProductById(sendProductOrderDTO.getProductID());
         //TODO CHECK DELLA DISPONIBILITà
@@ -120,43 +119,40 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional
-    // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
+    @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
     public boolean createOrder(String username, BuyDTO buyDTO) {
 
-        if(buyDTO.getAddressID() == null || buyDTO.getCardID() == null)
+        List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
+
+        if(productInOrder==null || productInOrder.isEmpty()) {
+            changeAvaibility(productInOrder, true);
             return false;
-
-        List<ProductOrderDTO> productInCart = productOrderService.getProductOrdersByUsername(username);
-
-        //TODO CONTROLLARE QUALE DISPONIBILITà Eè DISPONIBILE E RISPONDERE CON I PRODOTTI SPECIFICI CHE NON HANNO LA DISPONIBILITà PIù MANDARE DISPONIBILITà EFFETTIVE
-        if(productInCart.isEmpty())
-            return false;
-
-        List<ProductOrderDTO> productInOrder = productInCart.stream()
-                .filter(productOrderDTO -> buyDTO.getProductsIds().contains(productOrderDTO.getProductDTO().getId()))
-                .toList();
-
-        if(productInOrder.isEmpty())
-            return false;
-
-        List<ProductDTO> productWithoutAvailability= new Vector<>();
-
-        for(ProductOrderDTO p: productInOrder){
-            AvailabilityDTO availabilityDTO= availabilityService.getAvailabilitieByProductId(p.getProductDTO(), p.getSize());
-
-            if(availabilityDTO==null || availabilityDTO.getAmount()<p.getQuantity())
-                productWithoutAvailability.add(p.getProductDTO());
         }
 
-//        if(productWithoutAvailability.isEmpty()) {
-//            return setPossibleAvailability(productWithoutAvailability);
-//        }
+        //Controllo che vengano effettivamente passati indirizzo e carta per pagare
+        if(buyDTO.getAddressID() == null || buyDTO.getCardID() == null) {
+            changeAvaibility(productInOrder, true);
+            return false;
+        }
+
+        //Chiamata per veificare che l'utente che vuole acquistare abbia quell'indirizzo e quella carta
+        if(!checkAddressCard(buyDTO.getAddressID(), buyDTO.getCardID())) {
+            changeAvaibility(productInOrder, true);
+            return false;
+        }
+
+
+
+        double total= productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum();
+        if(!checkPayment(buyDTO.getCardID(), total)) {
+            changeAvaibility(productInOrder, true);
+            return false;
+        }
 
         OrderDTO orderDTO= new OrderDTO();
         orderDTO.setOrderNumber(generaCodice(8));
         orderDTO.setOrderState("Ricevuto");
-        orderDTO.setOrderTotal(productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum());
+        orderDTO.setOrderTotal(total);
         orderDTO.setExpectedDeliveryDate(LocalDate.now().plusDays(5));
         orderDTO.setPurchaseDate(LocalDate.now());
         orderDTO.setRefund(false);
@@ -167,8 +163,11 @@ public class GeneralServiceImpl implements GeneralService {
 
         OrderDTO savedOrder = orderService.addOrder(orderDTO);
 
-        if(savedOrder==null)
+        if(savedOrder==null) {
+            changeAvaibility(productInOrder, true);
+            //TODO ROLLBAKC DEL PAGAMENTO
             return false;
+        }
 
         for(ProductOrderDTO productOrderDTO : productInOrder)
             productOrderDTO.setOrderDTO(savedOrder);
@@ -177,35 +176,21 @@ public class GeneralServiceImpl implements GeneralService {
             return  utils.sendNotify(username,
                     "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
                     "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate());
-
-        return false; //☺
+        else {
+            changeAvaibility(productInOrder, true);
+            //TODO ROLLBAKC DEL PAGAMENTO
+            return false; //☺
+        }
     }
 
     @Override
     @Transactional
-    public List<UnavailableDTO> checkAvaibility(String username, BuyDTO buyDTO) {
-
-        //Controllo che vengano effettivamente passati indirizzo e carta per pagare
-        if(buyDTO.getAddressID() == null || buyDTO.getCardID() == null)
-            return null;
-
-        //Chiamata per veificare che l'utente che vuole acquistare abbia quell'indirizzo e quella carta
-        boolean checkedAddressAndCard= checkAddressCard(buyDTO.getAddressID(), buyDTO.getCardID());
-        if(!checkedAddressAndCard)
-            return null;
+    public List<UnavailableDTO> checkAvaibility(String username, List<UUID> productIds) {
 
         //Presa di tutti i prodotti presenti nel carello dell'utente
-        List<ProductOrderDTO> productInCart = productOrderService.getProductOrdersByUsername(username);
+        List<ProductOrderDTO> productInOrder= getProductInOrder(username, productIds);
 
-        if(productInCart.isEmpty())
-            return null;
-
-        //Filtraggio dei prodotti nel carello per vedere quelli nell'ordine
-        List<ProductOrderDTO> productInOrder = productInCart.stream()
-                .filter(productOrderDTO -> buyDTO.getProductsIds().contains(productOrderDTO.getProductDTO().getId()))
-                .toList();
-
-        if(productInOrder.isEmpty())
+        if(productInOrder==null || productInOrder.isEmpty())
             return null;
 
         //Controllo delle disponibilità
@@ -222,7 +207,7 @@ public class GeneralServiceImpl implements GeneralService {
             return setPossibleAvailability(productWithoutAvailability);
         }
 
-        if(changeAvaibility(productInOrder)) {
+        if(changeAvaibility(productInOrder, false)) {
             List<UnavailableDTO> unavailableDTOS = new Vector<>();
             unavailableDTOS.add(null);
 
@@ -520,6 +505,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     }
 
+
     //Metodi di servizio
 
     // Generatore di codici per gli ordini
@@ -582,7 +568,7 @@ public class GeneralServiceImpl implements GeneralService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Boolean> response = restTemplate.exchange(
-                "http://user-service/user-api//user/address/card?address="+addressId+"&card="+cardId,
+                "http://user-service/user-api/user/address/card?address="+addressId+"&card="+cardId,
                 HttpMethod.GET,
                 entity,
                 Boolean.class
@@ -593,7 +579,7 @@ public class GeneralServiceImpl implements GeneralService {
         return false;
     }
 
-    private boolean changeAvaibility(List<ProductOrderDTO> products) {
+    private boolean changeAvaibility(List<ProductOrderDTO> products, boolean rollback) {
         List<AvailabilityDTO> availabilities= new Vector<>();
         AvailabilityDTO availability;
         int newAmount;
@@ -601,7 +587,7 @@ public class GeneralServiceImpl implements GeneralService {
         for(ProductOrderDTO productOrderDTO: products) {
             availability= availabilityService.getAvailabilitieByProductId(productOrderDTO.getProductDTO(), productOrderDTO.getSize());
 
-            newAmount= availability.getAmount()-productOrderDTO.getQuantity();
+            newAmount= !rollback? availability.getAmount()-productOrderDTO.getQuantity(): availability.getAmount()+productOrderDTO.getQuantity();
             availability.setAmount(newAmount);
 
             availabilities.add(availability);
@@ -613,5 +599,35 @@ public class GeneralServiceImpl implements GeneralService {
         }
 
         return true;
+    }
+
+    private List<ProductOrderDTO> getProductInOrder(String username, List<UUID> productIds) {
+        List<ProductOrderDTO> productInCart = productOrderService.getProductOrdersByUsername(username);
+
+        if(productInCart.isEmpty())
+            return null;
+
+        return productInCart.stream()
+                .filter(productOrderDTO -> productIds.contains(productOrderDTO.getProductDTO().getId()))
+                .toList();
+    }
+
+    private boolean checkPayment(UUID cardId, double total) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Boolean> response = restTemplate.exchange(
+                "http://user-service/user-api/balance/"+cardId+"?total="+total,
+                HttpMethod.POST,
+                entity,
+                Boolean.class
+        );
+
+        if(response.getStatusCode()==HttpStatus.OK)
+            return response.getBody();
+        return false;
     }
 }

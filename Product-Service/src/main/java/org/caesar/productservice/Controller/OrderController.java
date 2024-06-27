@@ -111,11 +111,11 @@ public class OrderController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/avaibility")  //Controllo ed eventuale messa da parte della disponibilità
-    public ResponseEntity<List<UnavailableDTO>> checkAvailability(@RequestBody BuyDTO buyDTO) {
+    @PostMapping("/pre-order")  //Controllo ed eventuale messa da parte della disponibilità
+    public ResponseEntity<List<UnavailableDTO>> checkAvailability(@RequestBody List<UUID> productIds) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        List<UnavailableDTO> result= generalService.checkAvaibility(username, buyDTO);
+        List<UnavailableDTO> result= generalService.checkAvaibility(username, productIds);
         if(result!=null && result.getFirst()==null)
             return new ResponseEntity<>(null, HttpStatus.OK);
         else if(result==null)
