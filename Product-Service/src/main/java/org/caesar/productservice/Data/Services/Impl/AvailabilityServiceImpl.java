@@ -21,8 +21,8 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private final ModelMapper modelMapper;
     private final AvailabilityRepository availabilityRepository;
 
-    //fare la modifica delle disponibilità e eventuale eliminazione
     @Override
+    // Aggiunge tuple o modifica la tabella delle disponibilità
     public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, ProductDTO product) {
         if (availabilities.isEmpty()) {
             return false;
@@ -37,13 +37,11 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         return true;
     }
 
-
-
-
     @Override
-    public boolean deleteAvailability(UUID id) {
+    // Elimina una disponibilità dal db tramite il suo id
+    public boolean deleteAvailability(UUID availabilityId) {
         try {
-            availabilityRepository.deleteById(id);
+            availabilityRepository.deleteById(availabilityId);
             return true;
         } catch (Exception e) {
             log.debug("Errore nella cancellazione della disponibilità");
@@ -52,6 +50,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     @Override
+    // Elimina tutte le disponibilità di un determinato prodotto
     public boolean deleteAvailabilityByProduct(Product product) {
         List<Availability> availabilitiesToDelete = new ArrayList<>();
         for (Availability availability : availabilityRepository.findAll()) {
@@ -67,18 +66,21 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     }
 
+    @Override
+    // Restituisce tutte le disponibilità registrate nel db
     public List<Availability> getAll() {
         return availabilityRepository.findAll();
     }
 
     @Override
+    // Resituisce tutte le disponibilità di un determinato prodotto
     public List<AvailabilityDTO> getAvailabilitiesByProductID(ProductDTO productDTO) {
         return availabilityRepository.findAllByProduct(modelMapper.map(productDTO, Product.class))
                 .stream().map(a -> modelMapper.map(a, AvailabilityDTO.class)).toList();
 
     }
 
-
+    // Controllo della taglia del prodotto
     private boolean checkSize(String size) {
         if(size==null)
             return true;
@@ -86,6 +88,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         return sizes.contains(size);
     }
 
+    // Controllo della quantità del prodotto
     private boolean checkQuantity(int quantity) {
         return quantity >= 0;
     }

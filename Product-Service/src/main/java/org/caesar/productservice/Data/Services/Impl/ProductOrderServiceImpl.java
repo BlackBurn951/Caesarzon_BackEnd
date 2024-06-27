@@ -8,9 +8,6 @@ import org.caesar.productservice.Data.Entities.ProductOrder;
 import org.caesar.productservice.Data.Services.ProductOrderService;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Data.Entities.Product;
-import org.caesar.productservice.Data.Entities.ProductOrder;
-import org.caesar.productservice.Data.Services.ProductOrderService;
-import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.ProductDTO;
 
 import org.caesar.productservice.Dto.ProductOrderDTO;
@@ -46,7 +43,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean deleteProductCarts(String username) {
         try {
-            productOrderRepository.deleteAllByUsernameAndOrderIDNull(username);
+            productOrderRepository.deleteAllByUsername(username);
 
             return true;
         } catch (Exception | Error e) {
@@ -108,7 +105,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             return true;
 
         }catch (Exception | Error e){
-            log.debug("Errore nell'aggiornamento dell'ordine'");
+            log.debug("Errore nel salvataggio dell'ordine");
             return false;
         }
     }
@@ -126,7 +123,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             return true;
 
         }catch (Exception | Error e){
-            log.debug("Errore nell'aggiornamento dell'ordine'");
+            log.debug("Errore nell'aggiornamento dell'ordine");
             return false;
         }
     }
@@ -137,7 +134,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             return productOrderRepository.findAllByUsernameAndOrderID(username, modelMapper.map(orderDTO, Order.class))
                     .stream().map(a -> modelMapper.map(a, ProductOrderDTO.class)).toList();
         } catch (Exception | Error e) {
-//            log.debug("Errore nella presa dei prodotti nell'ordine");
+                log.debug("Errore nella presa dei prodotti nell'ordine");
             return null;
         }
     }
