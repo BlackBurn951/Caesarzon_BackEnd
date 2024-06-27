@@ -3,8 +3,12 @@ package org.caesar.userservice.Data.Services.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.UserAddressRepository;
+import org.caesar.userservice.Data.Entities.Address;
+import org.caesar.userservice.Data.Entities.Card;
 import org.caesar.userservice.Data.Entities.UserAddress;
+import org.caesar.userservice.Data.Entities.UserCard;
 import org.caesar.userservice.Data.Services.UserAddressService;
+import org.caesar.userservice.Dto.AddressDTO;
 import org.caesar.userservice.Dto.UserAddressDTO;
 import org.modelmapper.ModelMapper;
 
@@ -57,6 +61,13 @@ public class UserAddressServiceImpl implements UserAddressService {
         }
 
         return result;
+    }
+
+    @Override
+    public boolean checkAddress(String username, AddressDTO addressDTO) {
+        UserAddress userAddress= userAddressRepository.findByUserUsernameAndAddress(username, modelMapper.map(addressDTO, Address.class));
+
+        return userAddress != null;
     }
 
     //Aggiunta della relazione indirizzo utente

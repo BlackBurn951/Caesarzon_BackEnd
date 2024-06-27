@@ -166,6 +166,16 @@ public class GeneralServiceImpl implements GeneralService {
         return userSearch;
     }
 
+    @Override
+    public boolean checkAddressAndCard(String username, UUID addressId, UUID cardId) {
+        CardDTO cardDTO= cardService.getCard(cardId);
+        AddressDTO addressDTO= addressService.getAddress(addressId);
+
+        if(cardDTO!=null && addressDTO!=null)
+            return userAddressService.checkAddress(username, addressDTO) && userCardService.checkCard(username, cardDTO);
+        return false;
+    }
+
 
     //Getters per prendere i dati dalle tabelle di relazione
     @Override

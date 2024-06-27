@@ -1,6 +1,7 @@
 package org.caesar.userservice.Data.Dao;
 
 
+import org.caesar.userservice.Data.Entities.Card;
 import org.caesar.userservice.Data.Entities.UserCard;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -16,4 +17,5 @@ public interface UserCardRepository extends JpaRepository<UserCard, UUID> {
 
     List<UserCard> findAllByUserUsername(String userId);
 
+    UserCard findByUserUsernameAndCard(String userId, Card card);
 }

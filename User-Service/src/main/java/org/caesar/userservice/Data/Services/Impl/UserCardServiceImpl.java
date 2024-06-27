@@ -3,8 +3,10 @@ package org.caesar.userservice.Data.Services.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.UserCardRepository;
+import org.caesar.userservice.Data.Entities.Card;
 import org.caesar.userservice.Data.Entities.UserCard;
 import org.caesar.userservice.Data.Services.UserCardService;
+import org.caesar.userservice.Dto.CardDTO;
 import org.caesar.userservice.Dto.UserCardDTO;
 import org.modelmapper.ModelMapper;
 
@@ -58,6 +60,13 @@ public class UserCardServiceImpl implements UserCardService {
         }
 
         return result;
+    }
+
+    @Override
+    public boolean checkCard(String username, CardDTO cardDTO) {
+        UserCard userCard= userCardRepository.findByUserUsernameAndCard(username, modelMapper.map(cardDTO, Card.class));
+
+        return userCard != null;
     }
 
     //Aggiunta della relazione carta utente

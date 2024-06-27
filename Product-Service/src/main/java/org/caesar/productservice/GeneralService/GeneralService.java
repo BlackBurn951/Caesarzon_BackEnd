@@ -3,6 +3,7 @@ package org.caesar.productservice.GeneralService;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Data.Entities.Availability;
+import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,6 +34,7 @@ public interface GeneralService {
     WishProductDTO getWishlistProductsByWishlistID(UUID wishlistId, String username);
     boolean updateOrder(String username, UUID orderId);
     boolean updateNotifyOrder();
+    List<UnavailableDTO> checkAvaibility(String username, BuyDTO buyDTO);
 
 
 }

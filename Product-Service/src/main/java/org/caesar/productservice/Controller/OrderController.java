@@ -7,6 +7,7 @@ import org.caesar.productservice.Data.Services.OrderService;
 import org.caesar.productservice.Data.Services.ProductOrderService;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
+import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
 import org.caesar.productservice.Dto.ProductCartDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
@@ -110,6 +111,19 @@ public class OrderController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
+    @GetMapping("/avaibility")  //Controllo ed eventuale messa da parte della disponibilità
+    public ResponseEntity<List<UnavailableDTO>> checkAvailability(@RequestBody BuyDTO buyDTO) {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        List<UnavailableDTO> result= generalService.checkAvaibility(username, buyDTO);
+        if(result!=null && result.getFirst()==null)
+            return new ResponseEntity<>(null, HttpStatus.OK);
+        else if(result==null)
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        else
+            return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
     @PostMapping("/purchase")  //Metodo per effettuare l'acquisto del carello
     public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
@@ -128,6 +142,7 @@ public class OrderController {
         else
             return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+
     @PutMapping("/orders/notify")
     public ResponseEntity<String> updateOrderNotify(){
         if(generalService.updateNotifyOrder())

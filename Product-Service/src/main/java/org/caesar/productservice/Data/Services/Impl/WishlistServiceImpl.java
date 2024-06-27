@@ -62,19 +62,19 @@ public class WishlistServiceImpl implements WishlistService {
 
     @Override
     public List<BasicWishlistDTO> getAllWishlists(String ownerUsername, String accessUsername, int visibility) {
+        String vs= "";
+        switch (visibility) {
+            case 0 -> vs= "Pubblica";
+            case 1 -> vs= "Condivisa";
+            case 2 -> vs= "Privata";
+        }
         //Caso in cui l'utente vuole accedere alle sue liste desideri
         if(ownerUsername.equals(accessUsername)) {
-            return wishlistRepository.findAllByUserUsername(ownerUsername)
+            return wishlistRepository.findAllByUserUsernameAndVisibility(ownerUsername, vs)
                     .stream()
                     .map(a -> modelMapper.map(a, BasicWishlistDTO.class))
                     .toList();
         } else {
-            String vs= "";
-            switch (visibility) {
-                case 0 -> vs= "Pubblica";
-                case 1 -> vs= "Besties";
-            }
-
             if(visibility==0) { //Pubbliche
                 return wishlistRepository.findAllByUserUsernameAndVisibility(ownerUsername, vs)
                         .stream()

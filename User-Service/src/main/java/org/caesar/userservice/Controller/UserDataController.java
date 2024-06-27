@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @RestController
@@ -145,5 +146,17 @@ public class UserDataController {
     @GetMapping("/users/{username}")
     public List<String> getUsersByUsernames(@PathVariable String username) {
         return userService.getUsersByUsername(username);
+    }
+
+    @GetMapping("/user/address/card")
+    public ResponseEntity<Boolean> getUserAddressCard(@RequestParam("address") UUID addressId, @RequestParam("card") UUID cardId) {
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result= generalService.checkAddressAndCard(username, addressId, cardId);
+        if(result)
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
