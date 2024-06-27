@@ -19,4 +19,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     List<Order> findByOrderStateAndExpectedDeliveryDate(String state, LocalDate date);
 
+    List<Order> findAllByOrderState(String state);
+
 }

@@ -18,5 +18,5 @@ public interface WishlistProductRepository extends JpaRepository<WishlistProduct
 
     void deleteAllByWishlistID(Wishlist wishlist);
 
-    List<WishlistProduct> findAllByWishlistID(Wishlist wishlist);
+    List<WishlistProduct> findAllByWishlist(Wishlist wishlist);
 }

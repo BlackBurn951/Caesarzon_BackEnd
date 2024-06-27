@@ -13,7 +13,6 @@ import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.ProductOrderDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
 import org.modelmapper.ModelMapper;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,7 +45,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean deleteProductCarts(String username) {
         try {
-            productOrderRepository.deleteAllByUsernameAndOrderIDIsNull(username);
+            productOrderRepository.deleteAllByUsernameAndOrderIsNull(username);
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nell'eliminazione dei prodotti dalla lista desideri");
@@ -89,7 +88,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean deleteProductCart(String username, ProductDTO productDTO) {
         try {
-            productOrderRepository.deleteByUsernameAndOrderIDNullAndProductID(username, modelMapper.map(productDTO, Product.class));
+            productOrderRepository.deleteByUsernameAndOrderNullAndProduct(username, modelMapper.map(productDTO, Product.class));
 
             return true;
         } catch (Exception | Error e) {
@@ -107,8 +106,8 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                 productOrder = new ProductOrder();
 
                 productOrder.setId(productOrderDTO.getId());
-                productOrder.setOrderID(modelMapper.map(productOrderDTO.getOrderID(), Order.class));
-                productOrder.setProductID(modelMapper.map(productOrderDTO.getProductDTO(), Product.class));
+                productOrder.setOrder(modelMapper.map(productOrderDTO.getOrderDTO(), Order.class));
+                productOrder.setProduct(modelMapper.map(productOrderDTO.getProductDTO(), Product.class));
                 productOrder.setTotal(productOrderDTO.getTotal());
                 productOrder.setUsername(productOrder.getUsername());
                 productOrder.setBuyLater(productOrder.isBuyLater());
@@ -130,7 +129,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     public boolean saveLater(String username, ProductDTO productDTO) {
         try{
             ProductOrder productOrder= productOrderRepository
-            .findByUsernameAndProductID(username, modelMapper.map(productDTO, Product.class));
+            .findByUsernameAndProduct(username, modelMapper.map(productDTO, Product.class));
 
             if(productOrder == null)
                 return false;
@@ -149,7 +148,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     public boolean changeQuantity(String username, ProductDTO productDTO, int quantity) {
         try{
             ProductOrder productOrder = productOrderRepository
-                    .findByUsernameAndProductID(username, modelMapper.map(productDTO, Product.class));
+                    .findByUsernameAndProduct(username, modelMapper.map(productDTO, Product.class));
 
             if(productOrder == null)
                 return false;
@@ -166,7 +165,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public List<ProductOrderDTO> getProductInOrder(String username, OrderDTO orderDTO) {
         try {
-            return productOrderRepository.findAllByUsernameAndOrderID(username, modelMapper.map(orderDTO, Order.class))
+            return productOrderRepository.findAllByUsernameAndOrder(username, modelMapper.map(orderDTO, Order.class))
                     .stream().map(a -> modelMapper.map(a, ProductOrderDTO.class)).toList();
         } catch (Exception | Error e) {
                 log.debug("Errore nella presa dei prodotti nell'ordine");

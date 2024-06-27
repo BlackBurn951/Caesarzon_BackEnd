@@ -18,7 +18,7 @@ public class LastView {
 
     @JoinColumn(name = "id_prodotto")
     @OneToOne
-    private Product idProduct;
+    private Product product;
 
     @Column(name = "username")
     private String username;

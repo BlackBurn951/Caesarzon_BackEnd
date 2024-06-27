@@ -3,6 +3,7 @@ package org.caesar.productservice.GeneralService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.productservice.Data.Entities.Order;
 import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
@@ -120,9 +121,8 @@ public class GeneralServiceImpl implements GeneralService {
 
         List<ProductOrderDTO> productInOrder = productOrderService.getProductOrdersByUsername(username);
 
-        productInOrder.forEach(a -> System.out.println("Id prodotto " + a.getProductDTO().getId()));
-
-        if(productInOrder==null || productInOrder.isEmpty())
+        //TODO CONTROLLARE QUALE DISPONIBILITà Eè DISPONIBILE E RISPONDERE CON I PRODOTTI SPECIFICI CHE NON HANNO LA DISPONIBILITà PIù MANDARE DISPONIBILITà EFFETTIVE
+        if(productInOrder.isEmpty())
             return false;
 
         List<ProductOrderDTO> productOrderDTOs = productInOrder.stream()
@@ -146,9 +146,8 @@ public class GeneralServiceImpl implements GeneralService {
         if(savedOrder==null)
             return false;
 
-        for(ProductOrderDTO productOrderDTO : productOrderDTOs){
-            productOrderDTO.setOrderID(savedOrder);
-        }
+        for(ProductOrderDTO productOrderDTO : productOrderDTOs)
+            productOrderDTO.setOrderDTO(savedOrder);
 
         if(productOrderService.saveAll(productOrderDTOs)) {
 
@@ -318,8 +317,8 @@ public class GeneralServiceImpl implements GeneralService {
 
         WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO);
 
-        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistID().getId());
-        System.out.println("productID: "+ wishListProductDTO.getProductID().getId());
+        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistDTO().getId());
+        System.out.println("productID: "+ wishListProductDTO.getProductDTO().getId());
 
         if(wishListProductDTO==null)
             return false;
@@ -332,8 +331,8 @@ public class GeneralServiceImpl implements GeneralService {
     public boolean deleteProductFromWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
         WishListProductDTO wishListProductDTO= getWishListProductDTO(username, wishlistProductDTO);
 
-        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistID().getId());
-        System.out.println("productID: "+ wishListProductDTO.getProductID().getId());
+        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistDTO().getId());
+        System.out.println("productID: "+ wishListProductDTO.getProductDTO().getId());
 
         if(wishListProductDTO==null)
             return false;
@@ -367,8 +366,8 @@ public class GeneralServiceImpl implements GeneralService {
 
         WishListProductDTO wishListProductDTO= new WishListProductDTO();
 
-        wishListProductDTO.setWishlistID(wishlistDTO);
-        wishListProductDTO.setProductID(productDTO);
+        wishListProductDTO.setWishlistDTO(wishlistDTO);
+        wishListProductDTO.setProductDTO(productDTO);
 
         System.out.println("wishlistID: "+ wishlistDTO.getId());
         System.out.println("productID: "+ productDTO.getId());
@@ -401,12 +400,12 @@ public class GeneralServiceImpl implements GeneralService {
         List<SingleWishListProductDTO> singleWishListProductDTOS = new Vector<>();
 
         for(WishListProductDTO wishListProductDTO: wishListProductDTOS){
-            System.out.println("Nome prodotto: " + wishListProductDTO.getProductID().getName());
-            System.out.println("Prezzo: " + wishListProductDTO.getProductID().getPrice());
+            System.out.println("Nome prodotto: " + wishListProductDTO.getProductDTO().getName());
+            System.out.println("Prezzo: " + wishListProductDTO.getProductDTO().getPrice());
             singleWishListProductDTO = new SingleWishListProductDTO();
 
-            singleWishListProductDTO.setProductName(wishListProductDTO.getProductID().getName());
-            singleWishListProductDTO.setPrice(wishListProductDTO.getProductID().getPrice());
+            singleWishListProductDTO.setProductName(wishListProductDTO.getProductDTO().getName());
+            singleWishListProductDTO.setPrice(wishListProductDTO.getProductDTO().getPrice());
 
             singleWishListProductDTOS.add(singleWishListProductDTO);
 
@@ -416,6 +415,78 @@ public class GeneralServiceImpl implements GeneralService {
         wishProductDTO.setVisibility(wishlistDTO.getVisibility());
 
         return wishProductDTO;
+    }
+
+    @Override
+    public boolean updateOrder(String username, UUID orderId) {
+        try {
+            LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
+            OrderDTO order = orderService.getOrderByIdAndUsername(orderId, username);
+            if (order.getPurchaseDate().isBefore(tenDaysAgo)) {
+                utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" rifiutato",
+                        "Il reso è possibile solo entro 10 giorni dall'acquisto");
+                return false;
+            }else{
+                //Prendo tutti i prodotti nell'ordine restituito
+                List<ProductOrderDTO> productOrderDTO = productOrderService.getProductInOrder(username, order);
+
+                //Lista di disponibilità (mi serve solo per aggiornare la disponibilità)
+                List<AvailabilityDTO> availabilityDTOS;
+
+                //Oggetto singolo per restituire la disponibilità attuale del prodotto tramite taglia
+                AvailabilityDTO availabilityDTO;
+
+                for(ProductOrderDTO productOrderDTO1: productOrderDTO){
+                    //Inizializzo qui la lista perchè mi serve sempre vuota
+                    availabilityDTOS = new Vector<>();
+
+                    //Inizializzo il prodotto andando a prendermi la disponibilità del prodotto passato per argomento e della taglia sempre passata come argomento
+                    availabilityDTO = availabilityService.getAvailabilitieByProductId(productOrderDTO1.getProductDTO(), productOrderDTO1.getSize());
+
+                    //Alla disponibilità restituita aggiungo di nuovo quella precedentemente sottratta e se nel DB non esisteva più viene ricreata
+                    availabilityDTO.setSize(productOrderDTO1.getSize());
+                    availabilityDTO.setAmount(productOrderDTO1.getQuantity());
+
+                    //Aggiunto la disponibilità alla lista che mi serve per aggiornare la disponibilità
+                    availabilityDTOS.add(availabilityDTO);
+
+                    //Aggiorno effettivamente la disponibilità
+                    availabilityService.addOrUpdateAvailability(availabilityDTOS, productOrderDTO1.getProductDTO());
+                }
+
+                order.setRefundDate(LocalDate.now());
+                order.setOrderState("Rimborsato");
+                order.setRefund(true);
+                orderService.save(order);
+                return utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" accettato",
+                        "Il rimborso sarà effettuato sulla carta utilizzata al momento del pagamento");
+
+            }
+        }catch (Exception | Error e) {
+            log.debug("Errore nell'update dell'ordine");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean updateNotifyOrder() {
+        try {
+            List<OrderDTO> ordersToUpdate = orderService.getOrdersByState("Ricevuto");
+            for (OrderDTO order : ordersToUpdate) {
+                order.setOrderState("In consegna");
+                orderService.addOrder(order);
+
+                utils.sendNotify(order.getUsername(),
+                        "Aggiornamento ordine numero " + order.getOrderNumber(),
+                        "Il tuo ordine è in consegna e arriverà presto."
+                );
+            }
+            return true;
+        }catch (Exception | Error e) {
+            log.debug("Errore nell'update delle notifiche");
+            return false;
+        }
+
     }
 
 }

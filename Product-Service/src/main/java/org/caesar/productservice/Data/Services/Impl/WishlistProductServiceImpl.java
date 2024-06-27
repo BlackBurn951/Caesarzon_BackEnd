@@ -30,8 +30,8 @@ public class WishlistProductServiceImpl implements WishlistProductService {
         try {
             WishlistProduct wishlistProductEntity = new WishlistProduct();
 
-            wishlistProductEntity.setWishlistID(modelMapper.map(wishlistProduct.getWishlistID(), Wishlist.class));
-            wishlistProductEntity.setProductID(modelMapper.map(wishlistProduct.getProductID(), Product.class));
+            wishlistProductEntity.setWishlist(modelMapper.map(wishlistProduct.getWishlistDTO(), Wishlist.class));
+            wishlistProductEntity.setProduct(modelMapper.map(wishlistProduct.getProductDTO(), Product.class));
 
             wishlistProductRepository.save(wishlistProductEntity);
             return true;
@@ -59,7 +59,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
     @Override
     public List<WishListProductDTO> getWishlistProductsByWishlistID(WishlistDTO wishlistDTO){
         try {
-            List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlistID(modelMapper.map(wishlistDTO, Wishlist.class));
+            List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlistDTO, Wishlist.class));
 
             List<WishListProductDTO> wishListProductDTOS1 =  new Vector<>();
 
@@ -67,8 +67,8 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
             for(WishlistProduct wishlistProduct: wishListProductDTOS){
                 wishListProductDTO = new WishListProductDTO();
-                wishListProductDTO.setWishlistID(modelMapper.map(wishlistProduct.getWishlistID(), WishlistDTO.class));
-                wishListProductDTO.setProductID(modelMapper.map(wishlistProduct.getProductID(), ProductDTO.class));
+                wishListProductDTO.setWishlistDTO(modelMapper.map(wishlistProduct.getWishlist(), WishlistDTO.class));
+                wishListProductDTO.setProductDTO(modelMapper.map(wishlistProduct.getProduct(), ProductDTO.class));
                 wishListProductDTOS1.add(wishListProductDTO);
             }
             return wishListProductDTOS1;

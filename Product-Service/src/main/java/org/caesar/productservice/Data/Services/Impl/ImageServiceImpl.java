@@ -41,7 +41,7 @@ public class ImageServiceImpl implements ImageService {
                 Image imageEntity = new Image();
 
                 imageEntity.setFile(file.getBytes());
-                imageEntity.setIdProduct(product);
+                imageEntity.setProduct(product);
 
                 imageRepository.save(imageEntity);
 
@@ -67,7 +67,7 @@ public class ImageServiceImpl implements ImageService {
     public List<Image> getAllProductImages(Product product) {
         List<Image> productImages = new ArrayList<>();
         for(Image image : imageRepository.findAll())
-            if(image.getIdProduct().equals(product))
+            if(image.getProduct().equals(product))
                 productImages.add(image);
         return productImages;
     }
@@ -79,7 +79,7 @@ public class ImageServiceImpl implements ImageService {
         try {
             List<Image> imagesToDelete = new ArrayList<>();
             for(Image image : imageRepository.findAll()){
-                if(image.getIdProduct().equals(product)) {
+                if(image.getProduct().equals(product)) {
                     imagesToDelete.add(image);
 
                 }

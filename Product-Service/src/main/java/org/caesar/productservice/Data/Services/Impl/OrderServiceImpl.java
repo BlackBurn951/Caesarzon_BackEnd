@@ -134,29 +134,7 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findAllOrdersByUsername(username).stream().map(a -> modelMapper.map(a, OrderDTO.class)).toList();
     }
 
-    @Override
-    public boolean updateOrder(String username, UUID orderId) {
-        try {
-            LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
-            Order order = orderRepository.findOrderByIdAndUsername(orderId, username);
-            if (order.getPurchaseDate().isBefore(tenDaysAgo)) {
-                utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" rifiutato",
-                        "Il reso è possibile solo entro 10 giorni dall'acquisto");
-                return false;
-            }else{
-                order.setRefundDate(LocalDate.now());
-                order.setOrderState("Rimborsato");
-                order.setRefund(true);
-                orderRepository.save(order);
-                return utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" accettato",
-                        "Il rimborso sarà effettuato sulla carta utilizzata al momento del pagamento");
 
-            }
-        }catch (Exception | Error e) {
-            log.debug("Errore nell'update dell'ordine");
-            return false;
-        }
-    }
 
     @Override
     // Restituisce un determinato ordine di un utente
@@ -165,8 +143,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDTO> getOrdersByStateAndDeliveryDate(String state, LocalDate date) {
-        return List.of();
+    public List<OrderDTO> getOrdersByState(String state) {
+        return orderRepository.findAllByOrderState(state).stream().map(a -> modelMapper.map(a, OrderDTO.class)).toList();
+    }
+
+    @Override
+    public OrderDTO getOrderByIdAndUsername(UUID orderId, String username) {
+        return modelMapper.map(orderRepository.findOrderByIdAndUsername(orderId, username), OrderDTO.class);
+    }
+
+    @Override
+    public OrderDTO save(OrderDTO orderDTO){
+        return  modelMapper.map(orderRepository.save(modelMapper.map(orderDTO, Order.class)), OrderDTO.class);
     }
 
 

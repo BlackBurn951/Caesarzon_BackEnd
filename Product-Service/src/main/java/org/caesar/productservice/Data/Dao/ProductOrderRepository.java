@@ -15,16 +15,16 @@ public interface ProductOrderRepository extends JpaRepository<ProductOrder, UUID
 
     List<ProductOrder> findAllByUsernameAndOrderIDIsNull(String username);
 
-    ProductOrder findByUsernameAndProductID(String username, Product productID);
+    ProductOrder findByUsernameAndProduct(String username, Product productID);
 
-    List<ProductOrder> findAllByUsernameAndOrderIDIsNullAndProductID(String username, Product productID);
-
-    @Transactional
-    void deleteByUsernameAndOrderIDNullAndProductID(String username, Product productId);
+    List<ProductOrder> findAllByUsernameAndOrderIsNullAndProduct(String username, Product productID);
 
     @Transactional
-    void deleteAllByUsernameAndOrderIDIsNull(String username);
+    void deleteByUsernameAndOrderNullAndProduct(String username, Product productId);
 
-    List<ProductOrder> findAllByUsernameAndOrderID(String username, Order order);
+    @Transactional
+    void deleteAllByUsernameAndOrderIsNull(String username);
+
+    List<ProductOrder> findAllByUsernameAndOrder(String username, Order order);
 
 }

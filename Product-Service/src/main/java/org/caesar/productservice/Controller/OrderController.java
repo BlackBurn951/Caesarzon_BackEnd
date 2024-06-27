@@ -10,6 +10,7 @@ import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.ProductCartDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
+import org.modelmapper.internal.bytebuddy.implementation.bind.annotation.Pipe;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -126,4 +127,13 @@ public class OrderController {
         else
             return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+    @PutMapping("/orders/notify")
+    public ResponseEntity<String> updateOrderNotify(){
+        if(generalService.updateNotifyOrder())
+            return new ResponseEntity<>("Notifiche aggiornate con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nell'aggiornamento delle notifiche'...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
 }
