@@ -128,7 +128,8 @@ public class OrderController {
     public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO, @RequestParam("pay-method") boolean payMethod){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(generalService.checkOrder(username, buyDTO, payMethod))
+        if(generalService.checkOrder(username, buyDTO, payMethod
+        ))
             return new ResponseEntity<>("Ordine creato con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
