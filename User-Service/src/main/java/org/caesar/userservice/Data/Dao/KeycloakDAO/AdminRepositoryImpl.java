@@ -85,6 +85,50 @@ public class AdminRepositoryImpl implements AdminRepository {
         return setUser(username);
     }
 
+    @Override
+    public List<User> findAllBanUsers(int start) {
+
+        List<User> result = new ArrayList<>();
+
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+
+        List<UserRepresentation> users = realmResource.users().list(start, 20);
+
+        // Ottieni il ClientRepresentation per il client "caesar-app"
+        ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").getFirst();
+        String clientId = clientRepresentation.getId();
+
+        for (UserRepresentation userRepresentation : users) {
+
+            if (!userRepresentation.isEnabled()) {
+                // Ottieni i ruoli del client per l'utente
+                List<RoleRepresentation> clientRoles = realmResource.users().get(userRepresentation.getId())
+                        .roles()
+                        .clientLevel(clientId)
+                        .listEffective();
+
+                // Verifica se l'utente ha il ruolo "basic"
+                boolean hasBasicRole = clientRoles.stream()
+                        .anyMatch(role -> role.getName().equals("basic"));
+
+                if (hasBasicRole) {
+                    User user = new User();
+                    user.setId(userRepresentation.getId());
+                    user.setFirstName(userRepresentation.getFirstName());
+                    user.setLastName(userRepresentation.getLastName());
+                    user.setUsername(userRepresentation.getUsername());
+                    user.setEmail(userRepresentation.getEmail());
+                    if (userRepresentation.getAttributes() != null) {
+                        user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
+                    }
+                    result.add(user);
+                }
+            }
+        }
+
+        return result;
+    }
+
     //Metodi di servizio
     private User setUser(String field) {  //Metodo per costruire l'oggetto entity
         try {
