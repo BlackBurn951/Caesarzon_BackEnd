@@ -1,5 +1,8 @@
 package org.caesar.notificationservice.GeneralService;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +43,8 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
+    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=GENERAL_SERVICE)
     public boolean addReportRequest(String username1, ReportDTO reportDTO) {
         try {
             //Aggiungo al DTO la data e l'username che ha inviato la segnalazione
@@ -113,6 +118,8 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
+    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=GENERAL_SERVICE)
     public boolean addSupportRequest(String username, SupportDTO supportDTO) {
 
         supportDTO.setDateRequest(LocalDate.now());
@@ -158,6 +165,8 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
+    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=GENERAL_SERVICE)
     public boolean manageSupportRequest(String username, SupportResponseDTO sendSupportDTO) {
 
         SupportDTO supportDTO= supportRequestService.getSupport(sendSupportDTO.getSupportCode());
@@ -184,6 +193,8 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
+    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=GENERAL_SERVICE)
     public boolean manageReport(String username, UUID reviewId, boolean product, boolean accept) {
 
         ReportDTO reportDTO = reportService.getReportByReviewId(reviewId);
@@ -199,22 +210,10 @@ public class GeneralServiceImpl implements GeneralService{
         return false;
     }
 
-
-    boolean deleteReview(UUID reviewId){
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", request.getHeader("Authorization"));
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        return restTemplate.exchange("http://product-service/product-api/admin/review?review_id="+reviewId,
-                HttpMethod.DELETE,
-                entity,
-                String.class).getStatusCode() == HttpStatus.OK;
-    }
-
-
     @Override
+    @Transactional
+    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=GENERAL_SERVICE)
     public boolean updateAdminNotification(List<AdminNotificationDTO> notificationDTO) {
         try{
             List<SaveAdminNotificationDTO> saveNotificationDTO = new Vector<>();
@@ -245,4 +244,18 @@ public class GeneralServiceImpl implements GeneralService{
         }
     }
 
+
+    //Metodi di servizio
+    boolean deleteReview(UUID reviewId) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://product-service/product-api/admin/review?review_id="+reviewId,
+                HttpMethod.DELETE,
+                entity,
+                String.class).getStatusCode() == HttpStatus.OK;
+    }
 }

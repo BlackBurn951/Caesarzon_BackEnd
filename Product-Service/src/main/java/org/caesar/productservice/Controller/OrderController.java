@@ -12,7 +12,6 @@ import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
 import org.caesar.productservice.Dto.ProductCartDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
-import org.modelmapper.internal.bytebuddy.implementation.bind.annotation.Pipe;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -126,14 +125,32 @@ public class OrderController {
     }
 
     @PostMapping("/purchase")  //Metodo per effettuare l'acquisto del carello
-    public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO){
+    public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO, @RequestParam("pay-method") boolean payMethod){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(generalService.createOrder(username, buyDTO))
+        if(generalService.checkOrder(username, buyDTO, payMethod))
             return new ResponseEntity<>("Ordine creato con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @GetMapping("/success")
+    public ResponseEntity<String> successPay(@RequestParam("paymentId") String paymentId, @RequestParam("token") String token, @RequestParam("PayerID") String payerId) {
+        Payment payment = payPalService.executePayment(paymentId, payerId);
+        if (payment.getState().equals("approved")) {
+            return "Success";
+        }
+        return "Failed";
+
+    }
+
+    @GetMapping("/cancel")
+    @ResponseBody
+    public String cancelPay() {
+        return "Payment cancelled";
+    }
+
+
 
     @PutMapping("/purchase/{purchaseId}")  //Metodo per effettuare il reso
     public ResponseEntity<String> updateOrder(@PathVariable UUID purchaseId) {

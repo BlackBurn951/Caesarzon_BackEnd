@@ -163,13 +163,10 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public boolean checkAddressAndCard(String username, UUID addressId, UUID cardId) {
-        CardDTO cardDTO= cardService.getCard(cardId);
+    public boolean checkAddress(String username, UUID addressId) {
         AddressDTO addressDTO= addressService.getAddress(addressId);
 
-        if(cardDTO!=null && addressDTO!=null)
-            return userAddressService.checkAddress(username, addressDTO) && userCardService.checkCard(username, cardDTO);
-        return false;
+        return addressDTO!=null && userAddressService.checkAddress(username, addressDTO);
     }
 
     @Override

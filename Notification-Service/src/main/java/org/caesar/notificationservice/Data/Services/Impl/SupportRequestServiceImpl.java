@@ -1,5 +1,8 @@
 package org.caesar.notificationservice.Data.Services.Impl;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Dao.SupportRequestRepository;
@@ -22,8 +25,17 @@ public class SupportRequestServiceImpl implements SupportRequestService {
     private final SupportRequestRepository supportRequestRepository;
     private final ModelMapper modelMapper;
 
+    private final static String SUPPORT_SERVICE= "supportRequestService";
+
+
+    public String fallbackCircuitBreaker(CallNotPermittedException e){
+        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
+        return e.getMessage();
+    }
+
     //Metodo per prendere tutte le richieste di supporto
     @Override
+    @Retry(name=SUPPORT_SERVICE)
     public List<SupportDTO> getAllSupportRequest(int num) {
         Page<Support> result = supportRequestRepository.findAll(PageRequest.of(num, 20));
         return result.stream().map(a -> modelMapper.map(a, SupportDTO.class)).toList();
@@ -31,6 +43,7 @@ public class SupportRequestServiceImpl implements SupportRequestService {
 
     //Metodo per prendere la singola richiesta di supporto
     @Override
+    @Retry(name=SUPPORT_SERVICE)
     public SupportDTO getSupport(UUID id) {
         Support support = supportRequestRepository.findById(id).orElse(null);
         assert support != null;
@@ -39,6 +52,8 @@ public class SupportRequestServiceImpl implements SupportRequestService {
 
     //Metodo per aggiungere una richiesta di supporto
     @Override
+    @CircuitBreaker(name=SUPPORT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=SUPPORT_SERVICE)
     public SupportDTO addSupportRequest(SupportDTO supportDTO) {
         try {
             Support support = supportRequestRepository.save(modelMapper.map(supportDTO, Support.class));
@@ -51,6 +66,8 @@ public class SupportRequestServiceImpl implements SupportRequestService {
 
     //Metodo per eliminare una richiesta di supporto
     @Override
+    @CircuitBreaker(name=SUPPORT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=SUPPORT_SERVICE)
     public boolean deleteSupportRequest(SupportDTO supportDTO) {
         try {
             supportRequestRepository.deleteById(supportDTO.getId());

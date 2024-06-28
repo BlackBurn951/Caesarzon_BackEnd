@@ -120,7 +120,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
-    public boolean createOrder(String username, BuyDTO buyDTO) {
+    public boolean checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> true carta -> false paypal
 
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
 
@@ -130,25 +130,47 @@ public class GeneralServiceImpl implements GeneralService {
         }
 
         //Controllo che vengano effettivamente passati indirizzo e carta per pagare
-        if(buyDTO.getAddressID() == null || buyDTO.getCardID() == null) {
+        if(buyDTO.getAddressID() == null || (payMethod && buyDTO.getCardID() == null) ) {
             changeAvaibility(productInOrder, true);
             return false;
         }
 
         //Chiamata per veificare che l'utente che vuole acquistare abbia quell'indirizzo e quella carta
-        if(!checkAddressCard(buyDTO.getAddressID(), buyDTO.getCardID())) {
+        if(!checkAddress(buyDTO.getAddressID())) {
             changeAvaibility(productInOrder, true);
             return false;
         }
-
-
 
         double total= productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum();
-        if(!checkPayment(buyDTO.getCardID(), total)) {
-            changeAvaibility(productInOrder, true);
-            return false;
-        }
 
+        if(payMethod) {
+            if(!checkPayment(buyDTO.getCardID(), total)) {
+                changeAvaibility(productInOrder, true);
+                return false;
+            }
+            return createOrder(username, buyDTO, payMethod);
+        } else {
+            try {
+                Payment payment = payPalService.createPayment(
+                        total, "EUR", "paypal",
+                        "sale", "Pagamento ordine",
+                        "http://localhost:4200/pagamento", //TODO REDIRECT SUL FRONT ANCHE
+                        "http://localhost:4200/personal-data");
+                for (Links link : payment.getLinks()) {
+                    if (link.getRel().equals("approval_url")) {
+                        return "redirect:" + link.getHref();
+                    }
+                }
+            } catch (PayPalRESTException e) {
+                e.printStackTrace();
+            }
+            return "redirect:/";
+        }
+    }
+
+    @Override
+    @Transactional
+    public boolean createOrder(String username, BuyDTO buyDTO, boolean payMethod) {
         OrderDTO orderDTO= new OrderDTO();
         orderDTO.setOrderNumber(generaCodice(8));
         orderDTO.setOrderState("Ricevuto");
@@ -560,7 +582,7 @@ public class GeneralServiceImpl implements GeneralService {
         return result;
     }
 
-    private boolean checkAddressCard(UUID addressId, UUID cardId) {
+    private boolean checkAddress(UUID addressId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
@@ -568,7 +590,7 @@ public class GeneralServiceImpl implements GeneralService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Boolean> response = restTemplate.exchange(
-                "http://user-service/user-api/user/address/card?address="+addressId+"&card="+cardId,
+                "http://user-service/user-api/user/address/"+addressId,
                 HttpMethod.GET,
                 entity,
                 Boolean.class

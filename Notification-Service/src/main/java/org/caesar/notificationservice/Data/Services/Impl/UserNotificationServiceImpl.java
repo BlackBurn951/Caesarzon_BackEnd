@@ -1,5 +1,8 @@
 package org.caesar.notificationservice.Data.Services.Impl;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Dao.UserNotificationRepository;
@@ -20,8 +23,17 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     private final UserNotificationRepository userNotificationRepository;
     private final ModelMapper modelMapper;
 
+    private final static String USER_NOTIFICATION= "userNotificationService";
+
+
+    public String fallbackCircuitBreaker(CallNotPermittedException e){
+        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
+        return e.getMessage();
+    }
+
     //Metodo per prendere tutte le notifiche di un utente
     @Override
+    @Retry(name=USER_NOTIFICATION)
     public List<UserNotificationDTO> getUserNotification(String username) {
         try {
             List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
@@ -40,6 +52,8 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
     //Metodo per aggiungere una notifica all'utente
     @Override
+    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=USER_NOTIFICATION)
     public boolean addUserNotification(UserNotificationDTO notificationDTO) {
         try{
             userNotificationRepository.save(modelMapper.map(notificationDTO, UserNotification.class));
@@ -53,6 +67,8 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
     //Metodo per aggiornare lo stato di lettura delle notifiche dell'utente
     @Override
+    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=USER_NOTIFICATION)
     public boolean updateUserNotification(List<UserNotificationDTO> notificationDTO) {
         try{
             userNotificationRepository.saveAll(notificationDTO.stream().map(a -> modelMapper.map(a, UserNotification.class)).toList());
@@ -66,6 +82,8 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
     //Metodo per eliminare la singola notifica dell'utente
     @Override
+    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=USER_NOTIFICATION)
     public boolean deleteUserNotification(UUID id){
         try{
             userNotificationRepository.deleteById(id);
@@ -78,6 +96,8 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
     //Metodo per eliminare tutte le notifiche dell'utente
     @Override
+    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=USER_NOTIFICATION)
     public boolean deleteAllUserNotification(String username){
         try{
             userNotificationRepository.deleteAllByUser(username);
@@ -87,5 +107,4 @@ public class UserNotificationServiceImpl implements UserNotificationService {
             return false;
         }
     }
-
 }
