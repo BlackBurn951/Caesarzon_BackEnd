@@ -1,5 +1,8 @@
 package org.caesar.productservice.GeneralService;
 
+import com.paypal.api.payments.Links;
+import com.paypal.api.payments.Payment;
+import com.paypal.base.rest.PayPalRESTException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +47,7 @@ public class GeneralServiceImpl implements GeneralService {
     private final WishlistProductService wishlistProductService;
     private final Utils utils;
     private final RestTemplate restTemplate;
+    private final PayPalService payPalService;
 
 
     @Override
@@ -120,25 +124,25 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
-    public boolean checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> true carta -> false paypal
+    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> true carta -> false paypal
 
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
 
         if(productInOrder==null || productInOrder.isEmpty()) {
             changeAvaibility(productInOrder, true);
-            return false;
+            return "Errore";
         }
 
         //Controllo che vengano effettivamente passati indirizzo e carta per pagare
         if(buyDTO.getAddressID() == null || (payMethod && buyDTO.getCardID() == null) ) {
             changeAvaibility(productInOrder, true);
-            return false;
+            return "Errore";
         }
 
         //Chiamata per veificare che l'utente che vuole acquistare abbia quell'indirizzo e quella carta
         if(!checkAddress(buyDTO.getAddressID())) {
             changeAvaibility(productInOrder, true);
-            return false;
+            return "Errore";
         }
 
         double total= productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum();
@@ -146,16 +150,17 @@ public class GeneralServiceImpl implements GeneralService {
         if(payMethod) {
             if(!checkPayment(buyDTO.getCardID(), total)) {
                 changeAvaibility(productInOrder, true);
-                return false;
+                return "Errore";
             }
-            return createOrder(username, buyDTO, payMethod);
+            buyDTO.setTotal(total);
+            return createOrder(username, buyDTO);
         } else {
             try {
                 Payment payment = payPalService.createPayment(
                         total, "EUR", "paypal",
                         "sale", "Pagamento ordine",
                         "http://localhost:4200/pagamento", //TODO REDIRECT SUL FRONT ANCHE
-                        "http://localhost:4200/personal-data");
+                        "http://localhost:4200/personal-data?total="+total);
                 for (Links link : payment.getLinks()) {
                     if (link.getRel().equals("approval_url")) {
                         return "redirect:" + link.getHref();
@@ -164,17 +169,24 @@ public class GeneralServiceImpl implements GeneralService {
             } catch (PayPalRESTException e) {
                 e.printStackTrace();
             }
-            return "redirect:/";
+            return "Errore";
         }
     }
 
     @Override
     @Transactional
-    public boolean createOrder(String username, BuyDTO buyDTO, boolean payMethod) {
+    public String createOrder(String username, BuyDTO buyDTO) {
+        List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
+
+        if(productInOrder==null || productInOrder.isEmpty()) {
+            changeAvaibility(productInOrder, true);
+            return "Errore";
+        }
+
         OrderDTO orderDTO= new OrderDTO();
         orderDTO.setOrderNumber(generaCodice(8));
         orderDTO.setOrderState("Ricevuto");
-        orderDTO.setOrderTotal(total);
+        orderDTO.setOrderTotal(buyDTO.getTotal());
         orderDTO.setExpectedDeliveryDate(LocalDate.now().plusDays(5));
         orderDTO.setPurchaseDate(LocalDate.now());
         orderDTO.setRefund(false);
@@ -187,27 +199,26 @@ public class GeneralServiceImpl implements GeneralService {
 
         if(savedOrder==null) {
             changeAvaibility(productInOrder, true);
-            //TODO ROLLBAKC DEL PAGAMENTO
-            return false;
+            return "Errore";
         }
 
         for(ProductOrderDTO productOrderDTO : productInOrder)
             productOrderDTO.setOrderDTO(savedOrder);
 
-        if(productOrderService.saveAll(productInOrder))
-            return  utils.sendNotify(username,
-                    "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
-                    "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate());
+        if(productOrderService.saveAll(productInOrder) &&
+                utils.sendNotify(username,
+                "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
+                "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate()))
+           return "Ordine effettuatop con successo!";
         else {
             changeAvaibility(productInOrder, true);
-            //TODO ROLLBAKC DEL PAGAMENTO
-            return false; //☺
+            return "Errore"; //☺
         }
     }
 
     @Override
     @Transactional
-    public List<UnavailableDTO> checkAvaibility(String username, List<UUID> productIds) {
+    public List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds) {
 
         //Presa di tutti i prodotti presenti nel carello dell'utente
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, productIds);

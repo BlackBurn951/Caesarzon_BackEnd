@@ -36,7 +36,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     @Retry(name=USER_NOTIFICATION)
     public List<UserNotificationDTO> getUserNotification(String username) {
         try {
-            List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
+            List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);  //CANCELLARE DOPO LA VENTASIMA TUPLA
 
             if(notifications==null || notifications.isEmpty())
                 return null;

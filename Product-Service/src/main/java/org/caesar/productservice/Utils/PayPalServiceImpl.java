@@ -3,6 +3,7 @@ package org.caesar.productservice.Utils;
 import com.paypal.api.payments.*;
 import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
+import org.caesar.productservice.Data.Services.PayPalService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,9 +15,10 @@ import java.util.List;
 import java.util.Locale;
 
 @Service
-public class PayPalService {
+public class PayPalServiceImpl implements PayPalService {
 
-    private static final Logger log = LoggerFactory.getLogger(PayPalService.class);
+    private static final Logger log = LoggerFactory.getLogger(PayPalServiceImpl.class);
+
     @Value("${paypal.client.id}")
     private String clientId;
 
@@ -71,7 +73,7 @@ public class PayPalService {
 
             return executedPayment;
         }catch (Exception | Error e){
-            log.debug("Diocane");
+            log.debug("Errore nel pagamento con paypal");
             return payment;
         }
 

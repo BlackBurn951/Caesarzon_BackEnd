@@ -12,4 +12,5 @@ public class BuyDTO {
     private UUID addressID;
     private UUID cardID;
     private List<UUID> productsIds;
+    private double total;
 }

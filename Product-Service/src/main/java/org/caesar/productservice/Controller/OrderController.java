@@ -5,9 +5,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Services.OrderService;
+import org.caesar.productservice.Data.Services.PayPalService;
 import org.caesar.productservice.Data.Services.ProductOrderService;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
+import org.caesar.productservice.Dto.DTOOrder.PayPalPurchaseDTO;
 import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
 import org.caesar.productservice.Dto.ProductCartDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
@@ -30,6 +32,7 @@ public class OrderController {
     private final HttpServletRequest httpServletRequest;
     private final ProductOrderService productOrderService;
     private final OrderService orderService;
+    private final PayPalService payPalService;
 
 
     //Metodi per la gestione del carrello
@@ -115,7 +118,7 @@ public class OrderController {
     public ResponseEntity<List<UnavailableDTO>> checkAvailability(@RequestBody List<UUID> productIds) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        List<UnavailableDTO> result= generalService.checkAvaibility(username, productIds);
+        List<UnavailableDTO> result= generalService.checkAvailability(username, productIds);
         if(result!=null && result.getFirst()==null)
             return new ResponseEntity<>(null, HttpStatus.OK);
         else if(result==null)
@@ -128,29 +131,27 @@ public class OrderController {
     public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO, @RequestParam("pay-method") boolean payMethod){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(generalService.checkOrder(username, buyDTO, payMethod))
-            return new ResponseEntity<>("Ordine creato con successo!", HttpStatus.OK);
+        String result= generalService.checkOrder(username, buyDTO, payMethod);
+        if(result.equals("Errore"))
+            return new ResponseEntity<>(result+"...", HttpStatus.INTERNAL_SERVER_ERROR);
         else
-            return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @GetMapping("/success")
-    public ResponseEntity<String> successPay(@RequestParam("paymentId") String paymentId, @RequestParam("token") String token, @RequestParam("PayerID") String payerId) {
-        Payment payment = payPalService.executePayment(paymentId, payerId);
-        if (payment.getState().equals("approved")) {
-            return "Success";
-        }
-        return "Failed";
+    public ResponseEntity<String> successPay(@RequestBody PayPalPurchaseDTO payPalPurchaseDTO) {
 
+        if(!payPalService.executePayment(payPalPurchaseDTO.getPaymentId(), payPalPurchaseDTO.getPayerId()).getState().equals("approved"))
+            return new ResponseEntity<>("Errore nel pagamento con paypal...", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        String result= generalService.createOrder(username, payPalPurchaseDTO.getBuyDTO());
+        if(result.equals("Errore"))
+            return new ResponseEntity<>(result+"...", HttpStatus.INTERNAL_SERVER_ERROR);
+        else
+            return new ResponseEntity<>(result, HttpStatus.OK);
     }
-
-    @GetMapping("/cancel")
-    @ResponseBody
-    public String cancelPay() {
-        return "Payment cancelled";
-    }
-
-
 
     @PutMapping("/purchase/{purchaseId}")  //Metodo per effettuare il reso
     public ResponseEntity<String> updateOrder(@PathVariable UUID purchaseId) {

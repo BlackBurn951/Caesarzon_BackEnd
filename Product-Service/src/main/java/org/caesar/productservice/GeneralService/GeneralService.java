@@ -17,7 +17,7 @@ public interface GeneralService {
     List<ImageDTO> getProductImages(UUID id);
     List<ImageDTO> getAllProductImages(UUID productID);
     boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO);
-    boolean checkOrder(String username, BuyDTO buyDTO, boolean payMethod);
+    String createOrder(String username, BuyDTO buyDTO);
     ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id);
     List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing);
     List<ProductSearchDTO> getLastView(String username);
@@ -32,8 +32,8 @@ public interface GeneralService {
     WishProductDTO getWishlistProductsByWishlistID(UUID wishlistId, String username);
     boolean updateOrder(String username, UUID orderId);
     boolean updateNotifyOrder();
-    List<UnavailableDTO> checkAvaibility(String username, List<UUID> productIds);
-    boolean checkOrder(String username, BuyDTO buyDTO, boolean payMethod);
+    List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds);
+    String checkOrder(String username, BuyDTO buyDTO, boolean payMethod);
 
 
 }
