@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.AdminRepository;
 import org.caesar.userservice.Data.Entities.Admin;
+import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.AdminService;
 import org.caesar.userservice.Dto.BanDTO;
 import org.springframework.http.HttpEntity;
@@ -106,6 +107,16 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
+    @Retry(name=ADMIN_SERVICE)
+    public List<String> getBansUser(int start) {
+        List<User> user= adminRepository.findAllBanUsers(start);
 
+        if(user==null || user.isEmpty())
+            return null;
+
+        return user.stream()
+                .map(User::getUsername)
+                .toList();
+    }
 
 }

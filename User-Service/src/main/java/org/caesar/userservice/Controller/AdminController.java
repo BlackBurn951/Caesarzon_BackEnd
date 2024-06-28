@@ -8,6 +8,7 @@ import org.caesar.userservice.Data.Services.ProfilePicService;
 import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.BanDTO;
 import org.caesar.userservice.Dto.UserDTO;
+import org.caesar.userservice.Dto.UserSearchDTO;
 import org.caesar.userservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -68,6 +69,16 @@ public class AdminController {
             return new ResponseEntity<>("Errore nella cancellazione dell'user...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @GetMapping("/bans")
+    public ResponseEntity<List<UserSearchDTO>> getBan(@RequestParam("str") int start) {
+        List<UserSearchDTO> result= generalService.getBans(start);
+
+        if(result!=null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
     @PostMapping("/ban")
     public ResponseEntity<String> banUser(@RequestBody BanDTO banDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
@@ -85,6 +96,8 @@ public class AdminController {
         else
             return new ResponseEntity<>("Problemi nello sban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
 
 
     @PutMapping("/image/{username}")

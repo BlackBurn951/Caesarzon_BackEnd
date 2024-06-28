@@ -17,6 +17,7 @@ public interface GeneralService {
     List<UUID> getUserCards(String userUsername);
     List<UUID> getUserAddresses(String userUsername);
     List<UserSearchDTO> getFollowersOrFriend(String username, int fwl, boolean friend);
+    List<UserSearchDTO> getBans(int start);
 
     boolean checkAddress(String username, UUID addressId);
     boolean pay(String username, UUID cardId, double total);

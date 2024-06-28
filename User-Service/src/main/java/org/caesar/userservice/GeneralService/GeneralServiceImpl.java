@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 public class GeneralServiceImpl implements GeneralService {
 
     private final UserService userService;
+    private final AdminService adminService;
     private final ProfilePicService profilePicService;
 
     private final AddressService addressService;
@@ -156,6 +157,23 @@ public class GeneralServiceImpl implements GeneralService {
         for(FollowerDTO followerDTO: followers) {
             userSearchDTO= new UserSearchDTO();
             userSearchDTO.setUsername(followerDTO.getUserUsername2());
+            userSearch.add(userSearchDTO);
+        }
+
+        return userSearch;
+    }
+
+    @Override
+    public List<UserSearchDTO> getBans(int start) {
+        List<String> bannedUser= adminService.getBansUser(start);
+
+        List<UserSearchDTO> userSearch= new Vector<>();
+        UserSearchDTO userSearchDTO;
+
+        for(String username: bannedUser) {
+            userSearchDTO= new UserSearchDTO();
+
+            userSearchDTO.setUsername(username);
             userSearch.add(userSearchDTO);
         }
 
