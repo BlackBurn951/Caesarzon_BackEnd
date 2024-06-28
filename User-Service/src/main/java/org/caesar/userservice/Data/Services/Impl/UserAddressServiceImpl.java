@@ -1,5 +1,8 @@
 package org.caesar.userservice.Data.Services.Impl;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.UserAddressRepository;
@@ -25,6 +28,12 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     private final UserAddressRepository userAddressRepository;
     private final ModelMapper modelMapper;
+    private final static String USER_ADDRESS_SERVICE= "userAddressService";
+
+    public String fallbackCircuitBreaker(CallNotPermittedException e){
+        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
+        return e.getMessage();
+    }
 
     //Prende l'indirizzo dell'utente tramite id
     @Override
@@ -37,6 +46,7 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     //Prende gli id di tutti gli indirizzi dell'utente
     @Override
+    @Retry(name=USER_ADDRESS_SERVICE)
     public List<UUID> getAddresses(String userUsername) {
 
         List<UserAddress> userAddresses = userAddressRepository.findAllByUserUsername(userUsername);
@@ -51,6 +61,7 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
+    @Retry(name=USER_ADDRESS_SERVICE)
     public List<UserAddressDTO> getUserAddresses(String userUsername) {
         List<UserAddressDTO> result= new Vector<>();
 
@@ -64,6 +75,7 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
+    @Retry(name=USER_ADDRESS_SERVICE)
     public boolean checkAddress(String username, AddressDTO addressDTO) {
         UserAddress userAddress= userAddressRepository.findByUserUsernameAndAddress(username, modelMapper.map(addressDTO, Address.class));
 
@@ -72,6 +84,8 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     //Aggiunta della relazione indirizzo utente
     @Override
+    @CircuitBreaker(name=USER_ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=USER_ADDRESS_SERVICE)
     public boolean addUserAddreses(UserAddressDTO userAddress) {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
@@ -87,6 +101,8 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     //Eliminazione
     @Override
+    @CircuitBreaker(name=USER_ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=USER_ADDRESS_SERVICE)
     public boolean deleteUserAddress(UserAddressDTO userAddressDTO) {
         try {
             userAddressRepository.deleteById(userAddressDTO.getId());
@@ -99,6 +115,8 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     //Eliminazione
     @Override
+    @CircuitBreaker(name=USER_ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=USER_ADDRESS_SERVICE)
     public boolean deleteUserAddresses(String userUsername) {
         try {
             //Presa di tutte le tuple inerenti all'utente da cancellare
