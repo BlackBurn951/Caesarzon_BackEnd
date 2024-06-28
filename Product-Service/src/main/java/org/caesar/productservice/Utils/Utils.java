@@ -32,11 +32,11 @@ public class Utils {
         requestBody.put("subject", subject);
         requestBody.put("user", username);
         requestBody.put("read", "false");
-        requestBody.put("explaination", explanation);
+        requestBody.put("explanation", explanation);
 
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
         return restTemplate.exchange(
-                "http://notification-service/notification",
+                "http://notification-service/notify-api/notification",
                 HttpMethod.POST,
                 entity,
                 String.class

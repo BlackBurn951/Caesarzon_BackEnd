@@ -64,4 +64,17 @@ public class CardController {
         else
             return new ResponseEntity<>("Problemi nell'eliminazione...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
+    @PostMapping("/balance/{cardId}")
+    public ResponseEntity<Boolean> pay(@PathVariable("cardId") UUID cardId, @RequestParam("total") double total) {
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result= generalService.pay(username, cardId, total);
+        if(result)
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

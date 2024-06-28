@@ -1,9 +1,13 @@
 package org.caesar.userservice.Data.Services.Impl;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.AdminRepository;
 import org.caesar.userservice.Data.Entities.Admin;
+import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.AdminService;
 import org.caesar.userservice.Dto.BanDTO;
 import org.springframework.http.HttpEntity;
@@ -28,9 +32,16 @@ public class AdminServiceImpl implements AdminService {
 
     private final AdminRepository adminRepository;
     private final RestTemplate restTemplate;
+    private final static String ADMIN_SERVICE = "adminService";
+
+    public String fallbackCircuitBreaker(CallNotPermittedException e){
+        log.debug("Circuit breaker su adminService da: {}", e.getCausingCircuitBreakerName());
+        return e.getMessage();
+    }
 
     //Metodo per restituire tutti gli admins
     @Override
+    @Retry(name=ADMIN_SERVICE)
     public List<String> getAdmins() {
         List<Admin> admins = adminRepository.findAllAdmin();
         return admins.stream().map(Admin::getUsername).toList();
@@ -38,6 +49,8 @@ public class AdminServiceImpl implements AdminService {
 
     //Metodo per bannare un utente
     @Override
+    @CircuitBreaker(name=ADMIN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=ADMIN_SERVICE)
     public boolean banUser(BanDTO banDTO) {
         try {
             if(adminRepository.banUser(banDTO.getUserUsername(), true)) {
@@ -71,6 +84,8 @@ public class AdminServiceImpl implements AdminService {
 
     //Metodo per sbannare un utente
     @Override
+    @CircuitBreaker(name=ADMIN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=ADMIN_SERVICE)
     public boolean sbanUser(String username) {
         try {
             if(adminRepository.banUser(username, false)) {
@@ -92,6 +107,16 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
+    @Retry(name=ADMIN_SERVICE)
+    public List<String> getBansUser(int start) {
+        List<User> user= adminRepository.findAllBanUsers(start);
 
+        if(user==null || user.isEmpty())
+            return null;
+
+        return user.stream()
+                .map(User::getUsername)
+                .toList();
+    }
 
 }

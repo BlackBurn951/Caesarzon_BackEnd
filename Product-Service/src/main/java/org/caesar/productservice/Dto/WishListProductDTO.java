@@ -10,6 +10,6 @@ import java.util.UUID;
 public class WishListProductDTO {
 
     private UUID Id;
-    private WishlistDTO wishlistID;
-    private ProductDTO productID;
+    private WishlistDTO wishlistDTO;
+    private ProductDTO productDTO;
 }

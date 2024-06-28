@@ -18,9 +18,9 @@ public class WishlistProduct {
 
     @ManyToOne
     @JoinColumn(name= "id_lista_desideri")
-    private Wishlist wishlistID;
+    private Wishlist wishlist;
 
     @ManyToOne
     @JoinColumn(name= "id_prodotto")
-    private Product productID;
+    private Product product;
 }

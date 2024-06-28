@@ -1,5 +1,8 @@
 package org.caesar.productservice.Data.Services.Impl;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.AvailabilityRepository;
@@ -20,9 +23,17 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     private final ModelMapper modelMapper;
     private final AvailabilityRepository availabilityRepository;
+    private final static String AVAILABILITY_SERVICE = "availabilityService";
+
+    public String fallbackCircuitBreaker(CallNotPermittedException e){
+        log.debug("Circuit breaker su availabilityService da: {}", e.getCausingCircuitBreakerName());
+        return e.getMessage();
+    }
 
     @Override
     // Aggiunge tuple o modifica la tabella delle disponibilità
+    @CircuitBreaker(name=AVAILABILITY_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=AVAILABILITY_SERVICE)
     public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, ProductDTO product) {
         if (availabilities.isEmpty()) {
             return false;
@@ -39,6 +50,8 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     @Override
     // Elimina una disponibilità dal db tramite il suo id
+    @CircuitBreaker(name=AVAILABILITY_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=AVAILABILITY_SERVICE)
     public boolean deleteAvailability(UUID availabilityId) {
         try {
             availabilityRepository.deleteById(availabilityId);
@@ -51,6 +64,8 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     @Override
     // Elimina tutte le disponibilità di un determinato prodotto
+    @CircuitBreaker(name=AVAILABILITY_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=AVAILABILITY_SERVICE)
     public boolean deleteAvailabilityByProduct(Product product) {
         List<Availability> availabilitiesToDelete = new ArrayList<>();
         for (Availability availability : availabilityRepository.findAll()) {
@@ -68,16 +83,30 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     @Override
     // Restituisce tutte le disponibilità registrate nel db
+    @Retry(name=AVAILABILITY_SERVICE)
     public List<Availability> getAll() {
         return availabilityRepository.findAll();
     }
 
     @Override
     // Resituisce tutte le disponibilità di un determinato prodotto
+    @Retry(name=AVAILABILITY_SERVICE)
     public List<AvailabilityDTO> getAvailabilitiesByProductID(ProductDTO productDTO) {
         return availabilityRepository.findAllByProduct(modelMapper.map(productDTO, Product.class))
                 .stream().map(a -> modelMapper.map(a, AvailabilityDTO.class)).toList();
+    }
+    @Override
+    @Retry(name=AVAILABILITY_SERVICE)
+    public AvailabilityDTO getAvailabilitieByProductId(ProductDTO productDTO, String size) {
+        AvailabilityDTO availabilityDTO1 = new AvailabilityDTO();
 
+        AvailabilityDTO availabilityDTO = modelMapper.map(availabilityRepository.findByProductAndSize
+                (modelMapper.map(productDTO, Product.class), size), AvailabilityDTO.class);
+
+        availabilityDTO1.setAmount(availabilityDTO.getAmount());
+        availabilityDTO1.setSize(availabilityDTO.getSize());
+
+        return availabilityDTO1;
     }
 
     // Controllo della taglia del prodotto

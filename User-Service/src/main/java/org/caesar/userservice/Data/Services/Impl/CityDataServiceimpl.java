@@ -1,6 +1,9 @@
 package org.caesar.userservice.Data.Services.Impl;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.CityDataRepository;
 import org.caesar.userservice.Data.Entities.CityData;
 import org.caesar.userservice.Data.Services.CityDataService;
@@ -15,12 +18,15 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CityDataServiceimpl implements CityDataService {
 
     private final CityDataRepository cityDataRepository;
     private final ModelMapper modelMapper;
+    private final static String CITYDATA_SERVICE = "cityDataService";
 
     @Override
+    @Retry(name=CITYDATA_SERVICE)
     public List<String> getCities(String sugg) {
         //Metodo per cercare le città che iniziano per sugg
         List<CityData> cities = cityDataRepository.findByCityIgnoreCaseStartingWith(sugg, PageRequest.of(0, 20));
@@ -33,6 +39,7 @@ public class CityDataServiceimpl implements CityDataService {
 
     //Metodo per restituire i dati di una data città
     @Override
+    @Retry(name=CITYDATA_SERVICE)
     public CityDataSuggestDTO getCityData(String city){
         return modelMapper.map(cityDataRepository.findByCity(city), CityDataSuggestDTO.class);
     }

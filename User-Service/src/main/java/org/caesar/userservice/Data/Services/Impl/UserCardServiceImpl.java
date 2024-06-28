@@ -1,10 +1,15 @@
 package org.caesar.userservice.Data.Services.Impl;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.UserCardRepository;
+import org.caesar.userservice.Data.Entities.Card;
 import org.caesar.userservice.Data.Entities.UserCard;
 import org.caesar.userservice.Data.Services.UserCardService;
+import org.caesar.userservice.Dto.CardDTO;
 import org.caesar.userservice.Dto.UserCardDTO;
 import org.modelmapper.ModelMapper;
 
@@ -21,9 +26,16 @@ public class UserCardServiceImpl implements UserCardService {
 
     private final UserCardRepository userCardRepository;
     private final ModelMapper modelMapper;
+    private final static String USER_CARD_SERVICE= "userCardService";
+
+    public String fallbackCircuitBreaker(CallNotPermittedException e){
+        log.debug("Circuit breaker su userCardService da: {}", e.getCausingCircuitBreakerName());
+        return e.getMessage();
+    }
 
     //Prende la carta dell'utente tramite id
     @Override
+    @Retry(name=USER_CARD_SERVICE)
     public UserCardDTO getUserCard(UUID id) {
 
         //Presa della lista delle carte associate all'utente
@@ -34,6 +46,7 @@ public class UserCardServiceImpl implements UserCardService {
 
     //Prende gli id di tutte le carte dell'utente
     @Override
+    @Retry(name=USER_CARD_SERVICE)
     public List<UUID> getCards(String userUsername) {
 
         List<UserCard> userCards = userCardRepository.findAllByUserUsername(userUsername);
@@ -48,6 +61,7 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
+    @Retry(name=USER_CARD_SERVICE)
     public List<UserCardDTO> getUserCards(String userUsername) {
         List<UserCardDTO> result= new Vector<>();
 
@@ -60,8 +74,18 @@ public class UserCardServiceImpl implements UserCardService {
         return result;
     }
 
+    @Override
+    @Retry(name=USER_CARD_SERVICE)
+    public boolean checkCard(String username, CardDTO cardDTO) {
+        UserCard userCard= userCardRepository.findByUserUsernameAndCard(username, modelMapper.map(cardDTO, Card.class));
+
+        return userCard != null;
+    }
+
     //Aggiunta della relazione carta utente
     @Override
+    @CircuitBreaker(name=USER_CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=USER_CARD_SERVICE)
     public boolean addUserCards(UserCardDTO userCard) {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
@@ -77,6 +101,8 @@ public class UserCardServiceImpl implements UserCardService {
 
     //Eliminazione
     @Override
+    @CircuitBreaker(name=USER_CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=USER_CARD_SERVICE)
     public boolean deleteUserCard(UserCardDTO userCardDTO) {
         try {
             userCardRepository.deleteById(userCardDTO.getId());
@@ -89,6 +115,8 @@ public class UserCardServiceImpl implements UserCardService {
 
     //Eliminazione
     @Override
+    @CircuitBreaker(name=USER_CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=USER_CARD_SERVICE)
     public boolean deleteUserCards(String userUsername) {
         try {
             //Presa di tutte le tuple inerenti all'utente da cancellare
