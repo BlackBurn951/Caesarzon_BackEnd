@@ -1,5 +1,8 @@
 package org.caesar.userservice.Data.Services.Impl;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.CardRepository;
@@ -24,15 +27,24 @@ public class CardServiceImpl implements CardService {
 
     private final ModelMapper modelMapper;
     private final CardRepository cardRepository;
+    private final static String CARD_SERVICE = "cardService";
+
+    public String fallbackCircuitBreaker(CallNotPermittedException e){
+        log.debug("Circuit breaker su admin service da: {}", e.getCausingCircuitBreakerName());
+        return e.getMessage();
+    }
 
     //Metodo per restituire una carta tramite id
     @Override
+    @Retry(name=CARD_SERVICE)
     public CardDTO getCard(UUID cardId) {
         return modelMapper.map(cardRepository.findById(cardId), CardDTO.class);
     }
 
     //Metodo per aggiungere una carta
     @Override
+    @CircuitBreaker(name=CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=CARD_SERVICE)
     public UUID addCard(CardDTO cardDTO) {
         //Controllo che i campi mandati rispettino i criteri
         if(!checkCardNumber(cardDTO.getCardNumber()) || !checkOwner(cardDTO.getOwner()) ||
@@ -51,6 +63,8 @@ public class CardServiceImpl implements CardService {
 
     //Metodo per eliminare una carta
     @Override
+    @CircuitBreaker(name=CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=CARD_SERVICE)
     public boolean deleteCard(UUID cardId) {
         try {
             cardRepository.deleteById(cardId);
@@ -63,6 +77,8 @@ public class CardServiceImpl implements CardService {
 
     //Metodo per eliminare le carte dell'utente
     @Override
+    @CircuitBreaker(name=CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=CARD_SERVICE)
     public boolean deleteUserCards(List<UserCardDTO> userCards) {
         //Presa degli id dei indirizzi dalle tuple di relazione
         List<UUID> cardId= new Vector<>();
