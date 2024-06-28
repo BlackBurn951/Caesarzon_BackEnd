@@ -31,7 +31,7 @@ public class UserAddressServiceImpl implements UserAddressService {
     private final static String USER_ADDRESS_SERVICE= "userAddressService";
 
     public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
+        log.debug("Circuit breaker su userAddressService da: {}", e.getCausingCircuitBreakerName());
         return e.getMessage();
     }
 

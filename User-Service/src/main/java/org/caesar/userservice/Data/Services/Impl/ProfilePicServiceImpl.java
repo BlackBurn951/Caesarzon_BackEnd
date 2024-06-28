@@ -22,7 +22,7 @@ public class ProfilePicServiceImpl implements ProfilePicService {
 
 
     public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su admin service da: {}", e.getCausingCircuitBreakerName());
+        log.debug("Circuit breaker su profilePicService da: {}", e.getCausingCircuitBreakerName());
         return e.getMessage();
     }
 

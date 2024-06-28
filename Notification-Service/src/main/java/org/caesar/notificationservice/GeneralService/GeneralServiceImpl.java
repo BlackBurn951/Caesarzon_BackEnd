@@ -30,6 +30,13 @@ public class GeneralServiceImpl implements GeneralService{
     private final UserNotificationService userNotificationService;
     private final BanService banService;
 
+    private final static String GENERAL_SERVICE= "generalService";
+
+    public String fallbackCircuitBreaker(CallNotPermittedException e){
+        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
+        return e.getMessage();
+    }
+
 
     @Override
     @Transactional

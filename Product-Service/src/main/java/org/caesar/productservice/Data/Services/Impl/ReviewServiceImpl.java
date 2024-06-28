@@ -1,5 +1,8 @@
 package org.caesar.productservice.Data.Services.Impl;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductRepository;
@@ -23,8 +26,17 @@ public class ReviewServiceImpl implements ReviewService {
     private final ModelMapper modelMapper;
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
+    private final static String REVIEW_SERVICE = "reviewService";
+
+    public String fallbackCircuitBreaker(CallNotPermittedException e){
+        log.debug("Circuit breaker su reviewService da: {}", e.getCausingCircuitBreakerName());
+        return e.getMessage();
+    }
+
 
     @Override
+    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name= REVIEW_SERVICE)
     public UUID addReview(ReviewDTO reviewDTO, String username) {
         if(reviewDTO == null){
             return null;
@@ -53,12 +65,14 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    @Retry(name= REVIEW_SERVICE)
     public Review getReviewById(UUID reviewID) {
 
         return reviewRepository.findById(reviewID).orElse(null);
     }
 
     @Override
+    @Retry(name= REVIEW_SERVICE)
     public UUID getReviewIDByUsernameAndProductID(String username, UUID productID) {
         Product product = productRepository.findById(productID).orElse(null);
         return reviewRepository.findReviewByUserIDAndProduct(username, product).getId();
@@ -66,6 +80,7 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
+    @Retry(name= REVIEW_SERVICE)
     public List<ReviewDTO> getReviewsByProductId(UUID productID) {
         Product product = productRepository.findById(productID).orElse(null);
         List<ReviewDTO> reviewDTOS = new ArrayList<>();
@@ -78,6 +93,8 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
+    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name= REVIEW_SERVICE)
     public boolean deleteReview(UUID id) {
         try {
             reviewRepository.deleteById(id);
@@ -90,6 +107,7 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
+    @Retry(name= REVIEW_SERVICE)
     public AverageDTO getReviewAverage(UUID productID) {
         Product product = productRepository.findById(productID).orElse(null);
         if(product != null){

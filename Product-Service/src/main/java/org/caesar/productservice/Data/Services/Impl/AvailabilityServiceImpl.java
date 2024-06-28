@@ -26,7 +26,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private final static String AVAILABILITY_SERVICE = "availabilityService";
 
     public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su admin service da: {}", e.getCausingCircuitBreakerName());
+        log.debug("Circuit breaker su availabilityService da: {}", e.getCausingCircuitBreakerName());
         return e.getMessage();
     }
 

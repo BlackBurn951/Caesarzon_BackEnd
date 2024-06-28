@@ -30,7 +30,7 @@ public class CardServiceImpl implements CardService {
     private final static String CARD_SERVICE = "cardService";
 
     public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su admin service da: {}", e.getCausingCircuitBreakerName());
+        log.debug("Circuit breaker su cardService da: {}", e.getCausingCircuitBreakerName());
         return e.getMessage();
     }
 

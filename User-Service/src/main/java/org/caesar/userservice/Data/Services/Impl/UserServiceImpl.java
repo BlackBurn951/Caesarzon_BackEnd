@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
 
 
     public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
+        log.debug("Circuit breaker su userService da: {}", e.getCausingCircuitBreakerName());
         return e.getMessage();
     }
 

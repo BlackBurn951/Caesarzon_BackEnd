@@ -61,21 +61,13 @@ public class PayPalService {
     public Payment executePayment(String paymentId, String payerId){
         Payment payment = new Payment();
         try{
-            System.out.println("stampa 1");
-            System.out.println("stampa 2");
             payment.setId(paymentId);
-            System.out.println("stampa 3");
             PaymentExecution paymentExecute = new PaymentExecution();
-            System.out.println("stampa 4");
             paymentExecute.setPayerId(payerId);
-            System.out.println("stampa 5");
             APIContext apiContext = new APIContext(clientId, clientSecret, mode);
-            System.out.println("stampa 6");
             Payment executedPayment = payment.execute(apiContext, paymentExecute);
-            System.out.println("stampa 7");
             // Verifica l'account destinatario
             String payeeEmail = executedPayment.getTransactions().getFirst().getPayee().getEmail();
-            System.out.println("Payment received by: " + payeeEmail);
 
             return executedPayment;
         }catch (Exception | Error e){

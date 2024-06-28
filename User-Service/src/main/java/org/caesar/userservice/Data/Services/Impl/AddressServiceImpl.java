@@ -31,7 +31,7 @@ public class AddressServiceImpl implements AddressService {
     private final static String ADDRESS_SERVICE = "addressService";
 
     public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
+        log.debug("Circuit breaker su addressService da: {}", e.getCausingCircuitBreakerName());
         return e.getMessage();
     }
 

@@ -33,7 +33,7 @@ public class ImageServiceImpl implements ImageService {
     private final static String IMAGE_SERVICE = "imageService";
 
     public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su admin service da: {}", e.getCausingCircuitBreakerName());
+        log.debug("Circuit breaker su imageService da: {}", e.getCausingCircuitBreakerName());
         return e.getMessage();
     }
 

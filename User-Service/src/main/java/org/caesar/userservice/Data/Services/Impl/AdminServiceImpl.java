@@ -34,7 +34,7 @@ public class AdminServiceImpl implements AdminService {
     private final static String ADMIN_SERVICE = "adminService";
 
     public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su admin service da: {}", e.getCausingCircuitBreakerName());
+        log.debug("Circuit breaker su adminService da: {}", e.getCausingCircuitBreakerName());
         return e.getMessage();
     }
 
