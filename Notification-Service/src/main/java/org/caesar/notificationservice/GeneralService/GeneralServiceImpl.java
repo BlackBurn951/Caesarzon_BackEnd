@@ -179,7 +179,7 @@ public class GeneralServiceImpl implements GeneralService{
 
             UserNotificationDTO userNotificationDTO= new UserNotificationDTO();
 
-            userNotificationDTO.setDate(LocalDate.now());
+            userNotificationDTO.setDate(LocalDate.now().toString());
             userNotificationDTO.setSubject(descr);
             userNotificationDTO.setExplanation(sendSupportDTO.getExplain());
             userNotificationDTO.setUser(supportDTO.getUsername());

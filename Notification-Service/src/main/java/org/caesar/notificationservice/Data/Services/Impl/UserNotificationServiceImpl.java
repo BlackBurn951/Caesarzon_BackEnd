@@ -74,15 +74,17 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
     //Metodo per aggiornare lo stato di lettura delle notifiche dell'utente
     @Override
-    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=USER_NOTIFICATION)
+//    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=USER_NOTIFICATION)
     public boolean updateUserNotification(List<UserNotificationDTO> notificationDTO) {
         try{
             for(UserNotificationDTO user: notificationDTO){
                 UserNotification userNot = userNotificationRepository.findById(user.getId()).orElse(null);
                 assert userNot != null;
-                user.setDate(userNot.getDate());
-                user.setRead(true);
+                userNot.setRead(true);
+
+
+                notification.add(userNot);
             }
             userNotificationRepository.saveAll(notificationDTO.stream().map(a -> modelMapper.map(a, UserNotification.class)).toList());
 
