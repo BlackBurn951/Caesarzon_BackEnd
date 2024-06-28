@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -56,7 +57,7 @@ public class WishlistController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/wishlist/product") // Endpoint per ottenere tutti i prodotti da una lista desideri di un utente
+    @GetMapping("/wishlist/products") // Endpoint per ottenere tutti i prodotti da una lista desideri di un utente
     public ResponseEntity<WishProductDTO> getWishlistProductsByWishlistID(@RequestParam("wish-id") UUID wishlistID){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
         WishProductDTO wishProductDTO = generalService.getWishlistProductsByWishlistID(wishlistID, username);
@@ -66,18 +67,28 @@ public class WishlistController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-
-
-    @GetMapping("/wishlists/{id}") // Endpoint per ottenere tutte le liste desideri di una determinata visibilità di un utente
-    public ResponseEntity<List<BasicWishlistDTO>> getUserWishlists(@PathVariable UUID id, String ownerUsername, @RequestParam(value= "visibility", required = false) int visibility){      //TODO da far tornare solo nome e id wishlist
+    @GetMapping("/wishlists") // Endpoint per ottenere tutte le liste desideri di una determinata visibilità di un utente
+    public ResponseEntity<List<BasicWishlistDTO>> getUserWishlists(@RequestParam("usr") String ownerUsername, @RequestParam("visibility") int visibility){      //TODO da far tornare solo nome e id wishlist
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
-        List<BasicWishlistDTO> result= wishlistService.getAllWishlists(ownerUsername, username, visibility);
-        if(result==null)
+        List<BasicWishlistDTO> result = wishlistService.getAllWishlists(ownerUsername, username, visibility);
+        if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
+
+
+    @PutMapping("/wishlist/{wishId}")
+    public ResponseEntity<String> getUserWishlists(@PathVariable UUID wishId, @RequestParam("visibility") int visibility){
+        String username = httpServletRequest.getAttribute("preferred_username").toString();
+
+        if(wishlistService.changeVisibility(visibility, username, wishId))
+            return new ResponseEntity<>("Visibilità cambiata con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nel cambio della visibilità...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
     @DeleteMapping("/wishlist/{id}") // Endpoint per l'eliminazione di una lista desideri di un utente
     public ResponseEntity<String> deleteWishlist(@PathVariable UUID id){

@@ -1,5 +1,6 @@
 package org.caesar.productservice.Data.Dao;
 
+import jakarta.transaction.Transactional;
 import org.caesar.productservice.Data.Entities.Order;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.ProductOrder;
@@ -12,15 +13,18 @@ import java.util.UUID;
 @Repository
 public interface ProductOrderRepository extends JpaRepository<ProductOrder, UUID> {
 
-    List<ProductOrder> findAllByUsernameAndOrderIDIsNull(String username);
+    List<ProductOrder> findAllByUsernameAndOrderIsNullAndBuyLaterIsFalse(String username);
 
+    ProductOrder findByUsernameAndProduct(String username, Product productID);
 
-    List<ProductOrder> findAllByUsernameAndOrderIDIsNullAndProductID(String username, Product productID);
+    List<ProductOrder> findAllByUsernameAndOrderIsNullAndProduct(String username, Product productID);
 
-    void deleteByUsernameAndOrderIDNullAndProductID(String username, Product productId);
+    @Transactional
+    void deleteByUsernameAndOrderNullAndProduct(String username, Product productId);
 
-    void deleteAllByUsername(String username);
+    @Transactional
+    void deleteAllByUsernameAndOrderIsNull(String username);
 
-    List<ProductOrder> findAllByUsernameAndOrderID(String username, Order order);
+    List<ProductOrder> findAllByUsernameAndOrder(String username, Order order);
 
 }

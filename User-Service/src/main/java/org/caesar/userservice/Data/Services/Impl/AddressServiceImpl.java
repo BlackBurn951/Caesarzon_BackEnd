@@ -1,5 +1,8 @@
 package org.caesar.userservice.Data.Services.Impl;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.AddressRepository;
@@ -25,9 +28,16 @@ public class AddressServiceImpl implements AddressService {
 
     private final ModelMapper modelMapper;
     private final AddressRepository addressRepository;
+    private final static String ADDRESS_SERVICE = "addressService";
+
+    public String fallbackCircuitBreaker(CallNotPermittedException e){
+        log.debug("Circuit breaker su addressService da: {}", e.getCausingCircuitBreakerName());
+        return e.getMessage();
+    }
 
     //Metodo per prendere un indirizzo
     @Override
+    @Retry(name=ADDRESS_SERVICE)
     public AddressDTO getAddress(UUID addressId) {
         AddressDTO addressDTO = modelMapper.map(addressRepository.findById(addressId), AddressDTO.class);
         addressDTO.setId(null);
@@ -36,6 +46,8 @@ public class AddressServiceImpl implements AddressService {
 
     //Metodo per aggiungere un indirizzo
     @Override
+    @CircuitBreaker(name=ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=ADDRESS_SERVICE)
     public UUID addAddress(AddressDTO addressDTO) {
         //Controllo che i campi inviati rispettino i criteri
         if(!checkRoadName(addressDTO.getRoadName()) ||
@@ -54,6 +66,8 @@ public class AddressServiceImpl implements AddressService {
 
     //Metodo per eliminare un indirizzo tramite id
     @Override
+    @CircuitBreaker(name=ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=ADDRESS_SERVICE)
     public boolean deleteAddress(UUID addressId) {
         try {
             addressRepository.deleteById(addressId);
@@ -66,6 +80,8 @@ public class AddressServiceImpl implements AddressService {
 
     //Metodo per eliminare tutti gli indirizzi associati ad un utente
     @Override
+    @CircuitBreaker(name=ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=ADDRESS_SERVICE)
     public boolean deleteAllUserAddresses(List<UserAddressDTO> userAddresses) {
         //Presa degli id dei indirizzi dalle tuple di relazione
         List<UUID> addressId= new Vector<>();

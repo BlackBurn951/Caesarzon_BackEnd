@@ -1,5 +1,6 @@
 package org.caesar.productservice.Data.Services;
 
+import org.caesar.productservice.Data.Entities.Order;
 import org.caesar.productservice.Dto.DTOOrder.*;
 
 import java.time.LocalDate;
@@ -39,11 +40,14 @@ public interface OrderService {
 
     List<OrderDTO> getOrders(String username);
 
-    boolean updateOrder(String username, UUID orderId);
 
     OrderDTO getOrder(String username, UUID id);
 
-    List<OrderDTO> getOrdersByStateAndDeliveryDate(String state, LocalDate date);
+    List<OrderDTO> getOrdersByState(String state);
+
+    OrderDTO getOrderByIdAndUsername(UUID orderId, String username);
+
+    OrderDTO save(OrderDTO orderDTO);
 
 
 }

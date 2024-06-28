@@ -12,6 +12,8 @@ public interface AdminRepository {
     boolean banUser(String username, boolean ban);
 
     User findUserByUsername(String username);
+
+    List<User> findAllBanUsers(int start);
 }
 
 

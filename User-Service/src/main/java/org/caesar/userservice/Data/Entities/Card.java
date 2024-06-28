@@ -31,4 +31,7 @@ public class Card {
 
     @Column(name = "data_scadenza")
     private String expiryDate;
+
+    @Column(name= "saldo")
+    private double balance;
 }

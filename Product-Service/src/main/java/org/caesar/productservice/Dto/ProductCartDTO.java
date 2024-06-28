@@ -13,4 +13,5 @@ public class ProductCartDTO {
     private double total;
     private int quantity;
     private String name;
+    private String size;
 }

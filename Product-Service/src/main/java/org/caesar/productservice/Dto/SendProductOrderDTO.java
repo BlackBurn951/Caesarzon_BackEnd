@@ -11,5 +11,6 @@ public class SendProductOrderDTO {
 
     private UUID productID;
     private int quantity;
+    private String size;
 
 }

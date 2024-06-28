@@ -21,11 +21,11 @@ public class ProductOrder {
 
     @ManyToOne
     @JoinColumn(name= "id_ordine")
-    private Order orderID;
+    private Order order;
 
     @ManyToOne
     @JoinColumn(name= "id_prodotto")
-    private Product productID;
+    private Product product;
 
     @Column(name= "username_utente")
     private String username;
@@ -35,4 +35,7 @@ public class ProductOrder {
 
     @Column(name= "per_dopo")
     private boolean buyLater;
+
+    @Column(name= "taglia")
+    private String size;
 }

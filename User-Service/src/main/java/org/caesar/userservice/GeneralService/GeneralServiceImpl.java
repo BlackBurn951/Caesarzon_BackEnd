@@ -1,6 +1,9 @@
 package org.caesar.userservice.GeneralService;
 
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +27,7 @@ import java.util.regex.Pattern;
 public class GeneralServiceImpl implements GeneralService {
 
     private final UserService userService;
+    private final AdminService adminService;
     private final ProfilePicService profilePicService;
 
     private final AddressService addressService;
@@ -34,10 +38,19 @@ public class GeneralServiceImpl implements GeneralService {
 
     private final FollowerService followerService;
 
+    private final static String GENERAL_SERVICE= "generalService";
+
+
+    public String fallbackCircuitBreaker(CallNotPermittedException e){
+        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
+        return e.getMessage();
+    }
 
     //Metodo per agggiungere un utente
     @Override
     @Transactional
+    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=GENERAL_SERVICE)
     public boolean addUser(UserRegistrationDTO user) {
         if(userService.saveUser(user)) {
             try {
@@ -55,21 +68,13 @@ public class GeneralServiceImpl implements GeneralService {
     //Metodo per aggiungere un indirizzo
     @Override
     @Transactional
+    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=GENERAL_SERVICE)
     public int addAddress(String userUsername, AddressDTO addressDTO) {
         List<UserAddressDTO> addresses= userAddressService.getUserAddresses(userUsername);
 
         if(addresses==null || addresses.isEmpty()) {
-            UUID addressId= addressService.addAddress(addressDTO);
-
-            if(addressId == null)
-                return 1;
-
-            UserAddressDTO userAddressDTO= new UserAddressDTO();
-
-            userAddressDTO.setAddressId(addressId);
-            userAddressDTO.setUserUsername(userUsername);
-
-            return userAddressService.addUserAddreses(userAddressDTO)? 0: 1;
+            return creadAddress(userUsername, addressDTO);
         } else if(addresses.size()==5)
             return 2;
         else {
@@ -84,27 +89,19 @@ public class GeneralServiceImpl implements GeneralService {
                     return 0;
                 }
             }
-            return 1;
+            return creadAddress(userUsername, addressDTO);
         }
     }
 
     @Override
     @Transactional
+    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=GENERAL_SERVICE)
     public int addCard(String userUsername, CardDTO cardDTO) {
         List<UserCardDTO> cards= userCardService.getUserCards(userUsername);
 
         if(cards==null || cards.isEmpty()) {
-            UUID cardId = cardService.addCard(cardDTO);
-
-            if(cardId == null)
-                return 1;
-
-            UserCardDTO userCardDTO= new UserCardDTO();
-
-            userCardDTO.setCardId(cardId);
-            userCardDTO.setUserUsername(userUsername);
-
-            return userCardService.addUserCards(userCardDTO)? 0: 1;
+            return creatCard(userUsername, cardDTO);
         } else if(cards.size()==5)
             return 2;
         else {
@@ -119,7 +116,7 @@ public class GeneralServiceImpl implements GeneralService {
                     return 0;
                 }
             }
-            return 1;
+            return creatCard(userUsername, cardDTO);
         }
     }
 
@@ -166,6 +163,49 @@ public class GeneralServiceImpl implements GeneralService {
         return userSearch;
     }
 
+    @Override
+    public List<UserSearchDTO> getBans(int start) {
+        List<String> bannedUser= adminService.getBansUser(start);
+
+        List<UserSearchDTO> userSearch= new Vector<>();
+        UserSearchDTO userSearchDTO;
+
+        for(String username: bannedUser) {
+            userSearchDTO= new UserSearchDTO();
+
+            userSearchDTO.setUsername(username);
+            userSearch.add(userSearchDTO);
+        }
+
+        return userSearch;
+    }
+
+    @Override
+    public boolean checkAddress(String username, UUID addressId) {
+        AddressDTO addressDTO= addressService.getAddress(addressId);
+
+        return addressDTO!=null && userAddressService.checkAddress(username, addressDTO);
+    }
+
+    @Override
+    @Transactional
+    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=GENERAL_SERVICE)
+    public boolean pay(String username, UUID cardId, double total) {
+        CardDTO cardDTO= cardService.getCard(cardId);
+
+        if(userCardService.checkCard(username, cardDTO)) {
+            double balance= cardDTO.getBalance();
+
+            if(balance<total)
+                return false;
+
+            cardDTO.setBalance(balance-total);
+            return cardService.addCard(cardDTO)!=null;
+        }
+        return false;
+    }
+
 
     //Getters per prendere i dati dalle tabelle di relazione
     @Override
@@ -207,6 +247,8 @@ public class GeneralServiceImpl implements GeneralService {
     //Metodi di cancellazione
     @Override
     @Transactional
+    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=GENERAL_SERVICE)
     public boolean deleteUser(String username) {  //FIXME DA CONTROLLARE COSA TORNA IN CASO DI LISTA VUOTA SE NULL O EMPTY
         try {
             //Chiamate per prendere le tuple di relazione con gli indirizzi e le carte
@@ -246,6 +288,8 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
+    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=GENERAL_SERVICE)
     public boolean deleteUserAddress(UUID id) {
         try {
             //Presa della tupla di relazione dell'indirizzo richiesto
@@ -264,6 +308,8 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
+    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=GENERAL_SERVICE)
     public boolean deleteUserCard(UUID id) {
 
         try {
@@ -282,4 +328,34 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
 
+
+    //Metodi di servizio
+
+    private int creatCard(String userUsername, CardDTO cardDTO) {
+        cardDTO.setBalance(500.0);
+        UUID cardId = cardService.addCard(cardDTO);
+
+        if(cardId == null)
+            return 1;
+
+        UserCardDTO userCardDTO= new UserCardDTO();
+
+        userCardDTO.setCardId(cardId);
+        userCardDTO.setUserUsername(userUsername);
+
+        return userCardService.addUserCards(userCardDTO)? 0: 1;
+    }
+    private int creadAddress(String userUsername, AddressDTO addressDTO) {
+        UUID addressId= addressService.addAddress(addressDTO);
+
+        if(addressId == null)
+            return 1;
+
+        UserAddressDTO userAddressDTO= new UserAddressDTO();
+
+        userAddressDTO.setAddressId(addressId);
+        userAddressDTO.setUserUsername(userUsername);
+
+        return userAddressService.addUserAddreses(userAddressDTO)? 0: 1;
+    }
 }

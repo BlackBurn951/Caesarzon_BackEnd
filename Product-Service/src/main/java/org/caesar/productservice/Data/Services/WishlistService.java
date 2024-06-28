@@ -13,4 +13,5 @@ public interface WishlistService {
     List<WishlistDTO> getAllWishlist(UUID id, String username);
     List<BasicWishlistDTO> getAllWishlists(String ownerUsername, String accessUsername, int visibility);
     boolean deleteWishlist(UUID id);
+    boolean changeVisibility(int visibility, String username, UUID wishListId);
 }
