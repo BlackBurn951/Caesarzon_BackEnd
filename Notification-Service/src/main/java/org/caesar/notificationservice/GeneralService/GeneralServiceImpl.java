@@ -193,8 +193,8 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=GENERAL_SERVICE)
+//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=GENERAL_SERVICE)
     public boolean manageReport(String username, UUID reviewId, boolean product, boolean accept) {
 
         ReportDTO reportDTO = reportService.getReportByReviewId(reviewId);
