@@ -180,14 +180,13 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     public List<ProductDTO> getLastProducts() {
-        Pageable pageable = PageRequest.of(0, 9); // Pagina 0, 9 elementi per pagina
-        Page<Product> page = productRepository.findTop9ByOrderByIdDesc(pageable);
-        return page.getContent().stream().map(a -> modelMapper.map(a, ProductDTO.class)).toList();
+        List<Product> products= productRepository.findTop9ByOrderByLastModifiedDesc();
+        return products.stream().map(a -> modelMapper.map(a, ProductDTO.class)).toList();
     }
 
     @Override
     public List<ProductDTO> getOffer() {
-        List<Product> products = productRepository.findTop9ByOrderByDiscount();
+        List<Product> products = productRepository.findTop9ByOrderByDiscountDesc();
 
         if(products==null || products.isEmpty())
             return null;
@@ -196,6 +195,7 @@ public class ProductServiceImpl implements ProductService{
                 .map(a -> modelMapper.map(a, ProductDTO.class))
                 .toList();
     }
+
 
     // Controllo della descrizione
     private boolean checkDescription(String description) {

@@ -54,6 +54,7 @@ public class GeneralServiceImpl implements GeneralService {
     // Aggiunge il prodotto ricevuto da front al db dei prodotti
     public boolean addProduct(ProductDTO sendProductDTO) {
         // Mappa sendProductDTO a ProductDTO
+        sendProductDTO.setLastModified(LocalDate.now());
         ProductDTO productDTO = modelMapper.map(sendProductDTO, ProductDTO.class);
         // Aggiorna l'ID del productDTO dopo averlo salvato
         productDTO.setId(productService.addOrUpdateProduct(productDTO).getId());
@@ -326,6 +327,7 @@ public class GeneralServiceImpl implements GeneralService {
 
             productSearchDTO1.setProductName(p.getName());
             productSearchDTO1.setPrice(p.getPrice());
+            productSearchDTO1.setDiscount(p.getDiscount());
 
             productSearchDTO1.setAverageReview(averageDTO.getAvarege());
             productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());

@@ -8,6 +8,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericFie
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Getter
@@ -55,4 +56,8 @@ public class Product {
     @FullTextField
     @Column(name = "sport")
     private String sport;
+
+    @Column(name = "ultima_aggiunta")
+    private LocalDate lastModified;
+
 }
