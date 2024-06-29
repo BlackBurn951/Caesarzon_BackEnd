@@ -39,7 +39,8 @@ public class LastViewServiceImpl implements LastViewService {
             lastViewDTO.setUsername(username);
             lastViewDTO.setProduct(productDTO);
 
-            lastViewRepository.save(modelMapper.map(lastViewDTO, LastView.class));
+
+            //lastViewRepository.save(modelMapper.map(lastViewDTO, LastView.class));
 
             return true;
         }catch (Exception | Error e){
