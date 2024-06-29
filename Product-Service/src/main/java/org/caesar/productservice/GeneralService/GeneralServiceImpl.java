@@ -174,6 +174,18 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
+    public List<ProductSearchDTO> newProducts() {
+        List<ProductDTO> productDTO = productService.takeLast9Products();
+
+        return metodoAusiliario(productDTO);
+    }
+
+    @Override
+    public List<ProductSearchDTO> offer() {
+        return List.of();
+    }
+
+    @Override
     @Transactional
     public String createOrder(String username, BuyDTO buyDTO) {
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
@@ -268,6 +280,11 @@ public class GeneralServiceImpl implements GeneralService {
     public List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         List<ProductDTO> productDTO = productService.searchProducts(searchText, minPrice, maxPrice, isClothing);
 
+        return metodoAusiliario(productDTO);
+    }
+
+
+    List<ProductSearchDTO> metodoAusiliario(List<ProductDTO> productDTO){
         List<ProductSearchDTO> productSearchDTO = new Vector<>();
         ProductSearchDTO productSearchDTO1;
         AverageDTO averageDTO;
@@ -288,9 +305,9 @@ public class GeneralServiceImpl implements GeneralService {
 
             productSearchDTO.add(productSearchDTO1);
         }
-
         return productSearchDTO;
     }
+
 
     // Restituisce i prodotti visti di recente dall'utente
     public List<ProductSearchDTO> getLastView(String username){
@@ -415,8 +432,6 @@ public class GeneralServiceImpl implements GeneralService {
         sendWishlistProductDTO.setWishlistID(wishId);
 
         WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO);
-
-
 
         if(wishListProductDTO==null)
             return false;
@@ -669,4 +684,6 @@ public class GeneralServiceImpl implements GeneralService {
             return response.getBody();
         return false;
     }
+
+
 }

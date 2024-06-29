@@ -20,5 +20,7 @@ public interface ProductService {
 
     List<ProductDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing);
 
+    List<ProductDTO> takeLast9Products();
+
 
 }

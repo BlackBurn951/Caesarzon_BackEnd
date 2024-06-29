@@ -1,8 +1,6 @@
 package org.caesar.productservice.Data.Services.Impl;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductRepository;
@@ -12,6 +10,9 @@ import org.caesar.productservice.Dto.ProductDTO;
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
 import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -174,6 +175,13 @@ public class ProductServiceImpl implements ProductService{
             log.error("Error while searching for products", e);
             return Collections.emptyList();
         }
+    }
+
+    @Override
+    public List<ProductDTO> takeLast9Products() {
+        Pageable pageable = PageRequest.of(0, 9); // Pagina 0, 9 elementi per pagina
+        Page<Product> page = productRepository.findTop9ByOrderByIdDesc(pageable);
+        return page.getContent().stream().map(a -> modelMapper.map(a, ProductDTO.class)).toList();
     }
 
     // Controllo della descrizione
