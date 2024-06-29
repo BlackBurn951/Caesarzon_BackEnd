@@ -27,7 +27,7 @@ public class Review {
     private int evaluation;
 
     @Column(name= "username_utente")
-    private String userID;
+    private String username;
 
     @ManyToOne
     @JoinColumn(name= "id_prodotto")

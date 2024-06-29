@@ -1,8 +1,6 @@
 package org.caesar.productservice.Data.Services.Impl;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductRepository;
@@ -51,7 +49,7 @@ public class ReviewServiceImpl implements ReviewService {
                 review.setDate(LocalDate.now());
                 review.setText(reviewDTO.getText());
                 review.setEvaluation(reviewDTO.getEvaluation());
-                review.setUserID(reviewDTO.getUsername());
+                review.setUsername(reviewDTO.getUsername());
 
             }else{
                 return null;
@@ -75,7 +73,7 @@ public class ReviewServiceImpl implements ReviewService {
 //    @Retry(name= REVIEW_SERVICE)
     public UUID getReviewIDByUsernameAndProductID(String username, UUID productID) {
         Product product = productRepository.findById(productID).orElse(null);
-        return reviewRepository.findReviewByUserIDAndProduct(username, product).getId();
+        return reviewRepository.findReviewByUsernameAndProduct(username, product).getId();
     }
 
 
@@ -84,8 +82,10 @@ public class ReviewServiceImpl implements ReviewService {
     public List<ReviewDTO> getReviewsByProductId(UUID productID) {
         Product product = productRepository.findById(productID).orElse(null);
         List<ReviewDTO> reviewDTOS = new ArrayList<>();
+
         for(Review review: reviewRepository.findByproduct(product)){
             ReviewDTO reviewDTO = modelMapper.map(review, ReviewDTO.class);
+            System.out.println(reviewDTO.getText());
             reviewDTOS.add(reviewDTO);
         }
         return reviewDTOS;

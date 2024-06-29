@@ -175,14 +175,41 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public List<ProductSearchDTO> newProducts() {
-        List<ProductDTO> productDTO = productService.takeLast9Products();
+        List<ProductDTO> productDTO = productService.getLastProducts();
 
         return metodoAusiliario(productDTO);
     }
 
     @Override
-    public List<ProductSearchDTO> offer() {
-        return List.of();
+    public List<ProductSearchDTO> getOffers() {
+        List<ProductDTO> products= productService.getOffer();
+
+        if(products==null || products.isEmpty())
+            return null;
+
+        List<ProductSearchDTO> result= new Vector<>();
+        ProductSearchDTO prod;
+        AverageDTO average;
+        for(ProductDTO p: products){
+            average= reviewService.getReviewAverage(p.getId());
+
+            prod= new ProductSearchDTO();
+            if(average==null) {
+                prod.setReviewsNumber(0);
+                prod.setAverageReview(0.0);
+            } else {
+                prod.setReviewsNumber(average.getNummberOfReview());
+                prod.setAverageReview(average.getAvarege());
+            }
+            prod.setProductId(p.getId());
+            prod.setProductName(p.getName());
+            prod.setPrice(p.getPrice());
+            prod.setDiscount(p.getDiscount());
+
+            result.add(prod);
+        }
+
+        return result;
     }
 
     @Override

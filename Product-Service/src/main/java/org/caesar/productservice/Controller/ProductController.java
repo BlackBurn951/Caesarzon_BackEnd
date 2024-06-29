@@ -88,11 +88,11 @@ public class ProductController {
             return new ResponseEntity<>(searchProduct, HttpStatus.OK);
     }
 
-    @GetMapping("/offer")
-    public ResponseEntity<List<ProductSearchDTO>> offer(){
-        List<ProductSearchDTO> searchProduct = generalService.offer();
-        if(searchProduct.isEmpty())
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @GetMapping("product/offer")
+    public ResponseEntity<List<ProductSearchDTO>> getOffer(){
+        List<ProductSearchDTO> searchProduct = generalService.getOffers();
+        if(searchProduct==null || searchProduct.isEmpty())
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         else
             return new ResponseEntity<>(searchProduct, HttpStatus.OK);
     }

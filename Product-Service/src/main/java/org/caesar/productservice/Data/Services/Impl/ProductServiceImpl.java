@@ -7,6 +7,7 @@ import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.ProductDTO;
+import org.caesar.productservice.Dto.ProductSearchDTO;
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
 import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
@@ -178,10 +179,22 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public List<ProductDTO> takeLast9Products() {
+    public List<ProductDTO> getLastProducts() {
         Pageable pageable = PageRequest.of(0, 9); // Pagina 0, 9 elementi per pagina
         Page<Product> page = productRepository.findTop9ByOrderByIdDesc(pageable);
         return page.getContent().stream().map(a -> modelMapper.map(a, ProductDTO.class)).toList();
+    }
+
+    @Override
+    public List<ProductDTO> getOffer() {
+        List<Product> products = productRepository.findTop9ByOrderByDiscount();
+
+        if(products==null || products.isEmpty())
+            return null;
+
+        return products.stream()
+                .map(a -> modelMapper.map(a, ProductDTO.class))
+                .toList();
     }
 
     // Controllo della descrizione

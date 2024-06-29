@@ -35,7 +35,7 @@ public interface GeneralService {
     List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds);
     String checkOrder(String username, BuyDTO buyDTO, boolean payMethod);
     List<ProductSearchDTO>newProducts();
-    List<ProductSearchDTO>offer();
+    List<ProductSearchDTO> getOffers();
 
 
 }
