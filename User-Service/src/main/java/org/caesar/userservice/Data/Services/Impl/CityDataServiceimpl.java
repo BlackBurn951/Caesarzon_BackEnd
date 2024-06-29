@@ -26,7 +26,7 @@ public class CityDataServiceimpl implements CityDataService {
     private final static String CITYDATA_SERVICE = "cityDataService";
 
     @Override
-//    @Retry(name=CITYDATA_SERVICE)
+    @Retry(name=CITYDATA_SERVICE)
     public List<String> getCities(String sugg) {
         //Metodo per cercare le città che iniziano per sugg
         List<CityData> cities = cityDataRepository.findByCityIgnoreCaseStartingWith(sugg, PageRequest.of(0, 20));
@@ -39,7 +39,7 @@ public class CityDataServiceimpl implements CityDataService {
 
     //Metodo per restituire i dati di una data città
     @Override
-//    @Retry(name=CITYDATA_SERVICE)
+    @Retry(name=CITYDATA_SERVICE)
     public CityDataSuggestDTO getCityData(String city){
         return modelMapper.map(cityDataRepository.findByCity(city), CityDataSuggestDTO.class);
     }

@@ -9,7 +9,7 @@ public interface GeneralService {
     
     boolean addReportRequest(String username1, ReportDTO reportDTO);
     boolean addSupportRequest(String username1, SupportDTO supportDTO);
-    boolean manageSupportRequest(String username, UUID supportId, String explain);
+    boolean manageSupportRequest(String username, SupportResponseDTO sendSupportDTO);
     boolean manageReport(String username, UUID reviewId, boolean product, boolean accept);
     boolean updateAdminNotification(List<AdminNotificationDTO> notificationDTO);
 

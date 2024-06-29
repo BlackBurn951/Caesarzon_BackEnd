@@ -34,7 +34,7 @@ public class FollowerServiceImpl implements FollowerService {
 
     //Rstituisce la lista di seguiti e amici dell'utente
     @Override
-//    @Retry(name=FOLLOWER_SERVICE)
+    @Retry(name=FOLLOWER_SERVICE)
     public List<FollowerDTO> getFollowersOrFriends(String username1, int flw, boolean friend) {
         List<Follower> followers;
 
@@ -56,8 +56,8 @@ public class FollowerServiceImpl implements FollowerService {
 
     //Aggiunta del follower
     @Override
-//    @CircuitBreaker(name=FOLLOWER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=FOLLOWER_SERVICE)
+    @CircuitBreaker(name=FOLLOWER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=FOLLOWER_SERVICE)
     public boolean addFollowers(String username1, List<UserSearchDTO> followers) {
         //Controllo che venga inviato almeno un dato
         if(followers==null || followers.isEmpty())
@@ -98,14 +98,14 @@ public class FollowerServiceImpl implements FollowerService {
     }
 
     @Override
-//    @Retry(name=FOLLOWER_SERVICE)
+    @Retry(name=FOLLOWER_SERVICE)
     public boolean isFriend(String username, String friendUsername) {
         return followerRepository.findByUserUsername1AndUserUsername2(username, friendUsername)!=null;
     }
     //Eliminazione del singolo follower
     @Override
-//    @CircuitBreaker(name=FOLLOWER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=FOLLOWER_SERVICE)
+    @CircuitBreaker(name=FOLLOWER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=FOLLOWER_SERVICE)
     public boolean deleteFollowers(String username1, List<String> followers) {
         List<Follower> savedFollowers= new Vector<>();
 
@@ -128,8 +128,8 @@ public class FollowerServiceImpl implements FollowerService {
 
     //Metodo per la cancellazione di tutti i follower da tutte e due la parti
     @Override
-//    @CircuitBreaker(name=FOLLOWER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=FOLLOWER_SERVICE)
+    @CircuitBreaker(name=FOLLOWER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=FOLLOWER_SERVICE)
     public boolean deleteFollowersByUsername(String username){
         try{
             followerRepository.deleteAllByUserUsername1OrUserUsername2(username, username);

@@ -41,7 +41,7 @@ public class AdminServiceImpl implements AdminService {
 
     //Metodo per restituire tutti gli admins
     @Override
-//    @Retry(name=ADMIN_SERVICE)
+    @Retry(name=ADMIN_SERVICE)
     public List<String> getAdmins() {
         List<Admin> admins = adminRepository.findAllAdmin();
         return admins.stream().map(Admin::getUsername).toList();
@@ -49,8 +49,8 @@ public class AdminServiceImpl implements AdminService {
 
     //Metodo per bannare un utente
     @Override
-//    @CircuitBreaker(name=ADMIN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=ADMIN_SERVICE)
+    @CircuitBreaker(name=ADMIN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=ADMIN_SERVICE)
     public boolean banUser(BanDTO banDTO) {
         try {
             if(adminRepository.banUser(banDTO.getUserUsername(), true)) {
@@ -84,8 +84,8 @@ public class AdminServiceImpl implements AdminService {
 
     //Metodo per sbannare un utente
     @Override
-//    @CircuitBreaker(name=ADMIN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=ADMIN_SERVICE)
+    @CircuitBreaker(name=ADMIN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=ADMIN_SERVICE)
     public boolean sbanUser(String username) {
         try {
             if(adminRepository.banUser(username, false)) {
@@ -107,7 +107,7 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-//    @Retry(name=ADMIN_SERVICE)
+    @Retry(name=ADMIN_SERVICE)
     public List<String> getBansUser(int start) {
         List<User> user= adminRepository.findAllBanUsers(start);
 

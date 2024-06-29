@@ -39,8 +39,8 @@ public class ProductServiceImpl implements ProductService{
     private final EntityManager entityManager;
 
     @Override
-//    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCT_SERVICE)
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name= PRODUCT_SERVICE)
     // Aggiunge il prodotto passato controllando se supera tutti i check dei parametri
     public Product addOrUpdateProduct(ProductDTO productDTO) {
 
@@ -78,7 +78,7 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     // Restituisce l'id del prodotto partendo dal suo nome
-//    @Retry(name= PRODUCT_SERVICE)
+    @Retry(name= PRODUCT_SERVICE)
     public UUID getProductIDByName(String name) {
         Product productID = productRepository.findProductByName(name);
         if(productID != null)
@@ -91,14 +91,14 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     // Restituisce un prodotto partendo dal suo id
-//    @Retry(name= PRODUCT_SERVICE)
+    @Retry(name= PRODUCT_SERVICE)
     public ProductDTO getProductById(UUID id) {
         return modelMapper.map(productRepository.findById(id), ProductDTO.class);
     }
 
     @Override
     // Restituisce tutti i prodotti
-//    @Retry(name= PRODUCT_SERVICE)
+    @Retry(name= PRODUCT_SERVICE)
     public List<ProductDTO> getAllProductsById(List<UUID> ids) {
        return productRepository.findAllById(ids)
                 .stream()
@@ -109,8 +109,8 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     // Elimina il prodotto partendo dall'id specificato
-//    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCT_SERVICE)
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name= PRODUCT_SERVICE)
     public boolean deleteProductById(UUID id) {
         try{
             productRepository.deleteById(id);
@@ -124,8 +124,8 @@ public class ProductServiceImpl implements ProductService{
     // Effettua la ricerca dei prodotti seguendo i valori dei filtri passati per parametro
 
     @Override
-//    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCT_SERVICE)
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name= PRODUCT_SERVICE)
     public List<ProductDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         try {
 

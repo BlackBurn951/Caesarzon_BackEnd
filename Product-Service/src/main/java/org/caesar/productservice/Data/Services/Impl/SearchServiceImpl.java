@@ -21,7 +21,7 @@ public class SearchServiceImpl implements SearchService {
 
 
     @Override
-//    @Retry(name=SEARCH_SERVICE)
+    @Retry(name=SEARCH_SERVICE)
     public List<String> getAllSearchs(String username) {
         try{
             List<String>  searchList = new Vector<>();

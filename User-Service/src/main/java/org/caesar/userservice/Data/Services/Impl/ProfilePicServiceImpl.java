@@ -28,8 +28,8 @@ public class ProfilePicServiceImpl implements ProfilePicService {
 
     //Salva l'immagine dell'utente
     @Override
-//    @CircuitBreaker(name=PROFILEPIC_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=PROFILEPIC_SERVICE)
+    @CircuitBreaker(name=PROFILEPIC_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=PROFILEPIC_SERVICE)
     public boolean saveImage(String username, MultipartFile file, boolean save) {
         try {
             //Ricerca sul db della vecchia foto profilo per eseguire l'aggiornamento in caso ne aggiunge una nuova
@@ -52,7 +52,7 @@ public class ProfilePicServiceImpl implements ProfilePicService {
 
     //Metodo per restituire l'immagine dell'utente
     @Override
-//    @Retry(name=PROFILEPIC_SERVICE)
+    @Retry(name=PROFILEPIC_SERVICE)
     public byte[] getUserImage(String username) {
         return profilePicRepository.findByUserUsername(username).getProfilePic();
     }
