@@ -35,8 +35,8 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
 
     @Override
-    @CircuitBreaker(name= WISHLISTPRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=WISHLISTPRODUCT_SERVICE)
+//    @CircuitBreaker(name= WISHLISTPRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=WISHLISTPRODUCT_SERVICE)
     public boolean addOrUpdateWishlistProduct(WishListProductDTO wishlistProduct) {
         try {
             WishlistProduct wishlistProductEntity = new WishlistProduct();
@@ -53,8 +53,8 @@ public class WishlistProductServiceImpl implements WishlistProductService {
         }
     }
     @Override
-    @CircuitBreaker(name= WISHLISTPRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=WISHLISTPRODUCT_SERVICE)
+//    @CircuitBreaker(name= WISHLISTPRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=WISHLISTPRODUCT_SERVICE)
     public boolean deleteProductFromWishlist(WishListProductDTO wishListProductDTO){
         try{
             wishlistProductRepository.deleteWishlistProductByProductAndWishlist(
@@ -70,7 +70,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
 
     @Override
-    @Retry(name=WISHLISTPRODUCT_SERVICE)
+//    @Retry(name=WISHLISTPRODUCT_SERVICE)
     public List<WishListProductDTO> getWishlistProductsByWishlistID(WishlistDTO wishlistDTO){
         try {
             List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlistDTO, Wishlist.class));
@@ -99,8 +99,8 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
     @Override
     //Rimuove tutti i prodotti della lista desideri passando l'id della stessa
-    @CircuitBreaker(name= WISHLISTPRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=WISHLISTPRODUCT_SERVICE)
+//    @CircuitBreaker(name= WISHLISTPRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=WISHLISTPRODUCT_SERVICE)
     public boolean deleteAllProductsFromWishlist(WishlistDTO wishlistDTO) {
         try {
             wishlistProductRepository.deleteAllByWishlist(modelMapper.map(wishlistDTO, Wishlist.class));
