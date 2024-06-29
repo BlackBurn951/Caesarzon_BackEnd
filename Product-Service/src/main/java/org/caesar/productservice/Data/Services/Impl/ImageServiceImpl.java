@@ -39,8 +39,8 @@ public class ImageServiceImpl implements ImageService {
 
     //fare modifica dell'immagine con eventuale eliminazione delle singole immagini
     @Override
-//    @CircuitBreaker(name=IMAGE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=IMAGE_SERVICE)
+    @CircuitBreaker(name=IMAGE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=IMAGE_SERVICE)
     public boolean addOrUpdateImage(UUID productID, MultipartFile file) {
 
         if(file == null){
@@ -65,7 +65,7 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-//    @Retry(name=IMAGE_SERVICE)
+    @Retry(name=IMAGE_SERVICE)
     public ImageDTO getImage(Product product) {
 
         Image image = imageRepository.findImageByProduct(product);
@@ -76,7 +76,7 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-//    @Retry(name=IMAGE_SERVICE)
+    @Retry(name=IMAGE_SERVICE)
     public List<Image> getAllProductImages(Product product) {
         List<Image> productImages = new ArrayList<>();
         for(Image image : imageRepository.findAll())
@@ -88,8 +88,8 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     @Transactional
-//    @CircuitBreaker(name=IMAGE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=IMAGE_SERVICE)
+    @CircuitBreaker(name=IMAGE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=IMAGE_SERVICE)
     public boolean deleteImage(Product product) {
         try {
             List<Image> imagesToDelete = new ArrayList<>();

@@ -37,7 +37,7 @@ public class AddressServiceImpl implements AddressService {
 
     //Metodo per prendere un indirizzo
     @Override
-//    @Retry(name=ADDRESS_SERVICE)
+    @Retry(name=ADDRESS_SERVICE)
     public AddressDTO getAddress(UUID addressId) {
         AddressDTO addressDTO = modelMapper.map(addressRepository.findById(addressId), AddressDTO.class);
         addressDTO.setId(null);
@@ -46,8 +46,8 @@ public class AddressServiceImpl implements AddressService {
 
     //Metodo per aggiungere un indirizzo
     @Override
-//    @CircuitBreaker(name=ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=ADDRESS_SERVICE)
+    @CircuitBreaker(name=ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=ADDRESS_SERVICE)
     public UUID addAddress(AddressDTO addressDTO) {
         //Controllo che i campi inviati rispettino i criteri
         if(!checkRoadName(addressDTO.getRoadName()) ||
@@ -66,8 +66,8 @@ public class AddressServiceImpl implements AddressService {
 
     //Metodo per eliminare un indirizzo tramite id
     @Override
-//    @CircuitBreaker(name=ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=ADDRESS_SERVICE)
+    @CircuitBreaker(name=ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=ADDRESS_SERVICE)
     public boolean deleteAddress(UUID addressId) {
         try {
             addressRepository.deleteById(addressId);
@@ -79,9 +79,9 @@ public class AddressServiceImpl implements AddressService {
     }
 
     //Metodo per eliminare tutti gli indirizzi associati ad un utente
-//    @Override
-//    @CircuitBreaker(name=ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=ADDRESS_SERVICE)
+    @Override
+    @CircuitBreaker(name=ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    @Retry(name=ADDRESS_SERVICE)
     public boolean deleteAllUserAddresses(List<UserAddressDTO> userAddresses) {
         //Presa degli id dei indirizzi dalle tuple di relazione
         List<UUID> addressId= new Vector<>();
