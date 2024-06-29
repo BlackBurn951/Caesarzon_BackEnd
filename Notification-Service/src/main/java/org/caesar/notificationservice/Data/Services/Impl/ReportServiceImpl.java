@@ -56,7 +56,7 @@ public class ReportServiceImpl implements ReportService {
 
     //Metodo per aggiungere una segnalazione tramite l'id della recensione segnalata
     @Override
-    @Retry(name=REPORT_SERVICE)
+//    @Retry(name=REPORT_SERVICE)
     public ReportDTO getReportByReviewId(UUID id) {
         return modelMapper.map(reportRepository.findByReviewId(id), ReportDTO.class);
     }
@@ -71,8 +71,8 @@ public class ReportServiceImpl implements ReportService {
 
     //Metodo per eliminare una segnalazione
     @Override
-    @CircuitBreaker(name=REPORT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=REPORT_SERVICE)
+//    @CircuitBreaker(name=REPORT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=REPORT_SERVICE)
     public boolean deleteReport(UUID reviewId) {
         try {
             reportRepository.deleteByReviewId(reviewId);

@@ -179,7 +179,7 @@ public class GeneralServiceImpl implements GeneralService{
 
             UserNotificationDTO userNotificationDTO= new UserNotificationDTO();
 
-            userNotificationDTO.setDate(LocalDate.now());
+            userNotificationDTO.setDate(LocalDate.now().toString());
             userNotificationDTO.setSubject(descr);
             userNotificationDTO.setExplanation(sendSupportDTO.getExplain());
             userNotificationDTO.setUser(supportDTO.getUsername());
@@ -193,8 +193,8 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=GENERAL_SERVICE)
+//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=GENERAL_SERVICE)
     public boolean manageReport(String username, UUID reviewId, boolean product, boolean accept) {
 
         ReportDTO reportDTO = reportService.getReportByReviewId(reviewId);

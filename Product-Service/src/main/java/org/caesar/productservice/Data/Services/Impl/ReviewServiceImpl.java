@@ -124,4 +124,9 @@ public class ReviewServiceImpl implements ReviewService {
         return null;
     }
 
+    @Override
+    public String getTextReview(UUID reviewId) {
+        return Objects.requireNonNull(reviewRepository.findById(reviewId).orElse(null)).getText();
+    }
+
 }

@@ -40,7 +40,7 @@ public class UserCardServiceImpl implements UserCardService {
 
         //Presa della lista delle carte associate all'utente
         UserCard userCard = userCardRepository.findById(id).orElse(null);
-
+        System.out.println(userCard.getCard().getBalance());
         return modelMapper.map(userCard, UserCardDTO.class);
     }
 

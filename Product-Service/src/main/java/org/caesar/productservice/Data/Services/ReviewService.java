@@ -15,5 +15,6 @@ public interface ReviewService {
     List<ReviewDTO> getReviewsByProductId(UUID product);
     boolean deleteReview(UUID id);
     AverageDTO getReviewAverage(UUID productID);
+    String getTextReview(UUID reviewId);
 
 }
