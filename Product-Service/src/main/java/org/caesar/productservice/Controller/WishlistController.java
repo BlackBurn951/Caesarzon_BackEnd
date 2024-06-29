@@ -101,10 +101,10 @@ public class WishlistController {
 
 
     @DeleteMapping("/wishlist/product")
-    public ResponseEntity<String> deleteWishlistProductByProductID(@RequestBody SendWishlistProductDTO sendWishlistProductDTO){
+    public ResponseEntity<String> deleteWishlistProductByProductID(@RequestParam("wish-id") UUID wishId, @RequestParam("product-id") UUID productId){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(generalService.deleteProductFromWishList(username, sendWishlistProductDTO))
+        if(generalService.deleteProductFromWishList(username, wishId, productId))
             return new ResponseEntity<>("Prodotto eliminato correttamente dalla lista desideri", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nella cancellazione del prodotto dalla lista desideri", HttpStatus.INTERNAL_SERVER_ERROR);

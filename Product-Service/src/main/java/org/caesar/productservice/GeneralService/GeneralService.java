@@ -27,7 +27,7 @@ public interface GeneralService {
     boolean changeQuantity(String username, UUID productID, int quantity, String size);
     boolean saveLater(String username, UUID productDTO);
     boolean addProductIntoWishList(String username, SendWishlistProductDTO sendWishlistProductDTO);
-    boolean deleteProductFromWishList(String username, SendWishlistProductDTO wishlistProductDTO);
+    boolean deleteProductFromWishList(String username, UUID wishId, UUID productId);
     boolean deleteProductsFromWishList(String username, UUID wishlistId);
     WishProductDTO getWishlistProductsByWishlistID(UUID wishlistId, String username);
     boolean updateOrder(String username, UUID orderId);

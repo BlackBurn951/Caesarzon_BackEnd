@@ -409,11 +409,14 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-    public boolean deleteProductFromWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
-        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, wishlistProductDTO);
+    public boolean deleteProductFromWishList(String username, UUID wishId, UUID productId) {
+        SendWishlistProductDTO sendWishlistProductDTO = new SendWishlistProductDTO();
+        sendWishlistProductDTO.setProductID(productId);
+        sendWishlistProductDTO.setWishlistID(wishId);
 
-        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistDTO().getId());
-        System.out.println("productID: "+ wishListProductDTO.getProductDTO().getId());
+        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO);
+
+
 
         if(wishListProductDTO==null)
             return false;
