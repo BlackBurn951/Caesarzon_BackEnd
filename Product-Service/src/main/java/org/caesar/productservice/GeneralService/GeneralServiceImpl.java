@@ -439,10 +439,8 @@ public class GeneralServiceImpl implements GeneralService {
 
         List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlistDTO);
 
-        if(wishListProductDTOS == null){
-            System.out.println("SOno vuotas");
+        if(wishListProductDTOS == null || wishListProductDTOS.isEmpty())
             return null;
-        }
 
         WishProductDTO wishProductDTO = new WishProductDTO();
 
@@ -451,12 +449,11 @@ public class GeneralServiceImpl implements GeneralService {
         List<SingleWishListProductDTO> singleWishListProductDTOS = new Vector<>();
 
         for(WishListProductDTO wishListProductDTO: wishListProductDTOS){
-            System.out.println("Nome prodotto: " + wishListProductDTO.getProductDTO().getName());
-            System.out.println("Prezzo: " + wishListProductDTO.getProductDTO().getPrice());
             singleWishListProductDTO = new SingleWishListProductDTO();
 
             singleWishListProductDTO.setProductName(wishListProductDTO.getProductDTO().getName());
             singleWishListProductDTO.setPrice(wishListProductDTO.getProductDTO().getPrice());
+            singleWishListProductDTO.setProductId(wishListProductDTO.getProductDTO().getId());
 
             singleWishListProductDTOS.add(singleWishListProductDTO);
 

@@ -10,5 +10,5 @@ import java.util.UUID;
 public class SendWishlistProductDTO {
 
     private UUID productID;
-    private UUID wishlistID  ;
+    private UUID wishlistID;
 }
