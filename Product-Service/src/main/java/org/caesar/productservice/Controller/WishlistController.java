@@ -22,8 +22,7 @@ import java.util.UUID;
 public class WishlistController {
 
     private final WishlistService wishlistService;
-    private final WishlistProductService wishlistProductService;
-    private final GeneralService generalService;
+           private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
 
 
@@ -60,6 +59,7 @@ public class WishlistController {
     @GetMapping("/wishlist/products") // Endpoint per ottenere tutti i prodotti da una lista desideri di un utente
     public ResponseEntity<WishProductDTO> getWishlistProductsByWishlistID(@RequestParam("wish-id") UUID wishlistID){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
+
         WishProductDTO wishProductDTO = generalService.getWishlistProductsByWishlistID(wishlistID, username);
         if(wishProductDTO != null)
             return new ResponseEntity<>(wishProductDTO, HttpStatus.OK);

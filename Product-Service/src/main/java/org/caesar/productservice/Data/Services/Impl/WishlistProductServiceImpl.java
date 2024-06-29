@@ -70,11 +70,10 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
 
     @Override
-    @Retry(name=WISHLISTPRODUCT_SERVICE)
+//    @Retry(name=WISHLISTPRODUCT_SERVICE)
     public List<WishListProductDTO> getWishlistProductsByWishlistID(WishlistDTO wishlistDTO){
         try {
             List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlistDTO, Wishlist.class));
-
             List<WishListProductDTO> wishListProductDTOS1 =  new Vector<>();
 
             WishListProductDTO wishListProductDTO;
