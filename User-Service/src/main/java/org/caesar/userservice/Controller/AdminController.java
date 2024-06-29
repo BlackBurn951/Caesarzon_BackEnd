@@ -10,8 +10,6 @@ import org.caesar.userservice.Dto.BanDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserSearchDTO;
 import org.caesar.userservice.GeneralService.GeneralService;
-//import org.caesar.userservice.Sagas.SagaConsumer;
-//import org.caesar.userservice.Sagas.SagaOrchestrator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
