@@ -77,7 +77,7 @@ public class UserDataController {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         if(recovery)
-            utils.emailSender("capocchione", "secondary.bonanno@gmail.com");
+            utils.emailSender(username, "secondary.bonanno@gmail.com");
         boolean result = userService.changePassword(passwordChangeDTO, username);
 
         if(result)
