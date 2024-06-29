@@ -10,8 +10,6 @@ import org.caesar.userservice.Dto.BanDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserSearchDTO;
 import org.caesar.userservice.GeneralService.GeneralService;
-import org.caesar.userservice.Sagas.SagaConsumer;
-import org.caesar.userservice.Sagas.SagaOrchestrator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,8 +28,8 @@ public class AdminController {
     private final GeneralService generalService;
     private final ProfilePicService profilePicService;
     private final HttpServletRequest httpServletRequest;
-    private final SagaOrchestrator sagaOrchestrator;
-    private final SagaConsumer sagaConsumer;
+//    private final SagaOrchestrator sagaOrchestrator;
+//    private final SagaConsumer sagaConsumer;
 
 
     @GetMapping("/admins")
@@ -87,7 +85,7 @@ public class AdminController {
     public ResponseEntity<String> banUser(@RequestBody BanDTO banDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
         banDTO.setAdminUsername(username);
-        sagaOrchestrator.orchestrateSaga(0);
+//        sagaOrchestrator.orchestrateSaga(0);
         if(adminService.banUser(banDTO))
             return new ResponseEntity<>("Utente bannato con successo", HttpStatus.OK);
         else

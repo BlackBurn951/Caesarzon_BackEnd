@@ -253,10 +253,12 @@ public class GeneralServiceImpl implements GeneralService {
     // Restituisce il prodotto con le sue disponibilità e immagini
     public ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id){
         ProductDTO productDTO = productService.getProductById(id);
-        if(productService.getProductById(id) != null){
+        if(productDTO != null){
             List<AvailabilityDTO> availabilities = availabilityService.getAvailabilitiesByProductID(productDTO);
+            for(AvailabilityDTO availabilityDTO: availabilities)
+                availabilityDTO.setProduct(null);
             productDTO.setAvailabilities(availabilities);
-            lastViewService.save(username, productDTO);
+            //lastViewService.save(username, productDTO);
             return productDTO;
         }
         return null;
