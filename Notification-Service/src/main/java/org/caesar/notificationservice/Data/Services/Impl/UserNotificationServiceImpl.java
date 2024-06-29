@@ -35,7 +35,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
     //Metodo per prendere tutte le notifiche di un utente
     @Override
-    @Retry(name=USER_NOTIFICATION)
+//    @Retry(name=USER_NOTIFICATION)
     public List<UserNotificationDTO> getUserNotification(String username) {
         try {
             List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);  //CANCELLARE DOPO LA VENTASIMA TUPLA
@@ -68,6 +68,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
         try{
             UserNotification notification= new UserNotification();
 
+            notification.setDate(LocalDate.now());
             notification.setId(notificationDTO.getId());
             notification.setUser(notificationDTO.getUser());
             notification.setSubject(notificationDTO.getSubject());
@@ -109,8 +110,8 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
     //Metodo per eliminare la singola notifica dell'utente
     @Override
-    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=USER_NOTIFICATION)
+//    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=USER_NOTIFICATION)
     public boolean deleteUserNotification(UUID id){
         try{
             userNotificationRepository.deleteById(id);
@@ -123,8 +124,8 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
     //Metodo per eliminare tutte le notifiche dell'utente
     @Override
-    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=USER_NOTIFICATION)
+//    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=USER_NOTIFICATION)
     public boolean deleteAllUserNotification(String username){
         try{
             userNotificationRepository.deleteAllByUser(username);

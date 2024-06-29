@@ -36,15 +36,15 @@ public class CardServiceImpl implements CardService {
 
     //Metodo per restituire una carta tramite id
     @Override
-    @Retry(name=CARD_SERVICE)
+//    @Retry(name=CARD_SERVICE)
     public CardDTO getCard(UUID cardId) {
         return modelMapper.map(cardRepository.findById(cardId), CardDTO.class);
     }
 
     //Metodo per aggiungere una carta
     @Override
-    @CircuitBreaker(name=CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=CARD_SERVICE)
+//    @CircuitBreaker(name=CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=CARD_SERVICE)
     public UUID addCard(CardDTO cardDTO) {
         //Controllo che i campi mandati rispettino i criteri
         if(!checkCardNumber(cardDTO.getCardNumber()) || !checkOwner(cardDTO.getOwner()) ||
@@ -63,8 +63,8 @@ public class CardServiceImpl implements CardService {
 
     //Metodo per eliminare una carta
     @Override
-    @CircuitBreaker(name=CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=CARD_SERVICE)
+//    @CircuitBreaker(name=CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=CARD_SERVICE)
     public boolean deleteCard(UUID cardId) {
         try {
             cardRepository.deleteById(cardId);
@@ -77,8 +77,8 @@ public class CardServiceImpl implements CardService {
 
     //Metodo per eliminare le carte dell'utente
     @Override
-    @CircuitBreaker(name=CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=CARD_SERVICE)
+//    @CircuitBreaker(name=CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=CARD_SERVICE)
     public boolean deleteUserCards(List<UserCardDTO> userCards) {
         //Presa degli id dei indirizzi dalle tuple di relazione
         List<UUID> cardId= new Vector<>();

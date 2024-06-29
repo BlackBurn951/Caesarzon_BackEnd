@@ -40,8 +40,8 @@ public class WishlistServiceImpl implements WishlistService {
 
     //Metodo per creare una lista dei desideri per l'utente
     @Override
-    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=WISHLIS_SERVICE)
+//    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=WISHLIS_SERVICE)
     public UUID addOrUpdateWishlist(WishlistDTO wishlistDTO, String username) {
         try {
             wishlistDTO.setUserUsername(username);
@@ -57,13 +57,13 @@ public class WishlistServiceImpl implements WishlistService {
 
     //Metodo per prendere la lista dei desideri dell'utente
     @Override
-    @Retry(name=WISHLIS_SERVICE)
+//    @Retry(name=WISHLIS_SERVICE)
     public WishlistDTO getWishlist(UUID id, String username) {
         return modelMapper.map(wishlistRepository.findWishlistByIdAndUserUsername(id, username), WishlistDTO.class);
     }
 
     @Override
-    @Retry(name=WISHLIS_SERVICE)
+//    @Retry(name=WISHLIS_SERVICE)
     public List<WishlistDTO> getAllWishlist(UUID id, String username) {
         return wishlistRepository.findAllByIdAndUserUsername(id, username)
                 .stream()
@@ -72,7 +72,7 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    @Retry(name=WISHLIS_SERVICE)
+//    @Retry(name=WISHLIS_SERVICE)
     public List<BasicWishlistDTO> getAllWishlists(String ownerUsername, String accessUsername, int visibility) {
         String vs= "";
         switch (visibility) {
@@ -119,8 +119,8 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=WISHLIS_SERVICE)
+//    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=WISHLIS_SERVICE)
     public boolean deleteWishlist(UUID id) {
         try {
             wishlistRepository.deleteById(id);
@@ -133,8 +133,8 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=WISHLIS_SERVICE)
+//    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=WISHLIS_SERVICE)
     public boolean changeVisibility(int visibility, String username, UUID whisListId) {
         try{
             Wishlist wishlist = wishlistRepository.findWishlistByIdAndUserUsername(whisListId, username);

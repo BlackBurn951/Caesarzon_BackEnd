@@ -43,8 +43,8 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=GENERAL_SERVICE)
+//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=GENERAL_SERVICE)
     public boolean addReportRequest(String username1, ReportDTO reportDTO) {
         try {
             //Aggiungo al DTO la data e l'username che ha inviato la segnalazione
@@ -118,8 +118,8 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=GENERAL_SERVICE)
+//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=GENERAL_SERVICE)
     public boolean addSupportRequest(String username, SupportDTO supportDTO) {
 
         supportDTO.setDateRequest(LocalDate.now());
@@ -165,10 +165,12 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=GENERAL_SERVICE)
-    public boolean manageSupportRequest(String username, SupportResponseDTO sendSupportDTO) {
-
+//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=GENERAL_SERVICE)
+    public boolean manageSupportRequest(String username,UUID supportId, String explain) {
+        SupportResponseDTO sendSupportDTO = new SupportResponseDTO();
+        sendSupportDTO.setSupportCode(supportId);
+        sendSupportDTO.setExplain(explain);
         SupportDTO supportDTO= supportRequestService.getSupport(sendSupportDTO.getSupportCode());
 
         boolean delAdminNot = adminNotificationService.deleteBySupport(supportDTO);
@@ -212,8 +214,8 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=GENERAL_SERVICE)
+//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=GENERAL_SERVICE)
     public boolean updateAdminNotification(List<AdminNotificationDTO> notificationDTO) {
         try{
             List<SaveAdminNotificationDTO> saveNotificationDTO = new Vector<>();
