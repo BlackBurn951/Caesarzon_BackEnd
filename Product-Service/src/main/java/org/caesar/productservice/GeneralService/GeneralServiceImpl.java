@@ -276,11 +276,15 @@ public class GeneralServiceImpl implements GeneralService {
             productSearchDTO1 = new ProductSearchDTO();
             averageDTO = reviewService.getReviewAverage(p.getId());
 
+            productSearchDTO1.setProductId(p.getId());
             productSearchDTO1.setAverageReview(averageDTO.getAvarege());
             productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
 
             productSearchDTO1.setProductName(p.getName());
             productSearchDTO1.setPrice(p.getPrice());
+
+            productSearchDTO1.setAverageReview(averageDTO.getAvarege());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
 
             productSearchDTO.add(productSearchDTO1);
         }
@@ -405,11 +409,14 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-    public boolean deleteProductFromWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
-        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, wishlistProductDTO);
+    public boolean deleteProductFromWishList(String username, UUID wishId, UUID productId) {
+        SendWishlistProductDTO sendWishlistProductDTO = new SendWishlistProductDTO();
+        sendWishlistProductDTO.setProductID(productId);
+        sendWishlistProductDTO.setWishlistID(wishId);
 
-        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistDTO().getId());
-        System.out.println("productID: "+ wishListProductDTO.getProductDTO().getId());
+        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO);
+
+
 
         if(wishListProductDTO==null)
             return false;

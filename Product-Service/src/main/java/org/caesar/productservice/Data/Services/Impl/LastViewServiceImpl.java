@@ -30,8 +30,8 @@ public class LastViewServiceImpl implements LastViewService {
     }
 
     @Override
-    @CircuitBreaker(name=LASTVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=LASTVIEW_SERVICE)
+//    @CircuitBreaker(name=LASTVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=LASTVIEW_SERVICE)
     public boolean save(String username, ProductDTO productDTO) {
         try{
             LastViewDTO lastViewDTO = new LastViewDTO();
@@ -50,7 +50,7 @@ public class LastViewServiceImpl implements LastViewService {
     }
 
     @Override
-    @Retry(name=LASTVIEW_SERVICE)
+//    @Retry(name=LASTVIEW_SERVICE)
     public List<LastViewDTO> getAllViewed(String username) {
         try{
             return lastViewRepository.getLastViewsByUsername(username).stream().map(a-> modelMapper.map(a, LastViewDTO.class)).toList();

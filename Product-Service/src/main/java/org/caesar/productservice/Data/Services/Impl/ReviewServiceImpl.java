@@ -35,8 +35,8 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name= REVIEW_SERVICE)
+//    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name= REVIEW_SERVICE)
     public UUID addReview(ReviewDTO reviewDTO, String username) {
         if(reviewDTO == null){
             return null;
@@ -65,14 +65,14 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    @Retry(name= REVIEW_SERVICE)
+//    @Retry(name= REVIEW_SERVICE)
     public Review getReviewById(UUID reviewID) {
 
         return reviewRepository.findById(reviewID).orElse(null);
     }
 
     @Override
-    @Retry(name= REVIEW_SERVICE)
+//    @Retry(name= REVIEW_SERVICE)
     public UUID getReviewIDByUsernameAndProductID(String username, UUID productID) {
         Product product = productRepository.findById(productID).orElse(null);
         return reviewRepository.findReviewByUserIDAndProduct(username, product).getId();
@@ -80,7 +80,7 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-    @Retry(name= REVIEW_SERVICE)
+//    @Retry(name= REVIEW_SERVICE)
     public List<ReviewDTO> getReviewsByProductId(UUID productID) {
         Product product = productRepository.findById(productID).orElse(null);
         List<ReviewDTO> reviewDTOS = new ArrayList<>();
@@ -93,8 +93,8 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name= REVIEW_SERVICE)
+//    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name= REVIEW_SERVICE)
     public boolean deleteReview(UUID id) {
         try {
             reviewRepository.deleteById(id);
@@ -107,7 +107,7 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-    @Retry(name= REVIEW_SERVICE)
+//    @Retry(name= REVIEW_SERVICE)
     public AverageDTO getReviewAverage(UUID productID) {
         Product product = productRepository.findById(productID).orElse(null);
         if(product != null){
