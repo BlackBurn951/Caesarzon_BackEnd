@@ -118,8 +118,8 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
     //Metodo per eliminare le notifiche dell'admin tramite segnalazione
     @Override
-    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=ADMIN_NOTIFICATION)
+//    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=ADMIN_NOTIFICATION)
     public boolean deleteByReport(ReportDTO reportDTO) {
         try{
             adminNotificationRepository.deleteByReport(modelMapper.map(reportDTO, Report.class));

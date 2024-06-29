@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/notify-api")
@@ -36,17 +37,17 @@ public class SupportController {
     public ResponseEntity<String> sendReport(@RequestBody SupportDTO supportDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(generalService.addSupportRequest(username, supportDTO))
+        if(generalService.addSupportRequest(username , supportDTO))
             return new ResponseEntity<>("Richiesta di supporto inviata con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'invio della richiesta di supporto...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @DeleteMapping("/support")
-    public ResponseEntity<String> deleteSupport(@RequestBody SupportResponseDTO supportDTO) {
+    public ResponseEntity<String> deleteSupport(@RequestParam("support-id") UUID supportId, @RequestParam("explain") String explain) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(generalService.manageSupportRequest(username, supportDTO))
+        if(generalService.manageSupportRequest(username, supportId, explain))
             return new ResponseEntity<>("Richiesta di supporto eliminata con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'eliminazione della richiesta di supporto", HttpStatus.INTERNAL_SERVER_ERROR);

@@ -276,11 +276,15 @@ public class GeneralServiceImpl implements GeneralService {
             productSearchDTO1 = new ProductSearchDTO();
             averageDTO = reviewService.getReviewAverage(p.getId());
 
+            productSearchDTO1.setProductId(p.getId());
             productSearchDTO1.setAverageReview(averageDTO.getAvarege());
             productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
 
             productSearchDTO1.setProductName(p.getName());
             productSearchDTO1.setPrice(p.getPrice());
+
+            productSearchDTO1.setAverageReview(averageDTO.getAvarege());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
 
             productSearchDTO.add(productSearchDTO1);
         }
