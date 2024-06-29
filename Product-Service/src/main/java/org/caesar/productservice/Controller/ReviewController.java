@@ -40,9 +40,18 @@ public class ReviewController {
         }
     }
 
+    @GetMapping("/review/{id}")
+    public ResponseEntity<String> getReview(@PathVariable UUID id) {
+        String testoReview = reviewService.getTextReview(id);
+        if (!testoReview.isEmpty()) {
+            return new ResponseEntity<>(testoReview, HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     // Endpoint per ottenere la lista di tutte le recensioni di un prodotto tramite il suo id
     @GetMapping("/reviews")
-    public ResponseEntity<List<ReviewDTO>> getReviews(@RequestParam UUID productID) {
+    public ResponseEntity<List<ReviewDTO>> getReviews(@RequestParam("prod-id") UUID productID) {
         List<ReviewDTO> reviewDTOS = reviewService.getReviewsByProductId(productID);
         if (!reviewDTOS.isEmpty()) {
             return new ResponseEntity<>(reviewDTOS, HttpStatus.OK);

@@ -167,9 +167,12 @@ public class GeneralServiceImpl implements GeneralService{
     @Transactional
     @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=GENERAL_SERVICE)
-    public boolean manageSupportRequest(String username, SupportResponseDTO sendSupportDTO) {
+    public boolean manageSupportRequest(String username, UUID supportId, String explain) {
+        SupportResponseDTO supportResponseDTO = new SupportResponseDTO();
+        supportResponseDTO.setSupportCode(supportId);
+        supportResponseDTO.setExplain(explain);
 
-        SupportDTO supportDTO= supportRequestService.getSupport(sendSupportDTO.getSupportCode());
+        SupportDTO supportDTO= supportRequestService.getSupport(supportResponseDTO.getSupportCode());
 
         boolean delAdminNot = adminNotificationService.deleteBySupport(supportDTO);
 
@@ -179,9 +182,9 @@ public class GeneralServiceImpl implements GeneralService{
 
             UserNotificationDTO userNotificationDTO= new UserNotificationDTO();
 
-            userNotificationDTO.setDate(LocalDate.now());
+            userNotificationDTO.setDate(LocalDate.now().toString());
             userNotificationDTO.setSubject(descr);
-            userNotificationDTO.setExplanation(sendSupportDTO.getExplain());
+            userNotificationDTO.setExplanation(supportResponseDTO.getExplain());
             userNotificationDTO.setUser(supportDTO.getUsername());
             userNotificationDTO.setRead(false);
 
@@ -193,8 +196,8 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=GENERAL_SERVICE)
+//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=GENERAL_SERVICE)
     public boolean manageReport(String username, UUID reviewId, boolean product, boolean accept) {
 
         ReportDTO reportDTO = reportService.getReportByReviewId(reviewId);

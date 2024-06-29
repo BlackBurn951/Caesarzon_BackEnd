@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.Vector;
 
 @Service
 @RequiredArgsConstructor
@@ -42,9 +43,17 @@ public class UserNotificationServiceImpl implements UserNotificationService {
             if(notifications==null || notifications.isEmpty())
                 return null;
 
-            return notifications.stream()
+            List<UserNotificationDTO> notificationDTO= notifications.stream()
                     .map(a -> modelMapper.map(a, UserNotificationDTO.class))
-                    .toList();
+                    .toList();  //FIXME DA VEDERE SE MAPPA NULL O NO
+
+            for(UserNotificationDTO notify: notificationDTO) {
+                System.out.println(notify.getDate());
+                String date= String.valueOf(notify.getDate());
+
+                notify.setDate(date);
+            }
+            return notificationDTO;
         } catch (Exception | Error e) {
             log.debug("Errore nella presa delle notifiche");
             return null;
@@ -57,13 +66,14 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 //    @Retry(name=USER_NOTIFICATION)
     public boolean addUserNotification(UserNotificationDTO notificationDTO) {
         try{
-            System.out.println("user: " + notificationDTO.getUser());
-            System.out.println("data: " + notificationDTO.getDate());
-            System.out.println("read: " + notificationDTO.isRead());
-            System.out.println("explanation: " + notificationDTO.getExplanation());
-            System.out.println("subj: " + notificationDTO.getSubject());
-            notificationDTO.setDate(LocalDate.now());
-            userNotificationRepository.save(modelMapper.map(notificationDTO, UserNotification.class));
+            UserNotification notification= new UserNotification();
+
+            notification.setId(notificationDTO.getId());
+            notification.setUser(notificationDTO.getUser());
+            notification.setSubject(notificationDTO.getSubject());
+            notification.setExplanation(notificationDTO.getExplanation());
+            notification.setRead(notificationDTO.isRead());
+            userNotificationRepository.save(notification);
 
             return true;
         }catch(Exception | Error e){
@@ -74,17 +84,21 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
     //Metodo per aggiornare lo stato di lettura delle notifiche dell'utente
     @Override
-    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=USER_NOTIFICATION)
+//    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=USER_NOTIFICATION)
     public boolean updateUserNotification(List<UserNotificationDTO> notificationDTO) {
         try{
+            List<UserNotification> notification= new Vector<>();
+
             for(UserNotificationDTO user: notificationDTO){
                 UserNotification userNot = userNotificationRepository.findById(user.getId()).orElse(null);
                 assert userNot != null;
-                user.setDate(userNot.getDate());
-                user.setRead(true);
+                userNot.setRead(true);
+
+
+                notification.add(userNot);
             }
-            userNotificationRepository.saveAll(notificationDTO.stream().map(a -> modelMapper.map(a, UserNotification.class)).toList());
+            userNotificationRepository.saveAll(notification);
 
             return true;
         }catch(Exception | Error e){

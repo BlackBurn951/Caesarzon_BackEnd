@@ -3,6 +3,7 @@ package org.caesar.productservice.Dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Getter
@@ -14,4 +15,5 @@ public class ReviewDTO {
     private int evaluation;
     private String username;
     private UUID productID;
+    private LocalDate date;
 }

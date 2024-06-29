@@ -253,10 +253,12 @@ public class GeneralServiceImpl implements GeneralService {
     // Restituisce il prodotto con le sue disponibilità e immagini
     public ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id){
         ProductDTO productDTO = productService.getProductById(id);
-        if(productService.getProductById(id) != null){
+        if(productDTO != null){
             List<AvailabilityDTO> availabilities = availabilityService.getAvailabilitiesByProductID(productDTO);
+            for(AvailabilityDTO availabilityDTO: availabilities)
+                availabilityDTO.setProduct(null);
             productDTO.setAvailabilities(availabilities);
-            lastViewService.save(username, productDTO);
+            //lastViewService.save(username, productDTO);
             return productDTO;
         }
         return null;
@@ -274,11 +276,15 @@ public class GeneralServiceImpl implements GeneralService {
             productSearchDTO1 = new ProductSearchDTO();
             averageDTO = reviewService.getReviewAverage(p.getId());
 
+            productSearchDTO1.setProductId(p.getId());
             productSearchDTO1.setAverageReview(averageDTO.getAvarege());
             productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
 
             productSearchDTO1.setProductName(p.getName());
             productSearchDTO1.setPrice(p.getPrice());
+
+            productSearchDTO1.setAverageReview(averageDTO.getAvarege());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
 
             productSearchDTO.add(productSearchDTO1);
         }
@@ -437,10 +443,8 @@ public class GeneralServiceImpl implements GeneralService {
 
         List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlistDTO);
 
-        if(wishListProductDTOS == null){
-            System.out.println("SOno vuotas");
+        if(wishListProductDTOS == null || wishListProductDTOS.isEmpty())
             return null;
-        }
 
         WishProductDTO wishProductDTO = new WishProductDTO();
 
@@ -449,12 +453,11 @@ public class GeneralServiceImpl implements GeneralService {
         List<SingleWishListProductDTO> singleWishListProductDTOS = new Vector<>();
 
         for(WishListProductDTO wishListProductDTO: wishListProductDTOS){
-            System.out.println("Nome prodotto: " + wishListProductDTO.getProductDTO().getName());
-            System.out.println("Prezzo: " + wishListProductDTO.getProductDTO().getPrice());
             singleWishListProductDTO = new SingleWishListProductDTO();
 
             singleWishListProductDTO.setProductName(wishListProductDTO.getProductDTO().getName());
             singleWishListProductDTO.setPrice(wishListProductDTO.getProductDTO().getPrice());
+            singleWishListProductDTO.setProductId(wishListProductDTO.getProductDTO().getId());
 
             singleWishListProductDTOS.add(singleWishListProductDTO);
 

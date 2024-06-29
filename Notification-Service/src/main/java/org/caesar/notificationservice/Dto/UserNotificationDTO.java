@@ -11,7 +11,7 @@ import java.util.UUID;
 @Setter
 public class UserNotificationDTO {
     private UUID id;
-    private LocalDate date;
+    private String date;
     private String subject;
     private String user;
     private boolean read;
