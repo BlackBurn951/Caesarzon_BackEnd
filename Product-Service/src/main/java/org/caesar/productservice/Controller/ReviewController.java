@@ -42,7 +42,7 @@ public class ReviewController {
 
     // Endpoint per ottenere la lista di tutte le recensioni di un prodotto tramite il suo id
     @GetMapping("/reviews")
-    public ResponseEntity<List<ReviewDTO>> getReviews(@RequestParam UUID productID) {
+    public ResponseEntity<List<ReviewDTO>> getReviews(@RequestParam("prod-id") UUID productID) {
         List<ReviewDTO> reviewDTOS = reviewService.getReviewsByProductId(productID);
         if (!reviewDTOS.isEmpty()) {
             return new ResponseEntity<>(reviewDTOS, HttpStatus.OK);
