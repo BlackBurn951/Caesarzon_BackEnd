@@ -36,6 +36,6 @@ public interface GeneralService {
     String checkOrder(String username, BuyDTO buyDTO, boolean payMethod);
     List<ProductSearchDTO>newProducts();
     List<ProductSearchDTO> getOffers();
-
+    List<Integer> getReviewScore(UUID productId);
 
 }
