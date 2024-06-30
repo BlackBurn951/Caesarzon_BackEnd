@@ -9,11 +9,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
+import org.caesar.userservice.Utils.Utils;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -38,6 +40,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     private final FollowerService followerService;
 
+    private final Utils utils;
     private final static String GENERAL_SERVICE= "generalService";
 
 
@@ -206,6 +209,21 @@ public class GeneralServiceImpl implements GeneralService {
         return false;
     }
 
+    @Override
+    public boolean recoveryPassword(String username) {
+        UserDTO user= userService.getUser(username);
+
+        if(user==null)
+            return false;
+
+        String otp= generateOTP();
+        if(utils.emailSender(username, user.getEmail(), otp)) {
+            user.setOtp(otp);
+            return userService.updateUser(user);
+        }
+        return false;
+    }
+
 
     //Getters per prendere i dati dalle tabelle di relazione
     @Override
@@ -357,5 +375,19 @@ public class GeneralServiceImpl implements GeneralService {
         userAddressDTO.setUserUsername(userUsername);
 
         return userAddressService.addUserAddreses(userAddressDTO)? 0: 1;
+    }
+    private String generateOTP() {
+        int length = 5;
+
+        String charset = "0123456789";
+
+        SecureRandom random = new SecureRandom();
+        StringBuilder otp = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(charset.length());
+            otp.append(charset.charAt(index));
+        }
+
+        return otp.toString();
     }
 }

@@ -128,6 +128,21 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public boolean checkOtp(PasswordChangeDTO passwordChangeDTO, String otp) {
+        User user= userRepository.findUserByUsername(passwordChangeDTO.getUsername());
+
+        if(user==null)
+            return false;
+
+        if(user.getOtp().equals(otp)) {
+            changePassword(passwordChangeDTO, user.getUsername());
+            user.setOtp(null);
+            return userRepository.updateUser(modelMapper.map(user, UserDTO.class));
+        }
+        return false;
+    }
+
 
     //Metodi per la convalida dei dati
     private boolean checkUsername(String username) {
