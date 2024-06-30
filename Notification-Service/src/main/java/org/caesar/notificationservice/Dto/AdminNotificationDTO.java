@@ -10,7 +10,7 @@ import java.util.UUID;
 @Setter
 public class AdminNotificationDTO {
     private UUID id;
-    private LocalDate date;
+    private String date;
     private String subject;
     private String admin;
     private boolean read;

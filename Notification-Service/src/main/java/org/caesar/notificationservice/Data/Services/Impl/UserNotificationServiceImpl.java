@@ -50,10 +50,12 @@ public class UserNotificationServiceImpl implements UserNotificationService {
             for(UserNotificationDTO notify: notificationDTO) {
                 System.out.println(notify.getDate());
                 String date= String.valueOf(notify.getDate());
-
                 notify.setDate(date);
             }
+
             return notificationDTO;
+
+
         } catch (Exception | Error e) {
             log.debug("Errore nella presa delle notifiche");
             return null;
@@ -68,6 +70,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
         try{
             UserNotification notification= new UserNotification();
 
+            notification.setDate(LocalDate.now());
             notification.setId(notificationDTO.getId());
             notification.setUser(notificationDTO.getUser());
             notification.setSubject(notificationDTO.getSubject());
@@ -109,7 +112,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
     //Metodo per eliminare la singola notifica dell'utente
     @Override
-    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+//    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=USER_NOTIFICATION)
     public boolean deleteUserNotification(UUID id){
         try{
@@ -123,7 +126,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
     //Metodo per eliminare tutte le notifiche dell'utente
     @Override
-    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+//    @CircuitBreaker(name=USER_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=USER_NOTIFICATION)
     public boolean deleteAllUserNotification(String username){
         try{

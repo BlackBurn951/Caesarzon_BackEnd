@@ -35,7 +35,7 @@ public class ReportServiceImpl implements ReportService {
 
     //Metodo per aggiungere una segnalazione
     @Override
-    @CircuitBreaker(name=REPORT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @CircuitBreaker(name=REPORT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=REPORT_SERVICE)
     public ReportDTO addReport(ReportDTO reportDTO) {
         try {
