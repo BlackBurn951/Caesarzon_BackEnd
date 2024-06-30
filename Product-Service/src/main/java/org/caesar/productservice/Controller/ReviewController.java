@@ -28,6 +28,41 @@ public class ReviewController {
     private final RestTemplate restTemplate;
     private final HttpServletRequest httpServletRequest;
 
+
+    @GetMapping("/review/{id}")
+    public ResponseEntity<String> getReview(@PathVariable UUID id) {
+        String testoReview = reviewService.getTextReview(id);
+        if (!testoReview.isEmpty()) {
+            return new ResponseEntity<>(testoReview, HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/review/average")
+    public ResponseEntity<AverageDTO> getReviewAverage(@RequestParam("prod-id") UUID productID) {
+
+        if(productID != null) {
+            AverageDTO averageDTO = reviewService.getReviewAverage(productID);
+            if(averageDTO != null){
+                return new ResponseEntity<>(averageDTO, HttpStatus.OK);
+            }
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // Endpoint per ottenere la lista di tutte le recensioni di un prodotto tramite il suo id
+    @GetMapping("/reviews")
+    public ResponseEntity<List<ReviewDTO>> getReviews(@RequestParam("prod-id") UUID productID) {
+        List<ReviewDTO> reviewDTOS = reviewService.getReviewsByProductId(productID);
+        if (!reviewDTOS.isEmpty()) {
+            return new ResponseEntity<>(reviewDTOS, HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     // Endpoint per l'aggiunta di una recensione
     @PostMapping("/review")
     public ResponseEntity<String> addReview(@RequestBody ReviewDTO reviewDTO) {
@@ -40,25 +75,6 @@ public class ReviewController {
         }
     }
 
-    @GetMapping("/review/{id}")
-    public ResponseEntity<String> getReview(@PathVariable UUID id) {
-        String testoReview = reviewService.getTextReview(id);
-        if (!testoReview.isEmpty()) {
-            return new ResponseEntity<>(testoReview, HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    // Endpoint per ottenere la lista di tutte le recensioni di un prodotto tramite il suo id
-    @GetMapping("/reviews")
-    public ResponseEntity<List<ReviewDTO>> getReviews(@RequestParam("prod-id") UUID productID) {
-        List<ReviewDTO> reviewDTOS = reviewService.getReviewsByProductId(productID);
-        if (!reviewDTOS.isEmpty()) {
-            return new ResponseEntity<>(reviewDTOS, HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
     // Endpoint per l'eliminazione di una recensione e delle eventuali segnalazioni ad essa collegate
     @DeleteMapping("/review")
     public ResponseEntity<String> deleteReviewByUser(@RequestParam("product-id") UUID productID){
@@ -97,18 +113,4 @@ public class ReviewController {
             return new ResponseEntity<>("Recensione trovata", HttpStatus.OK);
         }
     }
-
-    @GetMapping("/review/average")
-    public ResponseEntity<AverageDTO> getReviewAverage(@RequestParam UUID productID) {
-
-        if(productID != null) {
-            AverageDTO averageDTO = reviewService.getReviewAverage(productID);
-            if(averageDTO != null){
-                return new ResponseEntity<>(averageDTO, HttpStatus.OK);
-            }
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
 }

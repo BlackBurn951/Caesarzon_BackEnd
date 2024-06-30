@@ -62,11 +62,9 @@ public class UserDataController {
             return new ResponseEntity<>("Problemi nell'aggiornamento...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/password/{username}")
-    public ResponseEntity<String> forgottenPassword(@PathVariable String username, @RequestBody PasswordChangeDTO passwordChangeDTO){
-        boolean result = userService.changePassword(passwordChangeDTO, username);
-
-        if(result)
+    @PutMapping("/otp/{otp}")
+    public ResponseEntity<String> forgottenPassword(@PathVariable String otp, @RequestBody PasswordChangeDTO passwordChangeDTO){
+        if(userService.checkOtp(passwordChangeDTO, otp))
             return new ResponseEntity<>("Password cambiata", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore cambio password...", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -76,14 +74,15 @@ public class UserDataController {
     public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDTO passwordChangeDTO, @RequestParam("recovery") boolean recovery){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(recovery)
-            utils.emailSender(username, "secondary.bonanno@gmail.com");
-        boolean result = userService.changePassword(passwordChangeDTO, username);
-
-        if(result)
-            return new ResponseEntity<>("Password cambiata", HttpStatus.OK);
-        else
+        if(recovery) {
+            if(generalService.recoveryPassword(passwordChangeDTO.getUsername()))
+                return new ResponseEntity<>("Invio otp avvenuto con successo!", HttpStatus.OK);
+            return new ResponseEntity<>("Problemi nell'invio dell'otp...", HttpStatus.INTERNAL_SERVER_ERROR);
+        } else {
+            if(userService.changePassword(passwordChangeDTO, username))
+                return new ResponseEntity<>("Password cambiata", HttpStatus.OK);
             return new ResponseEntity<>("Errore cambio password...", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping("/user")

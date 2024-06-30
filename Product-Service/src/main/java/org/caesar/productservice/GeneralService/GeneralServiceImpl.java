@@ -199,8 +199,8 @@ public class GeneralServiceImpl implements GeneralService {
                 prod.setReviewsNumber(0);
                 prod.setAverageReview(0.0);
             } else {
-                prod.setReviewsNumber(average.getNummberOfReview());
-                prod.setAverageReview(average.getAvarege());
+                prod.setReviewsNumber(average.getNumberOfReview());
+                prod.setAverageReview(average.getAverage());
             }
             prod.setProductId(p.getId());
             prod.setProductName(p.getName());
@@ -322,15 +322,15 @@ public class GeneralServiceImpl implements GeneralService {
             averageDTO = reviewService.getReviewAverage(p.getId());
 
             productSearchDTO1.setProductId(p.getId());
-            productSearchDTO1.setAverageReview(averageDTO.getAvarege());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
+            productSearchDTO1.setAverageReview(averageDTO.getAverage());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
 
             productSearchDTO1.setProductName(p.getName());
             productSearchDTO1.setPrice(p.getPrice());
             productSearchDTO1.setDiscount(p.getDiscount());
 
-            productSearchDTO1.setAverageReview(averageDTO.getAvarege());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
+            productSearchDTO1.setAverageReview(averageDTO.getAverage());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
 
             productSearchDTO.add(productSearchDTO1);
         }
@@ -360,8 +360,8 @@ public class GeneralServiceImpl implements GeneralService {
             productSearchDTO1 = new ProductSearchDTO();
             averageDTO = reviewService.getReviewAverage(p.getId());
 
-            productSearchDTO1.setAverageReview(averageDTO.getAvarege());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
+            productSearchDTO1.setAverageReview(averageDTO.getAverage());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
 
             productSearchDTO1.setProductName(p.getName());
             productSearchDTO1.setPrice(p.getPrice());

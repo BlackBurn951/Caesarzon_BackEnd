@@ -170,6 +170,9 @@ public class UserRepositoryImpl implements UserRepository {
             Map<String, List<String>> attributes = new HashMap<>();  //FIXME controllare vecchia config
 
             attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
+            if(userData.getOtp()!=null)
+                attributes.put("otp", List.of(userData.getOtp()));
+
             user.setAttributes(attributes);
 
             userResource.update(user);
@@ -207,9 +210,14 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    @Transactional
     public boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username) {
 
         String userId= findUserByUsername(username).getId();
+
+        if(userId==null)
+            return false;
+
         UserResource userResource= keycloak.realm("CaesarRealm").users().get(userId);
 
         CredentialRepresentation credential = new CredentialRepresentation();
@@ -252,6 +260,8 @@ public class UserRepositoryImpl implements UserRepository {
             //Verifica ed eventuale aggiunta del campo inerente al numero di telefono
             if (usersResource.getFirst().getAttributes() != null)
                 user.setPhoneNumber(usersResource.getFirst().getAttributes().get("phoneNumber").getFirst());
+            else if (usersResource.size()==2 && usersResource.get(1).getAttributes().get("otp") != null)
+                user.setOtp(usersResource.get(1).getAttributes().get("otp").getFirst());
 
             return user;
         } catch (Exception | Error e) {

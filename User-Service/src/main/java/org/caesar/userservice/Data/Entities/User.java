@@ -19,6 +19,8 @@ public class User {
 
     private String email;
 
+    private String otp;
+
     public User() {
     }
 
