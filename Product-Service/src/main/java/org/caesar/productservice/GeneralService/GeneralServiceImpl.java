@@ -75,8 +75,11 @@ public class GeneralServiceImpl implements GeneralService {
         ProductCartDTO prod;
         for(ProductOrderDTO p: productCart){
             prod = new ProductCartDTO();
-            prod.setName(productService.getProductById(p.getId()).getName());
-            prod.setId(p.getId());
+
+            ProductDTO productDTO= productService.getProductById(p.getProductDTO().getId());
+
+            prod.setName(productDTO.getName());
+            prod.setId(productDTO.getId());
             prod.setTotal(p.getTotal());
             prod.setQuantity(p.getQuantity());
             prod.setSize(p.getSize());
@@ -209,6 +212,29 @@ public class GeneralServiceImpl implements GeneralService {
 
             result.add(prod);
         }
+
+        return result;
+    }
+
+    @Override
+    public List<Integer> getReviewScore(UUID productId) {
+        ProductDTO product= productService.getProductById(productId);
+
+        if(product==null)
+            return null;
+
+        int oneStar= reviewService.getNumberOfReview(product, 1);
+        int twoStar= reviewService.getNumberOfReview(product, 2);
+        int threeStar= reviewService.getNumberOfReview(product, 3);
+        int fourStar= reviewService.getNumberOfReview(product, 4);
+        int fiveStar= reviewService.getNumberOfReview(product, 5);
+
+        List<Integer> result= new Vector<>();
+        result.add(oneStar);
+        result.add(twoStar);
+        result.add(threeStar);
+        result.add(fourStar);
+        result.add(fiveStar);
 
         return result;
     }

@@ -9,6 +9,7 @@ import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
 import org.caesar.productservice.Data.Services.ReviewService;
 import org.caesar.productservice.Dto.AverageDTO;
+import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -65,7 +66,6 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
 //    @Retry(name= REVIEW_SERVICE)
     public Review getReviewById(UUID reviewID) {
-
         return reviewRepository.findById(reviewID).orElse(null);
     }
 
@@ -127,6 +127,13 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public String getTextReview(UUID reviewId) {
         return Objects.requireNonNull(reviewRepository.findById(reviewId).orElse(null)).getText();
+    }
+
+    @Override
+    public int getNumberOfReview(ProductDTO productDTO, int star) {
+        List<Review> result= reviewRepository.findAllByProductAndEvaluation(modelMapper.map(productDTO, Product.class), star);
+
+        return result==null || result.isEmpty()? 0: result.size();
     }
 
 }

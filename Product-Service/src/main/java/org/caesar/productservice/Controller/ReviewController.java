@@ -7,6 +7,7 @@ import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Data.Services.ReviewService;
 import org.caesar.productservice.Dto.AverageDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
+import org.caesar.productservice.GeneralService.GeneralService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -27,7 +28,7 @@ public class ReviewController {
     private final ReviewService reviewService;
     private final RestTemplate restTemplate;
     private final HttpServletRequest httpServletRequest;
-
+    private final GeneralService generalService;
 
     @GetMapping("/review/{id}")
     public ResponseEntity<String> getReview(@PathVariable UUID id) {
@@ -61,6 +62,16 @@ public class ReviewController {
         }else{
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/reviews/score")
+    public ResponseEntity<List<Integer>> getReviewsScore(@RequestParam("prod-id") UUID productID) {
+        List<Integer> result= generalService.getReviewScore(productID);
+
+        if(result != null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     // Endpoint per l'aggiunta di una recensione

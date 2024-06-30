@@ -83,6 +83,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.DELETE, "/product-api/review").permitAll()
                         .pathMatchers(HttpMethod.DELETE, "/product-api/admin/review").permitAll()
                         .pathMatchers(HttpMethod.GET, "/product-api/search").permitAll()
+                        .pathMatchers(HttpMethod.PUT, "/product-api/wishlist/").hasRole("basic")
 
                         .pathMatchers(HttpMethod.GET, "/product-api/search").permitAll()
 

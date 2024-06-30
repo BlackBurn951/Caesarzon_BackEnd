@@ -38,11 +38,11 @@ public class OrderController {
     //Metodi per la gestione del carrello
     @GetMapping("/cart")
     public ResponseEntity<List<ProductCartDTO>> getCart(){
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
+         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         List<ProductCartDTO> result= generalService.getCart(username);
 
-        if(result==null)
+        if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
