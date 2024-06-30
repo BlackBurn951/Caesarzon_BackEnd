@@ -62,8 +62,8 @@ public class UserDataController {
             return new ResponseEntity<>("Problemi nell'aggiornamento...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/otp")
-    public ResponseEntity<String> forgottenPassword(@RequestParam("otp") String otp, @RequestBody PasswordChangeDTO passwordChangeDTO){
+    @PutMapping("/otp/{otp}")
+    public ResponseEntity<String> forgottenPassword(@PathVariable String otp, @RequestBody PasswordChangeDTO passwordChangeDTO){
         if(userService.checkOtp(passwordChangeDTO, otp))
             return new ResponseEntity<>("Password cambiata", HttpStatus.OK);
         else
