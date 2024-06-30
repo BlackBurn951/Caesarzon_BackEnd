@@ -54,6 +54,7 @@ public class GeneralServiceImpl implements GeneralService {
     // Aggiunge il prodotto ricevuto da front al db dei prodotti
     public boolean addProduct(ProductDTO sendProductDTO) {
         // Mappa sendProductDTO a ProductDTO
+        sendProductDTO.setLastModified(LocalDate.now());
         ProductDTO productDTO = modelMapper.map(sendProductDTO, ProductDTO.class);
         // Aggiorna l'ID del productDTO dopo averlo salvato
         productDTO.setId(productService.addOrUpdateProduct(productDTO).getId());
@@ -174,6 +175,45 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
+    public List<ProductSearchDTO> newProducts() {
+        List<ProductDTO> productDTO = productService.getLastProducts();
+
+        return metodoAusiliario(productDTO);
+    }
+
+    @Override
+    public List<ProductSearchDTO> getOffers() {
+        List<ProductDTO> products= productService.getOffer();
+
+        if(products==null || products.isEmpty())
+            return null;
+
+        List<ProductSearchDTO> result= new Vector<>();
+        ProductSearchDTO prod;
+        AverageDTO average;
+        for(ProductDTO p: products){
+            average= reviewService.getReviewAverage(p.getId());
+
+            prod= new ProductSearchDTO();
+            if(average==null) {
+                prod.setReviewsNumber(0);
+                prod.setAverageReview(0.0);
+            } else {
+                prod.setReviewsNumber(average.getNummberOfReview());
+                prod.setAverageReview(average.getAvarege());
+            }
+            prod.setProductId(p.getId());
+            prod.setProductName(p.getName());
+            prod.setPrice(p.getPrice());
+            prod.setDiscount(p.getDiscount());
+
+            result.add(prod);
+        }
+
+        return result;
+    }
+
+    @Override
     @Transactional
     public String createOrder(String username, BuyDTO buyDTO) {
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
@@ -268,6 +308,11 @@ public class GeneralServiceImpl implements GeneralService {
     public List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         List<ProductDTO> productDTO = productService.searchProducts(searchText, minPrice, maxPrice, isClothing);
 
+        return metodoAusiliario(productDTO);
+    }
+
+
+    List<ProductSearchDTO> metodoAusiliario(List<ProductDTO> productDTO){
         List<ProductSearchDTO> productSearchDTO = new Vector<>();
         ProductSearchDTO productSearchDTO1;
         AverageDTO averageDTO;
@@ -282,15 +327,16 @@ public class GeneralServiceImpl implements GeneralService {
 
             productSearchDTO1.setProductName(p.getName());
             productSearchDTO1.setPrice(p.getPrice());
+            productSearchDTO1.setDiscount(p.getDiscount());
 
             productSearchDTO1.setAverageReview(averageDTO.getAvarege());
             productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
 
             productSearchDTO.add(productSearchDTO1);
         }
-
         return productSearchDTO;
     }
+
 
     // Restituisce i prodotti visti di recente dall'utente
     public List<ProductSearchDTO> getLastView(String username){
@@ -415,8 +461,6 @@ public class GeneralServiceImpl implements GeneralService {
         sendWishlistProductDTO.setWishlistID(wishId);
 
         WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO);
-
-
 
         if(wishListProductDTO==null)
             return false;
@@ -669,4 +713,6 @@ public class GeneralServiceImpl implements GeneralService {
             return response.getBody();
         return false;
     }
+
+
 }

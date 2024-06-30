@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.GeneralService.GeneralService;
+import org.caesar.userservice.Utils.Utils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +28,11 @@ public class UserDataController {
     private final ProfilePicService profilePicService;
     private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
+    private final Utils utils;
 
 
     //End-point per manipolare i dati anagrafici dell'utente
     @GetMapping("/user")
-    
     public ResponseEntity<UserDTO> getUserData() {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
@@ -72,9 +73,11 @@ public class UserDataController {
     }
 
     @PutMapping("/password")
-    public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDTO passwordChangeDTO){
+    public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDTO passwordChangeDTO, @RequestParam("recovery") boolean recovery){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
+        if(recovery)
+            utils.emailSender(username, "secondary.bonanno@gmail.com");
         boolean result = userService.changePassword(passwordChangeDTO, username);
 
         if(result)
