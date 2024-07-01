@@ -39,6 +39,7 @@ public class WishlistController {
     @PostMapping("/wishlist/product")
     public ResponseEntity<String> addProductIntoList(@RequestBody SendWishlistProductDTO wishlistDTO){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
+
         if(generalService.addProductIntoWishList(username, wishlistDTO))
             return new ResponseEntity<>("Prodotto aggiunto alla lista", HttpStatus.OK);
         else

@@ -491,8 +491,6 @@ public class GeneralServiceImpl implements GeneralService {
 
         WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO);
 
-        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistDTO().getId());
-        System.out.println("productID: "+ wishListProductDTO.getProductDTO().getId());
 
         if(wishListProductDTO==null)
             return false;
@@ -679,13 +677,13 @@ public class GeneralServiceImpl implements GeneralService {
         if(wishlistDTO==null)
             return null;
 
+        if(wishlistProductService.thereIsProductInWishList(wishlistDTO, productDTO))
+            return null;
+
         WishListProductDTO wishListProductDTO= new WishListProductDTO();
 
         wishListProductDTO.setWishlistDTO(wishlistDTO);
         wishListProductDTO.setProductDTO(productDTO);
-
-        System.out.println("wishlistID: "+ wishlistDTO.getId());
-        System.out.println("productID: "+ productDTO.getId());
 
         return wishListProductDTO;
     }
