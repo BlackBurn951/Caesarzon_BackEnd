@@ -206,13 +206,15 @@ public class UserRepositoryImpl implements UserRepository {
             Map<String, List<String>> attributes = new HashMap<>();  //FIXME controllare vecchia config
 
             attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
+
+            boolean vb= userData.getOtp()!=null;
+            System.out.println(vb);
             if(userData.getOtp()!=null)
                 attributes.put("otp", List.of(userData.getOtp()));
 
             user.setAttributes(attributes);
 
             userResource.update(user);
-
 
             return true;
         } catch (Exception | Error e) {
