@@ -98,15 +98,9 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     @Override
 //    @Retry(name=AVAILABILITY_SERVICE)
     public AvailabilityDTO getAvailabilitieByProductId(ProductDTO productDTO, String size) {
-        AvailabilityDTO availabilityDTO1 = new AvailabilityDTO();
+        Availability availability= availabilityRepository.findByProductAndSize(modelMapper.map(productDTO, Product.class), size);
 
-        AvailabilityDTO availabilityDTO = modelMapper.map(availabilityRepository.findByProductAndSize
-                (modelMapper.map(productDTO, Product.class), size), AvailabilityDTO.class);
-
-        availabilityDTO1.setAmount(availabilityDTO.getAmount());
-        availabilityDTO1.setSize(availabilityDTO.getSize());
-
-        return availabilityDTO1;
+        return modelMapper.map(availability, AvailabilityDTO.class);
     }
 
     // Controllo della taglia del prodotto
