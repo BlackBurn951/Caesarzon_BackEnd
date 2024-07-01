@@ -192,10 +192,12 @@ public class UserRepositoryImpl implements UserRepository {
             //Presa del realm da keycloak per effettuare le operazioni in esso
             RealmResource realmResource = keycloak.realm("CaesarRealm");
 
+            log.debug("Stampa prima della presa");
             //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
             User userKeycloak = findUserByUsername(userData.getUsername());
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
 
+            log.debug("Stampa dopo la presa");
             //Aggiornamento dei dati dell'utente ad eccezione dell'username (attributo unique e non modificabile)
             UserRepresentation user = new UserRepresentation();
             user.setFirstName(userData.getFirstName());

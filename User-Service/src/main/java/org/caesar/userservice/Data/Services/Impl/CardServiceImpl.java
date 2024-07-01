@@ -50,7 +50,7 @@ public class CardServiceImpl implements CardService {
         if(!checkCardNumber(cardDTO.getCardNumber()) || !checkOwner(cardDTO.getOwner()) ||
             !checkCvv(cardDTO.getCvv()) || !checkExpiryDate(cardDTO.getExpiryDate()))
             return null;
-        //TODO DA DECIDRE SE ABILITARE LA MODIFICA (DUPLICAZIONE OBBLIGATORIA)
+
         try{
             Card card = modelMapper.map(cardDTO, Card.class);
 
