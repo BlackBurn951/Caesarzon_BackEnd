@@ -2,8 +2,6 @@ package org.caesar.userservice.GeneralService;
 
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,8 +17,6 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 @Service
@@ -76,9 +72,16 @@ public class GeneralServiceImpl implements GeneralService {
     public int addAddress(String userUsername, AddressDTO addressDTO) {
         List<UserAddressDTO> addresses= userAddressService.getUserAddresses(userUsername);
 
-        if(addresses!=null && addresses.size()<5) {
-            return creadAddress(userUsername, addressDTO);
-        } else if(addresses!=null && addresses.size()==5)
+        if(addresses.size()<5) {
+            for(UserAddressDTO address: addresses) {
+                AddressDTO userAddress = addressService.getAddress(address.getAddressId());
+
+                if (userAddress.equals(addressDTO))
+                    return 1;
+            }
+
+            return createAddress(userUsername, addressDTO);
+        } else if(addresses.size()==5)
             return 2;
         return 1;
     }
@@ -90,12 +93,18 @@ public class GeneralServiceImpl implements GeneralService {
     public int addCard(String userUsername, CardDTO cardDTO) {
         List<UserCardDTO> cards= userCardService.getUserCards(userUsername);
 
-        if(cards!=null && cards.size()<5)
-            return creatCard(userUsername, cardDTO);
-        else if(cards!=null && cards.size()==5)
+        if(cards.size()<5) {
+            for(UserCardDTO card: cards) {
+                CardDTO userCard= cardService.getCard(card.getCardId());
+
+                if(userCard.equals(cardDTO) || userCard.getCardNumber().equals(cardDTO.getCardNumber()))
+                    return 1;
+            }
+
+            return createCard(userUsername, cardDTO);
+        }
+        else if(cards.size()==5)
             return 2;
-        else if(cards==null || cards.isEmpty())
-            return creatCard(userUsername, cardDTO);
         return 1;
 
     }
@@ -326,7 +335,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     //Metodi di servizio
 
-    private int creatCard(String userUsername, CardDTO cardDTO) {
+    private int createCard(String userUsername, CardDTO cardDTO) {
         cardDTO.setBalance(500.0);
         UUID cardId = cardService.addCard(cardDTO);
 
@@ -340,7 +349,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         return userCardService.addUserCards(userCardDTO)? 0: 1;
     }
-    private int creadAddress(String userUsername, AddressDTO addressDTO) {
+    private int createAddress(String userUsername, AddressDTO addressDTO) {
         UUID addressId= addressService.addAddress(addressDTO);
 
         if(addressId == null)

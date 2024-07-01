@@ -192,12 +192,10 @@ public class UserRepositoryImpl implements UserRepository {
             //Presa del realm da keycloak per effettuare le operazioni in esso
             RealmResource realmResource = keycloak.realm("CaesarRealm");
 
-            log.debug("Stampa prima della presa");
             //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
             User userKeycloak = findUserByUsername(userData.getUsername());
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
 
-            log.debug("Stampa dopo la presa");
             //Aggiornamento dei dati dell'utente ad eccezione dell'username (attributo unique e non modificabile)
             UserRepresentation user = new UserRepresentation();
             user.setFirstName(userData.getFirstName());
@@ -208,16 +206,15 @@ public class UserRepositoryImpl implements UserRepository {
             Map<String, List<String>> attributes = new HashMap<>();  //FIXME controllare vecchia config
 
             attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
+
+            boolean vb= userData.getOtp()!=null;
+            System.out.println(vb);
             if(userData.getOtp()!=null)
                 attributes.put("otp", List.of(userData.getOtp()));
 
             user.setAttributes(attributes);
 
             userResource.update(user);
-
-            //Controllo che il campo email sia cambiato, se si invio dell'email di verifica
-            if (!userKeycloak.getEmail().equals(userData.getEmail()))
-                userResource.sendVerifyEmail();
 
             return true;
         } catch (Exception | Error e) {
