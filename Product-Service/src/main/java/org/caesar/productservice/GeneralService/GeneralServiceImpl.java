@@ -7,6 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.productservice.Data.Dao.AvailabilityRepository;
+import org.caesar.productservice.Data.Entities.Availability;
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
@@ -48,6 +51,7 @@ public class GeneralServiceImpl implements GeneralService {
     private final Utils utils;
     private final RestTemplate restTemplate;
     private final PayPalService payPalService;
+    private final AvailabilityRepository availabilityRepository;
 
 
     @Override
@@ -96,6 +100,17 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public boolean deleteProduct(UUID id) {
+        ProductDTO product = productService.getProductById(id);
+        System.out.println("product: " + product.getName());
+        if(product != null){
+//            if(imageService.deleteImage(product))
+            //{
+                System.out.println("Ho eliminato l'immagine del prodotto");
+                if(availabilityService.deleteAvailabilityByProduct(modelMapper.map(product, Product.class)))
+                    return productService.deleteProductById(id);
+//            }else
+//                return false;
+        }
         return false;
     }
 
@@ -302,6 +317,7 @@ public class GeneralServiceImpl implements GeneralService {
         List<ProductDTO> productWithoutAvailability= new Vector<>();
 
         for(ProductOrderDTO p: productInOrder){
+            System.out.println(p.getProductDTO().getId());
             AvailabilityDTO availabilityDTO= availabilityService.getAvailabilitieByProductId(p.getProductDTO(), p.getSize());
 
             if(availabilityDTO==null || availabilityDTO.getAmount()<p.getQuantity())
@@ -546,6 +562,23 @@ public class GeneralServiceImpl implements GeneralService {
         wishProductDTO.setVisibility(wishlistDTO.getVisibility());
 
         return wishProductDTO;
+    }
+
+    @Override
+    public boolean deleteAvailabilityByProduct(Product product) {
+        System.out.println("Sono nell'elimina della disponibilità");
+        List<Availability> availabilitiesToDelete = new ArrayList<>();
+        for(Availability availability : availabilityRepository.findAll()) {
+            if(availability.getProduct().equals(product)){
+                System.out.println("Disponibilità trovata");
+                availabilitiesToDelete.add(availability);
+            }
+        }
+        if(!availabilitiesToDelete.isEmpty()) {
+            availabilityRepository.deleteAll(availabilitiesToDelete);
+            return true;
+        }else
+            return false;
     }
 
     @Override
