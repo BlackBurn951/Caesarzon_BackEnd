@@ -50,7 +50,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/user-api/cards-name").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/admins").permitAll()
 
-                        .pathMatchers(HttpMethod.POST, "/product-api/wishlist/visibility").permitAll()
+                        .pathMatchers(HttpMethod.PUT, "/product-api/wishlist/visibility").permitAll()
 
                         .pathMatchers(HttpMethod.GET, "/search-api/users").permitAll()
 

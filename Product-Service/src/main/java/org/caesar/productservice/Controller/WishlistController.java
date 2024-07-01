@@ -79,7 +79,7 @@ public class WishlistController {
     }
 
 
-    @PostMapping("/wishlist/visibility")
+    @PutMapping("/wishlist/visibility")
     public ResponseEntity<String> getUserWishlists(@RequestBody ChangeVisibilityDTO changeVisibilityDTO){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
