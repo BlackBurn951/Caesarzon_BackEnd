@@ -7,6 +7,6 @@ import lombok.Setter;
 @Setter
 public class AverageDTO {
 
-    private double avarege;
-    private int nummberOfReview;
+    private double average;
+    private int numberOfReview;
 }

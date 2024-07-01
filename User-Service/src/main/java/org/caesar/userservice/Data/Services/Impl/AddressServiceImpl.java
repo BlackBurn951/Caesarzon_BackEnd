@@ -39,9 +39,7 @@ public class AddressServiceImpl implements AddressService {
     @Override
 //    @Retry(name=ADDRESS_SERVICE)
     public AddressDTO getAddress(UUID addressId) {
-        AddressDTO addressDTO = modelMapper.map(addressRepository.findById(addressId), AddressDTO.class);
-        addressDTO.setId(null);
-        return addressDTO;
+        return modelMapper.map(addressRepository.findById(addressId), AddressDTO.class);
     }
 
     //Metodo per aggiungere un indirizzo

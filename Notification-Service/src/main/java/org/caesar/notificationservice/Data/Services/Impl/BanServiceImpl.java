@@ -40,7 +40,7 @@ public class BanServiceImpl implements BanService {
 
     //Metodo per bannare un utente
     @Override
-    @CircuitBreaker(name=BAN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @CircuitBreaker(name=BAN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=BAN_SERVICE)
     public boolean banUser(BanDTO banDTO) {
         try {
@@ -55,7 +55,7 @@ public class BanServiceImpl implements BanService {
 
     //Metodo per sbannare un utente
     @Override
-    @CircuitBreaker(name=BAN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @CircuitBreaker(name=BAN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=BAN_SERVICE)
     public boolean sbanUser(String username) {
         try {

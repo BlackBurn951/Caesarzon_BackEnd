@@ -7,6 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.productservice.Data.Dao.AvailabilityRepository;
+import org.caesar.productservice.Data.Entities.Availability;
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
@@ -48,16 +51,18 @@ public class GeneralServiceImpl implements GeneralService {
     private final Utils utils;
     private final RestTemplate restTemplate;
     private final PayPalService payPalService;
+    private final AvailabilityRepository availabilityRepository;
 
 
     @Override
     // Aggiunge il prodotto ricevuto da front al db dei prodotti
     public boolean addProduct(ProductDTO sendProductDTO) {
         // Mappa sendProductDTO a ProductDTO
-        ProductDTO productDTO = modelMapper.map(sendProductDTO, ProductDTO.class);
+        sendProductDTO.setLastModified(LocalDate.now());
+//        ProductDTO productDTO = modelMapper.map(sendProductDTO, ProductDTO.class);
         // Aggiorna l'ID del productDTO dopo averlo salvato
-        productDTO.setId(productService.addOrUpdateProduct(productDTO).getId());
-        availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), productDTO);
+        sendProductDTO.setId(productService.addOrUpdateProduct(sendProductDTO).getId());
+        availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO);
         return true;
 
     }
@@ -74,11 +79,18 @@ public class GeneralServiceImpl implements GeneralService {
         ProductCartDTO prod;
         for(ProductOrderDTO p: productCart){
             prod = new ProductCartDTO();
-            prod.setName(productService.getProductById(p.getId()).getName());
-            prod.setId(p.getId());
-            prod.setTotal(p.getTotal());
+
+            ProductDTO productDTO= productService.getProductById(p.getProductDTO().getId());
+
+            prod.setName(productDTO.getName());
+            prod.setId(productDTO.getId());
+            prod.setTotal(Math.round(p.getTotal() * 100.0) / 100.0);
             prod.setQuantity(p.getQuantity());
             prod.setSize(p.getSize());
+
+            double discountPrice= (p.getProductDTO().getPrice()*p.getProductDTO().getDiscount())/100;
+            double totalDiscount= Math.round((p.getProductDTO().getPrice()-discountPrice)*p.getQuantity() * 100.0) / 100.0;
+            prod.setDiscountTotal(totalDiscount);
 
             result.add(prod);
         }
@@ -88,6 +100,26 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public boolean deleteProduct(UUID id) {
+        ProductDTO product = productService.getProductById(id);
+        System.out.println("product: " + product.getName());
+        if(product != null){
+            System.out.println("Cerco di eliminare le disponibilità");
+            if(availabilityService.deleteAvailabilityByProduct(modelMapper.map(product, Product.class)))
+            {
+                System.out.println("Sono riuscito a eliminare le disponibilità");
+                // if(imageService.deleteImage(product))
+                if (productService.deleteProductById(id))
+                {
+                    System.out.println("Prodotto eliminato");
+                    return true;
+                }else{
+                    System.out.println("Prodotto non eliminato");
+                }
+            }else {
+                System.out.println("Problema nell'eliminar ele disponibilità");
+                return false;
+            }
+        }
         return false;
     }
 
@@ -107,6 +139,7 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional   // Genera un nuovo carrello alla scelta del primo prodotto dell'utente
     public boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO) {
         ProductDTO productDTO = productService.getProductById(sendProductOrderDTO.getProductID());
+
         //TODO CHECK DELLA DISPONIBILITà
         if(productDTO==null)
             return false;
@@ -114,7 +147,8 @@ public class GeneralServiceImpl implements GeneralService {
         ProductOrderDTO productOrderDTO = new ProductOrderDTO();
 
         productOrderDTO.setProductDTO(productDTO);
-        productOrderDTO.setTotal(productDTO.getPrice()*sendProductOrderDTO.getQuantity());
+        double total= Math.round((productDTO.getPrice()*sendProductOrderDTO.getQuantity()) * 100.0) / 100.0;
+        productOrderDTO.setTotal(total);
         productOrderDTO.setQuantity(sendProductOrderDTO.getQuantity());
         productOrderDTO.setUsername(username);
         productOrderDTO.setSize(sendProductOrderDTO.getSize());
@@ -123,54 +157,125 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
-    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> true carta -> false paypal
+    @Transactional
+    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {
+        log.debug("checkOrder called with username: {}, buyDTO: {}, payMethod: {}", username, buyDTO, payMethod);
 
-        List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
+        List<ProductOrderDTO> productInOrder = getProductInOrder(username, buyDTO.getProductsIds());
+        log.debug("Products in order: {}", productInOrder);
 
-        if(productInOrder==null || productInOrder.isEmpty()) {
+        if (productInOrder == null || productInOrder.isEmpty()) {
+            log.debug("No products found in order or product list is empty");
             changeAvaibility(productInOrder, true);
             return "Errore";
         }
 
-        //Controllo che vengano effettivamente passati indirizzo e carta per pagare
-        if(buyDTO.getAddressID() == null || (payMethod && buyDTO.getCardID() == null) ) {
+        if (buyDTO.getAddressID() == null || (!payMethod && buyDTO.getCardID() == null)) {
+            log.debug("Address ID or Card ID is missing");
             changeAvaibility(productInOrder, true);
             return "Errore";
         }
 
-        //Chiamata per veificare che l'utente che vuole acquistare abbia quell'indirizzo e quella carta
-        if(!checkAddress(buyDTO.getAddressID())) {
+        if (!checkAddress(buyDTO.getAddressID())) {
+            log.debug("Address check failed for address ID: {}", buyDTO.getAddressID());
             changeAvaibility(productInOrder, true);
             return "Errore";
         }
 
-        double total= productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum();
+        double total = productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum();
+        log.debug("Total order amount: {}", total);
 
-        if(payMethod) {
-            if(!checkPayment(buyDTO.getCardID(), total)) {
+        if (!payMethod) {
+            if (!checkPayment(buyDTO.getCardID(), total)) {
+                log.debug("Payment check failed for card ID: {} and total: {}", buyDTO.getCardID(), total);
                 changeAvaibility(productInOrder, true);
                 return "Errore";
             }
             buyDTO.setTotal(total);
+            log.debug("Payment successful, creating order");
             return createOrder(username, buyDTO);
         } else {
             try {
                 Payment payment = payPalService.createPayment(
                         total, "EUR", "paypal",
                         "sale", "Pagamento ordine",
-                        "http://localhost:4200/pagamento", //TODO REDIRECT SUL FRONT ANCHE
-                        "http://localhost:4200/personal-data?total="+total);
+                        "http://localhost:4200/order-final",
+                        "http://localhost:4200/order-final");
+                log.debug("PayPal payment created: {}", payment);
                 for (Links link : payment.getLinks()) {
                     if (link.getRel().equals("approval_url")) {
+                        log.debug("Approval URL found: {}", link.getHref());
                         return "redirect:" + link.getHref();
                     }
                 }
             } catch (PayPalRESTException e) {
+                log.debug("PayPal REST exception: {}", e.getMessage());
                 e.printStackTrace();
             }
             return "Errore";
         }
+    }
+
+    @Override
+    public List<ProductSearchDTO> newProducts() {
+        List<ProductDTO> productDTO = productService.getLastProducts();
+
+        return metodoAusiliario(productDTO);
+    }
+
+    @Override
+    public List<ProductSearchDTO> getOffers() {
+        List<ProductDTO> products= productService.getOffer();
+
+        if(products==null || products.isEmpty())
+            return null;
+
+        List<ProductSearchDTO> result= new Vector<>();
+        ProductSearchDTO prod;
+        AverageDTO average;
+        for(ProductDTO p: products){
+            average= reviewService.getReviewAverage(p.getId());
+
+            prod= new ProductSearchDTO();
+            if(average==null) {
+                prod.setReviewsNumber(0);
+                prod.setAverageReview(0.0);
+            } else {
+                prod.setReviewsNumber(average.getNumberOfReview());
+                prod.setAverageReview(average.getAverage());
+            }
+            prod.setProductId(p.getId());
+            prod.setProductName(p.getName());
+            prod.setPrice(p.getPrice());
+            prod.setDiscount(p.getDiscount());
+
+            result.add(prod);
+        }
+
+        return result;
+    }
+
+    @Override
+    public List<Integer> getReviewScore(UUID productId) {
+        ProductDTO product= productService.getProductById(productId);
+
+        if(product==null)
+            return null;
+
+        int oneStar= reviewService.getNumberOfReview(product, 1);
+        int twoStar= reviewService.getNumberOfReview(product, 2);
+        int threeStar= reviewService.getNumberOfReview(product, 3);
+        int fourStar= reviewService.getNumberOfReview(product, 4);
+        int fiveStar= reviewService.getNumberOfReview(product, 5);
+
+        List<Integer> result= new Vector<>();
+        result.add(oneStar);
+        result.add(twoStar);
+        result.add(threeStar);
+        result.add(fourStar);
+        result.add(fiveStar);
+
+        return result;
     }
 
     @Override
@@ -209,7 +314,7 @@ public class GeneralServiceImpl implements GeneralService {
                 utils.sendNotify(username,
                 "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
                 "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate()))
-           return "Ordine effettuatop con successo!";
+           return "Ordine effettuato con successo!";
         else {
             changeAvaibility(productInOrder, true);
             return "Errore"; //☺
@@ -218,7 +323,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-    public List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds) {
+    public List<UnavailableDTO>  checkAvailability(String username, List<UUID> productIds) {
 
         //Presa di tutti i prodotti presenti nel carello dell'utente
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, productIds);
@@ -253,6 +358,7 @@ public class GeneralServiceImpl implements GeneralService {
     // Restituisce il prodotto con le sue disponibilità e immagini
     public ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id){
         ProductDTO productDTO = productService.getProductById(id);
+
         if(productDTO != null){
             List<AvailabilityDTO> availabilities = availabilityService.getAvailabilitiesByProductID(productDTO);
             for(AvailabilityDTO availabilityDTO: availabilities)
@@ -268,6 +374,11 @@ public class GeneralServiceImpl implements GeneralService {
     public List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         List<ProductDTO> productDTO = productService.searchProducts(searchText, minPrice, maxPrice, isClothing);
 
+        return metodoAusiliario(productDTO);
+    }
+
+
+    List<ProductSearchDTO> metodoAusiliario(List<ProductDTO> productDTO){
         List<ProductSearchDTO> productSearchDTO = new Vector<>();
         ProductSearchDTO productSearchDTO1;
         AverageDTO averageDTO;
@@ -277,20 +388,21 @@ public class GeneralServiceImpl implements GeneralService {
             averageDTO = reviewService.getReviewAverage(p.getId());
 
             productSearchDTO1.setProductId(p.getId());
-            productSearchDTO1.setAverageReview(averageDTO.getAvarege());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
+            productSearchDTO1.setAverageReview(averageDTO.getAverage());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
 
             productSearchDTO1.setProductName(p.getName());
             productSearchDTO1.setPrice(p.getPrice());
+            productSearchDTO1.setDiscount(p.getDiscount());
 
-            productSearchDTO1.setAverageReview(averageDTO.getAvarege());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
+            productSearchDTO1.setAverageReview(averageDTO.getAverage());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
 
             productSearchDTO.add(productSearchDTO1);
         }
-
         return productSearchDTO;
     }
+
 
     // Restituisce i prodotti visti di recente dall'utente
     public List<ProductSearchDTO> getLastView(String username){
@@ -314,8 +426,8 @@ public class GeneralServiceImpl implements GeneralService {
             productSearchDTO1 = new ProductSearchDTO();
             averageDTO = reviewService.getReviewAverage(p.getId());
 
-            productSearchDTO1.setAverageReview(averageDTO.getAvarege());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNummberOfReview());
+            productSearchDTO1.setAverageReview(averageDTO.getAverage());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
 
             productSearchDTO1.setProductName(p.getName());
             productSearchDTO1.setPrice(p.getPrice());
@@ -398,8 +510,6 @@ public class GeneralServiceImpl implements GeneralService {
 
         WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO);
 
-        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistDTO().getId());
-        System.out.println("productID: "+ wishListProductDTO.getProductDTO().getId());
 
         if(wishListProductDTO==null)
             return false;
@@ -409,11 +519,12 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-    public boolean deleteProductFromWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
-        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, wishlistProductDTO);
+    public boolean deleteProductFromWishList(String username, UUID wishId, UUID productId) {
+        SendWishlistProductDTO sendWishlistProductDTO = new SendWishlistProductDTO();
+        sendWishlistProductDTO.setProductID(productId);
+        sendWishlistProductDTO.setWishlistID(wishId);
 
-        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistDTO().getId());
-        System.out.println("productID: "+ wishListProductDTO.getProductDTO().getId());
+        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO);
 
         if(wishListProductDTO==null)
             return false;
@@ -467,6 +578,23 @@ public class GeneralServiceImpl implements GeneralService {
         wishProductDTO.setVisibility(wishlistDTO.getVisibility());
 
         return wishProductDTO;
+    }
+
+    @Override
+    public boolean deleteAvailabilityByProduct(Product product) {
+        System.out.println("Sono nell'elimina della disponibilità");
+        List<Availability> availabilitiesToDelete = new ArrayList<>();
+        for(Availability availability : availabilityRepository.findAll()) {
+            if(availability.getProduct().equals(product)){
+                System.out.println("Disponibilità trovata");
+                availabilitiesToDelete.add(availability);
+            }
+        }
+        if(!availabilitiesToDelete.isEmpty()) {
+            availabilityRepository.deleteAll(availabilitiesToDelete);
+            return true;
+        }else
+            return false;
     }
 
     @Override
@@ -568,13 +696,13 @@ public class GeneralServiceImpl implements GeneralService {
         if(wishlistDTO==null)
             return null;
 
+        if(wishlistProductService.thereIsProductInWishList(wishlistDTO, productDTO))
+            return null;
+
         WishListProductDTO wishListProductDTO= new WishListProductDTO();
 
         wishListProductDTO.setWishlistDTO(wishlistDTO);
         wishListProductDTO.setProductDTO(productDTO);
-
-        System.out.println("wishlistID: "+ wishlistDTO.getId());
-        System.out.println("productID: "+ productDTO.getId());
 
         return wishListProductDTO;
     }
@@ -663,7 +791,9 @@ public class GeneralServiceImpl implements GeneralService {
         );
 
         if(response.getStatusCode()==HttpStatus.OK)
-            return response.getBody();
+            return Boolean.TRUE.equals(response.getBody());
         return false;
     }
+
+
 }

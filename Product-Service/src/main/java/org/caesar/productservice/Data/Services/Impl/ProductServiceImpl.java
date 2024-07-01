@@ -1,17 +1,19 @@
 package org.caesar.productservice.Data.Services.Impl;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.ProductDTO;
+import org.caesar.productservice.Dto.ProductSearchDTO;
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
 import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -59,7 +61,7 @@ public class ProductServiceImpl implements ProductService{
                 product.setDiscount(productDTO.getDiscount());
                 product.setName(productDTO.getName());
                 product.setBrand(productDTO.getBrand());
-                product.setIs_clothing(productDTO.is_clothing());
+                product.setIs_clothing(productDTO.getIs_clothing());
                 product.setPrice(productDTO.getPrice());
                 product.setPrimaryColor(productDTO.getPrimaryColor());
                 product.setSecondaryColor(productDTO.getSecondaryColor());
@@ -175,6 +177,25 @@ public class ProductServiceImpl implements ProductService{
             return Collections.emptyList();
         }
     }
+
+    @Override
+    public List<ProductDTO> getLastProducts() {
+        List<Product> products= productRepository.findTop9ByOrderByLastModifiedDesc();
+        return products.stream().map(a -> modelMapper.map(a, ProductDTO.class)).toList();
+    }
+
+    @Override
+    public List<ProductDTO> getOffer() {
+        List<Product> products = productRepository.findTop9ByOrderByDiscountDesc();
+
+        if(products==null || products.isEmpty())
+            return null;
+
+        return products.stream()
+                .map(a -> modelMapper.map(a, ProductDTO.class))
+                .toList();
+    }
+
 
     // Controllo della descrizione
     private boolean checkDescription(String description) {

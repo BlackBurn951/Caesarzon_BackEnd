@@ -22,5 +22,5 @@ public class ProductSearchDTO {
 
     private double price;
 
-
+    private int discount;
 }

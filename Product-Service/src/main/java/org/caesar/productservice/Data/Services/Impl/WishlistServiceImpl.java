@@ -10,6 +10,7 @@ import org.caesar.productservice.Data.Dao.WishlistRepository;
 import org.caesar.productservice.Data.Entities.Wishlist;
 import org.caesar.productservice.Data.Services.WishlistService;
 import org.caesar.productservice.Dto.BasicWishlistDTO;
+import org.caesar.productservice.Dto.ChangeVisibilityDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 import org.caesar.productservice.Dto.WishlistDTO;
 import org.modelmapper.ModelMapper;
@@ -119,6 +120,11 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
+    public List<BasicWishlistDTO> getAllUserWishlists(String accessUsername) {
+        return wishlistRepository.findAllByUserUsername(accessUsername).stream().map(a -> modelMapper.map(a, BasicWishlistDTO.class)).toList();
+    }
+
+    @Override
 //    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name=WISHLIS_SERVICE)
     public boolean deleteWishlist(UUID id) {
@@ -135,14 +141,14 @@ public class WishlistServiceImpl implements WishlistService {
     @Override
 //    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name=WISHLIS_SERVICE)
-    public boolean changeVisibility(int visibility, String username, UUID whisListId) {
+    public boolean changeVisibility(String username, ChangeVisibilityDTO changeVisibilityDTO) {
         try{
-            Wishlist wishlist = wishlistRepository.findWishlistByIdAndUserUsername(whisListId, username);
+            Wishlist wishlist = wishlistRepository.findWishlistByIdAndUserUsername(changeVisibilityDTO.getWishId(), username);
 
-            switch (visibility) {
-                case 0 -> wishlist.setVisibility("Privata");
-                case 1 -> wishlist.setVisibility("Pubblica");
-                case 2 -> wishlist.setVisibility("Besties");
+            switch (changeVisibilityDTO.getVisibility()) {
+                case 0 -> wishlist.setVisibility("Pubblica");
+                case 1 -> wishlist.setVisibility("Condivisa");
+                case 2 -> wishlist.setVisibility("Privata");
             }
             wishlistRepository.save(wishlist);
             return true;

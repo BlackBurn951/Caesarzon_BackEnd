@@ -21,6 +21,7 @@ public interface GeneralService {
 
     boolean checkAddress(String username, UUID addressId);
     boolean pay(String username, UUID cardId, double total);
+    boolean recoveryPassword(String username);
 
     boolean deleteUser(String username);
     boolean deleteUserAddress(UUID id);

@@ -1,5 +1,6 @@
 package org.caesar.productservice.GeneralService;
 
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
@@ -27,13 +28,15 @@ public interface GeneralService {
     boolean changeQuantity(String username, UUID productID, int quantity, String size);
     boolean saveLater(String username, UUID productDTO);
     boolean addProductIntoWishList(String username, SendWishlistProductDTO sendWishlistProductDTO);
-    boolean deleteProductFromWishList(String username, SendWishlistProductDTO wishlistProductDTO);
+    boolean deleteProductFromWishList(String username, UUID wishId, UUID productId);
     boolean deleteProductsFromWishList(String username, UUID wishlistId);
     WishProductDTO getWishlistProductsByWishlistID(UUID wishlistId, String username);
     boolean updateOrder(String username, UUID orderId);
     boolean updateNotifyOrder();
     List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds);
     String checkOrder(String username, BuyDTO buyDTO, boolean payMethod);
-
-
+    List<ProductSearchDTO>newProducts();
+    List<ProductSearchDTO> getOffers();
+    List<Integer> getReviewScore(UUID productId);
+    boolean deleteAvailabilityByProduct(Product product);
 }

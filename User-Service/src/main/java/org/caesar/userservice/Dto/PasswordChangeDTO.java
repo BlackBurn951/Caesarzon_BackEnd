@@ -5,4 +5,5 @@ import lombok.Getter;
 @Getter
 public class PasswordChangeDTO {
     private String password;
+    private String username;
 }

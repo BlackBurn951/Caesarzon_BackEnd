@@ -49,6 +49,9 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/user-api/card").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/cards-name").permitAll()
                         .pathMatchers(HttpMethod.GET, "/user-api/admins").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/product-api/wishlists/all").permitAll()
+
+                        .pathMatchers(HttpMethod.PUT, "/product-api/wishlist/visibility").permitAll()
 
                         .pathMatchers(HttpMethod.GET, "/search-api/users").permitAll()
 
@@ -83,6 +86,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.DELETE, "/product-api/review").permitAll()
                         .pathMatchers(HttpMethod.DELETE, "/product-api/admin/review").permitAll()
                         .pathMatchers(HttpMethod.GET, "/product-api/search").permitAll()
+                        .pathMatchers(HttpMethod.PUT, "/product-api/wishlist/").hasRole("basic")
 
                         .pathMatchers(HttpMethod.GET, "/product-api/search").permitAll()
 

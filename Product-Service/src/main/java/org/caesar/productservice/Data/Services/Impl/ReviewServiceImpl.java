@@ -1,8 +1,6 @@
 package org.caesar.productservice.Data.Services.Impl;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductRepository;
@@ -11,6 +9,7 @@ import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
 import org.caesar.productservice.Data.Services.ReviewService;
 import org.caesar.productservice.Dto.AverageDTO;
+import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -51,7 +50,7 @@ public class ReviewServiceImpl implements ReviewService {
                 review.setDate(LocalDate.now());
                 review.setText(reviewDTO.getText());
                 review.setEvaluation(reviewDTO.getEvaluation());
-                review.setUserID(reviewDTO.getUsername());
+                review.setUsername(reviewDTO.getUsername());
 
             }else{
                 return null;
@@ -67,7 +66,6 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
 //    @Retry(name= REVIEW_SERVICE)
     public Review getReviewById(UUID reviewID) {
-
         return reviewRepository.findById(reviewID).orElse(null);
     }
 
@@ -75,7 +73,7 @@ public class ReviewServiceImpl implements ReviewService {
 //    @Retry(name= REVIEW_SERVICE)
     public UUID getReviewIDByUsernameAndProductID(String username, UUID productID) {
         Product product = productRepository.findById(productID).orElse(null);
-        return reviewRepository.findReviewByUserIDAndProduct(username, product).getId();
+        return reviewRepository.findReviewByUsernameAndProduct(username, product).getId();
     }
 
 
@@ -84,8 +82,10 @@ public class ReviewServiceImpl implements ReviewService {
     public List<ReviewDTO> getReviewsByProductId(UUID productID) {
         Product product = productRepository.findById(productID).orElse(null);
         List<ReviewDTO> reviewDTOS = new ArrayList<>();
+
         for(Review review: reviewRepository.findByproduct(product)){
             ReviewDTO reviewDTO = modelMapper.map(review, ReviewDTO.class);
+            System.out.println(reviewDTO.getText());
             reviewDTOS.add(reviewDTO);
         }
         return reviewDTOS;
@@ -117,8 +117,8 @@ public class ReviewServiceImpl implements ReviewService {
                 average += review.getEvaluation();
             }
             AverageDTO averageDTO = new AverageDTO();
-            averageDTO.setAvarege(average/reviewDTOS.size());
-            averageDTO.setNummberOfReview(reviewDTOS.size());
+            averageDTO.setAverage(average/reviewDTOS.size());
+            averageDTO.setNumberOfReview(reviewDTOS.size());
             return averageDTO;
         }
         return null;
@@ -127,6 +127,13 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public String getTextReview(UUID reviewId) {
         return Objects.requireNonNull(reviewRepository.findById(reviewId).orElse(null)).getText();
+    }
+
+    @Override
+    public int getNumberOfReview(ProductDTO productDTO, int star) {
+        List<Review> result= reviewRepository.findAllByProductAndEvaluation(modelMapper.map(productDTO, Product.class), star);
+
+        return result==null || result.isEmpty()? 0: result.size();
     }
 
 }

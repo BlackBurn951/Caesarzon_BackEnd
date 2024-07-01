@@ -15,5 +15,6 @@ public interface UserRepository{
     boolean deleteUser(String username);
 
     boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username);
+    boolean logout(String username);
 
 }

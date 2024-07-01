@@ -43,7 +43,7 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=GENERAL_SERVICE)
     public boolean addReportRequest(String username1, ReportDTO reportDTO) {
         try {
@@ -99,7 +99,7 @@ public class GeneralServiceImpl implements GeneralService{
                 for(String ad: admins) {
                     notify= new SaveAdminNotificationDTO();
                     notify.setDate(LocalDate.now());
-                    notify.setSubject("C'è una nuova segnalazione da parte dell'utente" + username1 );
+                    notify.setSubject("C'è una nuova segnalazione da parte dell'utente: " + username1 );
                     notify.setAdmin(ad);
                     notify.setReport(newReportDTO);
                     notify.setRead(false);
@@ -118,7 +118,7 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=GENERAL_SERVICE)
     public boolean addSupportRequest(String username, SupportDTO supportDTO) {
 
@@ -165,7 +165,7 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=GENERAL_SERVICE)
     public boolean manageSupportRequest(String username, UUID supportId, String explain) {
         SupportResponseDTO supportResponseDTO = new SupportResponseDTO();
@@ -182,7 +182,8 @@ public class GeneralServiceImpl implements GeneralService{
 
             UserNotificationDTO userNotificationDTO= new UserNotificationDTO();
 
-            userNotificationDTO.setDate(LocalDate.now().toString());
+
+            userNotificationDTO.setDate(String.valueOf(LocalDate.now()));
             userNotificationDTO.setSubject(descr);
             userNotificationDTO.setExplanation(supportResponseDTO.getExplain());
             userNotificationDTO.setUser(supportDTO.getUsername());
@@ -215,7 +216,7 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=GENERAL_SERVICE)
     public boolean updateAdminNotification(List<AdminNotificationDTO> notificationDTO) {
         try{
@@ -226,7 +227,7 @@ public class GeneralServiceImpl implements GeneralService{
                 saveAdminNotificationDTO = new SaveAdminNotificationDTO();
 
                 saveAdminNotificationDTO.setId(notify.getId());
-                saveAdminNotificationDTO.setDate(notify.getDate());
+                saveAdminNotificationDTO.setDate(LocalDate.parse(notify.getDate()));
                 saveAdminNotificationDTO.setSubject(notify.getSubject());
                 saveAdminNotificationDTO.setAdmin(notify.getAdmin());
                 saveAdminNotificationDTO.setRead(notify.isRead());
