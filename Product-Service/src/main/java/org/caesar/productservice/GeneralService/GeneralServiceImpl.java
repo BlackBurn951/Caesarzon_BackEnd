@@ -103,13 +103,22 @@ public class GeneralServiceImpl implements GeneralService {
         ProductDTO product = productService.getProductById(id);
         System.out.println("product: " + product.getName());
         if(product != null){
-//            if(imageService.deleteImage(product))
-            //{
-                System.out.println("Ho eliminato l'immagine del prodotto");
-                if(availabilityService.deleteAvailabilityByProduct(modelMapper.map(product, Product.class)))
-                    return productService.deleteProductById(id);
-//            }else
-//                return false;
+            System.out.println("Cerco di eliminare le disponibilità");
+            if(availabilityService.deleteAvailabilityByProduct(modelMapper.map(product, Product.class)))
+            {
+                System.out.println("Sono riuscito a eliminare le disponibilità");
+                // if(imageService.deleteImage(product))
+                if (productService.deleteProductById(id))
+                {
+                    System.out.println("Prodotto eliminato");
+                    return true;
+                }else{
+                    System.out.println("Prodotto non eliminato");
+                }
+            }else {
+                System.out.println("Problema nell'eliminar ele disponibilità");
+                return false;
+            }
         }
         return false;
     }
@@ -501,8 +510,6 @@ public class GeneralServiceImpl implements GeneralService {
 
         WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO);
 
-        System.out.println("wishlistID: "+ wishListProductDTO.getWishlistDTO().getId());
-        System.out.println("productID: "+ wishListProductDTO.getProductDTO().getId());
 
         if(wishListProductDTO==null)
             return false;
@@ -689,13 +696,13 @@ public class GeneralServiceImpl implements GeneralService {
         if(wishlistDTO==null)
             return null;
 
+        if(wishlistProductService.thereIsProductInWishList(wishlistDTO, productDTO))
+            return null;
+
         WishListProductDTO wishListProductDTO= new WishListProductDTO();
 
         wishListProductDTO.setWishlistDTO(wishlistDTO);
         wishListProductDTO.setProductDTO(productDTO);
-
-        System.out.println("wishlistID: "+ wishlistDTO.getId());
-        System.out.println("productID: "+ productDTO.getId());
 
         return wishListProductDTO;
     }

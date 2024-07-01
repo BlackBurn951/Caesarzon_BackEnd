@@ -1,5 +1,6 @@
 package org.caesar.productservice.Data.Services;
 
+import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.SingleWishListProductDTO;
 import org.caesar.productservice.Dto.WishListProductDTO;
 import org.caesar.productservice.Dto.WishlistDTO;
@@ -13,5 +14,5 @@ public interface WishlistProductService {
     boolean deleteAllProductsFromWishlist(WishlistDTO wishlistID);
     boolean deleteProductFromWishlist(WishListProductDTO wishListProductDTO);
     List<WishListProductDTO> getWishlistProductsByWishlistID(WishlistDTO wishListId);
-
+    boolean thereIsProductInWishList(WishlistDTO wishlistDTO, ProductDTO productDTO);
 }
