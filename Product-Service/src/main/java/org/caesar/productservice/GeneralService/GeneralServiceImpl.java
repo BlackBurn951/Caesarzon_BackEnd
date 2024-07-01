@@ -55,10 +55,10 @@ public class GeneralServiceImpl implements GeneralService {
     public boolean addProduct(ProductDTO sendProductDTO) {
         // Mappa sendProductDTO a ProductDTO
         sendProductDTO.setLastModified(LocalDate.now());
-        ProductDTO productDTO = modelMapper.map(sendProductDTO, ProductDTO.class);
+//        ProductDTO productDTO = modelMapper.map(sendProductDTO, ProductDTO.class);
         // Aggiorna l'ID del productDTO dopo averlo salvato
-        productDTO.setId(productService.addOrUpdateProduct(productDTO).getId());
-        availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), productDTO);
+        sendProductDTO.setId(productService.addOrUpdateProduct(sendProductDTO).getId());
+        availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO);
         return true;
 
     }
@@ -80,9 +80,13 @@ public class GeneralServiceImpl implements GeneralService {
 
             prod.setName(productDTO.getName());
             prod.setId(productDTO.getId());
-            prod.setTotal(p.getTotal());
+            prod.setTotal(Math.round(p.getTotal() * 100.0) / 100.0);
             prod.setQuantity(p.getQuantity());
             prod.setSize(p.getSize());
+
+            double discountPrice= (p.getProductDTO().getPrice()*p.getProductDTO().getDiscount())/100;
+            double totalDiscount= Math.round((p.getProductDTO().getPrice()-discountPrice)*p.getQuantity() * 100.0) / 100.0;
+            prod.setDiscountTotal(totalDiscount);
 
             result.add(prod);
         }
@@ -111,6 +115,7 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional   // Genera un nuovo carrello alla scelta del primo prodotto dell'utente
     public boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO) {
         ProductDTO productDTO = productService.getProductById(sendProductOrderDTO.getProductID());
+
         //TODO CHECK DELLA DISPONIBILITà
         if(productDTO==null)
             return false;
@@ -118,7 +123,8 @@ public class GeneralServiceImpl implements GeneralService {
         ProductOrderDTO productOrderDTO = new ProductOrderDTO();
 
         productOrderDTO.setProductDTO(productDTO);
-        productOrderDTO.setTotal(productDTO.getPrice()*sendProductOrderDTO.getQuantity());
+        double total= Math.round((productDTO.getPrice()*sendProductOrderDTO.getQuantity()) * 100.0) / 100.0;
+        productOrderDTO.setTotal(total);
         productOrderDTO.setQuantity(sendProductOrderDTO.getQuantity());
         productOrderDTO.setUsername(username);
         productOrderDTO.setSize(sendProductOrderDTO.getSize());
