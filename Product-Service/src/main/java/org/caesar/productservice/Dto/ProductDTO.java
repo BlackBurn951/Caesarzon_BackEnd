@@ -23,6 +23,4 @@ public class ProductDTO {
     private String sport;
     private LocalDate lastModified;
 
-
-
 }

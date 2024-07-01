@@ -17,6 +17,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.Vector;
 
 @Service
@@ -93,7 +94,15 @@ public class WishlistProductServiceImpl implements WishlistProductService {
         }
     }
 
+    @Override
+    public boolean thereIsProductInWishList(WishlistDTO wishlistDTO, ProductDTO productDTO) {
+        Product product= modelMapper.map(productDTO, Product.class);
+        Wishlist wishlist= modelMapper.map(wishlistDTO, Wishlist.class);
 
+        WishlistProduct wishlistProduct= wishlistProductRepository.findByProductAndWishlist(product, wishlist);
+
+        return wishlistProduct != null;
+    }
 
 
     @Override
