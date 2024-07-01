@@ -1,5 +1,6 @@
 package org.caesar.productservice.GeneralService;
 
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
@@ -37,5 +38,5 @@ public interface GeneralService {
     List<ProductSearchDTO>newProducts();
     List<ProductSearchDTO> getOffers();
     List<Integer> getReviewScore(UUID productId);
-
+    boolean deleteAvailabilityByProduct(Product product);
 }
