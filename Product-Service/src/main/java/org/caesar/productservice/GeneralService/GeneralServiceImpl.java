@@ -103,13 +103,22 @@ public class GeneralServiceImpl implements GeneralService {
         ProductDTO product = productService.getProductById(id);
         System.out.println("product: " + product.getName());
         if(product != null){
-//            if(imageService.deleteImage(product))
-            //{
-                System.out.println("Ho eliminato l'immagine del prodotto");
-                if(availabilityService.deleteAvailabilityByProduct(modelMapper.map(product, Product.class)))
-                    return productService.deleteProductById(id);
-//            }else
-//                return false;
+            System.out.println("Cerco di eliminare le disponibilità");
+            if(availabilityService.deleteAvailabilityByProduct(modelMapper.map(product, Product.class)))
+            {
+                System.out.println("Sono riuscito a eliminare le disponibilità");
+                // if(imageService.deleteImage(product))
+                if (productService.deleteProductById(id))
+                {
+                    System.out.println("Prodotto eliminato");
+                    return true;
+                }else{
+                    System.out.println("Prodotto non eliminato");
+                }
+            }else {
+                System.out.println("Problema nell'eliminar ele disponibilità");
+                return false;
+            }
         }
         return false;
     }

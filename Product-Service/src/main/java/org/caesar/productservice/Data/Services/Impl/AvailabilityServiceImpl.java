@@ -67,17 +67,22 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 //    @CircuitBreaker(name=AVAILABILITY_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name=AVAILABILITY_SERVICE)
     public boolean deleteAvailabilityByProduct(Product product) {
+        System.out.println("Sono nella funzione per eliminare le disponibilità");
         List<Availability> availabilitiesToDelete = new ArrayList<>();
         for (Availability availability : availabilityRepository.findAll()) {
-            if (availability.getProduct().equals(product)) {
+            if (availability.getProduct().getId().equals(product.getId())) {
+                System.out.println("Trovata la disponibilità: "+availability.getSize());
                 availabilitiesToDelete.add(availability);
             }
         }
         if (!availabilitiesToDelete.isEmpty()) {
+            System.out.println("Ho eliminato tutte le disponibilità");
             availabilityRepository.deleteAll(availabilitiesToDelete);
             return true;
-        } else
+        } else {
+            System.out.println("Non sono riuscito ad eliminare le disponibilità");
             return false;
+        }
 
     }
 
