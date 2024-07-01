@@ -79,6 +79,24 @@ public class ProductController {
             return new ResponseEntity<>(searchProduct, HttpStatus.OK);
     }
 
+    @GetMapping("/new")
+    public ResponseEntity<List<ProductSearchDTO>> newProduct(){
+        List<ProductSearchDTO> searchProduct = generalService.newProducts();
+        if(searchProduct.isEmpty())
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        else
+            return new ResponseEntity<>(searchProduct, HttpStatus.OK);
+    }
+
+    @GetMapping("product/offer")
+    public ResponseEntity<List<ProductSearchDTO>> getOffer(){
+        List<ProductSearchDTO> searchProduct = generalService.getOffers();
+        if(searchProduct==null || searchProduct.isEmpty())
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        else
+            return new ResponseEntity<>(searchProduct, HttpStatus.OK);
+    }
+
 
     @GetMapping("/lastSearchs") //Restituisce le ricerche dell'utente
     public ResponseEntity<List<String>> searchs(){

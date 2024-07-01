@@ -97,57 +97,93 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
 
+    @Override
+    public boolean logout(String username){
+        try{
+            RealmResource realmResource = keycloak.realm("CaesarRealm");
+            User userKeycloak = findUserByUsername(username);
+            UserResource userResource = realmResource.users().get(userKeycloak.getId());
+            userResource.logout();
+            return true;
+        }catch (Exception | Error e) {
+            log.debug("Errore nel logout");
+            return false;
+        }
+
+
+    }
     //Metodi per la gestione dell'utente
     @Override
     @Transactional
     public boolean saveUser(UserRegistrationDTO userData) {
-        //Presa del real associato all'applicazione
+        // Presa del real associato all'applicazione
         RealmResource realmResource = keycloak.realm("CaesarRealm");
+        System.out.println("RealmResource ottenuto: " + realmResource.toString());
 
-        //Presa degli utenti presenti sul real
+        // Presa degli utenti presenti sul real
         UsersResource usersResource = realmResource.users();
+        System.out.println("UsersResource ottenuto: " + usersResource.toString());
 
-        //Creazione di un nuovo utente per inserirlo nel realm
+        // Creazione di un nuovo utente per inserirlo nel realm
         UserRepresentation user = new UserRepresentation();
 
-
-        //Assegnazione dei campi base offerti da keycloak
+        // Assegnazione dei campi base offerti da keycloak
         user.setUsername(userData.getUsername());
         user.setFirstName(userData.getFirstName());
         user.setLastName(userData.getLastName());
         user.setEmail(userData.getEmail());
         user.setEnabled(true);
 
-        //Assegnazione e specifica del tipo di crednziali d'accesso
+        System.out.println("Dati dell'utente impostati: ");
+        System.out.println("Username: " + userData.getUsername());
+        System.out.println("FirstName: " + userData.getFirstName());
+        System.out.println("LastName: " + userData.getLastName());
+        System.out.println("Email: " + userData.getEmail());
+
+        // Assegnazione e specifica del tipo di credenziali d'accesso
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setType(CredentialRepresentation.PASSWORD);
         credential.setValue(userData.getCredentialValue());
         credential.setTemporary(false);
 
-        //Impostazione delle credenziali d'accesso
+        System.out.println("Credenziali dell'utente impostate: ");
+        System.out.println("Tipo: " + CredentialRepresentation.PASSWORD);
+        System.out.println("Valore: " + userData.getCredentialValue());
+
+        // Impostazione delle credenziali d'accesso
         user.setCredentials(Collections.singletonList(credential));
 
-        //Chiamata per la creazione dell'user
+        // Chiamata per la creazione dell'user
         Response response = usersResource.create(user);
+        System.out.println("Risposta dalla creazione dell'utente: " + response.getStatus());
 
-        //Controllo che l'user sia stato inserito
+        // Controllo che l'user sia stato inserito
         if (response.getStatus() == 201) {
-            //Presa dell'id dell'utente mandata come risposta della chiamata
+            // Presa dell'id dell'utente mandata come risposta della chiamata
             String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+            System.out.println("ID dell'utente creato: " + userId);
 
             UserResource userResource = usersResource.get(userId);
 
-            //Impostazione del ruolo "basic" al nuovo utente salvato
-            ClientRepresentation clientRepresentation= realmResource.clients().findByClientId("caesar-app").getFirst();
+            // Impostazione del ruolo "basic" al nuovo utente salvato
+            ClientRepresentation clientRepresentation = realmResource.clients().findByClientId("caesar-app").get(0);
+            System.out.println("ClientRepresentation ottenuto: " + clientRepresentation.toString());
+
             ClientResource clientResource = realmResource.clients().get(clientRepresentation.getId());
+            System.out.println("ClientResource ottenuto: " + clientResource.toString());
 
             RoleRepresentation role = clientResource.roles().get("basic").toRepresentation();
+            System.out.println("RoleRepresentation ottenuto: " + role.toString());
+
             userResource.roles().clientLevel(clientRepresentation.getId()).add(Collections.singletonList(role));
+            System.out.println("Ruolo 'basic' assegnato all'utente.");
 
             return true;
         }
+        System.out.println("Creazione dell'utente fallita. Stato della risposta: " + response.getStatus());
         return false;
     }
+
 
     @Override
     @Transactional
@@ -170,13 +206,15 @@ public class UserRepositoryImpl implements UserRepository {
             Map<String, List<String>> attributes = new HashMap<>();  //FIXME controllare vecchia config
 
             attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
+
+            boolean vb= userData.getOtp()!=null;
+            System.out.println(vb);
+            if(userData.getOtp()!=null)
+                attributes.put("otp", List.of(userData.getOtp()));
+
             user.setAttributes(attributes);
 
             userResource.update(user);
-
-            //Controllo che il campo email sia cambiato, se si invio dell'email di verifica
-            if (!userKeycloak.getEmail().equals(userData.getEmail()))
-                userResource.sendVerifyEmail();
 
             return true;
         } catch (Exception | Error e) {
@@ -207,9 +245,14 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    @Transactional
     public boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username) {
 
         String userId= findUserByUsername(username).getId();
+
+        if(userId==null)
+            return false;
+
         UserResource userResource= keycloak.realm("CaesarRealm").users().get(userId);
 
         CredentialRepresentation credential = new CredentialRepresentation();
@@ -252,6 +295,8 @@ public class UserRepositoryImpl implements UserRepository {
             //Verifica ed eventuale aggiunta del campo inerente al numero di telefono
             if (usersResource.getFirst().getAttributes() != null)
                 user.setPhoneNumber(usersResource.getFirst().getAttributes().get("phoneNumber").getFirst());
+            else if (usersResource.size()==2 && usersResource.get(1).getAttributes().get("otp") != null)
+                user.setOtp(usersResource.get(1).getAttributes().get("otp").getFirst());
 
             return user;
         } catch (Exception | Error e) {

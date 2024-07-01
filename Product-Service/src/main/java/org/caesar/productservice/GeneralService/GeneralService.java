@@ -1,5 +1,6 @@
 package org.caesar.productservice.GeneralService;
 
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
@@ -34,6 +35,8 @@ public interface GeneralService {
     boolean updateNotifyOrder();
     List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds);
     String checkOrder(String username, BuyDTO buyDTO, boolean payMethod);
-
-
+    List<ProductSearchDTO>newProducts();
+    List<ProductSearchDTO> getOffers();
+    List<Integer> getReviewScore(UUID productId);
+    boolean deleteAvailabilityByProduct(Product product);
 }

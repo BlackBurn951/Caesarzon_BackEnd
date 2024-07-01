@@ -3,6 +3,7 @@ package org.caesar.productservice.Dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 @Getter
@@ -20,7 +21,6 @@ public class ProductDTO {
     private boolean is_clothing;
     List<AvailabilityDTO> availabilities;
     private String sport;
-
-
+    private LocalDate lastModified;
 
 }
