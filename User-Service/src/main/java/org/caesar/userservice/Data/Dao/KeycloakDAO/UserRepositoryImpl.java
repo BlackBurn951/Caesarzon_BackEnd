@@ -213,9 +213,6 @@ public class UserRepositoryImpl implements UserRepository {
 
             userResource.update(user);
 
-            //Controllo che il campo email sia cambiato, se si invio dell'email di verifica
-            if (!userKeycloak.getEmail().equals(userData.getEmail()))
-                userResource.sendVerifyEmail();
 
             return true;
         } catch (Exception | Error e) {

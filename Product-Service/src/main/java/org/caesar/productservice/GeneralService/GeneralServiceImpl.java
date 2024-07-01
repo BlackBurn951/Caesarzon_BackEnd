@@ -128,7 +128,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
-    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> true carta -> false paypal
+    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> false carta -> true paypal
 
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
 
@@ -138,7 +138,7 @@ public class GeneralServiceImpl implements GeneralService {
         }
 
         //Controllo che vengano effettivamente passati indirizzo e carta per pagare
-        if(buyDTO.getAddressID() == null || (payMethod && buyDTO.getCardID() == null) ) {
+        if(buyDTO.getAddressID() == null || (!payMethod && buyDTO.getCardID() == null) ) {
             changeAvaibility(productInOrder, true);
             return "Errore";
         }
@@ -151,7 +151,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         double total= productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum();
 
-        if(payMethod) {
+        if(!payMethod) {
             if(!checkPayment(buyDTO.getCardID(), total)) {
                 changeAvaibility(productInOrder, true);
                 return "Errore";
@@ -163,8 +163,8 @@ public class GeneralServiceImpl implements GeneralService {
                 Payment payment = payPalService.createPayment(
                         total, "EUR", "paypal",
                         "sale", "Pagamento ordine",
-                        "http://localhost:4200/pagamento", //TODO REDIRECT SUL FRONT ANCHE
-                        "http://localhost:4200/personal-data?total="+total);
+                        "http://localhost:4200/order-final", //TODO REDIRECT SUL FRONT ANCHE
+                        "http://localhost:4200/order-final");
                 for (Links link : payment.getLinks()) {
                     if (link.getRel().equals("approval_url")) {
                         return "redirect:" + link.getHref();
@@ -275,7 +275,7 @@ public class GeneralServiceImpl implements GeneralService {
                 utils.sendNotify(username,
                 "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
                 "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate()))
-           return "Ordine effettuatop con successo!";
+           return "Ordine effettuato con successo!";
         else {
             changeAvaibility(productInOrder, true);
             return "Errore"; //☺
@@ -284,7 +284,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-    public List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds) {
+    public List<UnavailableDTO>  checkAvailability(String username, List<UUID> productIds) {
 
         //Presa di tutti i prodotti presenti nel carello dell'utente
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, productIds);
