@@ -317,7 +317,6 @@ public class GeneralServiceImpl implements GeneralService {
         List<ProductDTO> productWithoutAvailability= new Vector<>();
 
         for(ProductOrderDTO p: productInOrder){
-            System.out.println(p.getProductDTO().getId());
             AvailabilityDTO availabilityDTO= availabilityService.getAvailabilitieByProductId(p.getProductDTO(), p.getSize());
 
             if(availabilityDTO==null || availabilityDTO.getAmount()<p.getQuantity())
