@@ -30,9 +30,9 @@ public class WishlistController {
     public ResponseEntity<String> addWishList(@RequestBody WishlistDTO wishlistDTO){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
         if(wishlistService.addOrUpdateWishlist(wishlistDTO, username) != null)
-            return new ResponseEntity<>("Lista desideri aggiunta", HttpStatus.OK);
+            return new ResponseEntity<>("Lista desideri creata", HttpStatus.OK);
         else
-            return new ResponseEntity<>("Problemi nell'aggiunta di una lista", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Problemi nella creazione di una lista", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
@@ -79,14 +79,14 @@ public class WishlistController {
     }
 
 
-    @PutMapping("/wishlist/{wishId}")
-    public ResponseEntity<String> getUserWishlists(@PathVariable UUID wishId, @RequestParam("visibility") int visibility){
+    @PostMapping("/wishlist/visibility")
+    public ResponseEntity<String> getUserWishlists(@RequestParam("wish-id") UUID wishId, @RequestParam("visibility") int visibility){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
         if(wishlistService.changeVisibility(visibility, username, wishId))
             return new ResponseEntity<>("Visibilità cambiata con successo", HttpStatus.OK);
         else
-            return new ResponseEntity<>("Errore nel cambio della visibilità...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Errore nel cambio della visibilità", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 

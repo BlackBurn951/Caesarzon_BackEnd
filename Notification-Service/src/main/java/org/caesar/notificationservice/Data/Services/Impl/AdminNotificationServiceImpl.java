@@ -37,31 +37,32 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
     //Metodo per prendere le notifiche dell'admin
     @Override
-    @Retry(name=ADMIN_NOTIFICATION)
+//    @Retry(name=ADMIN_NOTIFICATION)
     public List<AdminNotificationDTO> getAdminNotification(String username) {
         try {
+
             List<AdminNotification> notifications= adminNotificationRepository.findAllByAdmin(username);
 
             if(notifications==null || notifications.isEmpty())
                 return null;
 
-            List<SaveAdminNotificationDTO> firstDTO= notifications.stream().map(a -> modelMapper.map(a, SaveAdminNotificationDTO.class)).toList();
 
             List<AdminNotificationDTO> result= new Vector<>();
             AdminNotificationDTO notificationDTO;
-            for(SaveAdminNotificationDTO notify: firstDTO) {
+
+            for(AdminNotification notify: notifications) {
                 notificationDTO= new AdminNotificationDTO();
 
                 notificationDTO.setId(notify.getId());
                 notificationDTO.setAdmin(notify.getAdmin());
                 notificationDTO.setRead(notify.isRead());
                 notificationDTO.setSubject(notify.getSubject());
-                notificationDTO.setDate(notify.getDate());
+                notificationDTO.setDate(notify.getDate().toString());
 
                 if(notify.getSupport()==null)
                     notificationDTO.setReportId(notify.getReport().getId());
                 else
-                    notificationDTO.setSupportId(notify.getReport().getId());
+                    notificationDTO.setSupportId(notify.getSupport().getId());
 
                 result.add(notificationDTO);
             }
@@ -74,8 +75,8 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
     //Metodo per inviare le notifiche all'admin
     @Override
-    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=ADMIN_NOTIFICATION)
+//    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+//    @Retry(name=ADMIN_NOTIFICATION)
     public boolean sendNotificationAllAdmin(List<SaveAdminNotificationDTO> notification) {
         try {
             adminNotificationRepository.saveAll(notification.stream().map(a -> modelMapper.map(a, AdminNotification.class)).toList());
@@ -89,7 +90,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
     //Metodo per eliminare le notifiche dell'admin
     @Override
-    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+//    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=ADMIN_NOTIFICATION)
     public boolean deleteAdminNotification(UUID id){
         try{
@@ -103,7 +104,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
     //Metodo per eliminare le notifiche dell'admin tramite richiesta di supporto
     @Override
-    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+//    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=ADMIN_NOTIFICATION)
     public boolean deleteBySupport(SupportDTO supportDTO) {
         try{
@@ -133,7 +134,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
     //Metodo per aggiornare lo stato di lettura delle notifiche dell'admin
     @Override
-    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
+//    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
     @Retry(name=ADMIN_NOTIFICATION)
     public boolean updateAdminNotification(List<SaveAdminNotificationDTO> notificationDTO) {
         try{

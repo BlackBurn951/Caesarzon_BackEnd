@@ -142,7 +142,7 @@ public class WishlistServiceImpl implements WishlistService {
             switch (visibility) {
                 case 0 -> wishlist.setVisibility("Privata");
                 case 1 -> wishlist.setVisibility("Pubblica");
-                case 2 -> wishlist.setVisibility("Besties");
+                case 2 -> wishlist.setVisibility("Condivisa");
             }
             wishlistRepository.save(wishlist);
             return true;

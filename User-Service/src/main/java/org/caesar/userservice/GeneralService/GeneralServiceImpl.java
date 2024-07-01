@@ -76,24 +76,11 @@ public class GeneralServiceImpl implements GeneralService {
     public int addAddress(String userUsername, AddressDTO addressDTO) {
         List<UserAddressDTO> addresses= userAddressService.getUserAddresses(userUsername);
 
-        if(addresses==null || addresses.isEmpty()) {
+        if(addresses!=null && addresses.size()<5) {
             return creadAddress(userUsername, addressDTO);
-        } else if(addresses.size()==5)
+        } else if(addresses!=null && addresses.size()==5)
             return 2;
-        else {
-            for(UserAddressDTO userAddressDTO: addresses) {
-                AddressDTO address= addressService.getAddress(userAddressDTO.getAddressId());
-
-                if(address.equals(addressDTO)) {
-                    addressDTO.setId(address.getId());
-                    UUID id= addressService.addAddress(addressDTO);
-                    if(id == null)
-                        return 1;
-                    return 0;
-                }
-            }
-            return creadAddress(userUsername, addressDTO);
-        }
+        return 1;
     }
 
     @Override
@@ -103,24 +90,12 @@ public class GeneralServiceImpl implements GeneralService {
     public int addCard(String userUsername, CardDTO cardDTO) {
         List<UserCardDTO> cards= userCardService.getUserCards(userUsername);
 
-        if(cards==null || cards.isEmpty()) {
+        if(cards!=null && cards.size()<5) {
             return creatCard(userUsername, cardDTO);
-        } else if(cards.size()==5)
+        } else if(cards!=null && cards.size()==5)
             return 2;
-        else {
-            for(UserCardDTO userCardDTO: cards) {
-                CardDTO card= cardService.getCard(userCardDTO.getCardId());
+        return 1;
 
-                if(card.equals(cardDTO)) {
-                    cardDTO.setId(card.getId());
-                    UUID id= cardService.addCard(cardDTO);
-                    if(id == null)
-                        return 1;
-                    return 0;
-                }
-            }
-            return creatCard(userUsername, cardDTO);
-        }
     }
 
 
