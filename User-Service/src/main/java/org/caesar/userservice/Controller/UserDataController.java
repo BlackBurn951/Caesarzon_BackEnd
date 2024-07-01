@@ -85,6 +85,17 @@ public class UserDataController {
         }
     }
 
+    @PutMapping("/logout")
+    public ResponseEntity<String> logout(@RequestBody LogoutDTO logoutDTO) {
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+        if(userService.logout(username, logoutDTO))
+            return new ResponseEntity<>("Logout avvenuto con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nel logout", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
     @DeleteMapping("/user")
     public ResponseEntity<String> deleteUser() {
         //Prendendo l'username dell'utente che ha fatto la chiamata

@@ -80,10 +80,10 @@ public class WishlistController {
 
 
     @PostMapping("/wishlist/visibility")
-    public ResponseEntity<String> getUserWishlists(@RequestParam("wish-id") UUID wishId, @RequestParam("visibility") int visibility){
+    public ResponseEntity<String> getUserWishlists(@RequestBody ChangeVisibilityDTO changeVisibilityDTO){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(wishlistService.changeVisibility(visibility, username, wishId))
+        if(wishlistService.changeVisibility(username, changeVisibilityDTO))
             return new ResponseEntity<>("Visibilità cambiata con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nel cambio della visibilità", HttpStatus.INTERNAL_SERVER_ERROR);
