@@ -18,7 +18,7 @@ public class ProductDTO {
     private int discount;
     private String primaryColor;
     private String secondaryColor;
-    private boolean is_clothing;
+    private Boolean is_clothing;
     List<AvailabilityDTO> availabilities;
     private String sport;
     private LocalDate lastModified;

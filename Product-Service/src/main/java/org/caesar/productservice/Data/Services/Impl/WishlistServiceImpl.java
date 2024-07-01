@@ -120,6 +120,11 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
+    public List<BasicWishlistDTO> getAllUserWishlists(String accessUsername) {
+        return wishlistRepository.findAllByUserUsername(accessUsername).stream().map(a -> modelMapper.map(a, BasicWishlistDTO.class)).toList();
+    }
+
+    @Override
 //    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name=WISHLIS_SERVICE)
     public boolean deleteWishlist(UUID id) {

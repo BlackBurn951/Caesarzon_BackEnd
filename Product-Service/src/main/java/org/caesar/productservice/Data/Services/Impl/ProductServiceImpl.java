@@ -61,7 +61,7 @@ public class ProductServiceImpl implements ProductService{
                 product.setDiscount(productDTO.getDiscount());
                 product.setName(productDTO.getName());
                 product.setBrand(productDTO.getBrand());
-                product.setIs_clothing(productDTO.is_clothing());
+                product.setIs_clothing(productDTO.getIs_clothing());
                 product.setPrice(productDTO.getPrice());
                 product.setPrimaryColor(productDTO.getPrimaryColor());
                 product.setSecondaryColor(productDTO.getSecondaryColor());

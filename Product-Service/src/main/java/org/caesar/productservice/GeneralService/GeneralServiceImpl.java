@@ -148,50 +148,59 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
-    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> false carta -> true paypal
+    @Transactional
+    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {
+        log.debug("checkOrder called with username: {}, buyDTO: {}, payMethod: {}", username, buyDTO, payMethod);
 
-        List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
+        List<ProductOrderDTO> productInOrder = getProductInOrder(username, buyDTO.getProductsIds());
+        log.debug("Products in order: {}", productInOrder);
 
-        if(productInOrder==null || productInOrder.isEmpty()) {
+        if (productInOrder == null || productInOrder.isEmpty()) {
+            log.debug("No products found in order or product list is empty");
             changeAvaibility(productInOrder, true);
             return "Errore";
         }
 
-        //Controllo che vengano effettivamente passati indirizzo e carta per pagare
-        if(buyDTO.getAddressID() == null || (!payMethod && buyDTO.getCardID() == null) ) {
+        if (buyDTO.getAddressID() == null || (!payMethod && buyDTO.getCardID() == null)) {
+            log.debug("Address ID or Card ID is missing");
             changeAvaibility(productInOrder, true);
             return "Errore";
         }
 
-        //Chiamata per veificare che l'utente che vuole acquistare abbia quell'indirizzo e quella carta
-        if(!checkAddress(buyDTO.getAddressID())) {
+        if (!checkAddress(buyDTO.getAddressID())) {
+            log.debug("Address check failed for address ID: {}", buyDTO.getAddressID());
             changeAvaibility(productInOrder, true);
             return "Errore";
         }
 
-        double total= productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum();
+        double total = productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum();
+        log.debug("Total order amount: {}", total);
 
-        if(!payMethod) {
-            if(!checkPayment(buyDTO.getCardID(), total)) {
+        if (!payMethod) {
+            if (!checkPayment(buyDTO.getCardID(), total)) {
+                log.debug("Payment check failed for card ID: {} and total: {}", buyDTO.getCardID(), total);
                 changeAvaibility(productInOrder, true);
                 return "Errore";
             }
             buyDTO.setTotal(total);
+            log.debug("Payment successful, creating order");
             return createOrder(username, buyDTO);
         } else {
             try {
                 Payment payment = payPalService.createPayment(
                         total, "EUR", "paypal",
                         "sale", "Pagamento ordine",
-                        "http://localhost:4200/order-final", //TODO REDIRECT SUL FRONT ANCHE
+                        "http://localhost:4200/order-final",
                         "http://localhost:4200/order-final");
+                log.debug("PayPal payment created: {}", payment);
                 for (Links link : payment.getLinks()) {
                     if (link.getRel().equals("approval_url")) {
+                        log.debug("Approval URL found: {}", link.getHref());
                         return "redirect:" + link.getHref();
                     }
                 }
             } catch (PayPalRESTException e) {
+                log.debug("PayPal REST exception: {}", e.getMessage());
                 e.printStackTrace();
             }
             return "Errore";
@@ -340,6 +349,7 @@ public class GeneralServiceImpl implements GeneralService {
     // Restituisce il prodotto con le sue disponibilità e immagini
     public ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id){
         ProductDTO productDTO = productService.getProductById(id);
+
         if(productDTO != null){
             List<AvailabilityDTO> availabilities = availabilityService.getAvailabilitiesByProductID(productDTO);
             for(AvailabilityDTO availabilityDTO: availabilities)
@@ -774,7 +784,7 @@ public class GeneralServiceImpl implements GeneralService {
         );
 
         if(response.getStatusCode()==HttpStatus.OK)
-            return response.getBody();
+            return Boolean.TRUE.equals(response.getBody());
         return false;
     }
 
