@@ -143,6 +143,13 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
+    @Override
+    public boolean logout(String usermame, LogoutDTO logoutDTO) {
+        if(logoutDTO.isLogout())
+            return userRepository.logout(usermame);
+        return false;
+    }
+
 
     //Metodi per la convalida dei dati
     private boolean checkUsername(String username) {

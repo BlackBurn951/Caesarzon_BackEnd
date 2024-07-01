@@ -97,6 +97,21 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
 
+    @Override
+    public boolean logout(String username){
+        try{
+            RealmResource realmResource = keycloak.realm("CaesarRealm");
+            User userKeycloak = findUserByUsername(username);
+            UserResource userResource = realmResource.users().get(userKeycloak.getId());
+            userResource.logout();
+            return true;
+        }catch (Exception | Error e) {
+            log.debug("Errore nel logout");
+            return false;
+        }
+
+
+    }
     //Metodi per la gestione dell'utente
     @Override
     @Transactional
