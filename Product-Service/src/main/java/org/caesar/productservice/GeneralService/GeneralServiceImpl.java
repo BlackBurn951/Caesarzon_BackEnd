@@ -162,6 +162,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
 
+
         if(productInOrder==null || productInOrder.isEmpty()) {
             changeAvaibility(productInOrder, true);
             return "Errore";
