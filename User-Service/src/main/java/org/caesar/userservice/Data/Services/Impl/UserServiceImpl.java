@@ -82,8 +82,7 @@ public class UserServiceImpl implements UserService {
             checkFirstName(userRegistrationDTO.getFirstName()) &&
             checkLastName(userRegistrationDTO.getLastName()) &&
             checkCredentialValue(userRegistrationDTO.getCredentialValue()))
-                return userRepository.saveUser(userRegistrationDTO);
-
+            return userRepository.saveUser(userRegistrationDTO);
         return false;
     }
 
@@ -163,15 +162,15 @@ public class UserServiceImpl implements UserService {
             //Suddivisione in pre e post @ dell'email per controllare i due singoli pezzi
             String beforeAt = email.substring(0, atIndex);
             String afterAt = email.substring(atIndex + 1);
-
+            System.out.println(beforeAt+"\n"+afterAt);
             //Check del before per fare in modo che non sia più lungo di 64 caratteri e non contenga caratteri speciali
-            boolean checkBefore= beforeAt.matches("^[a-zA-Z0-9]{1,64}$");
+            boolean checkBefore= beforeAt.matches("^[a-zA-Z0-9.]{1,64}$");
 
             if(checkBefore) {
                 for(String domain : domains) {
-                    if(afterAt.contains(domain)) {
+                    if(afterAt.contains(domain))
                         return true;
-                    }
+
                 }
             }
         } catch(IOException e) {

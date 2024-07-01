@@ -90,10 +90,12 @@ public class GeneralServiceImpl implements GeneralService {
     public int addCard(String userUsername, CardDTO cardDTO) {
         List<UserCardDTO> cards= userCardService.getUserCards(userUsername);
 
-        if(cards!=null && cards.size()<5) {
+        if(cards!=null && cards.size()<5)
             return creatCard(userUsername, cardDTO);
-        } else if(cards!=null && cards.size()==5)
+        else if(cards!=null && cards.size()==5)
             return 2;
+        else if(cards==null || cards.isEmpty())
+            return creatCard(userUsername, cardDTO);
         return 1;
 
     }
