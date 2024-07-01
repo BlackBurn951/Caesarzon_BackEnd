@@ -173,7 +173,7 @@ public class GeneralServiceImpl implements GeneralService {
             return "Errore";
         }
 
-        //Chiamata per veificare che l'utente che vuole acquistare abbia quell'indirizzo e quella carta
+        //Chiamata per veificare che l'utente che vuole acquistare abbia quell'indirizzo
         if(!checkAddress(buyDTO.getAddressID())) {
             changeAvaibility(productInOrder, true);
             return "Errore";

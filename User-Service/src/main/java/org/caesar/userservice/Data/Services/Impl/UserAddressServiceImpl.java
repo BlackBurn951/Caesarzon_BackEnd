@@ -79,6 +79,7 @@ public class UserAddressServiceImpl implements UserAddressService {
     public boolean checkAddress(String username, AddressDTO addressDTO) {
         UserAddress userAddress= userAddressRepository.findByUserUsernameAndAddress(username, modelMapper.map(addressDTO, Address.class));
 
+        System.out.println(userAddress.getUserUsername());
         return userAddress != null;
     }
 

@@ -21,7 +21,8 @@ public class CardController {
     private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
 
-    //End-point per prendere il numero di carte associate all'utente
+
+    //End-point per la gestione delle carte
     @GetMapping("/cards")
     public List<UUID> getCards() {
         //Prendendo l'username dell'utente che ha fatto la chiamata
@@ -29,7 +30,6 @@ public class CardController {
 
         return generalService.getUserCards(username);
     }
-
 
     @GetMapping("/card")
     public ResponseEntity<CardDTO> getCardData(@RequestParam("card_id") UUID id) {
@@ -66,6 +66,7 @@ public class CardController {
     }
 
 
+    //End-point chiamato dal microservizio dei prodotti per pagare in caso di acquisto con la carta
     @PostMapping("/balance/{cardId}")
     public ResponseEntity<Boolean> pay(@PathVariable("cardId") UUID cardId, @RequestParam("total") double total) {
         //Prendendo l'username dell'utente che ha fatto la chiamata
