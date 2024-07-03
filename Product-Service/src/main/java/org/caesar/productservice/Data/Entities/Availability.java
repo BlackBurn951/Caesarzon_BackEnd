@@ -23,7 +23,7 @@ public class Availability {
     private String size;
 
     @OneToOne
-    @JoinColumn(name = "id_prodotto")  // Specifica la colonna di jo
+    @JoinColumn(name = "id_prodotto")
     private Product product;
 
 }

@@ -151,7 +151,12 @@ public class GeneralServiceImpl implements GeneralService {
         productOrderDTO.setTotal(total);
         productOrderDTO.setQuantity(sendProductOrderDTO.getQuantity());
         productOrderDTO.setUsername(username);
-        productOrderDTO.setSize(sendProductOrderDTO.getSize());
+
+        if (productDTO.getIs_clothing())
+            productOrderDTO.setSize(sendProductOrderDTO.getSize());
+        else
+            productOrderDTO.setSize(null);
+
 
         return productOrderService.save(productOrderDTO);
     }
@@ -705,9 +710,17 @@ public class GeneralServiceImpl implements GeneralService {
         for(ProductDTO unavailableDTO: unavaibilities){
             un = new UnavailableDTO();
 
+            List<AvailabilityDTO> ava= availabilityService.getAvailabilitiesByProductID(unavailableDTO)
+                    .stream()
+                    .map(a -> {
+                        a.setProduct(null);
+                        return a;
+                    })
+                    .toList();
+
             un.setId(unavailableDTO.getId());
             un.setName(unavailableDTO.getName());
-            un.setAvailabilities(availabilityService.getAvailabilitiesByProductID(unavailableDTO));
+            un.setAvailabilities(ava);
 
             result.add(un);
         }
