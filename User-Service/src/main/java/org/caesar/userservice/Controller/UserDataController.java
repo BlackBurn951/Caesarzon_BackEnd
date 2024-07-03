@@ -62,6 +62,32 @@ public class UserDataController {
             return new ResponseEntity<>("Problemi nell'aggiornamento...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @DeleteMapping("/user")
+    public ResponseEntity<String> deleteUser() {
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result= generalService.deleteUser(username);
+
+        if(result)
+            return new ResponseEntity<>("User eliminato con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nella cancellazione dell'user...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    @PutMapping("/logout")
+    public ResponseEntity<String> logout(@RequestBody LogoutDTO logoutDTO) {
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+        if(userService.logout(username, logoutDTO))
+            return new ResponseEntity<>("Logout avvenuto con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nel logout", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    //End-point per il cambio password (da loggato e con il recupero password)
     @PutMapping("/otp/{otp}")
     public ResponseEntity<String> forgottenPassword(@PathVariable String otp, @RequestBody PasswordChangeDTO passwordChangeDTO){
         if(userService.checkOtp(passwordChangeDTO, otp))
@@ -85,29 +111,6 @@ public class UserDataController {
         }
     }
 
-    @PutMapping("/logout")
-    public ResponseEntity<String> logout(@RequestBody LogoutDTO logoutDTO) {
-        //Prendendo l'username dell'utente che ha fatto la chiamata
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
-        if(userService.logout(username, logoutDTO))
-            return new ResponseEntity<>("Logout avvenuto con successo!", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Errore nel logout", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-
-    @DeleteMapping("/user")
-    public ResponseEntity<String> deleteUser() {
-        //Prendendo l'username dell'utente che ha fatto la chiamata
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
-
-        boolean result= generalService.deleteUser(username);
-
-        if(result)
-            return new ResponseEntity<>("User eliminato con successo!", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Errore nella cancellazione dell'user...", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
 
 
     //End-point per manipolare la foto profilo
@@ -143,34 +146,5 @@ public class UserDataController {
             return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-
-    //End-point per prendere più utenti
-    @GetMapping("/users")
-    public ResponseEntity<List<UserFindDTO>> getAllUsers(@RequestParam("str") int start) {
-        List<UserFindDTO> result= generalService.getUserFind(start);
-
-        if(result!=null)
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        else
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @GetMapping("/users/{username}")
-    public List<String> getUsersByUsernames(@PathVariable String username) {
-        return userService.getUsersByUsername(username);
-    }
-
-    @GetMapping("/user/address/{addressId}")
-    public ResponseEntity<Boolean> getUserAddress(@PathVariable UUID addressId) {
-        //Prendendo l'username dell'utente che ha fatto la chiamata
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
-
-        boolean result= generalService.checkAddress(username, addressId);
-        if(result)
-            return new ResponseEntity<>(true, HttpStatus.OK);
-        else
-            return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

@@ -98,13 +98,17 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 //    @Retry(name=AVAILABILITY_SERVICE)
     public List<AvailabilityDTO> getAvailabilitiesByProductID(ProductDTO productDTO) {
         return availabilityRepository.findAllByProduct(modelMapper.map(productDTO, Product.class))
-                .stream().map(a -> modelMapper.map(a, AvailabilityDTO.class)).toList();
+                .stream()
+                .map(a ->modelMapper.map(a, AvailabilityDTO.class))
+                .toList();
     }
     @Override
 //    @Retry(name=AVAILABILITY_SERVICE)
     public AvailabilityDTO getAvailabilitieByProductId(ProductDTO productDTO, String size) {
         Availability availability= availabilityRepository.findByProductAndSize(modelMapper.map(productDTO, Product.class), size);
 
+        if (availability == null)
+            return null;
         return modelMapper.map(availability, AvailabilityDTO.class);
     }
 

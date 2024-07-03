@@ -54,6 +54,10 @@ public class FollowerServiceImpl implements FollowerService {
         return followerDTOs;
     }
 
+    @Override
+    public FollowerDTO getFollower(String username1, String username2) {
+        return modelMapper.map(followerRepository.findByUserUsername1AndUserUsername2(username1, username2), FollowerDTO.class);
+    }
     //Aggiunta del follower
     @Override
 //    @CircuitBreaker(name=FOLLOWER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")

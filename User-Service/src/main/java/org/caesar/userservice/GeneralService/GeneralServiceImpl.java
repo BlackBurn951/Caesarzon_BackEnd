@@ -170,6 +170,36 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
+    public List<UserSearchDTO> getAllUserForFollower(String username, int start) {
+        List<UserDTO> user= userService.getUsers(start);
+
+        if(user == null || user.isEmpty())
+            return null;
+
+        List<UserSearchDTO> userSearch= new Vector<>();
+        UserSearchDTO userSearchDTO;
+
+        for(UserDTO userDTO: user) {
+            userSearchDTO= new UserSearchDTO();
+
+            FollowerDTO followerDTO= followerService.getFollower(username, userDTO.getUsername());
+
+            userSearchDTO.setUsername(userDTO.getUsername());
+            if(followerDTO != null) {
+                userSearchDTO.setFollower(true);
+                userSearchDTO.setFriend(followerDTO.isFriend());
+            }
+            else {
+                userSearchDTO.setFollower(false);
+                userSearchDTO.setFriend(false);
+            }
+            userSearch.add(userSearchDTO);
+        }
+
+        return userSearch;
+    }
+
+    @Override
     public boolean checkAddress(String username, UUID addressId) {
         AddressDTO addressDTO= addressService.getAddress(addressId);
 

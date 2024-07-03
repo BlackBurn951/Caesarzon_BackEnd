@@ -43,6 +43,8 @@ public class AdminController {
     }
 
 
+
+    //End-point per la gestione degli utenti
     @GetMapping("/user/{username}")
     public ResponseEntity<UserDTO> getUser(@PathVariable String username){
         UserDTO result= userService.getUser(username);
@@ -61,6 +63,14 @@ public class AdminController {
             return new ResponseEntity<>("Errore nella modifica dei dati dell'utente...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @PutMapping("/image/{username}")
+    public ResponseEntity<String> changeImage(@PathVariable String username, @RequestParam("file") MultipartFile file) {
+        if(profilePicService.saveImage(username, file, false))
+            return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @DeleteMapping("/user/{username}")
     public ResponseEntity<String> deleteUser(@PathVariable String username) {
         boolean result= generalService.deleteUser(username);
@@ -71,6 +81,8 @@ public class AdminController {
             return new ResponseEntity<>("Errore nella cancellazione dell'user...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
+    //End-point per la gestione dei ban
     @GetMapping("/bans")
     public ResponseEntity<List<UserSearchDTO>> getBan(@RequestParam("str") int start) {
         List<UserSearchDTO> result= generalService.getBans(start);
@@ -98,16 +110,5 @@ public class AdminController {
             return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nello sban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-
-
-
-    @PutMapping("/image/{username}")
-    public ResponseEntity<String> changeImage(@PathVariable String username, @RequestParam("file") MultipartFile file) {
-        if(profilePicService.saveImage(username, file, false))
-            return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

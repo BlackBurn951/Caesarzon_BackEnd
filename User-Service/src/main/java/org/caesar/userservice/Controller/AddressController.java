@@ -36,6 +36,8 @@ public class AddressController {
         return cityDataService.getCityData(city);
     }
 
+
+    //End-point per la gestione degli indirizzi
     @GetMapping("/addresses")
     public List<UUID> getAddressesNames() {
         //Prendendo l'username dell'utente che ha fatto la chiamata
@@ -43,8 +45,6 @@ public class AddressController {
         return generalService.getUserAddresses(username);
     }
 
-
-    //Metodo per prendere i dati dell'indirizzo con l'id passato come parametro
     @GetMapping("/address")
     public ResponseEntity<AddressDTO> getAddressData(@RequestParam("address_id") UUID id) {
         AddressDTO addressDTO = generalService.getUserAddress(id);
@@ -53,7 +53,6 @@ public class AddressController {
         else
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
-
 
     @PostMapping("/address")
     public ResponseEntity<String> saveUserAddressData(@RequestBody AddressDTO addressDTO) {
@@ -76,5 +75,19 @@ public class AddressController {
             return new ResponseEntity<>("Indirizzo eliminato correttamente!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'eliminazione...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    //End-point per controllare se l'indirizzo di spedizione è esistent (chiamato dal microservizio dei prodotti)
+    @GetMapping("/user/address/{addressId}")
+    public ResponseEntity<Boolean> getUserAddress(@PathVariable UUID addressId) {
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result= generalService.checkAddress(username, addressId);
+        if(result)
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
