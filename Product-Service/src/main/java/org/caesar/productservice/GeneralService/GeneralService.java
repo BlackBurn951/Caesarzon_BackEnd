@@ -12,31 +12,44 @@ import java.util.UUID;
 
 public interface GeneralService {
 
-    List<ProductCartDTO> getCart(String username);
-    boolean addProduct(ProductDTO ProductDTO);
-    boolean deleteProduct(UUID id);
+    //SEZIONE DEI PRODOTTI E STRETTAMENTE CORRELATI
     List<ImageDTO> getProductImages(UUID id);
     List<ImageDTO> getAllProductImages(UUID productID);
-    boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO);
-    String createOrder(String username, BuyDTO buyDTO);
     ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id);
-    List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing);
-    List<ProductSearchDTO> getLastView(String username);
-    List<ProductCartDTO> getOrder(String username, UUID orderId);
-    boolean deleteWishlist( String username, UUID wishlistID);
-    boolean deleteProductCart(String username, UUID productID);
-    boolean changeQuantity(String username, UUID productID, int quantity, String size);
+    List<Integer> getReviewScore(UUID productId);
+    boolean addProduct(ProductDTO ProductDTO);
+    boolean deleteProduct(UUID id);
+    boolean deleteAvailabilityByProduct(Product product);
+
+
+    //SEZIONE DEL CARRELLO
+    List<ProductCartDTO> getCart(String username);
+    boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO);
     boolean saveLater(String username, UUID productDTO);
-    boolean addProductIntoWishList(String username, SendWishlistProductDTO sendWishlistProductDTO);
-    boolean deleteProductFromWishList(String username, UUID wishId, UUID productId);
-    boolean deleteProductsFromWishList(String username, UUID wishlistId);
-    WishProductDTO getWishlistProductsByWishlistID(UUID wishlistId, String username);
+    boolean changeQuantity(String username, UUID productID, int quantity, String size);
+    boolean deleteProductCart(String username, UUID productID);
+
+
+    //SEZIONE DELL'ORDINE
+    List<ProductCartDTO> getOrder(String username, UUID orderId);
+    String createOrder(String username, BuyDTO buyDTO);
     boolean updateOrder(String username, UUID orderId);
     boolean updateNotifyOrder();
     List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds);
     String checkOrder(String username, BuyDTO buyDTO, boolean payMethod);
-    List<ProductSearchDTO>newProducts();
+
+
+    //SEZIONE RICERCA DEI PRODOTTI
+    List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing);
+    List<ProductSearchDTO> getLastView(String username);
+    List<ProductSearchDTO> getNewProducts();
     List<ProductSearchDTO> getOffers();
-    List<Integer> getReviewScore(UUID productId);
-    boolean deleteAvailabilityByProduct(Product product);
+
+
+    //SEZIONE DELLE WISHLIST
+    WishProductDTO getWishlistProductsByWishlistID(UUID wishlistId, String username);
+    boolean addProductIntoWishList(String username, SendWishlistProductDTO sendWishlistProductDTO);
+    boolean deleteProductFromWishList(String username, UUID wishId, UUID productId);
+    boolean deleteProductsFromWishList(String username, UUID wishlistId);
+    boolean deleteWishlist( String username, UUID wishlistID);
 }

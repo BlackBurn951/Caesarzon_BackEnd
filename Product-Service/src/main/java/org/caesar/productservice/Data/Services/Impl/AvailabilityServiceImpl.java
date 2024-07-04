@@ -30,8 +30,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         return e.getMessage();
     }
 
-    @Override
-    // Aggiunge tuple o modifica la tabella delle disponibilità
+    @Override // Aggiunge tuple o modifica la tabella delle disponibilità
 //    @CircuitBreaker(name=AVAILABILITY_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name=AVAILABILITY_SERVICE)
     public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, ProductDTO product) {

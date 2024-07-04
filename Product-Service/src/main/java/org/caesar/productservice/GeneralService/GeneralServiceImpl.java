@@ -39,36 +39,133 @@ import java.util.*;
 @Transactional
 public class GeneralServiceImpl implements GeneralService {
 
-    private final AvailabilityService availabilityService;
     private final ProductService productService;
+    private final ReviewService reviewService;
+    private final AvailabilityRepository availabilityRepository;
+
+
+    private final AvailabilityService availabilityService;
+
     private final ModelMapper modelMapper;
     private final ProductOrderService productOrderService;
     private final OrderService orderService;
     private final LastViewService lastViewService;
-    private final ReviewService reviewService;
+
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
     private final Utils utils;
     private final RestTemplate restTemplate;
     private final PayPalService payPalService;
-    private final AvailabilityRepository availabilityRepository;
 
 
+
+    //SEZIONE DEI PRODOTTI E STRETTAMENTE CORRELATI
     @Override
-    // Aggiunge il prodotto ricevuto da front al db dei prodotti
-    public boolean addProduct(ProductDTO sendProductDTO) {
-        // Mappa sendProductDTO a ProductDTO
-        sendProductDTO.setLastModified(LocalDate.now());
-//        ProductDTO productDTO = modelMapper.map(sendProductDTO, ProductDTO.class);
-        // Aggiorna l'ID del productDTO dopo averlo salvato
-        sendProductDTO.setId(productService.addOrUpdateProduct(sendProductDTO).getId());
-        availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO);
-        return true;
-
+    public List<ImageDTO> getProductImages(UUID id) {
+        return List.of();
     }
 
     @Override
-    // Restituisce il carrello dell'utente con la lista dei prodotti al suo interno
+    public List<ImageDTO> getAllProductImages(UUID productID) {
+        return List.of();
+    }
+
+    @Override // Restituisce il prodotto con le sue disponibilità e immagini
+    public ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id){
+        ProductDTO productDTO = productService.getProductById(id);
+        if(productDTO != null){
+            List<AvailabilityDTO> availabilities = availabilityService.getAvailabilitiesByProductID(productDTO);
+            for(AvailabilityDTO availabilityDTO: availabilities)
+                availabilityDTO.setProduct(null);
+            productDTO.setAvailabilities(availabilities);
+            //lastViewService.save(username, productDTO);
+            return productDTO;
+        }
+        return null;
+    }
+
+    @Override
+    public List<Integer> getReviewScore(UUID productId) {
+        ProductDTO product= productService.getProductById(productId);
+
+        if(product==null)
+            return null;
+
+        int oneStar= reviewService.getNumberOfReview(product, 1);
+        int twoStar= reviewService.getNumberOfReview(product, 2);
+        int threeStar= reviewService.getNumberOfReview(product, 3);
+        int fourStar= reviewService.getNumberOfReview(product, 4);
+        int fiveStar= reviewService.getNumberOfReview(product, 5);
+
+        List<Integer> result= new Vector<>();
+        result.add(oneStar);
+        result.add(twoStar);
+        result.add(threeStar);
+        result.add(fourStar);
+        result.add(fiveStar);
+
+        return result;
+    }
+
+    @Override
+    @Transactional // Aggiunge il prodotto ricevuto da front al db dei prodotti
+    public boolean addProduct(ProductDTO sendProductDTO) {
+
+        // Aggiorna l'ID del productDTO dopo averlo salvato
+        sendProductDTO.setId(productService.addOrUpdateProduct(sendProductDTO).getId());
+
+        if(sendProductDTO.getId()==null)
+            return false;
+
+        return availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO);
+    }
+
+    @Override
+    public boolean deleteProduct(UUID id) {
+        ProductDTO product = productService.getProductById(id);
+        System.out.println("product: " + product.getName());
+        if(product != null){
+            System.out.println("Cerco di eliminare le disponibilità");
+            if(availabilityService.deleteAvailabilityByProduct(modelMapper.map(product, Product.class)))
+            {
+                System.out.println("Sono riuscito a eliminare le disponibilità");
+                // if(imageService.deleteImage(product))
+                if (productService.deleteProductById(id))
+                {
+                    System.out.println("Prodotto eliminato");
+                    return true;
+                }else{
+                    System.out.println("Prodotto non eliminato");
+                }
+            }else {
+                System.out.println("Problema nell'eliminar ele disponibilità");
+                return false;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean deleteAvailabilityByProduct(Product product) {
+        System.out.println("Sono nell'elimina della disponibilità");
+        List<Availability> availabilitiesToDelete = new ArrayList<>();
+        for(Availability availability : availabilityRepository.findAll()) {
+            if(availability.getProduct().equals(product)){
+                System.out.println("Disponibilità trovata");
+                availabilitiesToDelete.add(availability);
+            }
+        }
+        if(!availabilitiesToDelete.isEmpty()) {
+            availabilityRepository.deleteAll(availabilitiesToDelete);
+            return true;
+        }else
+            return false;
+    }
+
+
+
+    //SEZIONE DEL CARRELLO
+    @Override  //Restituisce il carrello dell'utente con la lista dei prodotti al suo interno
     public List<ProductCartDTO> getCart(String username) {
         List<ProductOrderDTO> productCart= productOrderService.getProductOrdersByUsername(username);
 
@@ -97,44 +194,6 @@ public class GeneralServiceImpl implements GeneralService {
         return result;
     }
 
-
-    @Override
-    public boolean deleteProduct(UUID id) {
-        ProductDTO product = productService.getProductById(id);
-        System.out.println("product: " + product.getName());
-        if(product != null){
-            System.out.println("Cerco di eliminare le disponibilità");
-            if(availabilityService.deleteAvailabilityByProduct(modelMapper.map(product, Product.class)))
-            {
-                System.out.println("Sono riuscito a eliminare le disponibilità");
-                // if(imageService.deleteImage(product))
-                if (productService.deleteProductById(id))
-                {
-                    System.out.println("Prodotto eliminato");
-                    return true;
-                }else{
-                    System.out.println("Prodotto non eliminato");
-                }
-            }else {
-                System.out.println("Problema nell'eliminar ele disponibilità");
-                return false;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public List<ImageDTO> getProductImages(UUID id) {
-        return List.of();
-    }
-
-
-    @Override
-    public List<ImageDTO> getAllProductImages(UUID productID) {
-        return List.of();
-    }
-
-
     @Override
     @Transactional   // Genera un nuovo carrello alla scelta del primo prodotto dell'utente
     public boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO) {
@@ -162,278 +221,26 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
-    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> false carta -> true paypal
-
-        List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
-
-
-        if(productInOrder==null || productInOrder.isEmpty()) {
-            changeAvaibility(productInOrder, true);
-            return "Errore";
-        }
-
-        //Controllo che vengano effettivamente passati indirizzo e carta per pagare
-        if(buyDTO.getAddressID() == null || (!payMethod && buyDTO.getCardID() == null) ) {
-            changeAvaibility(productInOrder, true);
-            return "Errore";
-        }
-
-        //Chiamata per veificare che l'utente che vuole acquistare abbia quell'indirizzo
-        if(!checkAddress(buyDTO.getAddressID())) {
-            changeAvaibility(productInOrder, true);
-            return "Errore";
-        }
-
-        double total= productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum();
-
-        if(!payMethod) {
-            if(!checkPayment(buyDTO.getCardID(), total)) {
-                changeAvaibility(productInOrder, true);
-                return "Errore";
-            }
-            buyDTO.setTotal(total);
-            return createOrder(username, buyDTO);
-        } else {
-            try {
-                Payment payment = payPalService.createPayment(
-                        total, "EUR", "paypal",
-                        "sale", "Pagamento ordine",
-                        "http://localhost:4200/order-final", //TODO REDIRECT SUL FRONT ANCHE
-                        "http://localhost:4200/order-final");
-                for (Links link : payment.getLinks()) {
-                    if (link.getRel().equals("approval_url")) {
-                        return "redirect:" + link.getHref();
-                    }
-                }
-            } catch (PayPalRESTException e) {
-                e.printStackTrace();
-            }
-            return "Errore";
-        }
+    public boolean saveLater(String username, UUID productID) {
+        ProductDTO productDTO = modelMapper.map(productService.getProductById(productID), ProductDTO.class);
+        return productOrderService.saveLater(username,productDTO);
     }
 
     @Override
-    public List<ProductSearchDTO> newProducts() {
-        List<ProductDTO> productDTO = productService.getLastProducts();
-
-        return metodoAusiliario(productDTO);
+    public boolean changeQuantity(String username, UUID productID, int quantity, String size) {
+        ProductDTO productDTO = productService.getProductById(productID);
+        return productOrderService.changeQuantity(username,productDTO,quantity, size);
     }
 
     @Override
-    public List<ProductSearchDTO> getOffers() {
-        List<ProductDTO> products= productService.getOffer();
-
-        if(products==null || products.isEmpty())
-            return null;
-
-        List<ProductSearchDTO> result= new Vector<>();
-        ProductSearchDTO prod;
-        AverageDTO average;
-        for(ProductDTO p: products){
-            average= reviewService.getReviewAverage(p.getId());
-
-            prod= new ProductSearchDTO();
-            if(average==null) {
-                prod.setReviewsNumber(0);
-                prod.setAverageReview(0.0);
-            } else {
-                prod.setReviewsNumber(average.getNumberOfReview());
-                prod.setAverageReview(average.getAverage());
-            }
-            prod.setProductId(p.getId());
-            prod.setProductName(p.getName());
-            prod.setPrice(p.getPrice());
-            prod.setDiscount(p.getDiscount());
-
-            result.add(prod);
-        }
-
-        return result;
-    }
-
-    @Override
-    public List<Integer> getReviewScore(UUID productId) {
-        ProductDTO product= productService.getProductById(productId);
-
-        if(product==null)
-            return null;
-
-        int oneStar= reviewService.getNumberOfReview(product, 1);
-        int twoStar= reviewService.getNumberOfReview(product, 2);
-        int threeStar= reviewService.getNumberOfReview(product, 3);
-        int fourStar= reviewService.getNumberOfReview(product, 4);
-        int fiveStar= reviewService.getNumberOfReview(product, 5);
-
-        List<Integer> result= new Vector<>();
-        result.add(oneStar);
-        result.add(twoStar);
-        result.add(threeStar);
-        result.add(fourStar);
-        result.add(fiveStar);
-
-        return result;
-    }
-
-    @Override
-    @Transactional
-    public String createOrder(String username, BuyDTO buyDTO) {
-        List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
-
-        if(productInOrder==null || productInOrder.isEmpty()) {
-            changeAvaibility(productInOrder, true);
-            return "Errore";
-        }
-
-        OrderDTO orderDTO= new OrderDTO();
-        orderDTO.setOrderNumber(generaCodice(8));
-        orderDTO.setOrderState("Ricevuto");
-        orderDTO.setOrderTotal(buyDTO.getTotal());
-        orderDTO.setExpectedDeliveryDate(LocalDate.now().plusDays(5));
-        orderDTO.setPurchaseDate(LocalDate.now());
-        orderDTO.setRefund(false);
-        orderDTO.setAddressID(buyDTO.getAddressID());
-        orderDTO.setCardID(buyDTO.getCardID());
-        orderDTO.setUsername(username);
-
-
-        OrderDTO savedOrder = orderService.addOrder(orderDTO);
-
-        if(savedOrder==null) {
-            changeAvaibility(productInOrder, true);
-            return "Errore";
-        }
-
-        for(ProductOrderDTO productOrderDTO : productInOrder)
-            productOrderDTO.setOrderDTO(savedOrder);
-
-        if(productOrderService.saveAll(productInOrder) &&
-                utils.sendNotify(username,
-                "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
-                "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate()))
-           return "Ordine effettuato con successo!";
-        else {
-            changeAvaibility(productInOrder, true);
-            return "Errore"; //☺
-        }
-    }
-
-    @Override
-    @Transactional
-    public List<UnavailableDTO>  checkAvailability(String username, List<UUID> productIds) {
-
-        //Presa di tutti i prodotti presenti nel carello dell'utente
-        List<ProductOrderDTO> productInOrder= getProductInOrder(username, productIds);
-
-        if(productInOrder==null || productInOrder.isEmpty())
-            return null;
-
-        //Controllo delle disponibilità
-        List<ProductDTO> productWithoutAvailability= new Vector<>();
-
-        for(ProductOrderDTO p: productInOrder){
-            AvailabilityDTO availabilityDTO= availabilityService.getAvailabilitieByProductId(p.getProductDTO(), p.getSize());
-
-            if(availabilityDTO==null || availabilityDTO.getAmount()<p.getQuantity())
-                productWithoutAvailability.add(p.getProductDTO());
-        }
-
-        if(!productWithoutAvailability.isEmpty()) {
-            return setPossibleAvailability(productWithoutAvailability);
-        }
-
-        if(changeAvaibility(productInOrder, false)) {
-            List<UnavailableDTO> unavailableDTOS = new Vector<>();
-            unavailableDTOS.add(null);
-
-            return unavailableDTOS;
-        }
-        return null;
-    }
-
-    @Override
-    // Restituisce il prodotto con le sue disponibilità e immagini
-    public ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id){
-        ProductDTO productDTO = productService.getProductById(id);
-        if(productDTO != null){
-            List<AvailabilityDTO> availabilities = availabilityService.getAvailabilitiesByProductID(productDTO);
-            for(AvailabilityDTO availabilityDTO: availabilities)
-                availabilityDTO.setProduct(null);
-            productDTO.setAvailabilities(availabilities);
-            //lastViewService.save(username, productDTO);
-            return productDTO;
-        }
-        return null;
-    }
-
-    // Resituisce una lista di prodotti, risultato della ricerca coi valori dei parametri passati
-    public List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
-        List<ProductDTO> productDTO = productService.searchProducts(searchText, minPrice, maxPrice, isClothing);
-
-        return metodoAusiliario(productDTO);
+    public boolean deleteProductCart(String username, UUID productID){
+        ProductDTO productDTO = productService.getProductById(productID);
+        return productOrderService.deleteProductCart(username,productDTO);
     }
 
 
-    List<ProductSearchDTO> metodoAusiliario(List<ProductDTO> productDTO){
-        List<ProductSearchDTO> productSearchDTO = new Vector<>();
-        ProductSearchDTO productSearchDTO1;
-        AverageDTO averageDTO;
 
-        for(ProductDTO p: productDTO){
-            productSearchDTO1 = new ProductSearchDTO();
-            averageDTO = reviewService.getReviewAverage(p.getId());
-
-            productSearchDTO1.setProductId(p.getId());
-            productSearchDTO1.setAverageReview(averageDTO.getAverage());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
-
-            productSearchDTO1.setProductName(p.getName());
-            productSearchDTO1.setPrice(p.getPrice());
-            productSearchDTO1.setDiscount(p.getDiscount());
-
-            productSearchDTO1.setAverageReview(averageDTO.getAverage());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
-
-            productSearchDTO.add(productSearchDTO1);
-        }
-        return productSearchDTO;
-    }
-
-
-    // Restituisce i prodotti visti di recente dall'utente
-    public List<ProductSearchDTO> getLastView(String username){
-        //Metodo per prendere tutte le tuple dei prodotti visti
-        List<LastViewDTO> lastViewDTOS = lastViewService.getAllViewed(username);
-
-        //Lista degli utlimi prodotti cliccati
-        List<ProductDTO> productDTOS = new Vector<>();
-
-        List<ProductSearchDTO> productSearchDTOS = new Vector<>();
-
-        ProductSearchDTO productSearchDTO1;
-
-        AverageDTO averageDTO;
-
-        for(LastViewDTO l: lastViewDTOS){
-            productDTOS.add(productService.getProductById(l.getId()));
-        }
-
-        for(ProductDTO p: productDTOS){
-            productSearchDTO1 = new ProductSearchDTO();
-            averageDTO = reviewService.getReviewAverage(p.getId());
-
-            productSearchDTO1.setAverageReview(averageDTO.getAverage());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
-
-            productSearchDTO1.setProductName(p.getName());
-            productSearchDTO1.setPrice(p.getPrice());
-
-            productSearchDTOS.add(productSearchDTO1);
-        }
-
-        return productSearchDTOS;
-    }
-
+    //SEZIONE DELL'ORDINE
     @Override
     public List<ProductCartDTO> getOrder(String username, UUID orderId) {
         OrderDTO orderDTO = orderService.getOrder(username, orderId);
@@ -470,127 +277,47 @@ public class GeneralServiceImpl implements GeneralService {
         return productCartDTOS;
     }
 
-    @Transactional
-    @Override
-    // Elimina l'intera wishlist dell'utente assieme a tutti i prodotti in essa contenuti
-    public boolean deleteWishlist(String username, UUID wishlistID){
-        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
-
-        if(wishlistDTO==null)
-            return false;
-
-        return wishlistProductService.deleteAllProductsFromWishlist(wishlistDTO) && wishlistService.deleteWishlist(wishlistID);
-    }
-
-
-    public boolean deleteProductCart(String username, UUID productID){
-        ProductDTO productDTO = productService.getProductById(productID);
-        return productOrderService.deleteProductCart(username,productDTO);
-    }
-
-    @Override
-    public boolean changeQuantity(String username, UUID productID, int quantity, String size){
-        ProductDTO productDTO = productService.getProductById(productID);
-        return productOrderService.changeQuantity(username,productDTO,quantity, size);
-    }
-
-    @Override
-    public boolean saveLater(String username, UUID productID) {
-        ProductDTO productDTO = modelMapper.map(productService.getProductById(productID), ProductDTO.class);
-        return productOrderService.saveLater(username,productDTO);
-    }
-
     @Override
     @Transactional
-    public boolean addProductIntoWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
+    public String createOrder(String username, BuyDTO buyDTO) {
+        List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
 
-        WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO);
-
-
-        if(wishListProductDTO==null)
-            return false;
-
-        return wishlistProductService.addOrUpdateWishlistProduct(wishListProductDTO);
-    }
-
-    @Override
-    @Transactional
-    public boolean deleteProductFromWishList(String username, UUID wishId, UUID productId) {
-        SendWishlistProductDTO sendWishlistProductDTO = new SendWishlistProductDTO();
-        sendWishlistProductDTO.setProductID(productId);
-        sendWishlistProductDTO.setWishlistID(wishId);
-
-        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO);
-
-        if(wishListProductDTO==null)
-            return false;
-
-        return wishlistProductService.deleteProductFromWishlist(wishListProductDTO);
-    }
-
-    @Override
-    @Transactional
-    public boolean deleteProductsFromWishList(String username, UUID wishlistId) {
-        WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistId, username);
-
-        if(wishlistDTO==null)
-            return false;
-
-        return wishlistProductService.deleteAllProductsFromWishlist(wishlistDTO);
-    }
-
-    @Override
-    public WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String username) {
-
-        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
-
-        if(wishlistDTO==null){
-            return null;
+        if(productInOrder==null || productInOrder.isEmpty()) {
+            changeAvaibility(productInOrder, true);
+            return "Errore";
         }
 
-        List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlistDTO);
+        OrderDTO orderDTO= new OrderDTO();
+        orderDTO.setOrderNumber(generaCodice(8));
+        orderDTO.setOrderState("Ricevuto");
+        orderDTO.setOrderTotal(buyDTO.getTotal());
+        orderDTO.setExpectedDeliveryDate(LocalDate.now().plusDays(5));
+        orderDTO.setPurchaseDate(LocalDate.now());
+        orderDTO.setRefund(false);
+        orderDTO.setAddressID(buyDTO.getAddressID());
+        orderDTO.setCardID(buyDTO.getCardID());
+        orderDTO.setUsername(username);
 
-        if(wishListProductDTOS == null || wishListProductDTOS.isEmpty())
-            return null;
 
-        WishProductDTO wishProductDTO = new WishProductDTO();
+        OrderDTO savedOrder = orderService.addOrder(orderDTO);
 
-        SingleWishListProductDTO singleWishListProductDTO;
-
-        List<SingleWishListProductDTO> singleWishListProductDTOS = new Vector<>();
-
-        for(WishListProductDTO wishListProductDTO: wishListProductDTOS){
-            singleWishListProductDTO = new SingleWishListProductDTO();
-
-            singleWishListProductDTO.setProductName(wishListProductDTO.getProductDTO().getName());
-            singleWishListProductDTO.setPrice(wishListProductDTO.getProductDTO().getPrice());
-            singleWishListProductDTO.setProductId(wishListProductDTO.getProductDTO().getId());
-
-            singleWishListProductDTOS.add(singleWishListProductDTO);
-
+        if(savedOrder==null) {
+            changeAvaibility(productInOrder, true);
+            return "Errore";
         }
 
-        wishProductDTO.setSingleWishListProductDTOS(singleWishListProductDTOS);
-        wishProductDTO.setVisibility(wishlistDTO.getVisibility());
+        for(ProductOrderDTO productOrderDTO : productInOrder)
+            productOrderDTO.setOrderDTO(savedOrder);
 
-        return wishProductDTO;
-    }
-
-    @Override
-    public boolean deleteAvailabilityByProduct(Product product) {
-        System.out.println("Sono nell'elimina della disponibilità");
-        List<Availability> availabilitiesToDelete = new ArrayList<>();
-        for(Availability availability : availabilityRepository.findAll()) {
-            if(availability.getProduct().equals(product)){
-                System.out.println("Disponibilità trovata");
-                availabilitiesToDelete.add(availability);
-            }
+        if(productOrderService.saveAll(productInOrder) &&
+                utils.sendNotify(username,
+                        "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
+                        "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate()))
+            return "Ordine effettuato con successo!";
+        else {
+            changeAvaibility(productInOrder, true);
+            return "Errore"; //☺
         }
-        if(!availabilitiesToDelete.isEmpty()) {
-            availabilityRepository.deleteAll(availabilitiesToDelete);
-            return true;
-        }else
-            return false;
     }
 
     @Override
@@ -664,6 +391,265 @@ public class GeneralServiceImpl implements GeneralService {
         }
 
     }
+
+    @Override
+    @Transactional
+    public List<UnavailableDTO>  checkAvailability(String username, List<UUID> productIds) {
+
+        //Presa di tutti i prodotti presenti nel carello dell'utente
+        List<ProductOrderDTO> productInOrder= getProductInOrder(username, productIds);
+
+        if(productInOrder==null || productInOrder.isEmpty())
+            return null;
+
+        //Controllo delle disponibilità
+        List<ProductDTO> productWithoutAvailability= new Vector<>();
+
+        for(ProductOrderDTO p: productInOrder){
+            AvailabilityDTO availabilityDTO= availabilityService.getAvailabilitieByProductId(p.getProductDTO(), p.getSize());
+
+            if(availabilityDTO==null || availabilityDTO.getAmount()<p.getQuantity())
+                productWithoutAvailability.add(p.getProductDTO());
+        }
+
+        if(!productWithoutAvailability.isEmpty()) {
+            return setPossibleAvailability(productWithoutAvailability);
+        }
+
+        if(changeAvaibility(productInOrder, false)) {
+            List<UnavailableDTO> unavailableDTOS = new Vector<>();
+            unavailableDTOS.add(null);
+
+            return unavailableDTOS;
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
+    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> false carta -> true paypal
+
+        List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
+
+
+        if(productInOrder==null || productInOrder.isEmpty()) {
+            changeAvaibility(productInOrder, true);
+            return "Errore";
+        }
+
+        //Controllo che vengano effettivamente passati indirizzo e carta per pagare
+        if(buyDTO.getAddressID() == null || (!payMethod && buyDTO.getCardID() == null) ) {
+            changeAvaibility(productInOrder, true);
+            return "Errore";
+        }
+
+        //Chiamata per veificare che l'utente che vuole acquistare abbia quell'indirizzo
+        if(!checkAddress(buyDTO.getAddressID())) {
+            changeAvaibility(productInOrder, true);
+            return "Errore";
+        }
+
+        double total= productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum();
+
+        if(!payMethod) {
+            if(!checkPayment(buyDTO.getCardID(), total)) {
+                changeAvaibility(productInOrder, true);
+                return "Errore";
+            }
+            buyDTO.setTotal(total);
+            return createOrder(username, buyDTO);
+        } else {
+            try {
+                Payment payment = payPalService.createPayment(
+                        total, "EUR", "paypal",
+                        "sale", "Pagamento ordine",
+                        "http://localhost:4200/order-final", //TODO REDIRECT SUL FRONT ANCHE
+                        "http://localhost:4200/order-final");
+                for (Links link : payment.getLinks()) {
+                    if (link.getRel().equals("approval_url")) {
+                        return "redirect:" + link.getHref();
+                    }
+                }
+            } catch (PayPalRESTException e) {
+                e.printStackTrace();
+            }
+            return "Errore";
+        }
+    }
+
+
+
+    //SEZIONE RICERCA DEI PRODOTTI
+    @Override // Resituisce una lista di prodotti, risultato della ricerca coi valori dei parametri passati
+    public List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
+        List<ProductDTO> productDTO = productService.searchProducts(searchText, minPrice, maxPrice, isClothing);
+
+        return metodoAusiliario(productDTO);
+    }
+
+    @Override //Restituisce i prodotti visti di recente dall'utente
+    public List<ProductSearchDTO> getLastView(String username){
+        //Metodo per prendere tutte le tuple dei prodotti visti
+        List<LastViewDTO> lastViewDTOS = lastViewService.getAllViewed(username);
+
+        //Lista degli utlimi prodotti cliccati
+        List<ProductDTO> productDTOS = new Vector<>();
+
+        List<ProductSearchDTO> productSearchDTOS = new Vector<>();
+
+        ProductSearchDTO productSearchDTO1;
+
+        AverageDTO averageDTO;
+
+        for(LastViewDTO l: lastViewDTOS){
+            productDTOS.add(productService.getProductById(l.getId()));
+        }
+
+        for(ProductDTO p: productDTOS){
+            productSearchDTO1 = new ProductSearchDTO();
+            averageDTO = reviewService.getReviewAverage(p.getId());
+
+            productSearchDTO1.setAverageReview(averageDTO.getAverage());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
+
+            productSearchDTO1.setProductName(p.getName());
+            productSearchDTO1.setPrice(p.getPrice());
+
+            productSearchDTOS.add(productSearchDTO1);
+        }
+
+        return productSearchDTOS;
+    }
+
+    @Override
+    public List<ProductSearchDTO> getNewProducts() {
+        List<ProductDTO> productDTO = productService.getLastProducts();
+
+        return metodoAusiliario(productDTO);
+    }
+
+    @Override
+    public List<ProductSearchDTO> getOffers() {
+        List<ProductDTO> products= productService.getOffer();
+
+        if(products==null || products.isEmpty())
+            return null;
+
+        List<ProductSearchDTO> result= new Vector<>();
+        ProductSearchDTO prod;
+        AverageDTO average;
+        for(ProductDTO p: products){
+            average= reviewService.getReviewAverage(p.getId());
+
+            prod= new ProductSearchDTO();
+            if(average==null) {
+                prod.setReviewsNumber(0);
+                prod.setAverageReview(0.0);
+            } else {
+                prod.setReviewsNumber(average.getNumberOfReview());
+                prod.setAverageReview(average.getAverage());
+            }
+            prod.setProductId(p.getId());
+            prod.setProductName(p.getName());
+            prod.setPrice(p.getPrice());
+            prod.setDiscount(p.getDiscount());
+
+            result.add(prod);
+        }
+
+        return result;
+    }
+
+
+
+    //SEZIONE DELLE WISHLIST
+    @Override
+    public WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String username) {
+
+        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
+
+        if(wishlistDTO==null){
+            return null;
+        }
+
+        List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlistDTO);
+
+        if(wishListProductDTOS == null || wishListProductDTOS.isEmpty())
+            return null;
+
+        WishProductDTO wishProductDTO = new WishProductDTO();
+
+        SingleWishListProductDTO singleWishListProductDTO;
+
+        List<SingleWishListProductDTO> singleWishListProductDTOS = new Vector<>();
+
+        for(WishListProductDTO wishListProductDTO: wishListProductDTOS){
+            singleWishListProductDTO = new SingleWishListProductDTO();
+
+            singleWishListProductDTO.setProductName(wishListProductDTO.getProductDTO().getName());
+            singleWishListProductDTO.setPrice(wishListProductDTO.getProductDTO().getPrice());
+            singleWishListProductDTO.setProductId(wishListProductDTO.getProductDTO().getId());
+
+            singleWishListProductDTOS.add(singleWishListProductDTO);
+
+        }
+
+        wishProductDTO.setSingleWishListProductDTOS(singleWishListProductDTOS);
+        wishProductDTO.setVisibility(wishlistDTO.getVisibility());
+
+        return wishProductDTO;
+    }
+
+    @Override
+    @Transactional
+    public boolean addProductIntoWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
+
+        WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO);
+
+
+        if(wishListProductDTO==null)
+            return false;
+
+        return wishlistProductService.addOrUpdateWishlistProduct(wishListProductDTO);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteProductFromWishList(String username, UUID wishId, UUID productId) {
+        SendWishlistProductDTO sendWishlistProductDTO = new SendWishlistProductDTO();
+        sendWishlistProductDTO.setProductID(productId);
+        sendWishlistProductDTO.setWishlistID(wishId);
+
+        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO);
+
+        if(wishListProductDTO==null)
+            return false;
+
+        return wishlistProductService.deleteProductFromWishlist(wishListProductDTO);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteProductsFromWishList(String username, UUID wishlistId) {
+        WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistId, username);
+
+        if(wishlistDTO==null)
+            return false;
+
+        return wishlistProductService.deleteAllProductsFromWishlist(wishlistDTO);
+    }
+
+    @Transactional
+    @Override // Elimina l'intera wishlist dell'utente assieme a tutti i prodotti in essa contenuti
+    public boolean deleteWishlist(String username, UUID wishlistID){
+        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
+
+        if(wishlistDTO==null)
+            return false;
+
+        return wishlistProductService.deleteAllProductsFromWishlist(wishlistDTO) && wishlistService.deleteWishlist(wishlistID);
+    }
+
 
 
     //Metodi di servizio
@@ -799,5 +785,28 @@ public class GeneralServiceImpl implements GeneralService {
         return false;
     }
 
+    List<ProductSearchDTO> metodoAusiliario(List<ProductDTO> productDTO){
+        List<ProductSearchDTO> productSearchDTO = new Vector<>();
+        ProductSearchDTO productSearchDTO1;
+        AverageDTO averageDTO;
 
+        for(ProductDTO p: productDTO){
+            productSearchDTO1 = new ProductSearchDTO();
+            averageDTO = reviewService.getReviewAverage(p.getId());
+
+            productSearchDTO1.setProductId(p.getId());
+            productSearchDTO1.setAverageReview(averageDTO.getAverage());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
+
+            productSearchDTO1.setProductName(p.getName());
+            productSearchDTO1.setPrice(p.getPrice());
+            productSearchDTO1.setDiscount(p.getDiscount());
+
+            productSearchDTO1.setAverageReview(averageDTO.getAverage());
+            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
+
+            productSearchDTO.add(productSearchDTO1);
+        }
+        return productSearchDTO;
+    }
 }

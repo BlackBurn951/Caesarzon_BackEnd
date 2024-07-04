@@ -81,7 +81,7 @@ public class ProductController {
 
     @GetMapping("/new")
     public ResponseEntity<List<ProductSearchDTO>> newProduct(){
-        List<ProductSearchDTO> searchProduct = generalService.newProducts();
+        List<ProductSearchDTO> searchProduct = generalService.getNewProducts();
         if(searchProduct.isEmpty())
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         else
