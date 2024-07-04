@@ -98,16 +98,23 @@ public class AdminController {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
         banDTO.setAdminUsername(username);
 //        sagaOrchestrator.orchestrateSaga(0);
-        if(adminService.banUser(banDTO))
+        int result= adminService.banUser(banDTO);
+        if(result==0)
             return new ResponseEntity<>("Utente bannato con successo", HttpStatus.OK);
+        else if(result==1)
+            return new ResponseEntity<>("Utente già bannato in precedenza", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nel ban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PutMapping("/ban/{username}")
     public ResponseEntity<String> sbanUser(@PathVariable String username) {
-        if(adminService.sbanUser(username))
+
+        int result= adminService.sbanUser(username);
+        if(result==0)
             return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
+        else if(result==1)
+            return new ResponseEntity<>("Utente già sbannato in precedenza", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nello sban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
     }

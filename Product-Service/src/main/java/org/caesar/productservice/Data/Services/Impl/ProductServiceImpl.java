@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -66,8 +67,11 @@ public class ProductServiceImpl implements ProductService{
                 product.setPrimaryColor(productDTO.getPrimaryColor());
                 product.setSecondaryColor(productDTO.getSecondaryColor());
                 product.setSport(productDTO.getSport());
+                product.setLastModified(LocalDate.now());
 
             }else{
+                //Aggiungendo la data di ultima modifica
+                productDTO.setLastModified(LocalDate.now());
                 product = modelMapper.map(productDTO, Product.class);
             }
             return productRepository.save(product);

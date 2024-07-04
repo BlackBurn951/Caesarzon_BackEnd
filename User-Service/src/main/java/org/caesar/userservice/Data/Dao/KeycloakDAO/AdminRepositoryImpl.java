@@ -64,19 +64,22 @@ public class AdminRepositoryImpl implements AdminRepository {
 
     @Override
     @Transactional
-    public boolean banUser(String username, boolean ban) {
+    public int banUser(String username, boolean ban) {  // 0 -> operazione riuscita 1 -> operazione già svolta in passato 2 -> errore
         RealmResource realmResource = keycloak.realm("CaesarRealm");
         try {
             //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
             User userKeycloak = findUserByUsername(username);
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
             UserRepresentation user = userResource.toRepresentation();
+
+            if((!user.isEnabled() && ban) || (user.isEnabled() && !ban))
+                return 1;
             user.setEnabled(!ban);
             userResource.update(user);
-            return true;
+            return 0;
         } catch (Exception | Error e) {
             log.debug("Errore nel ban dell'user");
-            return  false;
+            return  2;
         }
     }
 
