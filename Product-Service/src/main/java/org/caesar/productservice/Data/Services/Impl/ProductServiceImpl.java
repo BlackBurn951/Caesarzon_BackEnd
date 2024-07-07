@@ -41,10 +41,9 @@ public class ProductServiceImpl implements ProductService{
     @PersistenceContext
     private final EntityManager entityManager;
 
-    @Override
+    @Override //Aggiunge il prodotto passato controllando se supera tutti i check dei parametri
 //    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name= PRODUCT_SERVICE)
-    // Aggiunge il prodotto passato controllando se supera tutti i check dei parametri
     public Product addOrUpdateProduct(ProductDTO productDTO) {
 
         if(!checkDescription(productDTO.getDescription()) || !checkDiscount(productDTO.getDiscount())
@@ -55,6 +54,10 @@ public class ProductServiceImpl implements ProductService{
 
         try{
             Product product = new Product();
+
+            //Aggiungendo la data di ultima modifica
+            product.setLastModified(LocalDate.now());
+
             if(productDTO.getId() != null && productRepository.findById(productDTO.getId()).isPresent())
             {
                 product.setId(productDTO.getId());
@@ -67,11 +70,7 @@ public class ProductServiceImpl implements ProductService{
                 product.setPrimaryColor(productDTO.getPrimaryColor());
                 product.setSecondaryColor(productDTO.getSecondaryColor());
                 product.setSport(productDTO.getSport());
-                product.setLastModified(LocalDate.now());
-
             }else{
-                //Aggiungendo la data di ultima modifica
-                productDTO.setLastModified(LocalDate.now());
                 product = modelMapper.map(productDTO, Product.class);
             }
             return productRepository.save(product);
@@ -95,8 +94,7 @@ public class ProductServiceImpl implements ProductService{
     }
 
 
-    @Override
-    // Restituisce un prodotto partendo dal suo id
+    @Override //Restituisce un prodotto partendo dal suo id
 //    @Retry(name= PRODUCT_SERVICE)
     public ProductDTO getProductById(UUID id) {
         return modelMapper.map(productRepository.findById(id), ProductDTO.class);
@@ -176,8 +174,8 @@ public class ProductServiceImpl implements ProductService{
             return results.stream().map(a -> modelMapper.map(a, ProductDTO.class)).toList();
 
 
-        } catch (Exception e) {
-            log.error("Error while searching for products", e);
+        } catch (Exception | Error e) {
+            log.debug("Errore nella ricerca dei prodotti", e);
             return Collections.emptyList();
         }
     }

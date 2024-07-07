@@ -14,4 +14,6 @@ public interface AvailabilityRepository extends JpaRepository<Availability, UUID
     List<Availability> findAllByProduct(Product product);
 
     Availability findByProductAndSize(Product product, String size);
+
+    void deleteAllByProduct(Product product);
 }

@@ -27,7 +27,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ProductRepository productRepository;
     private final static String REVIEW_SERVICE = "reviewService";
 
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
+    public String fallbackCircuitBreaker(CallNotPermittedException e) {
         log.debug("Circuit breaker su reviewService da: {}", e.getCausingCircuitBreakerName());
         return e.getMessage();
     }
@@ -37,7 +37,7 @@ public class ReviewServiceImpl implements ReviewService {
 //    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name= REVIEW_SERVICE)
     public UUID addReview(ReviewDTO reviewDTO, String username) {
-        if(reviewDTO == null){
+        if (reviewDTO == null) {
             return null;
         }
         try {
@@ -45,19 +45,19 @@ public class ReviewServiceImpl implements ReviewService {
             UUID productID = reviewDTO.getProductID();
             reviewDTO.setUsername(username);
             Product product = productRepository.findById(productID).orElse(null);
-            if(product != null){
+            if (product != null) {
                 review.setProduct(product);
                 review.setDate(LocalDate.now());
                 review.setText(reviewDTO.getText());
                 review.setEvaluation(reviewDTO.getEvaluation());
                 review.setUsername(reviewDTO.getUsername());
 
-            }else{
+            } else {
                 return null;
             }
             return reviewRepository.save(review).getId();
 
-        }catch (RuntimeException | Error e) {
+        } catch (RuntimeException | Error e) {
             log.debug("Errore nell'inserimento della recensione");
             return null;
         }
@@ -83,7 +83,7 @@ public class ReviewServiceImpl implements ReviewService {
         Product product = productRepository.findById(productID).orElse(null);
         List<ReviewDTO> reviewDTOS = new ArrayList<>();
 
-        for(Review review: reviewRepository.findByproduct(product)){
+        for (Review review : reviewRepository.findByproduct(product)) {
             ReviewDTO reviewDTO = modelMapper.map(review, ReviewDTO.class);
             System.out.println(reviewDTO.getText());
             reviewDTOS.add(reviewDTO);
@@ -108,20 +108,21 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
 //    @Retry(name= REVIEW_SERVICE)
-    public AverageDTO getReviewAverage(UUID productID) {
-        Product product = productRepository.findById(productID).orElse(null);
-        if(product != null){
-            List<Review> reviewDTOS = reviewRepository.findByproduct(product);
-            double average = 0;
-            for(Review review : reviewDTOS){
-                average += review.getEvaluation();
-            }
-            AverageDTO averageDTO = new AverageDTO();
-            averageDTO.setAverage(average/reviewDTOS.size());
-            averageDTO.setNumberOfReview(reviewDTOS.size());
-            return averageDTO;
+    public AverageDTO getReviewAverage(ProductDTO productDTO) {
+        List<Review> reviewDTOS = reviewRepository.findByproduct(modelMapper.map(productDTO, Product.class));
+
+        if(reviewDTOS==null || reviewDTOS.isEmpty())
+            return null;
+
+        double average = 0;
+        for (Review review : reviewDTOS) {
+            average += review.getEvaluation();
         }
-        return null;
+        AverageDTO averageDTO = new AverageDTO();
+        averageDTO.setAverage(average / reviewDTOS.size());
+        averageDTO.setNumberOfReview(reviewDTOS.size());
+        return averageDTO;
+
     }
 
     @Override
