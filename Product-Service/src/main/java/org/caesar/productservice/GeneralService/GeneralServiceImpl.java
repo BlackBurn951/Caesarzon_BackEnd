@@ -88,28 +88,6 @@ public class GeneralServiceImpl implements GeneralService {
         return null;
     }
 
-    @Override
-    public List<Integer> getReviewScore(UUID productId) {
-        ProductDTO product= productService.getProductById(productId);
-
-        if(product==null)
-            return null;
-
-        int oneStar= reviewService.getNumberOfReview(product, 1);
-        int twoStar= reviewService.getNumberOfReview(product, 2);
-        int threeStar= reviewService.getNumberOfReview(product, 3);
-        int fourStar= reviewService.getNumberOfReview(product, 4);
-        int fiveStar= reviewService.getNumberOfReview(product, 5);
-
-        List<Integer> result= new Vector<>();
-        result.add(oneStar);
-        result.add(twoStar);
-        result.add(threeStar);
-        result.add(fourStar);
-        result.add(fiveStar);
-
-        return result;
-    }
 
     @Override
     @Transactional // Aggiunge il prodotto ricevuto da front al db dei prodotti
@@ -154,6 +132,103 @@ public class GeneralServiceImpl implements GeneralService {
             return false;
     }
 
+
+
+    //SEZIONE RECENSIONI
+    @Override
+    public List<ReviewDTO> getProductReviews(UUID productID) {
+        ProductDTO productDTO= productService.getProductById(productID);
+
+        if(productDTO == null)
+            return null;
+
+        return reviewService.getReviewsByProduct(productDTO);
+    }
+
+    @Override
+    public List<Integer> getReviewScore(UUID productId) {
+        ProductDTO product= productService.getProductById(productId);
+
+        if(product==null)
+            return null;
+
+        int oneStar= reviewService.getNumberOfReview(product, 1);
+        int twoStar= reviewService.getNumberOfReview(product, 2);
+        int threeStar= reviewService.getNumberOfReview(product, 3);
+        int fourStar= reviewService.getNumberOfReview(product, 4);
+        int fiveStar= reviewService.getNumberOfReview(product, 5);
+
+        List<Integer> result= new Vector<>();
+        result.add(oneStar);
+        result.add(twoStar);
+        result.add(threeStar);
+        result.add(fourStar);
+        result.add(fiveStar);
+
+        return result;
+    }
+
+    @Override
+    public AverageDTO getReviewAverage(UUID productId) {
+        ProductDTO productDTO= productService.getProductById(productId);
+
+        if(productDTO==null)
+            return null;
+
+        return reviewService.getReviewAverage(productDTO);
+    }
+
+    @Override
+    @Transactional
+    public boolean addReview(ReviewDTO reviewDTO, String username) {
+        //TODO CHECK CONVALIDA CONTROLLO DI POTER FARE SOLO UNA RECENSIONE PER UTENTE E PRODOTTO
+
+        ProductDTO productDTO= productService.getProductById(reviewDTO.getProductID());
+
+        if(productDTO==null)
+            return false;
+
+        reviewDTO.setUsername(username);
+
+        return reviewService.addReview(reviewDTO, productDTO);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteReviewByUser(String username, UUID productId) {
+        ProductDTO productDTO= productService.getProductById(productId);
+
+        if(productDTO==null)
+            return false;
+
+        ReviewDTO reviewDTO= reviewService.getReviewByUsernameAndProduct(username, productDTO);
+
+        if(reviewDTO==null)
+            return false;
+
+        if(reviewService.deleteReview(reviewDTO.getId())) {
+            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", request.getHeader("Authorization"));
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            return restTemplate.exchange(
+                    "http://notification-service/notify-api/user/report?review-id=" + reviewDTO.getId(),
+                    HttpMethod.DELETE,
+                    entity,
+                    String.class
+            ).getStatusCode() == HttpStatus.OK;
+        }
+
+        return false;
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteReviewByAdmin(String username, UUID productId) {
+        return false;
+    }
 
 
     //SEZIONE DEL CARRELLO
