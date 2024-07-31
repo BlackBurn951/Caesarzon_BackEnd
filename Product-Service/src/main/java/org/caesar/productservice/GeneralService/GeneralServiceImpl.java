@@ -30,6 +30,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.security.SecureRandom;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -231,6 +232,7 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
 
+
     //SEZIONE DEL CARRELLO
     @Override  //Restituisce il carrello dell'utente con la lista dei prodotti al suo interno
     public List<ProductCartDTO> getCart(String username) {
@@ -241,6 +243,8 @@ public class GeneralServiceImpl implements GeneralService {
 
         List<ProductCartDTO> result= new Vector<>();
         ProductCartDTO prod;
+        DecimalFormat df = new DecimalFormat("#.##");
+
         for(ProductOrderDTO p: productCart){
             prod = new ProductCartDTO();
 
@@ -248,7 +252,7 @@ public class GeneralServiceImpl implements GeneralService {
 
             prod.setName(productDTO.getName());
             prod.setId(productDTO.getId());
-            prod.setTotal(Math.round(p.getTotal() * 100.0) / 100.0);
+            prod.setTotal(Double.parseDouble(df.format(productDTO.getPrice())));
             prod.setQuantity(p.getQuantity());
             prod.setSize(p.getSize());
 
@@ -499,10 +503,8 @@ public class GeneralServiceImpl implements GeneralService {
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
 
 
-        if(productInOrder==null || productInOrder.isEmpty()) {
-            changeAvaibility(productInOrder, true);
+        if(productInOrder==null || productInOrder.isEmpty())
             return "Errore";
-        }
 
         //Controllo che vengano effettivamente passati indirizzo e carta per pagare
         if(buyDTO.getAddressID() == null || (!payMethod && buyDTO.getCardID() == null) ) {
@@ -516,7 +518,15 @@ public class GeneralServiceImpl implements GeneralService {
             return "Errore";
         }
 
-        double total= productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum();
+        DecimalFormat df = new DecimalFormat("#.##");
+        double total= productInOrder.stream()
+                .mapToDouble( prod -> {
+                    if(prod.getProductDTO().getDiscount()==0)
+                        return Double.parseDouble(df.format(prod.getTotal()*prod.getQuantity())); //CALCOLO SENZA SCONTO
+                    double discount= (prod.getTotal() * prod.getProductDTO().getDiscount()) /100;
+                    return Double.parseDouble(df.format(prod.getTotal()-discount));
+                    //CALCOLO CON SCONTO
+                }).sum();
 
         if(!payMethod) {
             if(!checkPayment(buyDTO.getCardID(), total)) {
