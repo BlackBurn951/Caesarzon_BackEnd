@@ -353,10 +353,8 @@ public class GeneralServiceImpl implements GeneralService {
     public String createOrder(String username, BuyDTO buyDTO) {
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
 
-        if(productInOrder==null || productInOrder.isEmpty()) {
-            changeAvaibility(productInOrder, true);
+        if(productInOrder==null || productInOrder.isEmpty())
             return "Errore";
-        }
 
         OrderDTO orderDTO= new OrderDTO();
         orderDTO.setOrderNumber(generaCodice(8));
@@ -372,10 +370,8 @@ public class GeneralServiceImpl implements GeneralService {
 
         OrderDTO savedOrder = orderService.addOrder(orderDTO);
 
-        if(savedOrder==null) {
-            changeAvaibility(productInOrder, true);
+        if(savedOrder==null)
             return "Errore";
-        }
 
         for(ProductOrderDTO productOrderDTO : productInOrder)
             productOrderDTO.setOrderDTO(savedOrder);
@@ -385,10 +381,8 @@ public class GeneralServiceImpl implements GeneralService {
                         "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
                         "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate()))
             return "Ordine effettuato con successo!";
-        else {
-            changeAvaibility(productInOrder, true);
+        else
             return "Errore"; //☺
-        }
     }
 
     @Override
@@ -523,9 +517,9 @@ public class GeneralServiceImpl implements GeneralService {
                 .mapToDouble( prod -> {
                     if(prod.getProductDTO().getDiscount()==0)
                         return Double.parseDouble(df.format(prod.getTotal()*prod.getQuantity())); //CALCOLO SENZA SCONTO
+                    //CALCOLO CON SCONTO
                     double discount= (prod.getTotal() * prod.getProductDTO().getDiscount()) /100;
                     return Double.parseDouble(df.format(prod.getTotal()-discount));
-                    //CALCOLO CON SCONTO
                 }).sum();
 
         if(!payMethod) {
