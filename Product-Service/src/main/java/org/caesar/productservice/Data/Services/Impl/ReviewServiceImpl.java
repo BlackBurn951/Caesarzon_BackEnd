@@ -24,10 +24,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     private final ModelMapper modelMapper;
     private final ReviewRepository reviewRepository;
-    private final ProductRepository productRepository;
     private final static String REVIEW_SERVICE = "reviewService";
 
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
+    public String fallbackCircuitBreaker(CallNotPermittedException e) {
         log.debug("Circuit breaker su reviewService da: {}", e.getCausingCircuitBreakerName());
         return e.getMessage();
     }
@@ -36,30 +35,26 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
 //    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name= REVIEW_SERVICE)
-    public UUID addReview(ReviewDTO reviewDTO, String username) {
-        if(reviewDTO == null){
-            return null;
-        }
+    public boolean addReview(ReviewDTO reviewDTO, ProductDTO productDTO) {
         try {
-            Review review = new Review();
-            UUID productID = reviewDTO.getProductID();
-            reviewDTO.setUsername(username);
-            Product product = productRepository.findById(productID).orElse(null);
-            if(product != null){
-                review.setProduct(product);
-                review.setDate(LocalDate.now());
-                review.setText(reviewDTO.getText());
-                review.setEvaluation(reviewDTO.getEvaluation());
-                review.setUsername(reviewDTO.getUsername());
+            Review review = reviewRepository.findById(reviewDTO.getId()).orElse(null);
 
-            }else{
-                return null;
-            }
-            return reviewRepository.save(review).getId();
+            if(review == null)
+                review = new Review();
 
-        }catch (RuntimeException | Error e) {
+
+            review.setProduct(modelMapper.map(productDTO, Product.class));
+            review.setDate(LocalDate.now());
+            review.setText(reviewDTO.getText());
+            review.setEvaluation(reviewDTO.getEvaluation());
+            review.setUsername(reviewDTO.getUsername());
+
+            reviewRepository.save(review);
+
+            return true;
+        } catch (RuntimeException | Error e) {
             log.debug("Errore nell'inserimento della recensione");
-            return null;
+            return false;
         }
     }
 
@@ -70,25 +65,27 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-//    @Retry(name= REVIEW_SERVICE)
-    public UUID getReviewIDByUsernameAndProductID(String username, UUID productID) {
-        Product product = productRepository.findById(productID).orElse(null);
-        return reviewRepository.findReviewByUsernameAndProduct(username, product).getId();
+    public ReviewDTO getReviewByUsernameAndProduct(String username, ProductDTO productDTO) {
+        try {
+            Review review= reviewRepository.findReviewByUsernameAndProduct(username, modelMapper.map(productDTO, Product.class));
+
+            if(review==null)
+                return null;
+
+            return modelMapper.map(review, ReviewDTO.class);
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della recensione");
+            return null;
+        }
     }
 
 
     @Override
-//    @Retry(name= REVIEW_SERVICE)
-    public List<ReviewDTO> getReviewsByProductId(UUID productID) {
-        Product product = productRepository.findById(productID).orElse(null);
-        List<ReviewDTO> reviewDTOS = new ArrayList<>();
-
-        for(Review review: reviewRepository.findByproduct(product)){
-            ReviewDTO reviewDTO = modelMapper.map(review, ReviewDTO.class);
-            System.out.println(reviewDTO.getText());
-            reviewDTOS.add(reviewDTO);
-        }
-        return reviewDTOS;
+    //    @Retry(name= REVIEW_SERVICE)
+    public List<ReviewDTO> getReviewsByProduct(ProductDTO productDTO) {
+        return reviewRepository.findAllByproduct(modelMapper.map(productDTO, Product.class)).stream()
+                .map(a -> modelMapper.map(a, ReviewDTO.class))
+                .toList();
     }
 
 
@@ -98,6 +95,7 @@ public class ReviewServiceImpl implements ReviewService {
     public boolean deleteReview(UUID id) {
         try {
             reviewRepository.deleteById(id);
+
             return true;
         } catch (Exception e) {
             log.debug("Errore nella cancellazione della recensione");
@@ -108,20 +106,21 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
 //    @Retry(name= REVIEW_SERVICE)
-    public AverageDTO getReviewAverage(UUID productID) {
-        Product product = productRepository.findById(productID).orElse(null);
-        if(product != null){
-            List<Review> reviewDTOS = reviewRepository.findByproduct(product);
-            double average = 0;
-            for(Review review : reviewDTOS){
-                average += review.getEvaluation();
-            }
-            AverageDTO averageDTO = new AverageDTO();
-            averageDTO.setAverage(average/reviewDTOS.size());
-            averageDTO.setNumberOfReview(reviewDTOS.size());
-            return averageDTO;
+    public AverageDTO getReviewAverage(ProductDTO productDTO) {
+        List<Review> reviewDTOS = reviewRepository.findByproduct(modelMapper.map(productDTO, Product.class));
+
+        if(reviewDTOS==null || reviewDTOS.isEmpty())
+            return null;
+
+        double average = 0;
+        for (Review review : reviewDTOS) {
+            average += review.getEvaluation();
         }
-        return null;
+        AverageDTO averageDTO = new AverageDTO();
+        averageDTO.setAverage(average / reviewDTOS.size());
+        averageDTO.setNumberOfReview(reviewDTOS.size());
+        return averageDTO;
+
     }
 
     @Override

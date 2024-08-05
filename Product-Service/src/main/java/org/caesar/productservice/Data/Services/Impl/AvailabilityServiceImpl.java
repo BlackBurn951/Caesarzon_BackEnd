@@ -33,22 +33,46 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     @Override // Aggiunge tuple o modifica la tabella delle disponibilità
 //    @CircuitBreaker(name=AVAILABILITY_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name=AVAILABILITY_SERVICE)
-    public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, ProductDTO product) {
-        if (availabilities.isEmpty()) {
+    public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilitiesDTO, ProductDTO product) {
+        if (availabilitiesDTO.isEmpty()) {
             return false;
         }
-        for (AvailabilityDTO availability : availabilities) {
-            if(checkQuantity(availability.getAmount()) && checkSize(availability.getSize())) {
-                Availability myAvailability = modelMapper.map(availability, Availability.class);
-                myAvailability.setProduct(modelMapper.map(product, Product.class));
-                availabilityRepository.save(myAvailability);
+
+        //Presa della lista delle disppnibilità già inserite per il prodotto
+        List<Availability> availabilities= availabilityRepository.findAllByProduct(modelMapper.map(product, Product.class));
+        boolean insert= false;  //Variabile che identifica l'aggiornamento o meno
+
+        //Ciclo sulle disponibilità arrivate dal front
+        for (AvailabilityDTO availabilityDTO : availabilitiesDTO) {
+
+            //Validazione sui dati in ingresso
+            if((checkQuantity(availabilityDTO.getAmount()) && checkSize(availabilityDTO.getSize()))) {
+
+                //Ciclio sull'eventuali disponibilità già presenti per il prodotto
+                for(Availability availability : availabilities) {
+
+                    //Se la taglia in arrivo combacia con una già presente si fa l'aggiornamento
+                    if(availabilityDTO.getSize().equals(availability.getSize())) {
+                        availability.setAmount(availabilityDTO.getAmount());
+                        insert= true;
+                        availabilityRepository.save(availability);
+                        break;
+                    }
+                }
+
+                //Controllo che l'aggiornamento non sia stato fatto + aggiunta della nuova disponibilità
+                if(!insert) {
+                    Availability myAvailability = modelMapper.map(availabilityDTO, Availability.class);
+                    myAvailability.setProduct(modelMapper.map(product, Product.class));
+                    availabilityRepository.save(myAvailability);
+                } else
+                    insert= false;
             }
         }
         return true;
     }
 
-    @Override
-    // Elimina una disponibilità dal db tramite il suo id
+    @Override //Elimina una disponibilità dal db tramite il suo id
 //    @CircuitBreaker(name=AVAILABILITY_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name=AVAILABILITY_SERVICE)
     public boolean deleteAvailability(UUID availabilityId) {
@@ -61,28 +85,18 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         }
     }
 
-    @Override
-    // Elimina tutte le disponibilità di un determinato prodotto
+    @Override //Elimina tutte le disponibilità di un determinato prodotto
 //    @CircuitBreaker(name=AVAILABILITY_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name=AVAILABILITY_SERVICE)
-    public boolean deleteAvailabilityByProduct(Product product) {
-        System.out.println("Sono nella funzione per eliminare le disponibilità");
-        List<Availability> availabilitiesToDelete = new ArrayList<>();
-        for (Availability availability : availabilityRepository.findAll()) {
-            if (availability.getProduct().getId().equals(product.getId())) {
-                System.out.println("Trovata la disponibilità: "+availability.getSize());
-                availabilitiesToDelete.add(availability);
-            }
-        }
-        if (!availabilitiesToDelete.isEmpty()) {
-            System.out.println("Ho eliminato tutte le disponibilità");
-            availabilityRepository.deleteAll(availabilitiesToDelete);
+    public boolean deleteAvailabilityByProduct(ProductDTO product) {
+        try{
+            availabilityRepository.deleteAllByProduct(modelMapper.map(product, Product.class));
+
             return true;
-        } else {
-            System.out.println("Non sono riuscito ad eliminare le disponibilità");
+        } catch(Exception | Error e) {
+            log.debug("Errore nella cancellazione delle disponibilità per singolo prodotto");
             return false;
         }
-
     }
 
     @Override
@@ -92,10 +106,9 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         return availabilityRepository.findAll();
     }
 
-    @Override
-    // Resituisce tutte le disponibilità di un determinato prodotto
+    @Override //Resituisce tutte le disponibilità di un determinato prodotto
 //    @Retry(name=AVAILABILITY_SERVICE)
-    public List<AvailabilityDTO> getAvailabilitiesByProductID(ProductDTO productDTO) {
+    public List<AvailabilityDTO> getAvailabilitiesByProduct(ProductDTO productDTO) {
         return availabilityRepository.findAllByProduct(modelMapper.map(productDTO, Product.class))
                 .stream()
                 .map(a ->modelMapper.map(a, AvailabilityDTO.class))

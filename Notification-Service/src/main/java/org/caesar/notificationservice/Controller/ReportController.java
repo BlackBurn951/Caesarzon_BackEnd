@@ -56,7 +56,7 @@ public class ReportController {
 
     //End-point per la cancellazione di eventuali segnalazioni e notifiche inerenti ad una notifica
     @DeleteMapping("/user/report")
-    public ResponseEntity<String> deleteReportFromProduct(@RequestParam("review_id") UUID reviewId) {
+    public ResponseEntity<String> deleteReportFromProduct(@RequestParam("review-id") UUID reviewId) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         if(generalService.manageReport(username, reviewId, true, true))

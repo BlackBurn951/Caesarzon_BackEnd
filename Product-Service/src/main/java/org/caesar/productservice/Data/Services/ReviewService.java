@@ -10,12 +10,12 @@ import java.util.UUID;
 
 public interface ReviewService {
 
-    UUID addReview(ReviewDTO review, String username);
+    boolean addReview(ReviewDTO review, ProductDTO productDTO);
     Review getReviewById(UUID reviewID);
-    UUID getReviewIDByUsernameAndProductID(String username, UUID productID);
-    List<ReviewDTO> getReviewsByProductId(UUID product);
+    ReviewDTO getReviewByUsernameAndProduct(String username, ProductDTO productDTO);
+    List<ReviewDTO> getReviewsByProduct(ProductDTO productDTO);
     boolean deleteReview(UUID id);
-    AverageDTO getReviewAverage(UUID productID);
+    AverageDTO getReviewAverage(ProductDTO productDTO);
     String getTextReview(UUID reviewId);
     int getNumberOfReview(ProductDTO productDTO, int star);
 }

@@ -25,32 +25,17 @@ public class ProductController {
     private final HttpServletRequest httpServletRequest;
     private final SearchService searchService;
 
-    @PostMapping("/product") //Aggiunge il prodotto inviato con le sue disponibilità al db
-    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody ProductDTO sendProductDTO) {
 
-        if(generalService.addProduct(sendProductDTO))
-            return new ResponseEntity<>("Product aggiunto", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Prodotto non aggiunto", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
+    //Gestione del singolo prodotto
     @GetMapping("/product/{id}")
     public ResponseEntity<ProductDTO> getProductAndAvailabilitiesAndImages(@PathVariable UUID id) {
         String username = httpServletRequest.getAttribute("preferred_username").toString();
+
         ProductDTO productDTO = generalService.getProductAndAvailabilitiesAndImages(username, id);
-        if(productDTO!= null){
+        if(productDTO!= null)
             return new ResponseEntity<>(productDTO, HttpStatus.OK);
-        }
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-
-    @DeleteMapping("/product")
-    public ResponseEntity<String> deleteProductAndAvailabilities(@RequestParam UUID productID) {
-        if (generalService.deleteProduct(productID))
-            return new ResponseEntity<>("Prodotto eliminato", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Prodotto non eliminato", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @GetMapping("/image")
@@ -64,7 +49,25 @@ public class ProductController {
         }
     }
 
+    @PostMapping("/product") //Aggiunge il prodotto inviato con le sue disponibilità al db
+    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody ProductDTO sendProductDTO) {
+        if(generalService.addProduct(sendProductDTO))
+            return new ResponseEntity<>("Product aggiunto", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Prodotto non aggiunto", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
+    @DeleteMapping("/product")
+    public ResponseEntity<String> deleteProductAndAvailabilities(@RequestParam UUID productID) {
+        if (generalService.deleteProduct(productID))
+            return new ResponseEntity<>("Prodotto eliminato", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Prodotto non eliminato", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+
+    //RIcerca dei prodotti e caricamento homepage
     @GetMapping("/search") //Effettua una ricerca sul db e ritorna una lista di prodotti con i filtri selezionati
     public ResponseEntity<List<ProductSearchDTO>> searchProducts(
             @RequestParam("search-text") String query,
@@ -91,23 +94,23 @@ public class ProductController {
     @GetMapping("product/offer")
     public ResponseEntity<List<ProductSearchDTO>> getOffer(){
         List<ProductSearchDTO> searchProduct = generalService.getOffers();
+
         if(searchProduct==null || searchProduct.isEmpty())
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         else
             return new ResponseEntity<>(searchProduct, HttpStatus.OK);
     }
 
-
     @GetMapping("/lastSearchs") //Restituisce le ricerche dell'utente
-    public ResponseEntity<List<String>> searchs(){
+    public ResponseEntity<List<String>> searches(){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
-        List<String> ricerche = searchService.getAllSearchs(username);
-        if (ricerche != null)
-            return new ResponseEntity<>(ricerche, HttpStatus.OK);
+
+        List<String> searches = searchService.getAllSearchs(username);
+        if (searches != null)
+            return new ResponseEntity<>(searches, HttpStatus.OK);
         else
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-
 
     @GetMapping("/lastView") //Restituisce i prodotti visti di recente dall'utente
     public ResponseEntity<List<ProductSearchDTO>> lastView(){

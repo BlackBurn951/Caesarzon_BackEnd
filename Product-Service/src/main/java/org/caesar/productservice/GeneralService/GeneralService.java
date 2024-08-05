@@ -16,10 +16,17 @@ public interface GeneralService {
     List<ImageDTO> getProductImages(UUID id);
     List<ImageDTO> getAllProductImages(UUID productID);
     ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id);
-    List<Integer> getReviewScore(UUID productId);
     boolean addProduct(ProductDTO ProductDTO);
     boolean deleteProduct(UUID id);
     boolean deleteAvailabilityByProduct(Product product);
+
+    //SEZIONE RECENSIONI
+    List<ReviewDTO> getProductReviews(UUID productID);
+    List<Integer> getReviewScore(UUID productId);
+    AverageDTO getReviewAverage(UUID productId);
+    boolean addReview(ReviewDTO reviewDTO, String username);
+    boolean deleteReviewByUser(String username, UUID productId);
+    boolean deleteReviewByAdmin(String username, UUID productId);
 
 
     //SEZIONE DEL CARRELLO

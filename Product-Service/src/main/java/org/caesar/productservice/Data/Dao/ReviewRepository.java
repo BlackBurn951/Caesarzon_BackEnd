@@ -11,8 +11,9 @@ import java.util.UUID;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
+    List<Review> findAllByproduct(Product product);
     List<Review> findByproduct(Product product);
-    Review findReviewByUsernameAndProduct(String userID, Product product);
+    Review findReviewByUsernameAndProduct(String username, Product product);
     List<Review> findAllByProductAndEvaluation(Product product, int evaluation);
 }
 
