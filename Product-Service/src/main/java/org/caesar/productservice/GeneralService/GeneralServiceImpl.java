@@ -549,7 +549,7 @@ public class GeneralServiceImpl implements GeneralService {
                         "http://localhost:4200/order-final");
                 for (Links link : payment.getLinks()) {
                     if (link.getRel().equals("approval_url")) {
-                        return "redirect:" + link.getHref();
+                        return link.getHref();
                     }
                 }
             } catch (PayPalRESTException e) {
