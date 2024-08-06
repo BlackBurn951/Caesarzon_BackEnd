@@ -52,12 +52,19 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                 for(Availability availability : availabilities) {
 
                     //Se la taglia in arrivo combacia con una già presente si fa l'aggiornamento
-                    if(availabilityDTO.getSize().equals(availability.getSize())) {
+                    if(availabilityDTO.getSize() != null && availabilityDTO.getSize().equals(availability.getSize())) {
+                        availability.setAmount(availabilityDTO.getAmount());
+                        insert= true;
+                        availabilityRepository.save(availability);
+                        break;
+                    }else if(availabilityDTO.getSize() == null && availability.getSize() == null){
                         availability.setAmount(availabilityDTO.getAmount());
                         insert= true;
                         availabilityRepository.save(availability);
                         break;
                     }
+
+
                 }
 
                 //Controllo che l'aggiornamento non sia stato fatto + aggiunta della nuova disponibilità

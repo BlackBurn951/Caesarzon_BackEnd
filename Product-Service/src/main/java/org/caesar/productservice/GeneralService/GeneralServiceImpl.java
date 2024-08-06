@@ -31,6 +31,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -236,34 +237,40 @@ public class GeneralServiceImpl implements GeneralService {
     //SEZIONE DEL CARRELLO
     @Override  //Restituisce il carrello dell'utente con la lista dei prodotti al suo interno
     public List<ProductCartDTO> getCart(String username) {
-        List<ProductOrderDTO> productCart= productOrderService.getProductOrdersByUsername(username);
+        List<ProductOrderDTO> productCart = productOrderService.getProductOrdersByUsername(username);
 
-        if(productCart==null || productCart.isEmpty())
+        if (productCart == null || productCart.isEmpty()) {
             return null;
+        }
 
-        List<ProductCartDTO> result= new Vector<>();
+        List<ProductCartDTO> result = new Vector<>();
         ProductCartDTO prod;
         DecimalFormat df = new DecimalFormat("#.##");
 
-        for(ProductOrderDTO p: productCart){
+        for (ProductOrderDTO p : productCart) {
             prod = new ProductCartDTO();
 
-            ProductDTO productDTO= productService.getProductById(p.getProductDTO().getId());
+            ProductDTO productDTO = productService.getProductById(p.getProductDTO().getId());
 
             prod.setName(productDTO.getName());
             prod.setId(productDTO.getId());
-            prod.setTotal(Double.parseDouble(df.format(productDTO.getPrice())));
+
+            // Assicura che il prezzo formattato utilizzi il punto come separatore decimale
+            df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.US));
+            prod.setTotal(Double.parseDouble(df.format(productDTO.getPrice()).replace(",", ".")));
+
             prod.setQuantity(p.getQuantity());
             prod.setSize(p.getSize());
 
-            double discountPrice= (p.getProductDTO().getPrice()*p.getProductDTO().getDiscount())/100;
-            double totalDiscount= Math.round((p.getProductDTO().getPrice()-discountPrice)*p.getQuantity() * 100.0) / 100.0;
+            double discountPrice = (p.getProductDTO().getPrice() * p.getProductDTO().getDiscount()) / 100;
+            double totalDiscount = Math.round((p.getProductDTO().getPrice() - discountPrice) * p.getQuantity() * 100.0) / 100.0;
             prod.setDiscountTotal(totalDiscount);
 
             result.add(prod);
         }
         return result;
     }
+
 
     @Override
     @Transactional   // Genera un nuovo carrello alla scelta del primo prodotto dell'utente
@@ -459,7 +466,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-    public List<UnavailableDTO>  checkAvailability(String username, List<UUID> productIds) {
+    public List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds) {
 
         //Presa di tutti i prodotti presenti nel carello dell'utente
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, productIds);
@@ -494,36 +501,40 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
     public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> false carta -> true paypal
 
-        List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
+        List<ProductOrderDTO> productInOrder = getProductInOrder(username, buyDTO.getProductsIds());
 
-
-        if(productInOrder==null || productInOrder.isEmpty())
+        if (productInOrder == null || productInOrder.isEmpty())
             return "Errore";
 
-        //Controllo che vengano effettivamente passati indirizzo e carta per pagare
-        if(buyDTO.getAddressID() == null || (!payMethod && buyDTO.getCardID() == null) ) {
+        // Controllo che vengano effettivamente passati indirizzo e carta per pagare
+        if (buyDTO.getAddressID() == null || (!payMethod && buyDTO.getCardID() == null)) {
             changeAvaibility(productInOrder, true);
             return "Errore";
         }
 
-        //Chiamata per veificare che l'utente che vuole acquistare abbia quell'indirizzo
-        if(!checkAddress(buyDTO.getAddressID())) {
+        // Chiamata per verificare che l'utente che vuole acquistare abbia quell'indirizzo
+        if (!checkAddress(buyDTO.getAddressID())) {
             changeAvaibility(productInOrder, true);
             return "Errore";
         }
 
         DecimalFormat df = new DecimalFormat("#.##");
-        double total= productInOrder.stream()
-                .mapToDouble( prod -> {
-                    if(prod.getProductDTO().getDiscount()==0)
-                        return Double.parseDouble(df.format(prod.getTotal()*prod.getQuantity())); //CALCOLO SENZA SCONTO
-                    //CALCOLO CON SCONTO
-                    double discount= (prod.getTotal() * prod.getProductDTO().getDiscount()) /100;
-                    return Double.parseDouble(df.format(prod.getTotal()-discount));
+        df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.US));
+
+        double total = productInOrder.stream()
+                .mapToDouble(prod -> {
+                    if (prod.getProductDTO().getDiscount() == 0) {
+                        double totalPrice = prod.getTotal() * prod.getQuantity();
+                        return Double.parseDouble(df.format(totalPrice).replace(",", ".")); // CALCOLO SENZA SCONTO
+                    }
+
+                    // CALCOLO CON SCONTO
+                    double discount = (prod.getTotal() * prod.getProductDTO().getDiscount()) / 100;
+                    return Double.parseDouble(df.format((prod.getTotal() - discount) * prod.getQuantity()).replace(",", "."));
                 }).sum();
 
-        if(!payMethod) {
-            if(!checkPayment(buyDTO.getCardID(), total)) {
+        if (!payMethod) {
+            if (!checkPayment(buyDTO.getCardID(), total+5)) {
                 changeAvaibility(productInOrder, true);
                 return "Errore";
             }
