@@ -501,6 +501,7 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
     public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> false carta -> true paypal
 
+        System.out.println(payMethod);
         List<ProductOrderDTO> productInOrder = getProductInOrder(username, buyDTO.getProductsIds());
 
         if (productInOrder == null || productInOrder.isEmpty())
@@ -533,8 +534,9 @@ public class GeneralServiceImpl implements GeneralService {
                     return Double.parseDouble(df.format((prod.getTotal() - discount) * prod.getQuantity()).replace(",", "."));
                 }).sum();
 
+        total+= 5;
         if (!payMethod) {
-            if (!checkPayment(buyDTO.getCardID(), total+5)) {
+            if (!checkPayment(buyDTO.getCardID(), total)) {
                 changeAvaibility(productInOrder, true);
                 return "Errore";
             }
@@ -542,12 +544,15 @@ public class GeneralServiceImpl implements GeneralService {
             return createOrder(username, buyDTO);
         } else {
             try {
+                System.out.println("Sono nel try del paypal");
+                System.out.println("Total?: " + total);
                 Payment payment = payPalService.createPayment(
                         total, "EUR", "paypal",
                         "sale", "Pagamento ordine",
                         "http://localhost:4200/order-final", //TODO REDIRECT SUL FRONT ANCHE
                         "http://localhost:4200/order-final");
                 for (Links link : payment.getLinks()) {
+                    System.out.println(link.getRel());
                     if (link.getRel().equals("approval_url")) {
                         return link.getHref();
                     }

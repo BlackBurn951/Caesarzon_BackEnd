@@ -138,9 +138,9 @@ public class OrderController {
             return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @GetMapping("/success")
+    @PostMapping("/success")
     public ResponseEntity<String> successPay(@RequestBody PayPalPurchaseDTO payPalPurchaseDTO) {
-
+    
         if(!payPalService.executePayment(payPalPurchaseDTO.getPaymentId(), payPalPurchaseDTO.getPayerId()).getState().equals("approved"))
             return new ResponseEntity<>("Errore nel pagamento con paypal...", HttpStatus.INTERNAL_SERVER_ERROR);
 
