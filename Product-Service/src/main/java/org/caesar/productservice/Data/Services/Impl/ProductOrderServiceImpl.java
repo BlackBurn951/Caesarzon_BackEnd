@@ -136,6 +136,8 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                 productOrder.setTotal(productOrderDTO.getTotal());
                 productOrder.setUsername(productOrderDTO.getUsername());
                 productOrder.setBuyLater(productOrderDTO.isBuyLater());
+                productOrder.setSize(productOrderDTO.getSize());
+                productOrder.setQuantity(productOrderDTO.getQuantity());
 
                 productOrderList.add(productOrder);
             }
