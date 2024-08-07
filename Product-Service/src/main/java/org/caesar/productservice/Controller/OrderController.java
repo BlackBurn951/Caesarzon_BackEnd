@@ -1,5 +1,6 @@
 package org.caesar.productservice.Controller;
 
+import com.paypal.api.payments.Order;
 import com.paypal.api.payments.Payment;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -7,11 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Services.OrderService;
 import org.caesar.productservice.Data.Services.PayPalService;
 import org.caesar.productservice.Data.Services.ProductOrderService;
-import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
-import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
-import org.caesar.productservice.Dto.DTOOrder.PayPalPurchaseDTO;
-import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
+import org.caesar.productservice.Dto.DTOOrder.*;
 import org.caesar.productservice.Dto.ProductCartDTO;
+import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
 import org.caesar.productservice.Utils.PayPalServiceImpl;
@@ -104,17 +103,19 @@ public class OrderController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/purchase/{id}/products")
+    @GetMapping("/order/products/{id}")
     public ResponseEntity<List<ProductCartDTO>> getProductsInCart(@PathVariable UUID id) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         List<ProductCartDTO> result= generalService.getOrder(username, id);
 
-        if(result==null)
+        if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
+
+
 
     @PostMapping("/pre-order")  //Controllo ed eventuale messa da parte della disponibilità
     public ResponseEntity<List<UnavailableDTO>> checkAvailability(@RequestBody List<UUID> productIds) {
@@ -173,6 +174,4 @@ public class OrderController {
         else
             return new ResponseEntity<>("Errore nell'aggiornamento delle notifiche'...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-
 }
