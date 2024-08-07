@@ -92,7 +92,8 @@ public class OrderController {
     }
 
 
-    @GetMapping("/purchases") // Metodo per ottenere tutti gli ordini di un utente
+
+    @GetMapping("/orders") // Metodo per ottenere tutti gli ordini di un utente
     public ResponseEntity<List<OrderDTO>> getOrders(){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 

@@ -198,8 +198,20 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 //    @Retry(name= PRODUCTORDER_SERVICE)
     public List<ProductOrderDTO> getProductInOrder(String username, OrderDTO orderDTO) {
         try {
-            return productOrderRepository.findAllByUsernameAndOrder(username, modelMapper.map(orderDTO, Order.class))
-                    .stream().map(a -> modelMapper.map(a, ProductOrderDTO.class)).toList();
+            List<ProductOrder> productOrders= productOrderRepository.findAllByUsernameAndOrder(username, modelMapper.map(orderDTO, Order.class));
+
+            return productOrders.stream()
+                    .map(prod -> {
+                        ProductOrderDTO productOrderDTO= new ProductOrderDTO();
+                        productOrderDTO.setId(prod.getId());
+                        productOrderDTO.setTotal(prod.getTotal());
+                        productOrderDTO.setProductDTO(modelMapper.map(prod.getProduct(), ProductDTO.class));
+                        productOrderDTO.setSize(prod.getSize());
+                        productOrderDTO.setQuantity(prod.getQuantity());
+
+                        return productOrderDTO;
+                    })
+                    .toList();
         } catch (Exception | Error e) {
                 log.debug("Errore nella presa dei prodotti nell'ordine");
             return null;

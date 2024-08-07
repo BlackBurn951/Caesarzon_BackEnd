@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.Uuid;
 import org.caesar.productservice.Data.Dao.AvailabilityRepository;
 import org.caesar.productservice.Data.Entities.Availability;
 import org.caesar.productservice.Data.Entities.Product;
@@ -328,7 +329,10 @@ public class GeneralServiceImpl implements GeneralService {
         if(productsOrder==null && productsOrder.isEmpty())
             return null;
 
-        List<ProductDTO> products= productService.getAllProductsById(productsOrder.stream().map(a -> a.getProductDTO().getId()).toList());
+        List<UUID> productsId=productsOrder.stream().map(a -> a.getProductDTO().getId()).toList();
+
+        productsId.forEach(System.out::println);
+        List<ProductDTO> products= productService.getAllProductsById(productsId);
 
         if(products==null && products.isEmpty())
             return null;
