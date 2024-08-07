@@ -14,6 +14,7 @@ import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
 import org.caesar.productservice.Dto.ProductCartDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
+import org.caesar.productservice.Utils.PayPalServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,7 @@ public class OrderController {
     private final ProductOrderService productOrderService;
     private final OrderService orderService;
     private final PayPalService payPalService;
+    private final PayPalServiceImpl payPalServiceImpl;
 
 
     //Metodi per la gestione del carrello
@@ -140,7 +142,9 @@ public class OrderController {
 
     @PostMapping("/success")
     public ResponseEntity<String> successPay(@RequestBody PayPalPurchaseDTO payPalPurchaseDTO) {
-    
+        System.out.println("paymentid: " + payPalPurchaseDTO.getPaymentId());
+        System.out.println("payerid: " + payPalPurchaseDTO.getPayerId());
+
         if(!payPalService.executePayment(payPalPurchaseDTO.getPaymentId(), payPalPurchaseDTO.getPayerId()).getState().equals("approved"))
             return new ResponseEntity<>("Errore nel pagamento con paypal...", HttpStatus.INTERNAL_SERVER_ERROR);
 
