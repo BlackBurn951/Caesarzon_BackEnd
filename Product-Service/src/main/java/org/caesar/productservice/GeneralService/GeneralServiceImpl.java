@@ -30,9 +30,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.SecureRandom;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -120,11 +120,9 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override  //TODO DA CONTROLLARE SE SERVE, SE SI MODIFICARE
     public boolean deleteAvailabilityByProduct(Product product) {
-        System.out.println("Sono nell'elimina della disponibilità");
         List<Availability> availabilitiesToDelete = new ArrayList<>();
         for(Availability availability : availabilityRepository.findAll()) {
             if(availability.getProduct().equals(product)){
-                System.out.println("Disponibilità trovata");
                 availabilitiesToDelete.add(availability);
             }
         }
@@ -325,35 +323,25 @@ public class GeneralServiceImpl implements GeneralService {
         OrderDTO orderDTO = orderService.getOrder(username, orderId);
 
         List<ProductOrderDTO> productsOrder= productOrderService.getProductInOrder(username, orderDTO);
-
         if(productsOrder==null && productsOrder.isEmpty())
-            return null;
-
-        List<UUID> productsId=productsOrder.stream().map(a -> a.getProductDTO().getId()).toList();
-
-        productsId.forEach(System.out::println);
-        List<ProductDTO> products= productService.getAllProductsById(productsId);
-
-        if(products==null && products.isEmpty())
             return null;
 
         List<ProductCartDTO> productCartDTOS = new Vector<>();
         ProductCartDTO productCartDTO;
 
         for (ProductOrderDTO productOrderDTO : productsOrder) {
-            for (ProductDTO product : products) {
-                if (productOrderDTO.getProductDTO().getId().equals(product.getId())) {
-                    productCartDTO = new ProductCartDTO();
+            productCartDTO = new ProductCartDTO();
 
-                    productCartDTO.setId(product.getId());
-                    productCartDTO.setName(product.getName());
-                    productCartDTO.setQuantity(productOrderDTO.getQuantity());
-                    productCartDTO.setTotal(productOrderDTO.getTotal());
-                    productCartDTO.setSize(productCartDTO.getSize());
+            productCartDTO.setId(productOrderDTO.getProductDTO().getId());
+            productCartDTO.setName(productOrderDTO.getProductDTO().getName());
+            productCartDTO.setQuantity(productOrderDTO.getQuantity());
+            productCartDTO.setTotal(productOrderDTO.getTotal());
+            productCartDTO.setSize(productOrderDTO.getSize());
 
-                    productCartDTOS.add(productCartDTO);
-                }
-            }
+            discountTotal= approximatedSecondDecimal((productOrderDTO.getProductDTO().getPrice()*productOrderDTO.getProductDTO().getDiscount())/100);
+            productCartDTO.setDiscountTotal(discountTotal);
+
+            productCartDTOS.add(productCartDTO);
         }
 
         return productCartDTOS;
@@ -505,7 +493,6 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
     public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> false carta -> true paypal
 
-        System.out.println(payMethod);
         List<ProductOrderDTO> productInOrder = getProductInOrder(username, buyDTO.getProductsIds());
 
         if (productInOrder == null || productInOrder.isEmpty())
@@ -548,15 +535,12 @@ public class GeneralServiceImpl implements GeneralService {
             return createOrder(username, buyDTO);
         } else {
             try {
-                System.out.println("Sono nel try del paypal");
-                System.out.println("Total?: " + total);
                 Payment payment = payPalService.createPayment(
                         total, "EUR", "paypal",
                         "sale", "Pagamento ordine",
                         "http://localhost:4200/order-final", //TODO REDIRECT SUL FRONT ANCHE
                         "http://localhost:4200/order-final");
                 for (Links link : payment.getLinks()) {
-                    System.out.println(link.getRel());
                     if (link.getRel().equals("approval_url")) {
                         return link.getHref();
                     }

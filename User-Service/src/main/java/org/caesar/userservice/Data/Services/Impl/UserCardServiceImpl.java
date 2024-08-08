@@ -40,7 +40,6 @@ public class UserCardServiceImpl implements UserCardService {
 
         //Presa della lista delle carte associate all'utente
         UserCard userCard = userCardRepository.findById(id).orElse(null);
-        System.out.println(userCard.getCard().getBalance());
         return modelMapper.map(userCard, UserCardDTO.class);
     }
 
@@ -76,8 +75,8 @@ public class UserCardServiceImpl implements UserCardService {
 
     @Override
 //    @Retry(name=USER_CARD_SERVICE)
-    public boolean checkCard(String username, CardDTO cardDTO) {
-        UserCard userCard= userCardRepository.findByUserUsernameAndCard(username, modelMapper.map(cardDTO, Card.class));
+    public boolean checkCard(String username, UUID cardId) {
+        UserCard userCard= userCardRepository.findByUserUsernameAndId(username, cardId);
 
         return userCard != null;
     }

@@ -125,7 +125,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         try {
             List<ProductOrder> productOrderList= new Vector<>();
             ProductOrder productOrder;
-            System.out.println(orderDTOS.getFirst().getOrderDTO().getId());
 
             for(ProductOrderDTO productOrderDTO: orderDTOS){
                 productOrder = new ProductOrder();

@@ -106,7 +106,6 @@ public class WishlistController {
     @DeleteMapping("/wishlist/{id}") // Endpoint per l'eliminazione di una lista desideri di un utente
     public ResponseEntity<String> deleteWishlist(@PathVariable UUID id){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
-        System.out.println("id della lista: "+id.toString());
         if(generalService.deleteWishlist(username, id))
             return new ResponseEntity<>("Lista desideri eliminata correttamente", HttpStatus.OK);
         else
