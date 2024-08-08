@@ -33,6 +33,7 @@ public class CardController {
 
     @GetMapping("/card")
     public ResponseEntity<CardDTO> getCardData(@RequestParam("card_id") UUID id) {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         CardDTO cardDTO = generalService.getUserCard(id);
 

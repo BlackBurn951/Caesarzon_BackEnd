@@ -1,7 +1,5 @@
 package org.caesar.productservice.Controller;
 
-import com.paypal.api.payments.Order;
-import com.paypal.api.payments.Payment;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,8 +8,8 @@ import org.caesar.productservice.Data.Services.PayPalService;
 import org.caesar.productservice.Data.Services.ProductOrderService;
 import org.caesar.productservice.Dto.DTOOrder.*;
 import org.caesar.productservice.Dto.ProductCartDTO;
-import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
+import org.caesar.productservice.Dto.RefundDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
 import org.caesar.productservice.Utils.PayPalServiceImpl;
 import org.springframework.http.HttpStatus;
@@ -157,13 +155,13 @@ public class OrderController {
             return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @PutMapping("/purchase/{purchaseId}")  //Metodo per effettuare il reso
-    public ResponseEntity<String> updateOrder(@PathVariable UUID purchaseId) {
+    @PutMapping("/refund")  //Metodo per effettuare il reso
+    public ResponseEntity<String> updateOrder(@RequestBody RefundDTO refundDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-        if(generalService.updateOrder(username, purchaseId))
-            return new ResponseEntity<>("Ordine creato con successo!", HttpStatus.OK);
+        if(generalService.updateOrder(username, refundDTO.getPurchaseId()))
+            return new ResponseEntity<>("Reso inviato con successo!", HttpStatus.OK);
         else
-            return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Errore nell'invio del reso'...", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
     @PutMapping("/orders/notify")

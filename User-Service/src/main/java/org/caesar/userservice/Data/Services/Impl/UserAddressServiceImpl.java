@@ -76,10 +76,9 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     @Override
 //    @Retry(name=USER_ADDRESS_SERVICE)
-    public boolean checkAddress(String username, AddressDTO addressDTO) {
-        UserAddress userAddress= userAddressRepository.findByUserUsernameAndAddress(username, modelMapper.map(addressDTO, Address.class));
-
-        System.out.println(userAddress.getUserUsername());
+    public boolean checkAddress(String username, UUID addressId) {
+        UserAddress userAddress= userAddressRepository.findByUserUsernameAndId(username, addressId);
+        System.out.println(userAddress.getId());
         return userAddress != null;
     }
 

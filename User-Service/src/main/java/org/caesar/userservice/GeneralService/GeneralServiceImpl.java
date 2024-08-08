@@ -201,9 +201,8 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public boolean checkAddress(String username, UUID addressId) {
-        AddressDTO addressDTO= addressService.getAddress(addressId);
 
-        return addressDTO!=null && userAddressService.checkAddress(username, addressDTO);
+        return userAddressService.checkAddress(username, addressId);
     }
 
     @Override
@@ -211,9 +210,9 @@ public class GeneralServiceImpl implements GeneralService {
 //    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name=GENERAL_SERVICE)
     public boolean pay(String username, UUID cardId, double total) {
-        CardDTO cardDTO= cardService.getCard(cardId);
+        if(userCardService.checkCard(username, cardId)) {
+            CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
 
-        if(userCardService.checkCard(username, cardDTO)) {
             double balance= cardDTO.getBalance();
 
             if(balance<total)

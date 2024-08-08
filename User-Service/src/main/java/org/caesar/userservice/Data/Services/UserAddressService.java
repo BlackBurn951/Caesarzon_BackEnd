@@ -12,7 +12,7 @@ public interface UserAddressService {
     UserAddressDTO getUserAddress(UUID id);
     List<UUID> getAddresses(String userUsername);
     List<UserAddressDTO> getUserAddresses(String userUsername);
-    boolean checkAddress(String username, AddressDTO addressId);
+    boolean checkAddress(String username, UUID addressId);
     boolean deleteUserAddress(UserAddressDTO userAddressDTO);
     boolean deleteUserAddresses(String userUsername);
 }

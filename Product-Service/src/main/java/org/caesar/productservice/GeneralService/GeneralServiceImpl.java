@@ -244,7 +244,6 @@ public class GeneralServiceImpl implements GeneralService {
 
         List<ProductCartDTO> result = new Vector<>();
         ProductCartDTO prod;
-        DecimalFormat df = new DecimalFormat("#.##");
 
         for (ProductOrderDTO p : productCart) {
             prod = new ProductCartDTO();
@@ -254,16 +253,14 @@ public class GeneralServiceImpl implements GeneralService {
             prod.setName(productDTO.getName());
             prod.setId(productDTO.getId());
 
-            // Assicura che il prezzo formattato utilizzi il punto come separatore decimale
-            df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.US));
-            prod.setTotal(Double.parseDouble(df.format(productDTO.getPrice()).replace(",", ".")));
+            prod.setTotal(approximatedSecondDecimal(productDTO.getPrice()));
 
             prod.setQuantity(p.getQuantity());
             prod.setSize(p.getSize());
 
-            double discountPrice = (p.getProductDTO().getPrice() * p.getProductDTO().getDiscount()) / 100;
-            double totalDiscount = Math.round((p.getProductDTO().getPrice() - discountPrice) * p.getQuantity() * 100.0) / 100.0;
-            prod.setDiscountTotal(totalDiscount);
+            double discountPrice = (p.getProductDTO().getPrice() * p.getProductDTO().getDiscount())/100;
+            double totalDiscount = p.getProductDTO().getPrice()-discountPrice;
+            prod.setDiscountTotal(approximatedSecondDecimal(totalDiscount));
 
             result.add(prod);
         }
@@ -328,6 +325,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         List<ProductCartDTO> productCartDTOS = new Vector<>();
         ProductCartDTO productCartDTO;
+        double discountTotal;
 
         for (ProductOrderDTO productOrderDTO : productsOrder) {
             productCartDTO = new ProductCartDTO();
@@ -426,7 +424,7 @@ public class GeneralServiceImpl implements GeneralService {
                 order.setRefund(true);
                 orderService.save(order);
                 return utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" accettato",
-                        "Il rimborso sarà effettuato sulla carta utilizzata al momento del pagamento");
+                        "Il rimborso sarà effettuato sul metodo di pagamento utilizzato al momento dell'acquisto");
 
             }
         }catch (Exception | Error e) {
@@ -510,22 +508,18 @@ public class GeneralServiceImpl implements GeneralService {
             return "Errore";
         }
 
-        DecimalFormat df = new DecimalFormat("#.##");
-        df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.US));
 
         double total = productInOrder.stream()
                 .mapToDouble(prod -> {
-                    if (prod.getProductDTO().getDiscount() == 0) {
-                        double totalPrice = prod.getTotal() * prod.getQuantity();
-                        return Double.parseDouble(df.format(totalPrice).replace(",", ".")); // CALCOLO SENZA SCONTO
-                    }
+                    if (prod.getProductDTO().getDiscount() == 0)
+                        return prod.getTotal() * prod.getQuantity(); // CALCOLO SENZA SCONTO
 
                     // CALCOLO CON SCONTO
                     double discount = (prod.getTotal() * prod.getProductDTO().getDiscount()) / 100;
-                    return Double.parseDouble(df.format((prod.getTotal() - discount) * prod.getQuantity()).replace(",", "."));
+                    return (prod.getTotal() - discount) * prod.getQuantity();
                 }).sum();
 
-        total+= 5;
+        approximatedSecondDecimal(total+= 5);
         if (!payMethod) {
             if (!checkPayment(buyDTO.getCardID(), total)) {
                 changeAvaibility(productInOrder, true);
@@ -712,6 +706,12 @@ public class GeneralServiceImpl implements GeneralService {
             codice.append(CHARACTERS.charAt(index));
         }
         return codice.toString();
+    }
+
+    public double approximatedSecondDecimal(double total) {
+        BigDecimal bd = new BigDecimal(total);
+        bd = bd.setScale(2, RoundingMode.HALF_UP); // Arrotonda alla seconda cifra decimale
+        return bd.doubleValue();
     }
 
     private WishListProductDTO getWishListProductDTO(String username, SendWishlistProductDTO wishlistProductDTO) {
