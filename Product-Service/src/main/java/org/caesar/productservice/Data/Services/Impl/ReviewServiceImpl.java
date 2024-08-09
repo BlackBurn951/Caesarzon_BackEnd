@@ -36,26 +36,34 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
 //    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
 //    @Retry(name= REVIEW_SERVICE)
-    public boolean addReview(ReviewDTO reviewDTO, ProductDTO productDTO) {
+    public String addReview(ReviewDTO reviewDTO, ProductDTO productDTO) {
         try {
             Review review = reviewRepository.findById(reviewDTO.getId()).orElse(null);
 
-            if(review == null)
+            if(review == null)  //Controllo per l'update
                 review = new Review();
 
+            if(reviewDTO.getId()==null && reviewRepository.findReviewByUsernameAndProduct(reviewDTO.getUsername(),modelMapper.map(productDTO, Product.class))!=null)
+                return "Limite recensioni raggiunto...";
 
             review.setProduct(modelMapper.map(productDTO, Product.class));
             review.setDate(LocalDate.now());
-            review.setText(reviewDTO.getText());
-            review.setEvaluation(reviewDTO.getEvaluation());
+
+            if(checkText(reviewDTO.getText()) && checkEvaluation(reviewDTO.getEvaluation())) {  //Convalida dei dati in arrivo
+                review.setText(reviewDTO.getText());
+                review.setEvaluation(reviewDTO.getEvaluation());
+            }
+            else
+                return "Problemi nell'aggiunta della recensione...";
+
             review.setUsername(reviewDTO.getUsername());
 
             reviewRepository.save(review);
 
-            return true;
+            return "Recensione aggiunta con successo!";
         } catch (RuntimeException | Error e) {
             log.debug("Errore nell'inserimento della recensione");
-            return false;
+            return "Problemi nell'aggiunta della recensione...";
         }
     }
 
@@ -136,4 +144,13 @@ public class ReviewServiceImpl implements ReviewService {
         return result==null || result.isEmpty()? 0: result.size();
     }
 
+
+    //METODI DI SERVIZIO
+    private boolean checkText(String text) {
+        return !text.isEmpty() && text.length()<=256;
+    }
+
+    private boolean checkEvaluation(int evaluation) {
+        return evaluation>=1 && evaluation<=5;
+    }
 }

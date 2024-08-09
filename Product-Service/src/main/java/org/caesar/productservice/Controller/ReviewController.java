@@ -78,11 +78,11 @@ public class ReviewController {
     public ResponseEntity<String> addReview(@RequestBody ReviewDTO reviewDTO) {
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
-        if (generalService.addReview(reviewDTO, username)) {
-            return new ResponseEntity<>("Recensione aggiunta con successo!", HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("Problemi nell'aggiunta della recensione...", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        String result= generalService.addReview(reviewDTO, username);
+        if(result.endsWith("!"))
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     // Endpoint per l'eliminazione di una recensione e delle eventuali segnalazioni ad essa collegate

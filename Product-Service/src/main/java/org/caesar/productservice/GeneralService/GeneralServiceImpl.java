@@ -108,8 +108,8 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional
-    public boolean deleteProduct(UUID id) {  //TODO AGGIUNGERE ELIMINAZIONE IMMAGINI
+    @Transactional //TODO AGGIUNGERE ELIMINAZIONE IMMAGINI
+    public boolean deleteProduct(UUID id) {
         ProductDTO product = productService.getProductById(id);
 
         if(product != null)
@@ -123,12 +123,12 @@ public class GeneralServiceImpl implements GeneralService {
     //SEZIONE RECENSIONI
     @Override
     public List<ReviewDTO> getProductReviews(UUID productID, int str) {
-        ProductDTO productDTO= productService.getProductById(productID, str);
+        ProductDTO productDTO= productService.getProductById(productID);
 
         if(productDTO == null)
             return null;
 
-        return reviewService.getReviewsByProduct(productDTO);
+        return reviewService.getReviewsByProduct(productDTO, str);
     }
 
     @Override
@@ -165,13 +165,12 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional
-    public boolean addReview(ReviewDTO reviewDTO, String username) {
+    public String addReview(ReviewDTO reviewDTO, String username) {
 
         ProductDTO productDTO= productService.getProductById(reviewDTO.getProductID());
 
         if(productDTO==null)
-            return false;
+            return "Problemi nell'aggiunta della recensione...";
 
         reviewDTO.setUsername(username);
 
@@ -252,28 +251,24 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
 
-    @Override
-    @Transactional   // Genera un nuovo carrello alla scelta del primo prodotto dell'utente
+    @Override  // Aggiunge al carrello il singolo prodotto scelto dall'utente (anche in caso di acquisto rapido si passa da qui)
     public boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO) {
         ProductDTO productDTO = productService.getProductById(sendProductOrderDTO.getProductID());
 
-        //TODO CHECK DELLA DISPONIBILITà
         if(productDTO==null)
             return false;
 
         ProductOrderDTO productOrderDTO = new ProductOrderDTO();
 
         productOrderDTO.setProductDTO(productDTO);
-        double total= Math.round((productDTO.getPrice()*sendProductOrderDTO.getQuantity()) * 100.0) / 100.0;
-        productOrderDTO.setTotal(total);
+        productOrderDTO.setTotal(approximatedSecondDecimal(productDTO.getPrice()*sendProductOrderDTO.getQuantity()));
+
+        if(!checkQuantity(sendProductOrderDTO.getQuantity()) || !checkSize(sendProductOrderDTO.getSize()))
+            return false;
+
         productOrderDTO.setQuantity(sendProductOrderDTO.getQuantity());
+        productOrderDTO.setSize(sendProductOrderDTO.getSize());
         productOrderDTO.setUsername(username);
-
-        if (productDTO.getIs_clothing())
-            productOrderDTO.setSize(sendProductOrderDTO.getSize());
-        else
-            productOrderDTO.setSize(null);
-
 
         return productOrderService.save(productOrderDTO);
     }
@@ -287,7 +282,10 @@ public class GeneralServiceImpl implements GeneralService {
     @Override
     public boolean changeQuantity(String username, UUID productID, int quantity, String size) {
         ProductDTO productDTO = productService.getProductById(productID);
-        return productOrderService.changeQuantity(username,productDTO,quantity, size);
+
+        if(checkSize(size) && checkQuantity(quantity))
+            return productOrderService.changeQuantity(username,productDTO,quantity, size);
+        return false;
     }
 
     @Override
@@ -337,6 +335,9 @@ public class GeneralServiceImpl implements GeneralService {
         if(productInOrder==null || productInOrder.isEmpty())
             return "Errore";
 
+        if(buyDTO.getTotal()<=0.0 || buyDTO.getAddressID()==null)
+            return "Errore";
+
         OrderDTO orderDTO= new OrderDTO();
         orderDTO.setOrderNumber(generaCodice(8));
         orderDTO.setOrderState("Ricevuto");
@@ -367,6 +368,7 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
+    @Transactional  //Metodo per eseguire il reso
     public boolean updateOrder(String username, UUID orderId) {
         try {
             LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
@@ -404,7 +406,7 @@ public class GeneralServiceImpl implements GeneralService {
                 }
 
                 order.setRefundDate(LocalDate.now());
-                order.setOrderState("Rimborsato");
+                order.setOrderState("Rimborsato");  //TODO DA AGGIUNGERE IL REFUND SULLA CARTA
                 order.setRefund(true);
                 orderService.save(order);
                 return utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" accettato",
@@ -418,6 +420,7 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
+    @Transactional  //TODO DA SPOSTARE NELL'ORDER SERVICE
     public boolean updateNotifyOrder() {
         try {
             List<OrderDTO> ordersToUpdate = orderService.getOrdersByState("Ricevuto");
@@ -843,5 +846,17 @@ public class GeneralServiceImpl implements GeneralService {
             productSearchDTO.add(productSearchDTO1);
         }
         return productSearchDTO;
+    }
+
+    private boolean checkSize(String size) {
+        if(size==null)
+            return true;
+        List<String> sizes = List.of(new String[]{"XS", "S", "M", "L", "XL"});
+        return sizes.contains(size);
+    }
+
+    // Controllo della quantità del prodotto
+    private boolean checkQuantity(int quantity) {
+        return quantity >= 0;
     }
 }

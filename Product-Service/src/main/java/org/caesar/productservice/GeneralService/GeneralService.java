@@ -20,10 +20,10 @@ public interface GeneralService {
     boolean deleteProduct(UUID id);
 
     //SEZIONE RECENSIONI
-    List<ReviewDTO> getProductReviews(UUID productID);
+    List<ReviewDTO> getProductReviews(UUID productID, int str);
     List<Integer> getReviewScore(UUID productId);
     AverageDTO getReviewAverage(UUID productId);
-    boolean addReview(ReviewDTO reviewDTO, String username);
+    String addReview(ReviewDTO reviewDTO, String username);
     boolean deleteReviewByUser(String username, UUID productId);
     boolean deleteReviewByAdmin(String username, UUID productId);
 

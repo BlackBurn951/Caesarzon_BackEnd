@@ -156,13 +156,12 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 //    @Retry(name= PRODUCTORDER_SERVICE)
     public boolean saveLater(String username, ProductDTO productDTO) {
         try{
-            ProductOrder productOrder= productOrderRepository
-            .findByUsernameAndProduct(username, modelMapper.map(productDTO, Product.class));
+            ProductOrder productOrder= productOrderRepository.findByUsernameAndProduct(username, modelMapper.map(productDTO, Product.class));
 
             if(productOrder == null)
                 return false;
 
-            productOrder.setBuyLater(true);
+            productOrder.setBuyLater(!productOrder.isBuyLater());
             productOrderRepository.save(productOrder);
 
             return true;

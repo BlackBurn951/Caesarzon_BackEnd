@@ -46,6 +46,10 @@ public class WishlistServiceImpl implements WishlistService {
     public UUID addOrUpdateWishlist(WishlistDTO wishlistDTO, String username) {
         try {
             wishlistDTO.setUserUsername(username);
+
+            if(!checkName(wishlistDTO.getName()) || !checkVisibility(wishlistDTO.getVisibility()))
+                return null;
+
             Wishlist wishlistEntity = modelMapper.map(wishlistDTO, Wishlist.class);
             return wishlistRepository.save(wishlistEntity).getId();
         }
@@ -93,7 +97,7 @@ public class WishlistServiceImpl implements WishlistService {
                         .stream()
                         .map(a -> modelMapper.map(a, BasicWishlistDTO.class))
                         .toList();
-            } else if(visibility==1) { //Besties
+            } else if(visibility==1) { //Condivisa
                 //Caso in cui l'utente vuole accedere alle wishlist di un altro utente
                 HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
                 HttpHeaders headers = new HttpHeaders();
@@ -149,6 +153,9 @@ public class WishlistServiceImpl implements WishlistService {
                 case 0 -> wishlist.setVisibility("Pubblica");
                 case 1 -> wishlist.setVisibility("Condivisa");
                 case 2 -> wishlist.setVisibility("Privata");
+                default -> {
+                    return false;
+                }
             }
             wishlistRepository.save(wishlist);
             return true;
@@ -156,5 +163,18 @@ public class WishlistServiceImpl implements WishlistService {
             log.debug("Errore nella cancellazione della lista desideri");
             return false;
         }
+    }
+
+
+    //METODI DI SERVIZIO
+    private boolean checkName(String name) {
+        return !name.isEmpty() && name.length()<=50;
+    }
+
+    private boolean checkVisibility(String visibility) {
+        String[] vis= {"Pubblica", "Condivisa", "Privata"};
+
+        return !visibility.isEmpty() &&
+                (visibility.equals(vis[0]) || visibility.equals(vis[1]) || visibility.equals(vis[2]));
     }
 }
