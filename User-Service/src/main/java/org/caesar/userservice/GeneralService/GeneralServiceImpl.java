@@ -40,9 +40,8 @@ public class GeneralServiceImpl implements GeneralService {
     private final static String GENERAL_SERVICE= "generalService";
 
 
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
+    public void fallbackCircuitBreaker(Throwable throwable){
+        log.debug("Circuit breaker su address service da: {}", throwable.getCausingCircuitBreakerName());
     }
 
     //Metodo per agggiungere un utente
@@ -146,6 +145,11 @@ public class GeneralServiceImpl implements GeneralService {
         for(FollowerDTO followerDTO: followers) {
             userSearchDTO= new UserSearchDTO();
             userSearchDTO.setUsername(followerDTO.getUserUsername2());
+            //TODO AGGIUNGERE LA FOTO PROFILO
+            if(followerDTO.isFriend())
+                userSearchDTO.setFriend(true);
+            userSearchDTO.setFollower(true);
+
             userSearch.add(userSearchDTO);
         }
 
@@ -170,7 +174,7 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public List<UserSearchDTO> getAllUserForFollower(String username, int start) {
+    public List<UserSearchDTO> getAllUserForFollower(String username, int start) {  //Metodo per scaricare tutti gli utenti e sapere se sono amici o follower
         List<UserDTO> user= userService.getUsers(start);
 
         if(user == null || user.isEmpty())
@@ -184,6 +188,7 @@ public class GeneralServiceImpl implements GeneralService {
 
             FollowerDTO followerDTO= followerService.getFollower(username, userDTO.getUsername());
 
+            //TODO AGGIUNGERE FOTO PROFILO
             userSearchDTO.setUsername(userDTO.getUsername());
             if(followerDTO != null) {
                 userSearchDTO.setFollower(true);

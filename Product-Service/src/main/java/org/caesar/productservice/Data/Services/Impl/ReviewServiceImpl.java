@@ -12,6 +12,7 @@ import org.caesar.productservice.Dto.AverageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -82,8 +83,8 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     //    @Retry(name= REVIEW_SERVICE)
-    public List<ReviewDTO> getReviewsByProduct(ProductDTO productDTO) {
-        return reviewRepository.findAllByproduct(modelMapper.map(productDTO, Product.class)).stream()
+    public List<ReviewDTO> getReviewsByProduct(ProductDTO productDTO, int str) {
+        return reviewRepository.findAllByproduct(modelMapper.map(productDTO, Product.class), PageRequest.of(str, 10)).stream()
                 .map(a -> modelMapper.map(a, ReviewDTO.class))
                 .toList();
     }

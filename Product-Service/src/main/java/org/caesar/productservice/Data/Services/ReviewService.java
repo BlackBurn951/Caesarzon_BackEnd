@@ -13,7 +13,7 @@ public interface ReviewService {
     boolean addReview(ReviewDTO review, ProductDTO productDTO);
     Review getReviewById(UUID reviewID);
     ReviewDTO getReviewByUsernameAndProduct(String username, ProductDTO productDTO);
-    List<ReviewDTO> getReviewsByProduct(ProductDTO productDTO);
+    List<ReviewDTO> getReviewsByProduct(ProductDTO productDTO, int str);
     boolean deleteReview(UUID id);
     AverageDTO getReviewAverage(ProductDTO productDTO);
     String getTextReview(UUID reviewId);

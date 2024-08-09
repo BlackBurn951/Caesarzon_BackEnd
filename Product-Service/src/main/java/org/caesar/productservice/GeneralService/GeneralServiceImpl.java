@@ -109,7 +109,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-    public boolean deleteProduct(UUID id) {
+    public boolean deleteProduct(UUID id) {  //TODO AGGIUNGERE ELIMINAZIONE IMMAGINI
         ProductDTO product = productService.getProductById(id);
 
         if(product != null)
@@ -118,27 +118,12 @@ public class GeneralServiceImpl implements GeneralService {
         return false;
     }
 
-    @Override  //TODO DA CONTROLLARE SE SERVE, SE SI MODIFICARE
-    public boolean deleteAvailabilityByProduct(Product product) {
-        List<Availability> availabilitiesToDelete = new ArrayList<>();
-        for(Availability availability : availabilityRepository.findAll()) {
-            if(availability.getProduct().equals(product)){
-                availabilitiesToDelete.add(availability);
-            }
-        }
-        if(!availabilitiesToDelete.isEmpty()) {
-            availabilityRepository.deleteAll(availabilitiesToDelete);
-            return true;
-        }else
-            return false;
-    }
-
 
 
     //SEZIONE RECENSIONI
     @Override
-    public List<ReviewDTO> getProductReviews(UUID productID) {
-        ProductDTO productDTO= productService.getProductById(productID);
+    public List<ReviewDTO> getProductReviews(UUID productID, int str) {
+        ProductDTO productDTO= productService.getProductById(productID, str);
 
         if(productDTO == null)
             return null;
@@ -182,7 +167,6 @@ public class GeneralServiceImpl implements GeneralService {
     @Override
     @Transactional
     public boolean addReview(ReviewDTO reviewDTO, String username) {
-        //TODO CHECK CONVALIDA CONTROLLO DI POTER FARE SOLO UNA RECENSIONE PER UTENTE E PRODOTTO
 
         ProductDTO productDTO= productService.getProductById(reviewDTO.getProductID());
 
@@ -191,7 +175,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         reviewDTO.setUsername(username);
 
-        return reviewService.addReview(reviewDTO, productDTO);
+        return reviewService.addReview(reviewDTO, productDTO);  //TODO CHECK CONVALIDA CONTROLLO DI POTER FARE SOLO UNA RECENSIONE PER UTENTE E PRODOTTO E CAMBIARE TIPO DI RISPOSTA PER NOTIFICARLO ALL'UTENTE
     }
 
     @Override

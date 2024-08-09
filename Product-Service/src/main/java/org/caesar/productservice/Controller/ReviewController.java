@@ -53,8 +53,8 @@ public class ReviewController {
 
     // Endpoint per ottenere la lista di tutte le recensioni di un prodotto tramite il suo id
     @GetMapping("/reviews")
-    public ResponseEntity<List<ReviewDTO>> getReviews(@RequestParam("prod-id") UUID productID) {
-        List<ReviewDTO> reviewDTOS = generalService.getProductReviews(productID);
+    public ResponseEntity<List<ReviewDTO>> getReviews(@RequestParam("prod-id") UUID productID, @RequestParam("str") int str) {
+        List<ReviewDTO> reviewDTOS = generalService.getProductReviews(productID, str);
 
         if (reviewDTOS==null || reviewDTOS.isEmpty()) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -79,9 +79,9 @@ public class ReviewController {
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
         if (generalService.addReview(reviewDTO, username)) {
-            return new ResponseEntity<>("Recensione aggiunta", HttpStatus.OK);
+            return new ResponseEntity<>("Recensione aggiunta con successo!", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("Recensione non aggiunta", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Problemi nell'aggiunta della recensione...", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -18,7 +18,6 @@ public interface GeneralService {
     ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id);
     boolean addProduct(ProductDTO ProductDTO);
     boolean deleteProduct(UUID id);
-    boolean deleteAvailabilityByProduct(Product product);
 
     //SEZIONE RECENSIONI
     List<ReviewDTO> getProductReviews(UUID productID);
