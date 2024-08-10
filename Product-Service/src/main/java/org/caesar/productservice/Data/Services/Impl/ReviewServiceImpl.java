@@ -1,9 +1,7 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Dao.ReviewRepository;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
@@ -25,17 +23,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     private final ModelMapper modelMapper;
     private final ReviewRepository reviewRepository;
-    private final static String REVIEW_SERVICE = "reviewService";
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e) {
-        log.debug("Circuit breaker su reviewService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
 
     @Override
-//    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= REVIEW_SERVICE)
     public String addReview(ReviewDTO reviewDTO, ProductDTO productDTO) {
         try {
             Review review = reviewRepository.findById(reviewDTO.getId()).orElse(null);
@@ -68,7 +58,6 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-//    @Retry(name= REVIEW_SERVICE)
     public Review getReviewById(UUID reviewID) {
         return reviewRepository.findById(reviewID).orElse(null);
     }
@@ -90,7 +79,6 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-    //    @Retry(name= REVIEW_SERVICE)
     public List<ReviewDTO> getReviewsByProduct(ProductDTO productDTO, int str) {
         return reviewRepository.findAllByproduct(modelMapper.map(productDTO, Product.class), PageRequest.of(str, 10)).stream()
                 .map(a -> modelMapper.map(a, ReviewDTO.class))
@@ -99,8 +87,6 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-//    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= REVIEW_SERVICE)
     public boolean deleteReview(UUID id) {
         try {
             reviewRepository.deleteById(id);
@@ -114,7 +100,6 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-//    @Retry(name= REVIEW_SERVICE)
     public AverageDTO getReviewAverage(ProductDTO productDTO) {
         List<Review> reviewDTOS = reviewRepository.findByproduct(modelMapper.map(productDTO, Product.class));
 

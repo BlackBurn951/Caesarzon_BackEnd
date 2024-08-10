@@ -64,7 +64,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     //SEZIONE DEI PRODOTTI E STRETTAMENTE CORRELATI
     @Override
-    public List<ImageDTO> getProductImages(UUID id) {
+    public List<ImageDTO> getProductImage(UUID id) {
         return List.of();
     }
 
@@ -90,7 +90,6 @@ public class GeneralServiceImpl implements GeneralService {
         }
         return null;
     }
-
 
     @Override
     @Transactional // Aggiunge il prodotto ricevuto da front al db dei prodotti
@@ -174,7 +173,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         reviewDTO.setUsername(username);
 
-        return reviewService.addReview(reviewDTO, productDTO);  //TODO CHECK CONVALIDA CONTROLLO DI POTER FARE SOLO UNA RECENSIONE PER UTENTE E PRODOTTO E CAMBIARE TIPO DI RISPOSTA PER NOTIFICARLO ALL'UTENTE
+        return reviewService.addReview(reviewDTO, productDTO);
     }
 
     @Override
@@ -205,12 +204,6 @@ public class GeneralServiceImpl implements GeneralService {
             ).getStatusCode() == HttpStatus.OK;
         }
 
-        return false;
-    }
-
-    @Override
-    @Transactional
-    public boolean deleteReviewByAdmin(String username, UUID productId) {
         return false;
     }
 
@@ -249,7 +242,6 @@ public class GeneralServiceImpl implements GeneralService {
         }
         return result;
     }
-
 
     @Override  // Aggiunge al carrello il singolo prodotto scelto dall'utente (anche in caso di acquisto rapido si passa da qui)
     public boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO) {
@@ -442,7 +434,6 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional
     public List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds) {
 
         //Presa di tutti i prodotti presenti nel carello dell'utente
@@ -629,7 +620,6 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional
     public boolean addProductIntoWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
 
         WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO);
@@ -642,7 +632,6 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional
     public boolean deleteProductFromWishList(String username, UUID wishId, UUID productId) {
         SendWishlistProductDTO sendWishlistProductDTO = new SendWishlistProductDTO();
         sendWishlistProductDTO.setProductID(productId);
@@ -657,7 +646,6 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional
     public boolean deleteProductsFromWishList(String username, UUID wishlistId) {
         WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistId, username);
 
@@ -667,7 +655,6 @@ public class GeneralServiceImpl implements GeneralService {
         return wishlistProductService.deleteAllProductsFromWishlist(wishlistDTO);
     }
 
-    @Transactional
     @Override // Elimina l'intera wishlist dell'utente assieme a tutti i prodotti in essa contenuti
     public boolean deleteWishlist(String username, UUID wishlistID){
         WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
@@ -855,7 +842,6 @@ public class GeneralServiceImpl implements GeneralService {
         return sizes.contains(size);
     }
 
-    // Controllo della quantità del prodotto
     private boolean checkQuantity(int quantity) {
         return quantity >= 0;
     }

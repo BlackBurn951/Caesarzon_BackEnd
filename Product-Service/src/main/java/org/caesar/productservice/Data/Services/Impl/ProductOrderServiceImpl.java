@@ -1,8 +1,5 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductOrderRepository;
@@ -29,35 +26,23 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
     private final ProductOrderRepository productOrderRepository;
     private final ModelMapper modelMapper;
-    private final static String PRODUCTORDER_SERVICE = "productOrderService";
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su productOrderService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
     @Override
-//    @CircuitBreaker(name= PRODUCTORDER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCTORDER_SERVICE)
     public UUID addOrUpdateProductOrder(SendProductOrderDTO productOrder) {
         return null;
     }
 
     @Override
-//    @Retry(name= PRODUCTORDER_SERVICE)
     public SendProductOrderDTO getProductOrder(UUID id) {
         return null;
     }
 
     @Override
-//    @Retry(name= PRODUCTORDER_SERVICE)
     public List<SendProductOrderDTO> getProductOrders() {
         return List.of();
     }
 
     @Override
-//    @CircuitBreaker(name= PRODUCTORDER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCTORDER_SERVICE)
     public boolean deleteProductCarts(String username) {
         try {
             productOrderRepository.deleteAllByUsernameAndOrderIsNull(username);
@@ -69,8 +54,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     }
 
     @Override
-//    @CircuitBreaker(name= PRODUCTORDER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCTORDER_SERVICE)
     public boolean save(ProductOrderDTO productOrderDTO) {
         if(productOrderDTO != null) {
             productOrderRepository.save(modelMapper.map(productOrderDTO, ProductOrder.class));
@@ -81,7 +64,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     }
 
     @Override
-//    @Retry(name= PRODUCTORDER_SERVICE)
     public List<ProductOrderDTO> getProductOrdersByUsername(String username){
         List<ProductOrder> result= productOrderRepository.findAllByUsernameAndOrderIsNullAndBuyLaterIsFalse(username);
 
@@ -105,8 +87,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     }
 
     @Override
-//    @CircuitBreaker(name= PRODUCTORDER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCTORDER_SERVICE)
     public boolean deleteProductCart(String username, ProductDTO productDTO) {
         try {
             productOrderRepository.deleteByUsernameAndOrderNullAndProduct(username, modelMapper.map(productDTO, Product.class));
@@ -119,8 +99,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     }
 
     @Override
-//    @CircuitBreaker(name= PRODUCTORDER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCTORDER_SERVICE)
     public boolean saveAll(List<ProductOrderDTO> orderDTOS) {
         try {
             List<ProductOrder> productOrderList= new Vector<>();
@@ -152,8 +130,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
 
     @Override
-//    @CircuitBreaker(name= PRODUCTORDER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCTORDER_SERVICE)
     public boolean saveLater(String username, ProductDTO productDTO) {
         try{
             ProductOrder productOrder= productOrderRepository.findByUsernameAndProduct(username, modelMapper.map(productDTO, Product.class));
@@ -172,8 +148,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     }
 
     @Override
-//    @CircuitBreaker(name= PRODUCTORDER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCTORDER_SERVICE)
     public boolean changeQuantity(String username, ProductDTO productDTO, int quantity, String size) {
         try{
             ProductOrder productOrder = productOrderRepository
@@ -193,7 +167,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     }
 
     @Override
-//    @Retry(name= PRODUCTORDER_SERVICE)
     public List<ProductOrderDTO> getProductInOrder(String username, OrderDTO orderDTO) {
         try {
             List<ProductOrder> productOrders= productOrderRepository.findAllByUsernameAndOrder(username, modelMapper.map(orderDTO, Order.class));

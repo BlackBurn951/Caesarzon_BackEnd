@@ -1,6 +1,5 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.SearchRepository;
@@ -17,11 +16,9 @@ import java.util.Vector;
 public class SearchServiceImpl implements SearchService {
 
     private final SearchRepository searchRepository;
-    private final static String SEARCH_SERVICE = "searchService";
 
 
     @Override
-//    @Retry(name=SEARCH_SERVICE)
     public List<String> getAllSearchs(String username) {
         try{
             List<String>  searchList = new Vector<>();

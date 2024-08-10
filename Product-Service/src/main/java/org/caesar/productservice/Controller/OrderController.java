@@ -11,7 +11,6 @@ import org.caesar.productservice.Dto.ProductCartDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
 import org.caesar.productservice.Dto.RefundDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
-import org.caesar.productservice.Utils.PayPalServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,8 +30,6 @@ public class OrderController {
     private final ProductOrderService productOrderService;
     private final OrderService orderService;
     private final PayPalService payPalService;
-    private final PayPalServiceImpl payPalServiceImpl;
-
 
     //Metodi per la gestione del carrello
     @GetMapping("/cart")

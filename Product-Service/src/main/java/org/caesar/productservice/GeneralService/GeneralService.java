@@ -1,6 +1,5 @@
 package org.caesar.productservice.GeneralService;
 
-import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
@@ -13,7 +12,7 @@ import java.util.UUID;
 public interface GeneralService {
 
     //SEZIONE DEI PRODOTTI E STRETTAMENTE CORRELATI
-    List<ImageDTO> getProductImages(UUID id);
+    List<ImageDTO> getProductImage(UUID id);
     List<ImageDTO> getAllProductImages(UUID productID);
     ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id);
     boolean addProduct(ProductDTO ProductDTO);
@@ -25,7 +24,7 @@ public interface GeneralService {
     AverageDTO getReviewAverage(UUID productId);
     String addReview(ReviewDTO reviewDTO, String username);
     boolean deleteReviewByUser(String username, UUID productId);
-    boolean deleteReviewByAdmin(String username, UUID productId);
+
 
 
     //SEZIONE DEL CARRELLO

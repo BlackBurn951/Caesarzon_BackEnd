@@ -1,19 +1,14 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Dto.ProductDTO;
-import org.caesar.productservice.Dto.ProductSearchDTO;
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
 import org.hibernate.search.mapper.orm.Search;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -31,19 +26,11 @@ public class ProductServiceImpl implements ProductService{
 
     private final ModelMapper modelMapper;
     private final ProductRepository productRepository;
-    private final static String PRODUCT_SERVICE = "productService";
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su productService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
     @PersistenceContext
     private final EntityManager entityManager;
 
-    @Override //Aggiunge il prodotto passato controllando se supera tutti i check dei parametri
-//    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCT_SERVICE)
+    @Override  //Aggiunge il prodotto passato controllando se supera tutti i check dei parametri
     public Product addOrUpdateProduct(ProductDTO productDTO) {
 
         if(!checkDescription(productDTO.getDescription()) || !checkDiscount(productDTO.getDiscount())
@@ -81,9 +68,7 @@ public class ProductServiceImpl implements ProductService{
         }
     }
 
-    @Override
-    // Restituisce l'id del prodotto partendo dal suo nome
-//    @Retry(name= PRODUCT_SERVICE)
+    @Override  // Restituisce l'id del prodotto partendo dal suo nome
     public UUID getProductIDByName(String name) {
         Product productID = productRepository.findProductByName(name);
         if(productID != null)
@@ -95,14 +80,11 @@ public class ProductServiceImpl implements ProductService{
 
 
     @Override //Restituisce un prodotto partendo dal suo id
-//    @Retry(name= PRODUCT_SERVICE)
     public ProductDTO getProductById(UUID id) {
         return modelMapper.map(productRepository.findById(id), ProductDTO.class);
     }
 
-    @Override
-    // Restituisce tutti i prodotti
-//    @Retry(name= PRODUCT_SERVICE)
+    @Override  // Restituisce tutti i prodotti
     public List<ProductDTO> getAllProductsById(List<UUID> ids) {
        return productRepository.findAllById(ids)
                 .stream()
@@ -111,10 +93,7 @@ public class ProductServiceImpl implements ProductService{
     }
 
 
-    @Override
-    // Elimina il prodotto partendo dall'id specificato
-//    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCT_SERVICE)
+    @Override  // Elimina il prodotto partendo dall'id specificato
     public boolean deleteProductById(UUID id) {
         try{
             productRepository.deleteById(id);
@@ -125,11 +104,7 @@ public class ProductServiceImpl implements ProductService{
         }
     }
 
-    // Effettua la ricerca dei prodotti seguendo i valori dei filtri passati per parametro
-
-    @Override
-//    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= PRODUCT_SERVICE)
+    @Override  // Effettua la ricerca dei prodotti seguendo i valori dei filtri passati per parametro
     public List<ProductDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         try {
 
@@ -198,6 +173,8 @@ public class ProductServiceImpl implements ProductService{
                 .toList();
     }
 
+
+    //METODI DI SERVIZIO
 
     // Controllo della descrizione
     private boolean checkDescription(String description) {

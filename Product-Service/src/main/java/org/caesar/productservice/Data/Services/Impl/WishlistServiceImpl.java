@@ -1,8 +1,5 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,17 +29,9 @@ public class WishlistServiceImpl implements WishlistService {
     private final ModelMapper modelMapper;
     private final WishlistRepository wishlistRepository;
     private final RestTemplate restTemplate;
-    private final static String WISHLIS_SERVICE = "wishlistService";
 
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su wishlistService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
-    //Metodo per creare una lista dei desideri per l'utente
-    @Override
-//    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=WISHLIS_SERVICE)
+    @Override  //Metodo per creare una lista dei desideri per l'utente
     public UUID addOrUpdateWishlist(WishlistDTO wishlistDTO, String username) {
         try {
             wishlistDTO.setUserUsername(username);
@@ -60,15 +49,12 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
 
-    //Metodo per prendere la lista dei desideri dell'utente
-    @Override
-//    @Retry(name=WISHLIS_SERVICE)
+    @Override  //Metodo per prendere la lista dei desideri dell'utente
     public WishlistDTO getWishlist(UUID id, String username) {
         return modelMapper.map(wishlistRepository.findWishlistByIdAndUserUsername(id, username), WishlistDTO.class);
     }
 
     @Override
-//    @Retry(name=WISHLIS_SERVICE)
     public List<WishlistDTO> getAllWishlist(UUID id, String username) {
         return wishlistRepository.findAllByIdAndUserUsername(id, username)
                 .stream()
@@ -77,7 +63,6 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-//    @Retry(name=WISHLIS_SERVICE)
     public List<BasicWishlistDTO> getAllWishlists(String ownerUsername, String accessUsername, int visibility) {
         String vs= "";
         switch (visibility) {
@@ -129,8 +114,6 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-//    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=WISHLIS_SERVICE)
     public boolean deleteWishlist(UUID id) {
         try {
             wishlistRepository.deleteById(id);
@@ -143,8 +126,6 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-//    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=WISHLIS_SERVICE)
     public boolean changeVisibility(String username, ChangeVisibilityDTO changeVisibilityDTO) {
         try{
             Wishlist wishlist = wishlistRepository.findWishlistByIdAndUserUsername(changeVisibilityDTO.getWishId(), username);

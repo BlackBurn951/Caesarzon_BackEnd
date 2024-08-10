@@ -3,19 +3,14 @@ package org.caesar.productservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Data.Services.ReviewService;
 import org.caesar.productservice.Dto.AverageDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -26,7 +21,6 @@ public class ReviewController {
 
 
     private final ReviewService reviewService;
-    private final RestTemplate restTemplate;
     private final HttpServletRequest httpServletRequest;
     private final GeneralService generalService;
 
