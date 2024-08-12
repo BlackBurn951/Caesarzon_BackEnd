@@ -52,5 +52,4 @@ public class SearchController {
     public List<String> getUsersByUsernames(@PathVariable String username) {
         return userService.getUsersByUsername(username);
     }
-
 }

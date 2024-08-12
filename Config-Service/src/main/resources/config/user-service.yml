@@ -42,18 +42,19 @@ resilience4j.circuitbreaker:
   configs:
     default:
       sliding-window-size: 4  #Numero di ultime chiamate tenute in cosiderazione dal circuit breaker
-      permitted-number-of-calls-in-half-open-state: 10  #Numero massimo di tentativi concessi in fase di half-opened per capire se chiudersi o meno
-      wait-duration-in-open-state: 10000  #Tempo in ms in cui il circuit breaker rimane in fase opened
+      permitted-number-of-calls-in-half-open-state: 5  #Numero massimo di tentativi concessi in fase di half-opened per capire se chiudersi o meno
+      wait-duration-in-open-state: 20000  #Tempo in ms in cui il circuit breaker rimane in fase opened
       failure-rate-threshold: 50  #Numero percentuale di tentativi che devono fallire per aprirsi
       event-consumer-buffer-size: 10  #Numero di eventi salvati per strumenti terzi di valutazione (Actuator, ecc...)
       register-health-indicator: true
       record-exceptions:
         - org.springframework.web.client.RestClientException
         - org.springframework.web.client.ResourceAccessException
+        - java.lang.IllegalArgumentException
 
 
   instances:
-    adminService:
+    deleteService:
       base-config: default
-    generalService:
+    notifyService:
       base-config: default

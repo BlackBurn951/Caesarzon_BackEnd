@@ -1,5 +1,6 @@
 package org.caesar.productservice.Data.Services.Impl;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +9,6 @@ import org.caesar.productservice.Data.Entities.Wishlist;
 import org.caesar.productservice.Data.Services.WishlistService;
 import org.caesar.productservice.Dto.BasicWishlistDTO;
 import org.caesar.productservice.Dto.ChangeVisibilityDTO;
-import org.caesar.productservice.Dto.ReviewDTO;
 import org.caesar.productservice.Dto.WishlistDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
@@ -29,6 +29,14 @@ public class WishlistServiceImpl implements WishlistService {
     private final ModelMapper modelMapper;
     private final WishlistRepository wishlistRepository;
     private final RestTemplate restTemplate;
+
+    private final static String USER_SERVICE= "userService";
+
+    private List<BasicWishlistDTO> fallbackCircuitBreaker(Throwable e){
+        log.info("Servizio per l'invio delle notifiche non disponibile");
+        return null;
+    }
+
 
 
     @Override  //Metodo per creare una lista dei desideri per l'utente
@@ -63,6 +71,7 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
+    @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     public List<BasicWishlistDTO> getAllWishlists(String ownerUsername, String accessUsername, int visibility) {
         String vs= "";
         switch (visibility) {

@@ -42,65 +42,20 @@ management:
 resilience4j.circuitbreaker:
   configs:
     default:
-      sliding-window-size: 4
-      permitted-number-of-calls-in-half-open-state: 10
-      wait-duration-in-open-state: 10000
-      failure-rate-threshold: 50
-      event-consumer-buffer-size: 10
+      sliding-window-size: 4  #Numero di ultime chiamate tenute in cosiderazione dal circuit breaker
+      permitted-number-of-calls-in-half-open-state: 5  #Numero massimo di tentativi concessi in fase di half-opened per capire se chiudersi o meno
+      wait-duration-in-open-state: 20000  #Tempo in ms in cui il circuit breaker rimane in fase opened
+      failure-rate-threshold: 50  #Numero percentuale di tentativi che devono fallire per aprirsi
+      event-consumer-buffer-size: 10  #Numero di eventi salvati per strumenti terzi di valutazione (Actuator, ecc...)
       register-health-indicator: true
       record-exceptions:
-        - java.io.IOException
-        - java.util.concurrent.TimeoutException
-        - org.springframework.web.client.HttpServerErrorException
+        - org.springframework.web.client.RestClientException
         - org.springframework.web.client.ResourceAccessException
-        - io.netty.handler.timeout.ReadTimeoutException
+        - java.lang.IllegalArgumentException
 
 
   instances:
-    adminNotificationService:
+    adminsService:
       base-config: default
-    banService:
+    productService:
       base-config: default
-    reportService:
-      base-config: default
-    supportRequestService:
-      base-config: default
-    userNotificationService:
-      base-config: default
-    generalService:
-      base-config: default
-
-resilience4j.retry:
-  configs:
-    default:
-      enableExponentialBackoff: true
-      exponentialBackoffMultiplier: 2
-      ignore-exceptions:
-
-  instances:
-    adminNotificationService:
-      base-config: default
-      maxAttempts: 3
-      waitDuration: 2000
-    banService:
-      base-config: default
-      maxAttempts: 2
-      waitDuration: 5000
-    reportService:
-      base-config: default
-      maxAttempts: 3
-      waitDuration: 4000
-    supportRequestService:
-      base-config: default
-      maxAttempts: 3
-      waitDuration: 4000
-    userNotificationService:
-      base-config: default
-      maxAttempts: 4
-      waitDuration: 3000
-    generalService:
-      base-config: default
-      maxAttempts: 3
-      waitDuration: 5000
-
-

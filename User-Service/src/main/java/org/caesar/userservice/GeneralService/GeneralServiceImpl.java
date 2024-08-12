@@ -1,23 +1,28 @@
 package org.caesar.userservice.GeneralService;
 
-
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.Utils.Utils;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.security.SecureRandom;
-import java.util.List;
-import java.util.UUID;
-import java.util.Vector;
+import java.util.*;
 
 
 @Service
@@ -38,7 +43,17 @@ public class GeneralServiceImpl implements GeneralService {
     private final FollowerService followerService;
 
     private final Utils utils;
-    private final static String GENERAL_SERVICE= "generalService";
+    private final RestTemplate restTemplate;
+
+    private final static String DELETE_SERVICE = "deleteService";
+
+
+    private boolean fallbackCircuitBreaker(Throwable e){
+        log.info("Servizio per l'elimazione non disponibile");
+        return false;
+    }
+
+
 
     //Metodo per agggiungere un utente
     @Override
@@ -274,7 +289,7 @@ public class GeneralServiceImpl implements GeneralService {
     //Metodi di cancellazione
     @Override
     @Transactional
-    @CircuitBreaker(name= GENERAL_SERVICE)
+    @CircuitBreaker(name= DELETE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     public boolean deleteUser(String username) {  //FIXME DA CONTROLLARE COSA TORNA IN CASO DI LISTA VUOTA SE NULL O EMPTY
         try {
             //Chiamate per prendere le tuple di relazione con gli indirizzi e le carte

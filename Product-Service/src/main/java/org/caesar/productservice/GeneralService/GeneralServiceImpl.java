@@ -3,14 +3,11 @@ package org.caesar.productservice.GeneralService;
 import com.paypal.api.payments.Links;
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.PayPalRESTException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.Uuid;
-import org.caesar.productservice.Data.Dao.AvailabilityRepository;
-import org.caesar.productservice.Data.Entities.Availability;
-import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
@@ -39,26 +36,36 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional
 public class GeneralServiceImpl implements GeneralService {
 
     private final ProductService productService;
     private final ReviewService reviewService;
-    private final AvailabilityRepository availabilityRepository;
-
-
     private final AvailabilityService availabilityService;
 
-    private final ModelMapper modelMapper;
     private final ProductOrderService productOrderService;
     private final OrderService orderService;
     private final LastViewService lastViewService;
 
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
+
     private final Utils utils;
     private final RestTemplate restTemplate;
     private final PayPalService payPalService;
+    private final ModelMapper modelMapper;
+
+    private final static String USER_SERVICE= "userService";
+    private final static String NOTIFY_SERVICE= "notifyService";
+
+    private boolean fallbackUser(Throwable e){
+        log.info("Servizio utenti non disponibile");
+        return false;
+    }
+
+    private boolean fallbackNotify(Throwable e){
+        log.info("Servizio per l'invio delle notifiche non disponibile");
+        return false;
+    }
 
 
 
@@ -178,6 +185,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackNotify")
     public boolean deleteReviewByUser(String username, UUID productId) {
         ProductDTO productDTO= productService.getProductById(productId);
 
@@ -735,6 +743,7 @@ public class GeneralServiceImpl implements GeneralService {
         return result;
     }
 
+    @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackUser")
     private boolean checkAddress(UUID addressId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -787,6 +796,7 @@ public class GeneralServiceImpl implements GeneralService {
                 .toList();
     }
 
+    @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackUser")
     private boolean checkPayment(UUID cardId, double total) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();

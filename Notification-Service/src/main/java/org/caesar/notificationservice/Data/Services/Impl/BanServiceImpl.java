@@ -23,16 +23,7 @@ public class BanServiceImpl implements BanService {
     private final BanRepository banRepository;
     private final ModelMapper modelMapper;
 
-    private final static String BAN_SERVICE= "adminNotificationService";
-
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
-
     //Metodo per restituire tutti gli utenti bannati
-    @Retry(name=BAN_SERVICE)
     public List<BanDTO> getAllBans() {
         List<Ban> bans = banRepository.findAll();
         return bans.stream().map(a -> modelMapper.map(a, BanDTO.class)).toList();
@@ -40,8 +31,6 @@ public class BanServiceImpl implements BanService {
 
     //Metodo per bannare un utente
     @Override
-//    @CircuitBreaker(name=BAN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=BAN_SERVICE)
     public boolean banUser(BanDTO banDTO) {
         try {
             banRepository.save(modelMapper.map(banDTO, Ban.class));
@@ -55,8 +44,6 @@ public class BanServiceImpl implements BanService {
 
     //Metodo per sbannare un utente
     @Override
-//    @CircuitBreaker(name=BAN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=BAN_SERVICE)
     public boolean sbanUser(String username) {
         try {
             Ban ban= banRepository.findByUserUsername(username);

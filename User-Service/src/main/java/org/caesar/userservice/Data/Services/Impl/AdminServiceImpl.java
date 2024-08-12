@@ -1,7 +1,6 @@
 package org.caesar.userservice.Data.Services.Impl;
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +31,14 @@ public class AdminServiceImpl implements AdminService {
 
     private final AdminRepository adminRepository;
     private final RestTemplate restTemplate;
-    private final static String ADMIN_SERVICE = "adminService";
+
+    private final static String NOTIFY_SERVICE = "notifyService";
+
+    private int fallbackCircuitBreaker(Throwable e){
+        log.info("Servizio per la gestione delle notifiche non disponibile");
+        return 2;
+    }
+
 
     //Metodo per restituire tutti gli admins
     @Override
@@ -43,7 +49,7 @@ public class AdminServiceImpl implements AdminService {
 
     //Metodo per bannare un utente
     @Override
-    @CircuitBreaker(name= ADMIN_SERVICE)
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = NOTIFY_SERVICE)
     public int banUser(BanDTO banDTO) {
         try {
 
@@ -79,7 +85,7 @@ public class AdminServiceImpl implements AdminService {
 
     //Metodo per sbannare un utente
     @Override
-    @CircuitBreaker(name= ADMIN_SERVICE)
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = NOTIFY_SERVICE)
     public int sbanUser(String username) {
         try {
 
