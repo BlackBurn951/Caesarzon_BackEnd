@@ -217,7 +217,6 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional
     public boolean pay(String username, UUID cardId, double total) {
         if(userCardService.checkCard(username, cardId)) {
             CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
@@ -290,78 +289,63 @@ public class GeneralServiceImpl implements GeneralService {
     @Override
     @Transactional
     @CircuitBreaker(name= DELETE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    public boolean deleteUser(String username) {  //FIXME DA CONTROLLARE COSA TORNA IN CASO DI LISTA VUOTA SE NULL O EMPTY
-        try {
-            //Chiamate per prendere le tuple di relazione con gli indirizzi e le carte
-            List<UserAddressDTO> userAddresses = userAddressService.getUserAddresses(username);
-            List<UserCardDTO> userCards = userCardService.getUserCards(username);
+    public boolean deleteUser(String username) {
+        //FIXME DA CONTROLLARE COSA TORNA IN CASO DI LISTA VUOTA SE NULL O EMPTY
+        //Chiamate per prendere le tuple di relazione con gli indirizzi e le carte
+        List<UserAddressDTO> userAddresses = userAddressService.getUserAddresses(username);
+        List<UserCardDTO> userCards = userCardService.getUserCards(username);
 
 
-            boolean userDeleted = userService.deleteUser(username);
+        boolean userDeleted = userService.deleteUser(username);
 
-            //Controllo dei casi in cui l'utente non abbia indirizzi e/o carte
-            if(userAddresses!=null && !userAddresses.isEmpty() && userCards!=null && !userCards.isEmpty()) {
-                boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
-                boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
+        //Controllo dei casi in cui l'utente non abbia indirizzi e/o carte
+        if(userAddresses!=null && !userAddresses.isEmpty() && userCards!=null && !userCards.isEmpty()) {
+            boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
+            boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
 
-                boolean userCardsDeleted = userCardService.deleteUserCards(username);
-                boolean cardDeleted = cardService.deleteUserCards(userCards);
+            boolean userCardsDeleted = userCardService.deleteUserCards(username);
+            boolean cardDeleted = cardService.deleteUserCards(userCards);
 
-                return userDeleted && addressesDeleted && userAddressesDeleted && cardDeleted && userCardsDeleted;
-            } else if(userAddresses!=null && !userAddresses.isEmpty() && (userCards==null || userCards.isEmpty())) {
-                boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
-                boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
+            return userDeleted && addressesDeleted && userAddressesDeleted && cardDeleted && userCardsDeleted;
+        } else if(userAddresses!=null && !userAddresses.isEmpty() && (userCards==null || userCards.isEmpty())) {
+            boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
+            boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
 
-                return userDeleted && userAddressesDeleted && addressesDeleted;
-            } else if((userAddresses==null || userAddresses.isEmpty()) && (userCards==null || userCards.isEmpty())) {
-                boolean userCardsDeleted = userCardService.deleteUserCards(username);
-                boolean cardDeleted = cardService.deleteUserCards(userCards);
+            return userDeleted && userAddressesDeleted && addressesDeleted;
+        } else if((userAddresses==null || userAddresses.isEmpty()) && (userCards==null || userCards.isEmpty())) {
+            boolean userCardsDeleted = userCardService.deleteUserCards(username);
+            boolean cardDeleted = cardService.deleteUserCards(userCards);
 
-                return userDeleted && userCardsDeleted && cardDeleted;
-            }
-
-            return userDeleted;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione dell'utente e dei suoi dati");
-            return false;
+            return userDeleted && userCardsDeleted && cardDeleted;
         }
+
+        return userDeleted;
     }
 
     @Override
     @Transactional
     public boolean deleteUserAddress(UUID id) {
-        try {
-            //Presa della tupla di relazione dell'indirizzo richiesto
-            UserAddressDTO userAddressDTO= userAddressService.getUserAddress(id);
+        //Presa della tupla di relazione dell'indirizzo richiesto
+        UserAddressDTO userAddressDTO= userAddressService.getUserAddress(id);
 
-            //Controllo che la tupla di relazione esista e eliminazione dell'indirizzo associato più controllo della riuscita dell'operazione
-            if(userAddressDTO!=null && userAddressService.deleteUserAddress(userAddressDTO))
-                return addressService.deleteAddress(userAddressDTO.getAddressId());
+        //Controllo che la tupla di relazione esista e eliminazione dell'indirizzo associato più controllo della riuscita dell'operazione
+        if(userAddressDTO!=null && userAddressService.deleteUserAddress(userAddressDTO))
+            return addressService.deleteAddress(userAddressDTO.getAddressId());
 
-            return false;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione dell'indirizzo dell'utente");
-            return false;
-        }
+        return false;
     }
 
     @Override
     @Transactional
     public boolean deleteUserCard(UUID id) {
+        //Presa della tupla di relazione della carta richiesta
+        UserCardDTO userCardDTO= userCardService.getUserCard(id);
 
-        try {
-            //Presa della tupla di relazione della carta richiesta
-            UserCardDTO userCardDTO= userCardService.getUserCard(id);
+        //Controllo che la tupla di relazione esista e eliminazione della carta associata più controllo della riuscita dell'operazione
+        if(userCardDTO!=null && userCardService.deleteUserCard(userCardDTO))
+            return cardService.deleteCard(userCardDTO.getCardId());
 
-            //Controllo che la tupla di relazione esista e eliminazione della carta associata più controllo della riuscita dell'operazione
-            if(userCardDTO!=null && userCardService.deleteUserCard(userCardDTO))
-                return cardService.deleteCard(userCardDTO.getCardId());
-
-            return false;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della carta dell'utente");
-            return false;
-        }
+        return false;
     }
 
 

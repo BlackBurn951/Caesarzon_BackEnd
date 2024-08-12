@@ -37,7 +37,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
             wishlistProductRepository.save(wishlistProductEntity);
             return true;
         }
-        catch (RuntimeException | Error e) {
+        catch (Exception | Error e) {
             log.debug("Errore nell'aggiunta del prodotto nella lista desideri");
             return false;
         }
@@ -49,7 +49,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
                     modelMapper.map(wishListProductDTO.getProductDTO(), Product.class),
                     modelMapper.map(wishListProductDTO.getWishlistDTO(), Wishlist.class));
             return true;
-        }catch(RuntimeException | Error e) {
+        }catch(Exception | Error e) {
             log.debug("Errore nella rimozione del prodotto dalla lista desideri");
             return false;
         }
@@ -74,7 +74,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
             return wishListProductDTOS1;
 
 
-        }catch(RuntimeException | Error e) {
+        }catch(Exception | Error e) {
             log.debug("Errore nella presa dei prodotti della lista");
             return null;
         }
@@ -96,7 +96,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
         try {
             wishlistProductRepository.deleteAllByWishlist(modelMapper.map(wishlistDTO, Wishlist.class));
             return true;
-        }catch(RuntimeException | Error e) {
+        }catch(Exception | Error e) {
             log.debug("Errore nella rimozione dei prodotti dalla lista desideri");
             return false;
         }

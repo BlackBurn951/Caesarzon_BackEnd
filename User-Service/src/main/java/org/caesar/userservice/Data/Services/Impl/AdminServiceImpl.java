@@ -2,6 +2,7 @@ package org.caesar.userservice.Data.Services.Impl;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.AdminRepository;
@@ -49,65 +50,55 @@ public class AdminServiceImpl implements AdminService {
 
     //Metodo per bannare un utente
     @Override
+    @Transactional
     @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = NOTIFY_SERVICE)
     public int banUser(BanDTO banDTO) {
-        try {
-
-            int result= adminRepository.banUser(banDTO.getUserUsername(), true);
-            if(result==0) {
-                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        int result= adminRepository.banUser(banDTO.getUserUsername(), true);
+        if(result==0) {
+            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 
 
-                HttpHeaders headers = new HttpHeaders();
-                headers.add("Authorization", request.getHeader("Authorization"));
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", request.getHeader("Authorization"));
 
-                Map<String, String> requestBody = new HashMap<>();
-                requestBody.put("reason", banDTO.getReason());
-                requestBody.put("startDate", String.valueOf(LocalDate.now()));
-                requestBody.put("endDate", null);
-                requestBody.put("userUsername", banDTO.getUserUsername());
-                requestBody.put("adminUsername", banDTO.getAdminUsername());
+            Map<String, String> requestBody = new HashMap<>();
+            requestBody.put("reason", banDTO.getReason());
+            requestBody.put("startDate", String.valueOf(LocalDate.now()));
+            requestBody.put("endDate", null);
+            requestBody.put("userUsername", banDTO.getUserUsername());
+            requestBody.put("adminUsername", banDTO.getAdminUsername());
 
-                HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
+            HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
 
-                boolean response= restTemplate.exchange("http://notification-service/notify-api/ban",
-                        HttpMethod.POST,
-                        entity,
-                        String.class).getStatusCode() == HttpStatus.OK;
-                return response? 0: 2;
-            }
-            return result;
-        } catch(Exception | Error e) {
-            log.debug("Errore nel ban dell'utente");
-            return 2;
+            boolean response= restTemplate.exchange("http://notification-service/notify-api/ban",
+                    HttpMethod.POST,
+                    entity,
+                    String.class).getStatusCode() == HttpStatus.OK;
+            return response? 0: 2;
         }
+        return result;
     }
 
     //Metodo per sbannare un utente
     @Override
+    @Transactional
     @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = NOTIFY_SERVICE)
     public int sbanUser(String username) {
-        try {
+        int result= adminRepository.banUser(username, false);
+        if(result==0) {
+            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", request.getHeader("Authorization"));
 
-            int result= adminRepository.banUser(username, false);
-            if(result==0) {
-                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-                HttpHeaders headers = new HttpHeaders();
-                headers.add("Authorization", request.getHeader("Authorization"));
+            HttpEntity<String> entity = new HttpEntity<>(headers);
 
-                HttpEntity<String> entity = new HttpEntity<>(headers);
-
-                boolean response= restTemplate.exchange("http://notification-service/notify-api/ban/" + username,
-                        HttpMethod.PUT,
-                        entity,
-                        String.class).getStatusCode() == HttpStatus.OK;
-                return response? 0: 2;
-            }
-            return result;
-        } catch(Exception | Error e) {
-            log.debug("Errore nel ban dell'utente");
-            return 2;
+            boolean response= restTemplate.exchange("http://notification-service/notify-api/ban/" + username,
+                    HttpMethod.PUT,
+                    entity,
+                    String.class).getStatusCode() == HttpStatus.OK;
+            return response? 0: 2;
         }
+        return result;
     }
 
     @Override

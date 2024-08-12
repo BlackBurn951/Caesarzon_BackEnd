@@ -46,7 +46,7 @@ public class CardServiceImpl implements CardService {
             Card card = modelMapper.map(cardDTO, Card.class);
 
             return cardRepository.save(card).getId();
-        }catch(RuntimeException | Error e){
+        }catch(Exception | Error e){
             log.debug("Errore nel salvataggio della carta dell'utente");
             return null;
         }
@@ -58,7 +58,7 @@ public class CardServiceImpl implements CardService {
         try {
             cardRepository.deleteById(cardId);
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della carta");
             return false;
         }
@@ -76,7 +76,7 @@ public class CardServiceImpl implements CardService {
         try {
             cardRepository.deleteAllById(cardId);
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Problemi nell'eliminazione di tutti le carte");
             return false;
         }

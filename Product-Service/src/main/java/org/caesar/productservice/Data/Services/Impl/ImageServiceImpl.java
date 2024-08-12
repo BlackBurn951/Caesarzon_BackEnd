@@ -46,7 +46,7 @@ public class ImageServiceImpl implements ImageService {
 
             return true;
 
-        }catch (RuntimeException | Error | IOException e) {
+        }catch (Exception | Error e) {
             log.debug("Errore nell'inserimento dell'immagine");
             return false;
         }
@@ -87,7 +87,7 @@ public class ImageServiceImpl implements ImageService {
             }else
                 return false;
 
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della carta");
             return false;
         }

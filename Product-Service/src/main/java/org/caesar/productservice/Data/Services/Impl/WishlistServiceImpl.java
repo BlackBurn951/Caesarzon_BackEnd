@@ -50,7 +50,7 @@ public class WishlistServiceImpl implements WishlistService {
             Wishlist wishlistEntity = modelMapper.map(wishlistDTO, Wishlist.class);
             return wishlistRepository.save(wishlistEntity).getId();
         }
-        catch (RuntimeException | Error e) {
+        catch (Exception | Error e) {
             log.debug("Errore nella creazione lista desideri");
             return null;
         }
@@ -128,7 +128,7 @@ public class WishlistServiceImpl implements WishlistService {
             wishlistRepository.deleteById(id);
             log.debug("Lista desideri eliminata correttamente");
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della lista desideri");
             return false;
         }
@@ -149,7 +149,7 @@ public class WishlistServiceImpl implements WishlistService {
             }
             wishlistRepository.save(wishlist);
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della lista desideri");
             return false;
         }

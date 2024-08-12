@@ -47,7 +47,7 @@ public class AddressServiceImpl implements AddressService {
             Address address = modelMapper.map(addressDTO, Address.class);
             // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
             return addressRepository.save(address).getId();
-        }catch(RuntimeException | Error e){
+        }catch(Exception | Error e){
             log.debug("Errore nell'inserimento dell'indirizzo dell'utente");
             return null;
         }
@@ -59,7 +59,7 @@ public class AddressServiceImpl implements AddressService {
         try {
             addressRepository.deleteById(addressId);
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione dell'indirizzo");
             return false;
         }
@@ -77,7 +77,7 @@ public class AddressServiceImpl implements AddressService {
         try {
             addressRepository.deleteAllById(addressId);
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Problemi nell'eliminazione di tutti gli indirizzi");
             return false;
         }

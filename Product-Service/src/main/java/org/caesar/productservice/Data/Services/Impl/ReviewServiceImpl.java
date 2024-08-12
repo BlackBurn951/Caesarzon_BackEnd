@@ -51,7 +51,7 @@ public class ReviewServiceImpl implements ReviewService {
             reviewRepository.save(review);
 
             return "Recensione aggiunta con successo!";
-        } catch (RuntimeException | Error e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nell'inserimento della recensione");
             return "Problemi nell'aggiunta della recensione...";
         }
@@ -92,7 +92,7 @@ public class ReviewServiceImpl implements ReviewService {
             reviewRepository.deleteById(id);
 
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della recensione");
             return false;
         }

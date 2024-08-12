@@ -73,8 +73,8 @@ public class ProductServiceImpl implements ProductService{
         Product productID = productRepository.findProductByName(name);
         if(productID != null)
             return productID.getId();
-        else
-            log.debug("Il prodotto che cerchi non esiste");
+
+        log.debug("Il prodotto che cerchi non esiste");
         return null;
     }
 
@@ -98,7 +98,7 @@ public class ProductServiceImpl implements ProductService{
         try{
             productRepository.deleteById(id);
             return true;
-        }catch (RuntimeException e) {
+        }catch (Exception | Error e) {
             log.debug("Errore nell'eliminazione del prodotto");
             return false;
         }

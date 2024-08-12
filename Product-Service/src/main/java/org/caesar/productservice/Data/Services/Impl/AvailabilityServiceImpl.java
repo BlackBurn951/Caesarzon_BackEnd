@@ -73,7 +73,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         try {
             availabilityRepository.deleteById(availabilityId);
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della disponibilità");
             return false;
         }

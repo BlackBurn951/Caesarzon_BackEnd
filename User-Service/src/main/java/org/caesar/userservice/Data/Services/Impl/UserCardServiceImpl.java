@@ -80,7 +80,7 @@ public class UserCardServiceImpl implements UserCardService {
             userCardRepository.save(userCardEntity);
 
             return true;
-        } catch (RuntimeException | Error e){
+        } catch (Exception | Error e){
             log.debug("Errore nel salvataggio nella tabella di relazione utente carte");
             return false;
         }
@@ -92,7 +92,7 @@ public class UserCardServiceImpl implements UserCardService {
         try {
             userCardRepository.deleteById(userCardDTO.getId());
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
             return false;
         }
@@ -108,7 +108,7 @@ public class UserCardServiceImpl implements UserCardService {
             //Eliminizaione delle tuple passando direttamente la lista con al suo intenro gli ogetti entity che le rappresentano
             userCardRepository.deleteAll(userCards);
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione di tutte le tuple nella tabella di relazione utente carte");
             return false;
         }

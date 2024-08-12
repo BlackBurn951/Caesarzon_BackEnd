@@ -370,75 +370,64 @@ public class GeneralServiceImpl implements GeneralService {
     @Override
     @Transactional  //Metodo per eseguire il reso
     public boolean updateOrder(String username, UUID orderId) {
-        try {
-            LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
-            OrderDTO order = orderService.getOrderByIdAndUsername(orderId, username);
-            if (order.getPurchaseDate().isBefore(tenDaysAgo)) {
-                utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" rifiutato",
-                        "Il reso è possibile solo entro 10 giorni dall'acquisto");
-                return false;
-            }else{
-                //Prendo tutti i prodotti nell'ordine restituito
-                List<ProductOrderDTO> productOrderDTO = productOrderService.getProductInOrder(username, order);
-
-                //Lista di disponibilità (mi serve solo per aggiornare la disponibilità)
-                List<AvailabilityDTO> availabilityDTOS;
-
-                //Oggetto singolo per restituire la disponibilità attuale del prodotto tramite taglia
-                AvailabilityDTO availabilityDTO;
-
-                for(ProductOrderDTO productOrderDTO1: productOrderDTO){
-                    //Inizializzo qui la lista perchè mi serve sempre vuota
-                    availabilityDTOS = new Vector<>();
-
-                    //Inizializzo il prodotto andando a prendermi la disponibilità del prodotto passato per argomento e della taglia sempre passata come argomento
-                    availabilityDTO = availabilityService.getAvailabilitieByProductId(productOrderDTO1.getProductDTO(), productOrderDTO1.getSize());
-
-                    //Alla disponibilità restituita aggiungo di nuovo quella precedentemente sottratta e se nel DB non esisteva più viene ricreata
-                    availabilityDTO.setSize(productOrderDTO1.getSize());
-                    availabilityDTO.setAmount(productOrderDTO1.getQuantity());
-
-                    //Aggiunto la disponibilità alla lista che mi serve per aggiornare la disponibilità
-                    availabilityDTOS.add(availabilityDTO);
-
-                    //Aggiorno effettivamente la disponibilità
-                    availabilityService.addOrUpdateAvailability(availabilityDTOS, productOrderDTO1.getProductDTO());
-                }
-
-                order.setRefundDate(LocalDate.now());
-                order.setOrderState("Rimborsato");  //TODO DA AGGIUNGERE IL REFUND SULLA CARTA
-                order.setRefund(true);
-                orderService.save(order);
-                return utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" accettato",
-                        "Il rimborso sarà effettuato sul metodo di pagamento utilizzato al momento dell'acquisto");
-
-            }
-        }catch (Exception | Error e) {
-            log.debug("Errore nell'update dell'ordine");
+        LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
+        OrderDTO order = orderService.getOrderByIdAndUsername(orderId, username);
+        if (order.getPurchaseDate().isBefore(tenDaysAgo)) {
+            utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" rifiutato",
+                    "Il reso è possibile solo entro 10 giorni dall'acquisto");
             return false;
+        }else{
+            //Prendo tutti i prodotti nell'ordine restituito
+            List<ProductOrderDTO> productOrderDTO = productOrderService.getProductInOrder(username, order);
+
+            //Lista di disponibilità (mi serve solo per aggiornare la disponibilità)
+            List<AvailabilityDTO> availabilityDTOS;
+
+            //Oggetto singolo per restituire la disponibilità attuale del prodotto tramite taglia
+            AvailabilityDTO availabilityDTO;
+
+            for(ProductOrderDTO productOrderDTO1: productOrderDTO){
+                //Inizializzo qui la lista perchè mi serve sempre vuota
+                availabilityDTOS = new Vector<>();
+
+                //Inizializzo il prodotto andando a prendermi la disponibilità del prodotto passato per argomento e della taglia sempre passata come argomento
+                availabilityDTO = availabilityService.getAvailabilitieByProductId(productOrderDTO1.getProductDTO(), productOrderDTO1.getSize());
+
+                //Alla disponibilità restituita aggiungo di nuovo quella precedentemente sottratta e se nel DB non esisteva più viene ricreata
+                availabilityDTO.setSize(productOrderDTO1.getSize());
+                availabilityDTO.setAmount(productOrderDTO1.getQuantity());
+
+                //Aggiunto la disponibilità alla lista che mi serve per aggiornare la disponibilità
+                availabilityDTOS.add(availabilityDTO);
+
+                //Aggiorno effettivamente la disponibilità
+                availabilityService.addOrUpdateAvailability(availabilityDTOS, productOrderDTO1.getProductDTO());
+            }
+
+            order.setRefundDate(LocalDate.now());
+            order.setOrderState("Rimborsato");  //TODO DA AGGIUNGERE IL REFUND SULLA CARTA
+            order.setRefund(true);
+            orderService.save(order);
+            return utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" accettato",
+                    "Il rimborso sarà effettuato sul metodo di pagamento utilizzato al momento dell'acquisto");
+
         }
     }
 
     @Override
     @Transactional  //TODO DA SPOSTARE NELL'ORDER SERVICE
     public boolean updateNotifyOrder() {
-        try {
-            List<OrderDTO> ordersToUpdate = orderService.getOrdersByState("Ricevuto");
-            for (OrderDTO order : ordersToUpdate) {
-                order.setOrderState("In consegna");
-                orderService.addOrder(order);
+        List<OrderDTO> ordersToUpdate = orderService.getOrdersByState("Ricevuto");
+        for (OrderDTO order : ordersToUpdate) {
+            order.setOrderState("In consegna");
+            orderService.addOrder(order);
 
-                utils.sendNotify(order.getUsername(),
-                        "Aggiornamento ordine numero " + order.getOrderNumber(),
-                        "Il tuo ordine è in consegna e arriverà presto."
-                );
-            }
-            return true;
-        }catch (Exception | Error e) {
-            log.debug("Errore nell'update delle notifiche");
-            return false;
+            utils.sendNotify(order.getUsername(),
+                    "Aggiornamento ordine numero " + order.getOrderNumber(),
+                    "Il tuo ordine è in consegna e arriverà presto."
+            );
         }
-
+        return true;
     }
 
     @Override
