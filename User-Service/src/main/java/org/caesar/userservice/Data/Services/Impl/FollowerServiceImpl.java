@@ -56,7 +56,11 @@ public class FollowerServiceImpl implements FollowerService {
 
     @Override
     public FollowerDTO getFollower(String username1, String username2) {
-        return modelMapper.map(followerRepository.findByUserUsername1AndUserUsername2(username1, username2), FollowerDTO.class);
+        Follower follower= followerRepository.findByUserUsername1AndUserUsername2(username1, username2);
+
+        if(follower == null)
+            return null;
+        return modelMapper.map(follower, FollowerDTO.class);
     }
     //Aggiunta del follower
     @Override
@@ -67,8 +71,6 @@ public class FollowerServiceImpl implements FollowerService {
         if(followers==null || followers.isEmpty())
             return false;
         List<UserSearchDTO> followz = new Vector<>();
-
-        //TODO DA IMPLEMENTARE UPDATE CERCANDO PRIMKA LA TUPLA
 
         for(UserSearchDTO f: followers) {
             Follower follower  = followerRepository.findByUserUsername1AndUserUsername2(username1, f.getUsername());
@@ -88,6 +90,7 @@ public class FollowerServiceImpl implements FollowerService {
         for(UserSearchDTO follower : followz) {
             fwl.setUserUsername1(username1);
             fwl.setUserUsername2(follower.getUsername());
+            fwl.setFriend(follower.isFriend());
 
             savingFollower.add(modelMapper.map(fwl, Follower.class));
         }

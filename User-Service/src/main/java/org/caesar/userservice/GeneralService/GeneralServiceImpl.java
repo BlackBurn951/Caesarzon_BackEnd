@@ -40,9 +40,9 @@ public class GeneralServiceImpl implements GeneralService {
     private final static String GENERAL_SERVICE= "generalService";
 
 
-    public void fallbackCircuitBreaker(Throwable throwable){
-        log.debug("Circuit breaker su address service da: {}", throwable.getCausingCircuitBreakerName());
-    }
+//    public void fallbackCircuitBreaker(Throwable throwable){
+//        log.debug("Circuit breaker su address service da: {}", throwable.getCausingCircuitBreakerName());
+//    }
 
     //Metodo per agggiungere un utente
     @Override
@@ -184,6 +184,8 @@ public class GeneralServiceImpl implements GeneralService {
         UserSearchDTO userSearchDTO;
 
         for(UserDTO userDTO: user) {
+            if(userDTO.getUsername().equals(username))
+                continue;
             userSearchDTO= new UserSearchDTO();
 
             FollowerDTO followerDTO= followerService.getFollower(username, userDTO.getUsername());
