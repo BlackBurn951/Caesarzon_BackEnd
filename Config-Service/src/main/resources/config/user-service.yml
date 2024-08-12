@@ -2,8 +2,6 @@ server:
   port: 0
 
 eureka:
-  #  instance:                  #NELLA CONFIGURAZIONE N2 DEL CORS QUESTI VANNO OMESSI
-  #    prefer-ip-address: true  #DICE AD EUREKA CHE PER ESSERE CONTATTATO (DA ALTRI SERVIZI) DI PREFERIRE IL SUO IP PIù TOSTO CHE IL SUO NOME [IN AMBIENTE DOCKER DOVREBBE ESSERE DI PREGIO]
   client:
     serviceUrl:
       defaultZone: http://localhost:8067/eureka/
@@ -43,88 +41,19 @@ management:
 resilience4j.circuitbreaker:
   configs:
     default:
-      sliding-window-size: 4
-      permitted-number-of-calls-in-half-open-state: 10
-      wait-duration-in-open-state: 10000
-      failure-rate-threshold: 50
-      event-consumer-buffer-size: 10
+      sliding-window-size: 4  #Numero di ultime chiamate tenute in cosiderazione dal circuit breaker
+      permitted-number-of-calls-in-half-open-state: 10  #Numero massimo di tentativi concessi in fase di half-opened per capire se chiudersi o meno
+      wait-duration-in-open-state: 10000  #Tempo in ms in cui il circuit breaker rimane in fase opened
+      failure-rate-threshold: 50  #Numero percentuale di tentativi che devono fallire per aprirsi
+      event-consumer-buffer-size: 10  #Numero di eventi salvati per strumenti terzi di valutazione (Actuator, ecc...)
       register-health-indicator: true
       record-exceptions:
-        - java.io.IOException
-        - java.util.concurrent.TimeoutException
-        - org.springframework.web.client.HttpServerErrorException
+        - org.springframework.web.client.RestClientException
         - org.springframework.web.client.ResourceAccessException
-        - io.netty.handler.timeout.ReadTimeoutException
 
 
   instances:
-    addressService:
-      base-config: default
     adminService:
-      base-config: default
-    cardService:
-      base-config: default
-    cityDataService:
-      base-config: default
-    followerService:
-      base-config: default
-    profilePicService:
-      base-config: default
-    userAddressService:
-      base-config: default
-    userCardService:
-      base-config: default
-    userService:
       base-config: default
     generalService:
       base-config: default
-
-
-resilience4j.retry:
-  configs:
-    default:
-      enableExponentialBackoff: true
-      exponentialBackoffMultiplier: 2
-      ignore-exceptions:
-
-  instances:
-    addressService:
-      base-config: default
-      maxAttempts: 3
-      waitDuration: 1000
-    adminService:
-      base-config: default
-      maxAttempts: 2
-      waitDuration: 2000
-    cardService:
-      base-config: default
-      maxAttempts: 3
-      waitDuration: 1000
-    cityDataService:
-      base-config: default
-      maxAttempts: 3
-      waitDuration: 4000
-    followerService:
-      base-config: default
-      maxAttempts: 3
-      waitDuration: 4000
-    profilePicService:
-      base-config: default
-      maxAttempts: 2
-      waitDuration: 2000
-    userAddressService:
-      base-config: default
-      maxAttempts: 2
-      waitDuration: 3000
-    userCardService:
-      base-config: default
-      maxAttempts: 2
-      waitDuration: 3000
-    userService:
-      base-config: default
-      maxAttempts: 3
-      waitDuration: 4000
-    generalService:
-      base-config: default
-      maxAttempts: 3
-      waitDuration: 5000

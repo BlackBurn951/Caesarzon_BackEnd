@@ -34,14 +34,8 @@ public class AdminServiceImpl implements AdminService {
     private final RestTemplate restTemplate;
     private final static String ADMIN_SERVICE = "adminService";
 
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su adminService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
-
     //Metodo per restituire tutti gli admins
     @Override
-//    @Retry(name=ADMIN_SERVICE)
     public List<String> getAdmins() {
         List<Admin> admins = adminRepository.findAllAdmin();
         return admins.stream().map(Admin::getUsername).toList();
@@ -49,8 +43,7 @@ public class AdminServiceImpl implements AdminService {
 
     //Metodo per bannare un utente
     @Override
-//    @CircuitBreaker(name=ADMIN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=ADMIN_SERVICE)
+    @CircuitBreaker(name= ADMIN_SERVICE)
     public int banUser(BanDTO banDTO) {
         try {
 
@@ -86,8 +79,7 @@ public class AdminServiceImpl implements AdminService {
 
     //Metodo per sbannare un utente
     @Override
-//    @CircuitBreaker(name=ADMIN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=ADMIN_SERVICE)
+    @CircuitBreaker(name= ADMIN_SERVICE)
     public int sbanUser(String username) {
         try {
 
@@ -112,7 +104,7 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-//    @Retry(name=ADMIN_SERVICE)
+    @Override
     public List<String> getBansUser(int start) {
         List<User> user= adminRepository.findAllBanUsers(start);
 

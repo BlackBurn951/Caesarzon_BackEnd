@@ -26,16 +26,9 @@ public class UserCardServiceImpl implements UserCardService {
 
     private final UserCardRepository userCardRepository;
     private final ModelMapper modelMapper;
-    private final static String USER_CARD_SERVICE= "userCardService";
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su userCardService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
     //Prende la carta dell'utente tramite id
     @Override
-//    @Retry(name=USER_CARD_SERVICE)
     public UserCardDTO getUserCard(UUID id) {
 
         //Presa della lista delle carte associate all'utente
@@ -45,7 +38,6 @@ public class UserCardServiceImpl implements UserCardService {
 
     //Prende gli id di tutte le carte dell'utente
     @Override
-//    @Retry(name=USER_CARD_SERVICE)
     public List<UUID> getCards(String userUsername) {
 
         List<UserCard> userCards = userCardRepository.findAllByUserUsername(userUsername);
@@ -60,7 +52,6 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-//    @Retry(name=USER_CARD_SERVICE)
     public List<UserCardDTO> getUserCards(String userUsername) {
         List<UserCardDTO> result= new Vector<>();
 
@@ -74,7 +65,6 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-//    @Retry(name=USER_CARD_SERVICE)
     public boolean checkCard(String username, UUID cardId) {
         UserCard userCard= userCardRepository.findByUserUsernameAndId(username, cardId);
 
@@ -83,8 +73,6 @@ public class UserCardServiceImpl implements UserCardService {
 
     //Aggiunta della relazione carta utente
     @Override
-//    @CircuitBreaker(name=USER_CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=USER_CARD_SERVICE)
     public boolean addUserCards(UserCardDTO userCard) {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
@@ -100,8 +88,6 @@ public class UserCardServiceImpl implements UserCardService {
 
     //Eliminazione
     @Override
-//    @CircuitBreaker(name=USER_CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=USER_CARD_SERVICE)
     public boolean deleteUserCard(UserCardDTO userCardDTO) {
         try {
             userCardRepository.deleteById(userCardDTO.getId());
@@ -114,8 +100,6 @@ public class UserCardServiceImpl implements UserCardService {
 
     //Eliminazione
     @Override
-//    @CircuitBreaker(name=USER_CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=USER_CARD_SERVICE)
     public boolean deleteUserCards(String userUsername) {
         try {
             //Presa di tutte le tuple inerenti all'utente da cancellare

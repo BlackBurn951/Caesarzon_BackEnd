@@ -18,18 +18,9 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProfilePicServiceImpl implements ProfilePicService {
 
     private final ProfilePicRepository profilePicRepository;
-    private final static String PROFILEPIC_SERVICE = "profilePicService";
-
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su profilePicService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
     //Salva l'immagine dell'utente
     @Override
-//    @CircuitBreaker(name=PROFILEPIC_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=PROFILEPIC_SERVICE)
     public boolean saveImage(String username, MultipartFile file, boolean save) {
         try {
             //Ricerca sul db della vecchia foto profilo per eseguire l'aggiornamento in caso ne aggiunge una nuova
@@ -52,7 +43,6 @@ public class ProfilePicServiceImpl implements ProfilePicService {
 
     //Metodo per restituire l'immagine dell'utente
     @Override
-//    @Retry(name=PROFILEPIC_SERVICE)
     public byte[] getUserImage(String username) {
         return profilePicRepository.findByUserUsername(username).getProfilePic();
     }
