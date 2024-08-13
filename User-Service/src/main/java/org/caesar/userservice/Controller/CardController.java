@@ -69,11 +69,11 @@ public class CardController {
 
     //End-point chiamato dal microservizio dei prodotti per pagare in caso di acquisto con la carta
     @PostMapping("/balance/{cardId}")
-    public ResponseEntity<Boolean> pay(@PathVariable("cardId") UUID cardId, @RequestParam("total") double total) {
+    public ResponseEntity<Boolean> pay(@PathVariable("cardId") UUID cardId, @RequestParam("total") double total, @RequestParam("refund") boolean refund) {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        boolean result= generalService.pay(username, cardId, total);
+        boolean result= generalService.pay(username, cardId, total, refund);
         if(result)
             return new ResponseEntity<>(true, HttpStatus.OK);
         else

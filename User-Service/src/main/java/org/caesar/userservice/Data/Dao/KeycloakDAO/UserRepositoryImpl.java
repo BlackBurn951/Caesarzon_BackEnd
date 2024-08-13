@@ -45,7 +45,7 @@ public class UserRepositoryImpl implements UserRepository {
             log.debug("Errore nella presa di tutti gli utenti");
             return null;
         }
-    } //TODO CHECK
+    }
 
     //Metodo per prendere tutti gli utenti "basic" dal real (20 alla volta)
     @Override
@@ -203,7 +203,7 @@ public class UserRepositoryImpl implements UserRepository {
             user.setEmail(userData.getEmail());
 
             //Aggiunta degli attributi personalizzati
-            Map<String, List<String>> attributes = new HashMap<>();  //FIXME controllare vecchia config
+            Map<String, List<String>> attributes = new HashMap<>();
 
             attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
 

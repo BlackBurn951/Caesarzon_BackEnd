@@ -10,6 +10,7 @@ import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.PurchaseOrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.ReturnOrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.SimpleOrderDTO;
+import org.caesar.productservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final ModelMapper modelMapper;
+    private final Utils utils;
 
 
     @Override  //Aggiunge o modifica un SimpleOrder
@@ -129,8 +131,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDTO> getOrdersByState(String state) {
-        return orderRepository.findAllByOrderState(state).stream().map(a -> modelMapper.map(a, OrderDTO.class)).toList();
+    public boolean updateNotifyOrder() {
+        List<Order> orders= orderRepository.findAllByOrderState("Ricevuto");
+        for (Order order : orders) {
+            order.setOrderState("In consegna");
+            orderRepository.save(order);
+
+            utils.sendNotify(order.getUsername(),
+                    "Aggiornamento ordine numero " + order.getOrderNumber(),
+                    "Il tuo ordine è in consegna e arriverà presto."
+            );
+        }
+        return true;
     }
 
     @Override

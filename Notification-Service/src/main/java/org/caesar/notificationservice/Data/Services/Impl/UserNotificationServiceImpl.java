@@ -29,14 +29,14 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     @Override
     public List<UserNotificationDTO> getUserNotification(String username) {
         try {
-            List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);  //CANCELLARE DOPO LA VENTASIMA TUPLA
+            List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
 
             if(notifications==null || notifications.isEmpty())
                 return null;
 
             List<UserNotificationDTO> notificationDTO= notifications.stream()
                     .map(a -> modelMapper.map(a, UserNotificationDTO.class))
-                    .toList();  //FIXME DA VEDERE SE MAPPA NULL O NO
+                    .toList();
 
             for(UserNotificationDTO notify: notificationDTO) {
                 System.out.println(notify.getDate());

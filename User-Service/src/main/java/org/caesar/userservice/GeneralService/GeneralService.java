@@ -21,7 +21,7 @@ public interface GeneralService {
     List<UserSearchDTO> getAllUserForFollower(String username, int start);
 
     boolean checkAddress(String username, UUID addressId);
-    boolean pay(String username, UUID cardId, double total);
+    boolean pay(String username, UUID cardId, double total, boolean refund);
     boolean recoveryPassword(String username);
 
     boolean deleteUser(String username);

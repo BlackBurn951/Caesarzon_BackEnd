@@ -163,7 +163,7 @@ public class OrderController {
 
     @PutMapping("/orders/notify")
     public ResponseEntity<String> updateOrderNotify(){
-        if(generalService.updateNotifyOrder())
+        if(orderService.updateNotifyOrder())
             return new ResponseEntity<>("Notifiche aggiornate con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nell'aggiornamento delle notifiche'...", HttpStatus.INTERNAL_SERVER_ERROR);

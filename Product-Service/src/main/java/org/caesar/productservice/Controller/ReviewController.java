@@ -24,7 +24,7 @@ public class ReviewController {
     private final HttpServletRequest httpServletRequest;
     private final GeneralService generalService;
 
-    @GetMapping("/review/{id}") //End-point per prendere il testo della singola re4censiojne TODO DA CAPIRE SE SERVE
+    @GetMapping("/review/{id}") //End-point per prendere il testo della singola recensione
     public ResponseEntity<String> getReview(@PathVariable UUID id) {
         String reviewText = reviewService.getTextReview(id);
 

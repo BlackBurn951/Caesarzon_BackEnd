@@ -39,7 +39,6 @@ public interface GeneralService {
     List<ProductCartDTO> getOrder(String username, UUID orderId);
     String createOrder(String username, BuyDTO buyDTO);
     boolean updateOrder(String username, UUID orderId);
-    boolean updateNotifyOrder();
     List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds);
     String checkOrder(String username, BuyDTO buyDTO, boolean payMethod);
 

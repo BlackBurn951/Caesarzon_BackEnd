@@ -405,29 +405,16 @@ public class GeneralServiceImpl implements GeneralService {
             }
 
             order.setRefundDate(LocalDate.now());
-            order.setOrderState("Rimborsato");  //TODO DA AGGIUNGERE IL REFUND SULLA CARTA
+            order.setOrderState("Rimborsato");
             order.setRefund(true);
-            orderService.save(order);
-            return utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" accettato",
-                    "Il rimborso sarà effettuato sul metodo di pagamento utilizzato al momento dell'acquisto");
-
+            if(orderService.save(order)!= null) {
+                if(order.getCardID()!=null)
+                    checkPayment(order.getCardID(), order.getOrderTotal(), true);
+                return utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" accettato",
+                        "Il rimborso sarà effettuato sul metodo di pagamento utilizzato al momento dell'acquisto");
+            }
+            return false;
         }
-    }
-
-    @Override
-    @Transactional  //TODO DA SPOSTARE NELL'ORDER SERVICE
-    public boolean updateNotifyOrder() {
-        List<OrderDTO> ordersToUpdate = orderService.getOrdersByState("Ricevuto");
-        for (OrderDTO order : ordersToUpdate) {
-            order.setOrderState("In consegna");
-            orderService.addOrder(order);
-
-            utils.sendNotify(order.getUsername(),
-                    "Aggiornamento ordine numero " + order.getOrderNumber(),
-                    "Il tuo ordine è in consegna e arriverà presto."
-            );
-        }
-        return true;
     }
 
     @Override
@@ -496,7 +483,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         approximatedSecondDecimal(total+= 5);
         if (!payMethod) {
-            if (!checkPayment(buyDTO.getCardID(), total)) {
+            if (!checkPayment(buyDTO.getCardID(), total, false)) {
                 changeAvaibility(productInOrder, true);
                 return "Errore";
             }
@@ -507,7 +494,7 @@ public class GeneralServiceImpl implements GeneralService {
                 Payment payment = payPalService.createPayment(
                         total, "EUR", "paypal",
                         "sale", "Pagamento ordine",
-                        "http://localhost:4200/order-final", //TODO REDIRECT SUL FRONT ANCHE
+                        "http://localhost:4200/order-final",
                         "http://localhost:4200/order-final");
                 for (Links link : payment.getLinks()) {
                     if (link.getRel().equals("approval_url")) {
@@ -786,7 +773,7 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackUser")
-    private boolean checkPayment(UUID cardId, double total) {
+    private boolean checkPayment(UUID cardId, double total, boolean refund) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
@@ -794,7 +781,7 @@ public class GeneralServiceImpl implements GeneralService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Boolean> response = restTemplate.exchange(
-                "http://user-service/user-api/balance/"+cardId+"?total="+total,
+                "http://user-service/user-api/balance/"+cardId+"?total="+total+"&refund="+refund,
                 HttpMethod.POST,
                 entity,
                 Boolean.class

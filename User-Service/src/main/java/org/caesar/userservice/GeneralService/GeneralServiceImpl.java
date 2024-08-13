@@ -217,16 +217,21 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public boolean pay(String username, UUID cardId, double total) {
+    public boolean pay(String username, UUID cardId, double total, boolean refund) {
         if(userCardService.checkCard(username, cardId)) {
             CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
 
             double balance= cardDTO.getBalance();
 
-            if(balance<total)
-                return false;
+            if(refund)
+                balance+= total;
+            else {
+                if(balance<total)
+                    return false;
+                balance-=total;
+            }
+            cardDTO.setBalance(balance);
 
-            cardDTO.setBalance(balance-total);
             return cardService.addCard(cardDTO)!=null;
         }
         return false;
@@ -290,7 +295,6 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     @CircuitBreaker(name= DELETE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     public boolean deleteUser(String username) {
-        //FIXME DA CONTROLLARE COSA TORNA IN CASO DI LISTA VUOTA SE NULL O EMPTY
         //Chiamate per prendere le tuple di relazione con gli indirizzi e le carte
         List<UserAddressDTO> userAddresses = userAddressService.getUserAddresses(username);
         List<UserCardDTO> userCards = userCardService.getUserCards(username);

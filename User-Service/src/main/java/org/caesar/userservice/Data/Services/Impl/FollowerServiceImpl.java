@@ -1,8 +1,5 @@
 package org.caesar.userservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.FollowerRepository;
@@ -105,9 +102,13 @@ public class FollowerServiceImpl implements FollowerService {
     public boolean deleteFollowers(String username1, List<String> followers) {
         List<Follower> savedFollowers= new Vector<>();
 
+        Follower flw;
         //Ricerca e presa di tutti gli oggetti entity per eseguire la cancellazione
         for(String follower : followers) {
-            savedFollowers.add(followerRepository.findByUserUsername1AndUserUsername2(username1, follower));
+            flw= followerRepository.findByUserUsername1AndUserUsername2(username1, follower);
+
+            if(flw!=null)
+                savedFollowers.add(flw);
         }
 
         try{
@@ -120,13 +121,12 @@ public class FollowerServiceImpl implements FollowerService {
         }
     }
 
-    //TODO VA CHIAMATA NEL GENERAL ALL'ELIMINAZIONE DELL'UTENTE
-
     //Metodo per la cancellazione di tutti i follower da tutte e due la parti
     @Override
     public boolean deleteFollowersByUsername(String username){
         try{
-            followerRepository.deleteAllByUserUsername1OrUserUsername2(username, username);
+            followerRepository.deleteAllByUserUsername1(username);
+            followerRepository.deleteAllByUserUsername2(username);
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nell'eliminazione dei follower");

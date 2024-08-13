@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
 
     //Metodo per prendere la lista di utenti
     @Override
-    public List<String> getUsersByUsername(String username) {  //TODO FATTO DA CICCIO
+    public List<String> getUsersByUsername(String username) {
         return userRepository.findAllUsersByUsername(username);
     }
 

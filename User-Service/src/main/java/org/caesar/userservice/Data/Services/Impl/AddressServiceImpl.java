@@ -107,10 +107,9 @@ public class AddressServiceImpl implements AddressService {
             }
 
             return false;
-        } catch (IOException e) {
-            //TODO LOG GESTIONE ERRORE
+        } catch (Exception | Error e) {
+            log.debug("Problemi nel controllo dei tipi via");
+            return false;
         }
-
-        return false;
     }
 }
