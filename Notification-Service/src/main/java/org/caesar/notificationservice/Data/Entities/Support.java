@@ -29,4 +29,6 @@ public class Support {
     @Column(name = "data_richiesta")
     private LocalDate dateRequest;
 
+    @Column(name= "in_cancellazione")
+    private boolean onDeleting;
 }

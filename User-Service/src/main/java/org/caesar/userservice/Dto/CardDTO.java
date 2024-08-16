@@ -18,6 +18,7 @@ public class CardDTO {
     private String cvv;
     private String expiryDate;
     private double balance;
+    private boolean onChanges;
 
     public boolean equals(Object o) {
         if(this == o) return true;

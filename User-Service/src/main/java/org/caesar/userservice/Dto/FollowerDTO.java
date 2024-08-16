@@ -12,4 +12,5 @@ public class FollowerDTO {
     private String userUsername1;
     private String userUsername2;
     private boolean friend;
+    private boolean onDeleting;
 }

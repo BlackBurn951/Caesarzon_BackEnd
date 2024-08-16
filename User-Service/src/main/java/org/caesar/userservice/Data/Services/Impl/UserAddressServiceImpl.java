@@ -35,6 +35,9 @@ public class UserAddressServiceImpl implements UserAddressService {
 
         UserAddress userAddress = userAddressRepository.findById(id).orElse(null);
 
+        if(userAddress!=null && userAddress.isOnDeleting())
+            return null;
+
         return modelMapper.map(userAddress, UserAddressDTO.class);
     }
 
@@ -47,6 +50,8 @@ public class UserAddressServiceImpl implements UserAddressService {
         List<UUID> result = new Vector<>();
 
         for (UserAddress userAddress : userAddresses) {
+            if(userAddress.isOnDeleting())
+                return null;
             result.add(userAddress.getId());
         }
 
@@ -60,6 +65,8 @@ public class UserAddressServiceImpl implements UserAddressService {
         List<UserAddress> userAddresses = userAddressRepository.findByUserUsername(userUsername);
 
         for(UserAddress ut: userAddresses) {
+            if (ut.isOnDeleting())
+                return null;
             result.add(modelMapper.map(ut, UserAddressDTO.class));
         }
 

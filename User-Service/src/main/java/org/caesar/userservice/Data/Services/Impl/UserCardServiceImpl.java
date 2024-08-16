@@ -33,6 +33,9 @@ public class UserCardServiceImpl implements UserCardService {
 
         //Presa della lista delle carte associate all'utente
         UserCard userCard = userCardRepository.findById(id).orElse(null);
+
+        if(userCard != null && userCard.isOnDeleting())
+            return null;
         return modelMapper.map(userCard, UserCardDTO.class);
     }
 
@@ -45,6 +48,8 @@ public class UserCardServiceImpl implements UserCardService {
         List<UUID> result = new Vector<>();
 
         for (UserCard userCard: userCards) {
+            if(userCard.isOnDeleting())
+                return null;
             result.add(userCard.getId());
         }
 
@@ -58,6 +63,8 @@ public class UserCardServiceImpl implements UserCardService {
         List<UserCard> userCards = userCardRepository.findByUserUsername(userUsername);
 
         for(UserCard ut: userCards) {
+            if(ut.isOnDeleting())
+                return null;
             result.add(modelMapper.map(ut, UserCardDTO.class));
         }
 

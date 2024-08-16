@@ -11,4 +11,5 @@ public class UserAddressDTO {
     private UUID id;
     private String userUsername;
     private UUID addressId;
+    private boolean onDeleting;
 }

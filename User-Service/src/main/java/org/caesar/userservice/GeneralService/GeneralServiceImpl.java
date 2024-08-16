@@ -78,6 +78,9 @@ public class GeneralServiceImpl implements GeneralService {
     public int addAddress(String userUsername, AddressDTO addressDTO) {
         List<UserAddressDTO> addresses= userAddressService.getUserAddresses(userUsername);
 
+        if(addresses==null)
+            return 1;
+
         if(addresses.size()<5) {
             for(UserAddressDTO address: addresses) {
                 AddressDTO userAddress = addressService.getAddress(address.getAddressId());
@@ -96,6 +99,9 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     public int addCard(String userUsername, CardDTO cardDTO) {
         List<UserCardDTO> cards= userCardService.getUserCards(userUsername);
+
+        if(cards==null)
+            return 1;
 
         if(cards.size()<5) {
             for(UserCardDTO card: cards) {
@@ -136,7 +142,7 @@ public class GeneralServiceImpl implements GeneralService {
         return userFindDTOs;
     }
 
-    //Metodo per prendere l'utente con follower e amici
+    //Metodo per prendere i follower o gli amici di un specifico utente
     @Override
     public List<UserSearchDTO> getFollowersOrFriend(String username, int flw, boolean friend) {
         List<FollowerDTO> followers= followerService.getFollowersOrFriends(username, flw, friend);
@@ -148,6 +154,9 @@ public class GeneralServiceImpl implements GeneralService {
         UserSearchDTO userSearchDTO;
 
         for(FollowerDTO followerDTO: followers) {
+            if(followerDTO.isOnDeleting())
+                continue;
+
             userSearchDTO= new UserSearchDTO();
             userSearchDTO.setUsername(followerDTO.getUserUsername2());
             //TODO AGGIUNGERE LA FOTO PROFILO
@@ -178,8 +187,9 @@ public class GeneralServiceImpl implements GeneralService {
         return userSearch;
     }
 
+    //Metodo per scaricare tutti gli utenti e sapere se sono amici o follower
     @Override
-    public List<UserSearchDTO> getAllUserForFollower(String username, int start) {  //Metodo per scaricare tutti gli utenti e sapere se sono amici o follower
+    public List<UserSearchDTO> getAllUserForFollower(String username, int start) {
         List<UserDTO> user= userService.getUsers(start);
 
         if(user == null || user.isEmpty())
@@ -241,7 +251,7 @@ public class GeneralServiceImpl implements GeneralService {
     public boolean recoveryPassword(String username) {
         UserDTO user= userService.getUser(username);
 
-        if(user==null)
+        if(user==null || user.isOnChanges())
             return false;
 
         String otp= generateOTP();
@@ -358,6 +368,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     private int createCard(String userUsername, CardDTO cardDTO) {
         cardDTO.setBalance(500.0);
+        cardDTO.setOnChanges(false);
         UUID cardId = cardService.addCard(cardDTO);
 
         if(cardId == null)
@@ -371,6 +382,7 @@ public class GeneralServiceImpl implements GeneralService {
         return userCardService.addUserCards(userCardDTO)? 0: 1;
     }
     private int createAddress(String userUsername, AddressDTO addressDTO) {
+        addressDTO.setOnUse(false);
         UUID addressId= addressService.addAddress(addressDTO);
 
         if(addressId == null)

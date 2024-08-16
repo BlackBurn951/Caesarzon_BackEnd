@@ -18,4 +18,5 @@ public class ProductOrderDTO {
     private String size;
     private String username;
     private boolean buyLater;
+    private boolean onChanges;
 }

@@ -22,4 +22,7 @@ public class ProfilePic {
 
     @Column(name = "foto_profilo")
     private byte[] profilePic;
+
+    @Column(name= "in_cancellazione")
+    private boolean onDeleting;
 }

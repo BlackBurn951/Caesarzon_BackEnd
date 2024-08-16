@@ -12,5 +12,5 @@ public class ProfilePicDTO {
     private UUID id;
     private String username;
     private byte[] profilePic;
-
+    private boolean onDeleting;
 }

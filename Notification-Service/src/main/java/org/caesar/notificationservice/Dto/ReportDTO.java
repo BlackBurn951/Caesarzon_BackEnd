@@ -17,6 +17,5 @@ public class ReportDTO {
     private String usernameUser1;
     private String usernameUser2;
     private UUID reviewId;
-
-
+    private boolean effective;
 }

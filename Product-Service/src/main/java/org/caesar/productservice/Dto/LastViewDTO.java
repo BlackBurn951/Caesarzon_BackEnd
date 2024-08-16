@@ -8,7 +8,8 @@ import java.util.UUID;
 @Getter
 @Setter
 public class LastViewDTO {
-    UUID id;
-    ProductDTO product;
-    String username;
+    private UUID id;
+    private ProductDTO product;
+    private String username;
+    private boolean onDeleting;
 }

@@ -16,4 +16,5 @@ public class ReviewDTO {
     private String username;
     private UUID productID;
     private LocalDate date;
+    private boolean onChanges;
 }
