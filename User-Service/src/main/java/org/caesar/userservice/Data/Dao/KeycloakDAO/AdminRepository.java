@@ -9,7 +9,9 @@ public interface AdminRepository {
 
     List<Admin> findAllAdmin();
 
-    int banUser(String username, boolean ban);
+    int banUser(String username, boolean ban, boolean rollback);
+
+    boolean completeBanUser(String username);
 
     User findUserByUsername(String username);
 

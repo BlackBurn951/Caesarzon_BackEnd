@@ -38,6 +38,8 @@ public class UserRepositoryImpl implements UserRepository {
             List<UserRepresentation> users = realmResource.users().searchByUsername(username, false);
 
             for (UserRepresentation user : users) {
+                if(user.getAttributes().get("onChanges").getFirst().equals("true"))
+                    continue;
                 usernames.add(user.getUsername());
             }
             return usernames;
@@ -73,15 +75,16 @@ public class UserRepositoryImpl implements UserRepository {
                     .anyMatch(role -> role.getName().equals("basic"));
 
             if (hasBasicRole) {
+                if(userRepresentation.getAttributes().get("onChanges").getFirst().equals("true"))
+                    continue;
                 User user = new User();
                 user.setId(userRepresentation.getId());
                 user.setFirstName(userRepresentation.getFirstName());
                 user.setLastName(userRepresentation.getLastName());
                 user.setUsername(userRepresentation.getUsername());
                 user.setEmail(userRepresentation.getEmail());
-                if (userRepresentation.getAttributes() != null) {
-                    user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
-                }
+                user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
+
                 result.add(user);
             }
         }
@@ -133,6 +136,13 @@ public class UserRepositoryImpl implements UserRepository {
         user.setLastName(userData.getLastName());
         user.setEmail(userData.getEmail());
         user.setEnabled(true);
+
+        Map<String, List<String>> attributes = new HashMap<>();
+        attributes.put("phoneNumber", List.of(""));
+        attributes.put("otp", List.of(""));
+        attributes.put("onChanges", List.of("false"));
+
+        user.setAttributes(attributes);
 
         System.out.println("Dati dell'utente impostati: ");
         System.out.println("Username: " + userData.getUsername());
@@ -206,6 +216,7 @@ public class UserRepositoryImpl implements UserRepository {
             Map<String, List<String>> attributes = new HashMap<>();
 
             attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
+            attributes.put("onChanges", List.of(String.valueOf(userData.isOnChanges())));
 
             boolean vb= userData.getOtp()!=null;
             System.out.println(vb);
@@ -284,19 +295,22 @@ public class UserRepositoryImpl implements UserRepository {
             }
 
             //Creazione dell'ggetto entity
+            UserRepresentation userRepresentation = usersResource.getFirst();
+            if(userRepresentation==null)
+                return null;
+
             User user = new User();
 
-            user.setId(usersResource.getFirst().getId());
-            user.setFirstName(usersResource.getFirst().getFirstName());
-            user.setLastName(usersResource.getFirst().getLastName());
-            user.setUsername(usersResource.getFirst().getUsername());
-            user.setEmail(usersResource.getFirst().getEmail());
+            user.setId(userRepresentation.getId());
+            user.setFirstName(userRepresentation.getFirstName());
+            user.setLastName(userRepresentation.getLastName());
+            user.setUsername(userRepresentation.getUsername());
+            user.setEmail(userRepresentation.getEmail());
 
-            //Verifica ed eventuale aggiunta del campo inerente al numero di telefono
-            if (usersResource.getFirst().getAttributes() != null)
-                user.setPhoneNumber(usersResource.getFirst().getAttributes().get("phoneNumber").getFirst());
-            else if (usersResource.size()==2 && usersResource.get(1).getAttributes().get("otp") != null)
-                user.setOtp(usersResource.get(1).getAttributes().get("otp").getFirst());
+            //Presa dei campi custom
+            user.setPhoneNumber(userRepresentation.getAttributes().get("phoneNumber").getFirst());
+            user.setOtp(userRepresentation.getAttributes().get("otp").getFirst());
+            user.setOnChanges(Boolean.valueOf(userRepresentation.getAttributes().get("onChanges").getFirst()));
 
             return user;
         } catch (Exception | Error e) {

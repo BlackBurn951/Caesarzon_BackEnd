@@ -74,7 +74,7 @@ public class GeneralServiceImpl implements GeneralService{
 
             //Eliminazione della segnalazione
             if(reportService.deleteReport(reportDTO.getReviewId()))
-                return banService.banUser(banDTO) && deleteReview(reportDTO.getReviewId());
+                return banService.validateBan(banDTO) && deleteReview(reportDTO.getReviewId());
 
         } else if(newReportDTO != null) {
             HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();

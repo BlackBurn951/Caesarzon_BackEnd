@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -31,9 +32,28 @@ public class BanServiceImpl implements BanService {
 
     //Metodo per bannare un utente
     @Override
-    public boolean banUser(BanDTO banDTO) {
+    public UUID validateBan(BanDTO banDTO) {
         try {
-            banRepository.save(modelMapper.map(banDTO, Ban.class));
+            banDTO.setConfirmed(false);
+            UUID banId= banRepository.save(modelMapper.map(banDTO, Ban.class)).getId();
+
+            return banId;
+        } catch (Exception | Error e) {
+            log.debug("Errore nell'inserimento della tupla di ban");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean confirmBan(UUID banId) {
+        try {
+            Ban ban= banRepository.findById(banId).orElse(null);
+
+            if(ban==null)
+                return false;
+
+            ban.setConfirmed(true);
+            banRepository.save(ban);
 
             return true;
         } catch (Exception | Error e) {
@@ -44,7 +64,7 @@ public class BanServiceImpl implements BanService {
 
     //Metodo per sbannare un utente
     @Override
-    public boolean sbanUser(String username) {
+    public boolean sbanUser(String username, boolean confirm) {
         try {
             Ban ban= banRepository.findByUserUsername(username);
 
@@ -52,6 +72,7 @@ public class BanServiceImpl implements BanService {
                 return false;
 
             ban.setEndDate(LocalDate.now());
+            ban.setConfirmed(confirm);
             banRepository.save(ban);
 
             return true;

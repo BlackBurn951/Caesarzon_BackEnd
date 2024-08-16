@@ -28,8 +28,6 @@ public class AdminController {
     private final GeneralService generalService;
     private final ProfilePicService profilePicService;
     private final HttpServletRequest httpServletRequest;
-//    private final SagaOrchestrator sagaOrchestrator;
-//    private final SagaConsumer sagaConsumer;
 
 
     @GetMapping("/admins")
@@ -97,8 +95,8 @@ public class AdminController {
     public ResponseEntity<String> banUser(@RequestBody BanDTO banDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
         banDTO.setAdminUsername(username);
-//        sagaOrchestrator.orchestrateSaga(0);
-        int result= adminService.banUser(banDTO);
+
+        int result= adminService.validateBan(banDTO);
         if(result==0)
             return new ResponseEntity<>("Utente bannato con successo", HttpStatus.OK);
         else if(result==1)
@@ -110,7 +108,7 @@ public class AdminController {
     @PutMapping("/ban/{username}")
     public ResponseEntity<String> sbanUser(@PathVariable String username) {
 
-        int result= adminService.sbanUser(username);
+        int result= adminService.validateSbanUser(username);
         if(result==0)
             return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
         else if(result==1)
