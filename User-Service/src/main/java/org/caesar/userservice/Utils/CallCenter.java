@@ -1,5 +1,6 @@
 package org.caesar.userservice.Utils;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.caesar.userservice.Dto.BanDTO;
@@ -19,8 +20,20 @@ import java.util.UUID;
 public class CallCenter {
 
     private final RestTemplate restTemplate;
+    private final static String NOTIFY_SERVICE = "notifyService";
+
+    private UUID fallbackValidateBan(Throwable e){
+        System.out.println("Servizio per la gestione delle notifiche non disponibile");
+        return null;
+    }
+
+    private boolean fallbackGenericBan(Throwable e){
+        System.out.println("Servizio per la gestione delle notifiche non disponibile");
+        return false;
+    }
 
     //Chiamate per eseguire il ban
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackValidateBan")
     public UUID validateBan(BanDTO banDTO) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 
@@ -48,6 +61,7 @@ public class CallCenter {
          return null;
     }
 
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackGenericBan")
     public boolean completeBan(UUID banId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 
@@ -72,6 +86,7 @@ public class CallCenter {
         return sbanCall(username, "true");
     }
 
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackGenericBan")
     private boolean sbanCall(String username, String confirm) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();

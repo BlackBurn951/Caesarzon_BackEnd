@@ -34,4 +34,7 @@ public class Card {
 
     @Column(name= "saldo")
     private double balance;
+
+    @Column(name= "in_modifica")
+    private boolean onChanges;
 }

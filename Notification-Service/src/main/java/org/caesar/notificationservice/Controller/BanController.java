@@ -21,6 +21,7 @@ public class BanController {
     @PostMapping("/ban")
     public ResponseEntity<UUID> validateBanUser(@RequestBody BanDTO banDTO) {
         UUID banId= banService.validateBan(banDTO);
+
         if(banId!=null)
             return new ResponseEntity<>(banId, HttpStatus.OK);
         else

@@ -31,4 +31,7 @@ public class UserNotification {
 
     @Column(name= "spiegazione")
     private String explanation;
+
+    @Column(name= "confermata")
+    private boolean confirmed;
 }

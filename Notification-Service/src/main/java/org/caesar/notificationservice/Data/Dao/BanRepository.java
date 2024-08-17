@@ -9,5 +9,6 @@ import java.util.UUID;
 
 @Repository
 public interface BanRepository extends JpaRepository<Ban, UUID> {
-    Ban findByUserUsername(String Username);
+    Ban findByUserUsernameAndEndDateIsNull(String Username);
+    Ban findByUserUsernameAndConfirmedIsFalse(String Username);
 }

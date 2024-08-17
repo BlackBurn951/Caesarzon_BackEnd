@@ -22,6 +22,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Vector;
 
 @Service
 @RequiredArgsConstructor
@@ -30,14 +31,8 @@ public class AdminServiceImpl implements AdminService {
 
     private final AdminRepository adminRepository;
     private final RestTemplate restTemplate;
-    private final BanOrchestrator banOrchestrator;
 
-    private final static String NOTIFY_SERVICE = "notifyService";
 
-    private int fallbackCircuitBreaker(Throwable e){
-        log.info("Servizio per la gestione delle notifiche non disponibile");
-        return 2;
-    }
 
 
     //Metodo per restituire tutti gli admins
@@ -50,25 +45,13 @@ public class AdminServiceImpl implements AdminService {
     //Metodo per bannare un utente
     @Override
     public int validateBan(BanDTO banDTO) {
-        int result= adminRepository.banUser(banDTO.getUserUsername(), true, false);
-        if(result==0) {
-            if(banOrchestrator.processBan(banDTO))
-                return 0;
-            return 1;
-        }
-        return result;
+        return adminRepository.banUser(banDTO.getUserUsername(), true, false);
     }
 
     //Metodo per sbannare un utente
     @Override
     public int validateSbanUser(String username) {
-        int result= adminRepository.banUser(username, false, false);
-        if(result==0) {
-            if(banOrchestrator.processSban(username))
-                return 0;
-            return 1;
-        }
-        return result;
+        return adminRepository.banUser(username, false, false);
     }
 
     @Override
@@ -87,7 +70,7 @@ public class AdminServiceImpl implements AdminService {
         List<User> user= adminRepository.findAllBanUsers(start);
 
         if(user==null || user.isEmpty())
-            return null;
+            return new Vector<>();
 
         return user.stream()
                 .map(User::getUsername)

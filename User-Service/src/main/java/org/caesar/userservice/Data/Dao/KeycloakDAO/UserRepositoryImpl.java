@@ -75,15 +75,15 @@ public class UserRepositoryImpl implements UserRepository {
                     .anyMatch(role -> role.getName().equals("basic"));
 
             if (hasBasicRole) {
-                if(userRepresentation.getAttributes().get("onChanges").getFirst().equals("true"))
-                    continue;
+//                if(userRepresentation.getAttributes().get("onChanges").getFirst().equals("true"))
+//                    continue;
                 User user = new User();
                 user.setId(userRepresentation.getId());
                 user.setFirstName(userRepresentation.getFirstName());
                 user.setLastName(userRepresentation.getLastName());
                 user.setUsername(userRepresentation.getUsername());
                 user.setEmail(userRepresentation.getEmail());
-                user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
+                //user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
 
                 result.add(user);
             }
@@ -138,10 +138,13 @@ public class UserRepositoryImpl implements UserRepository {
         user.setEnabled(true);
 
         Map<String, List<String>> attributes = new HashMap<>();
-        attributes.put("phoneNumber", List.of(""));
-        attributes.put("otp", List.of(""));
+        attributes.put("phoneNumber", List.of("null"));
+        attributes.put("otp", List.of("null"));
         attributes.put("onChanges", List.of("false"));
 
+        System.out.println(attributes.get("phoneNumber").getFirst());
+        System.out.println(attributes.get("otp").getFirst());
+        System.out.println(attributes.get("onChanges").getFirst());
         user.setAttributes(attributes);
 
         System.out.println("Dati dell'utente impostati: ");
@@ -314,7 +317,7 @@ public class UserRepositoryImpl implements UserRepository {
 
             return user;
         } catch (Exception | Error e) {
-            log.debug("Errore nella costruzione dell'user da keycloak");
+            log.debug(e.getMessage());
             return null;
         }
     }

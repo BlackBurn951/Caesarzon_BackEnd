@@ -23,4 +23,7 @@ public class UserCard {
     @ManyToOne
     @JoinColumn(name = "id_carta")
     private Card card;
+
+    @Column(name= "in_cancellazione")
+    private boolean onDeleting;
 }

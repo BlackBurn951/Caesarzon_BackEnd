@@ -74,13 +74,10 @@ public class AdminRepositoryImpl implements AdminRepository {
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
             UserRepresentation user = userResource.toRepresentation();
 
-            Map<String, List<String>> attributes = new HashMap<>();
             if(userKeycloak.isOnChanges()) {
                 if(rollback) {
-                    attributes.put("onChanges", List.of("false"));
+                    user.getAttributes().get("onChanges").set(0, "false");
                     user.setEnabled(!ban);
-
-                    user.setAttributes(attributes);
 
                     userResource.update(user);
                 }
@@ -91,9 +88,7 @@ public class AdminRepositoryImpl implements AdminRepository {
                 return 1;
 
             user.setEnabled(!ban);
-
-            attributes.put("onChanges", List.of("true"));
-            user.setAttributes(attributes);
+            user.getAttributes().get("onChanges").set(0, "true");
 
             userResource.update(user);
             return 0;
@@ -113,8 +108,7 @@ public class AdminRepositoryImpl implements AdminRepository {
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
             UserRepresentation user = userResource.toRepresentation();
 
-            Map<String, List<String>> attributes = new HashMap<>();
-            attributes.put("onChanges", List.of("false"));
+            user.getAttributes().get("onChanges").set(0, "false");
 
             userResource.update(user);
             return true;
@@ -143,7 +137,6 @@ public class AdminRepositoryImpl implements AdminRepository {
         String clientId = clientRepresentation.getId();
 
         for (UserRepresentation userRepresentation : users) {
-
             if (!userRepresentation.isEnabled()) {
                 // Ottieni i ruoli del client per l'utente
                 List<RoleRepresentation> clientRoles = realmResource.users().get(userRepresentation.getId())
@@ -158,6 +151,7 @@ public class AdminRepositoryImpl implements AdminRepository {
                 if (hasBasicRole) {
                     if(userRepresentation.getAttributes().get("onChanges").getFirst().equals("true"))
                         continue;
+
                     User user = new User();
                     user.setId(userRepresentation.getId());
                     user.setFirstName(userRepresentation.getFirstName());
@@ -206,7 +200,7 @@ public class AdminRepositoryImpl implements AdminRepository {
 
             return user;
         } catch (Exception | Error e) {
-            log.debug("Errore nella costruzione dell'user da keycloak");
+            log.debug(e.getMessage());
             return null;
         }
     }

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
+import org.caesar.userservice.Sagas.BanOrchestrator;
 import org.caesar.userservice.Utils.Utils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -44,6 +45,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     private final Utils utils;
     private final RestTemplate restTemplate;
+    private final BanOrchestrator banOrchestrator;
 
     private final static String DELETE_SERVICE = "deleteService";
 
@@ -353,6 +355,27 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
 
+    @Override
+    public int banUser(BanDTO banDTO) {
+        int result= adminService.validateBan(banDTO);
+        if(result==0) {
+            if(banOrchestrator.processBan(banDTO))
+                return 0;
+            return 2;
+        }
+        return result;
+    }
+
+    @Override
+    public int sbanUser(String username) {
+        int result= adminService.validateSbanUser(username);
+        if(result==0) {
+            if(banOrchestrator.processSban(username))
+                return 0;
+            return 1;
+        }
+        return result;
+    }
 
     //Metodi di servizio
 

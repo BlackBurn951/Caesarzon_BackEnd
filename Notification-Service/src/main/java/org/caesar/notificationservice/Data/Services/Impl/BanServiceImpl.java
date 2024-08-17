@@ -66,7 +66,11 @@ public class BanServiceImpl implements BanService {
     @Override
     public boolean sbanUser(String username, boolean confirm) {
         try {
-            Ban ban= banRepository.findByUserUsername(username);
+            Ban ban;
+            if(!confirm)
+                ban= banRepository.findByUserUsernameAndEndDateIsNull(username);
+            else
+                ban= banRepository.findByUserUsernameAndConfirmedIsFalse(username);
 
             if(ban==null)
                 return false;
@@ -77,7 +81,7 @@ public class BanServiceImpl implements BanService {
 
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nell'inserimento della tupla di ban");
+            log.debug(e.getMessage());
             return false;
         }
     }

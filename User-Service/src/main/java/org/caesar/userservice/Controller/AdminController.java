@@ -85,7 +85,7 @@ public class AdminController {
     public ResponseEntity<List<UserSearchDTO>> getBan(@RequestParam("str") int start) {
         List<UserSearchDTO> result= generalService.getBans(start);
 
-        if(result!=null)
+        if(!result.isEmpty())
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -96,7 +96,7 @@ public class AdminController {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
         banDTO.setAdminUsername(username);
 
-        int result= adminService.validateBan(banDTO);
+        int result= generalService.banUser(banDTO);
         if(result==0)
             return new ResponseEntity<>("Utente bannato con successo", HttpStatus.OK);
         else if(result==1)
@@ -108,7 +108,7 @@ public class AdminController {
     @PutMapping("/ban/{username}")
     public ResponseEntity<String> sbanUser(@PathVariable String username) {
 
-        int result= adminService.validateSbanUser(username);
+        int result= generalService.sbanUser(username);
         if(result==0)
             return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
         else if(result==1)

@@ -32,4 +32,7 @@ public class Report {
 
     @Column(name = "id_recensione")
     private UUID reviewId;
+
+    @Column(name= "effettiva")
+    private boolean effective;
 }
