@@ -13,5 +13,4 @@ public class WishlistDTO {
     private String name;
     private String visibility;
     private String userUsername;
-    private boolean onDeleting;
 }

@@ -11,5 +11,4 @@ public class UserCardDTO {
     private UUID id;
     private String userUsername;
     private UUID cardId;
-    private boolean onDeleting;
 }

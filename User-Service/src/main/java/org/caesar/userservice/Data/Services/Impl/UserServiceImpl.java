@@ -130,16 +130,6 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
-    @Override
-    public boolean userIsOnChanges(String username) {
-        User user= userRepository.findUserByUsername(username);
-
-        if(user==null)
-            return false;
-
-        return user.isOnChanges();
-    }
-
 
     //Metodi per la convalida dei dati
     private boolean checkUsername(String username) {

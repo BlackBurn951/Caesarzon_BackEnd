@@ -63,9 +63,6 @@ public class FollowerServiceImpl implements FollowerService {
         for(UserSearchDTO f: followers) {
             Follower follower  = followerRepository.findByUserUsername1AndUserUsername2(username1, f.getUsername());
             if(follower!=null){
-                if(follower.isOnDeleting())
-                    continue;
-
                 follower.setFriend(f.isFriend());
                 followerRepository.save(follower);
             }else{
@@ -97,8 +94,7 @@ public class FollowerServiceImpl implements FollowerService {
 
     @Override
     public boolean isFriend(String username, String friendUsername) {
-        Follower flw= followerRepository.findByUserUsername1AndUserUsername2(username, friendUsername);
-        return flw!=null && !flw.isOnDeleting();
+        return followerRepository.findByUserUsername1AndUserUsername2(username, friendUsername)!=null;
     }
 
     //Eliminazione del singolo follower
@@ -111,7 +107,7 @@ public class FollowerServiceImpl implements FollowerService {
         for(String follower : followers) {
             flw= followerRepository.findByUserUsername1AndUserUsername2(username1, follower);
 
-            if(flw!=null && !flw.isOnDeleting())
+            if(flw!=null)
                 savedFollowers.add(flw);
         }
 

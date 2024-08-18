@@ -12,5 +12,4 @@ public class WishListProductDTO {
     private UUID Id;
     private WishlistDTO wishlistDTO;
     private ProductDTO productDTO;
-    private boolean onDeleting;
 }

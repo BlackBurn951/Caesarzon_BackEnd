@@ -14,5 +14,4 @@ public class BanDTO {
     private LocalDate endDate;
     private String userUsername;
     private String adminUsername;
-    private boolean confirmed;
 }

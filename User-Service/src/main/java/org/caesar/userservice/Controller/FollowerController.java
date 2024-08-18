@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.FollowerService;
-import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.UserSearchDTO;
 import org.caesar.userservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
@@ -21,7 +20,6 @@ public class FollowerController {
 
     private final GeneralService generalService;
     private final FollowerService followerService;
-    private final UserService userService;
     private final HttpServletRequest httpServletRequest;
 
 
@@ -41,7 +39,7 @@ public class FollowerController {
     public ResponseEntity<String> addUpdateFollower(@RequestBody List<UserSearchDTO> followers) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(!userService.userIsOnChanges(username) && followerService.addFollowers(username, followers))
+        if(followerService.addFollowers(username, followers))
             return new ResponseEntity<>("Followers registrati!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nella registrazione dei followers...", HttpStatus.INTERNAL_SERVER_ERROR);

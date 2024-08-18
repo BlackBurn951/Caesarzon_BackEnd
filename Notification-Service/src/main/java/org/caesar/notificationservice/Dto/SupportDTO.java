@@ -16,5 +16,4 @@ public class SupportDTO {
     private String subject;
     private String text;
     private LocalDate dateRequest;
-    private boolean onDeleting;
 }

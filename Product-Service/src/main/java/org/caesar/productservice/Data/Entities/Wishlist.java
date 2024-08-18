@@ -24,7 +24,4 @@ public class Wishlist {
 
     @Column(name= "username_utente")
     private String userUsername;
-
-    @Column(name= "in_cancellazione")
-    private boolean onDeleting;
 }

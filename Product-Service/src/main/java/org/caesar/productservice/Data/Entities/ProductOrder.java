@@ -38,7 +38,4 @@ public class ProductOrder {
 
     @Column(name= "taglia")
     private String size;
-
-    @Column(name= "in_modifica")
-    private boolean onChanges;
 }

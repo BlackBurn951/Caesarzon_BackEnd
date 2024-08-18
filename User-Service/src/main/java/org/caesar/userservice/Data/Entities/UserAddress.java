@@ -22,7 +22,4 @@ public class UserAddress {
     @ManyToOne
     @JoinColumn(name = "id_indirizzo")
     private Address address;
-
-    @Column(name= "in_cancellazione")
-    private boolean onDeleting;
 }

@@ -22,7 +22,4 @@ public class LastView {
 
     @Column(name = "username")
     private String username;
-
-    @Column(name= "in_cancellazione")
-    private boolean onDeleting;
 }

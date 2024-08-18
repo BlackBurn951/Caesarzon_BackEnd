@@ -16,6 +16,5 @@ public class UserNotificationDTO {
     private String user;
     private boolean read;
     private String explanation;
-    private boolean confirmed;
 }
 

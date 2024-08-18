@@ -115,16 +115,15 @@ public class AdminRepositoryImpl implements AdminRepository {
                         .anyMatch(role -> role.getName().equals("basic"));
 
                 if (hasBasicRole) {
-                    if(userRepresentation.getAttributes().get("onChanges").getFirst().equals("true"))
-                        continue;
                     User user = new User();
                     user.setId(userRepresentation.getId());
                     user.setFirstName(userRepresentation.getFirstName());
                     user.setLastName(userRepresentation.getLastName());
                     user.setUsername(userRepresentation.getUsername());
                     user.setEmail(userRepresentation.getEmail());
-                    user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
-
+                    if (userRepresentation.getAttributes() != null) {
+                        user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
+                    }
                     result.add(user);
                 }
             }
@@ -146,22 +145,18 @@ public class AdminRepositoryImpl implements AdminRepository {
             //Ricerca del singolo utente attraverso username
             usersResource = realmResource.users().searchByUsername(field, true);
 
-            UserRepresentation userRepresentation = usersResource.getFirst();
-            if(userRepresentation==null)
-                return null;
-
             //Creazione dell'ggetto entity
             User user = new User();
 
-            user.setId(userRepresentation.getId());
-            user.setFirstName(userRepresentation.getFirstName());
-            user.setLastName(userRepresentation.getLastName());
-            user.setUsername(userRepresentation.getUsername());
-            user.setEmail(userRepresentation.getEmail());
+            user.setId(usersResource.getFirst().getId());
+            user.setFirstName(usersResource.getFirst().getFirstName());
+            user.setLastName(usersResource.getFirst().getLastName());
+            user.setUsername(usersResource.getFirst().getUsername());
+            user.setEmail(usersResource.getFirst().getEmail());
 
-            user.setPhoneNumber(userRepresentation.getAttributes().get("phoneNumber").getFirst());
-            user.setOtp(userRepresentation.getAttributes().get("otp").getFirst());
-            user.setOnChanges(Boolean.valueOf(userRepresentation.getAttributes().get("onChanges").getFirst()));
+            //Verifica ed eventuale aggiunta del campo inerente al numero di telefono
+            if (usersResource.getFirst().getAttributes() != null)
+                user.setPhoneNumber(usersResource.getFirst().getAttributes().get("phoneNumber").getFirst());
 
             return user;
         } catch (Exception | Error e) {

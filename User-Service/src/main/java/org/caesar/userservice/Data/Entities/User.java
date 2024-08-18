@@ -21,8 +21,6 @@ public class User {
 
     private String otp;
 
-    private boolean onChanges;
-
     public User() {
     }
 

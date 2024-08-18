@@ -38,8 +38,5 @@ public class AdminNotification {
     @OneToOne
     @JoinColumn(name= "id_richiesta")
     private Support support;
-
-    @Column(name= "confermata")
-    private boolean confirmed;
 }
 

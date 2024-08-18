@@ -18,8 +18,6 @@ public class AddressDTO {
 
     private CityDataDTO city;
 
-    private boolean onUse;
-
     public boolean equals(Object o) {
         if(this == o) return true;
 
