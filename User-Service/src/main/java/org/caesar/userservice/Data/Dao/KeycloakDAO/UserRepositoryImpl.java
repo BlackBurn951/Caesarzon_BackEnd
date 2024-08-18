@@ -216,17 +216,13 @@ public class UserRepositoryImpl implements UserRepository {
             user.setEmail(userData.getEmail());
 
             //Aggiunta degli attributi personalizzati
-            Map<String, List<String>> attributes = new HashMap<>();
-
-            attributes.put("phoneNumber", List.of(userData.getPhoneNumber()));
-            attributes.put("onChanges", List.of(String.valueOf(userData.isOnChanges())));
+            user.getAttributes().get("phoneNumber").set(0, userData.getPhoneNumber());
+            user.getAttributes().get("onChanges").set(0, String.valueOf(userData.isOnChanges()));
 
             boolean vb= userData.getOtp()!=null;
             System.out.println(vb);
             if(userData.getOtp()!=null)
-                attributes.put("otp", List.of(userData.getOtp()));
-
-            user.setAttributes(attributes);
+                user.getAttributes().get("otp").set(0, userData.getOtp());
 
             userResource.update(user);
 

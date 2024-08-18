@@ -18,15 +18,19 @@ public class BanOrchestrator {
     public boolean processBan(BanDTO banDTO) {
         UUID banId= callCenter.validateBan(banDTO);
 
-        if(banId!=null)
-            return adminService.completeBan(banDTO.getUserUsername()) && callCenter.completeBan(banId);
+        if(banId!=null) {
+            if(callCenter.completeBan(banId))
+                return adminService.completeBan(banDTO.getUserUsername());  //TODO DA POTER AGGIUNGERE ROLLBACK PER SERVIZIO NOTIFICHE
+        }
         adminService.rollbackBan(banDTO.getUserUsername(), false);
         return false;
     }
 
     public boolean processSban(String username) {
-        if(callCenter.validateSban(username))
-            return adminService.completeBan(username) && callCenter.completeSban(username);
+        if(callCenter.validateSban(username)) {
+            if(callCenter.completeSban(username))
+                return adminService.completeBan(username);
+        }
         adminService.rollbackBan(username, true);
         return false;
     }

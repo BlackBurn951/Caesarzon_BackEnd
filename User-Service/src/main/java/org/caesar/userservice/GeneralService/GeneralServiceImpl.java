@@ -372,7 +372,7 @@ public class GeneralServiceImpl implements GeneralService {
         if(result==0) {
             if(banOrchestrator.processSban(username))
                 return 0;
-            return 1;
+            return 2;
         }
         return result;
     }

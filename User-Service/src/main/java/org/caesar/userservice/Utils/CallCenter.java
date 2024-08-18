@@ -78,15 +78,17 @@ public class CallCenter {
 
 
     //Chiamate per eseguire lo sban
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackGenericBan")
     public boolean validateSban(String username) {
         return sbanCall(username, "false");
     }
 
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackGenericBan")
     public boolean completeSban(String username) {
         return sbanCall(username, "true");
     }
 
-    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackGenericBan")
+
     private boolean sbanCall(String username, String confirm) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
