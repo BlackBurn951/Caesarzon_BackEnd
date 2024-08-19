@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Services.*;
 import org.caesar.notificationservice.Dto.*;
+import org.caesar.notificationservice.Sagas.ReportOrchestrator;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -30,6 +31,7 @@ public class GeneralServiceImpl implements GeneralService{
     private final AdminNotificationService adminNotificationService;
     private final UserNotificationService userNotificationService;
     private final BanService banService;
+    private final ReportOrchestrator reportOrchestrator;
 
     private final static String ADMINS_SERVICE= "adminsService";
     private final static String PRODUCT_SERVICE= "productService";
@@ -45,8 +47,6 @@ public class GeneralServiceImpl implements GeneralService{
     }
 
     @Override
-    @Transactional
-    @CircuitBreaker(name= ADMINS_SERVICE, fallbackMethod = "fallbackAdmins")
     public boolean addReportRequest(String username1, ReportDTO reportDTO) {
         //Aggiungo al DTO la data e l'username che ha inviato la segnalazione
         reportDTO.setReportDate(LocalDate.now());
@@ -57,10 +57,16 @@ public class GeneralServiceImpl implements GeneralService{
             return false;
 
         //Aggiungo la segnalazione
+        reportDTO.setEffective(true);
         ReportDTO newReportDTO = reportService.addReport(reportDTO);
 
         //Controllo se il DTO non è nullo e se il numero di segnalazioni ricevute da un utente è minore di 5 (Su diversi prodotti)
-        if(newReportDTO != null && reportService.countReportForUser(newReportDTO.getUsernameUser2(), newReportDTO.getReviewId())>=5) {
+        if(newReportDTO != null && reportService.countReportForUser(newReportDTO.getUsernameUser2(), newReportDTO.getReviewId())>=5 && banService.checkIfBanned(newReportDTO.getUsernameUser2())) {
+            //passo 1 validare il ban qui V
+            //passo 2 validare le notifiche degli admin da cancellare qui V
+            //passo 3 validare la cancellazione delle segnalazioni qui V
+            //passo 4 validare la cancellazione delle recensioni sul product service
+            //passo 5 validare il ban sul user service
             BanDTO banDTO= new BanDTO();
 
             banDTO.setAdminUsername("System");
@@ -68,13 +74,9 @@ public class GeneralServiceImpl implements GeneralService{
             banDTO.setStartDate(LocalDate.now());
             banDTO.setEndDate(null);
             banDTO.setUserUsername(newReportDTO.getUsernameUser2());
-
-            //Eliminazione delle notifiche relative alla segnalazione per tutti gli admin
-            adminNotificationService.deleteByReport(reportDTO);
-
-            //Eliminazione della segnalazione
-            if(reportService.deleteReport(reportDTO.getReviewId()))
-                return banService.validateBan(banDTO)!=null && deleteReview(reportDTO.getReviewId());  //TODO DA AGGIUSTARE
+            UUID banId= banService.validateBan(banDTO);
+            if(banId!=null)
+                return reportOrchestrator.processAutomaticBan(banId, newReportDTO);
 
         } else if(newReportDTO != null) {
             HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
@@ -194,9 +196,9 @@ public class GeneralServiceImpl implements GeneralService{
 
         ReportDTO reportDTO = reportService.getReportByReviewId(reviewId);
 
-        reportService.deleteReport(reviewId);
+        reportService.validateDeleteReport(reviewId);
 
-        adminNotificationService.deleteByReport(reportDTO);
+        adminNotificationService.validateDeleteByReport(reportDTO);
 
         if(!product && accept){
             return deleteReview(reviewId);

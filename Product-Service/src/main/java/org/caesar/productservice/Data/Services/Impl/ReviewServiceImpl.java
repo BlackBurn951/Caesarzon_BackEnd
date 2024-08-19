@@ -47,6 +47,7 @@ public class ReviewServiceImpl implements ReviewService {
                 return "Problemi nell'aggiunta della recensione...";
 
             review.setUsername(reviewDTO.getUsername());
+            review.setOnChanges(false);
 
             reviewRepository.save(review);
 
@@ -87,14 +88,37 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-    public boolean deleteReview(UUID id) {
+    public boolean validateDeleteReviews(String username, boolean rollback) {
         try {
-            reviewRepository.deleteById(id);
+            List<Review> reviews= reviewRepository.findAllByUsername(username);
 
+            if(reviews==null || reviews.isEmpty())
+                return false;
+
+            for(Review review : reviews) {
+                review.setOnChanges(!rollback);
+            }
+
+            reviewRepository.saveAll(reviews);
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della recensione");
             return false;
+        }
+    }
+
+    @Override
+    public List<ReviewDTO> completeDeleteReviews(String username) {
+        try {
+            List<Review> reviews= reviewRepository.findAllByUsername(username);
+
+            reviewRepository.deleteAllByUsername(username);
+
+            return reviews.stream()
+                    .map(review -> modelMapper.map(review, ReviewDTO.class)).toList();
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della recensione");
+            return null;
         }
     }
 

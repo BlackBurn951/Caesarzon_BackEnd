@@ -91,6 +91,7 @@ public class AdminController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
+    //End-point per bannare e sbannare un utente utilizzati da un admin
     @PostMapping("/ban")
     public ResponseEntity<String> banUser(@RequestBody BanDTO banDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
@@ -115,5 +116,35 @@ public class AdminController {
             return new ResponseEntity<>("Utente già sbannato in precedenza", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nello sban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    //End-point per bannare e sbannare attraverso saga
+    @PostMapping("/ban/{username}")
+    public ResponseEntity<String> validateBanUser(@PathVariable String username) {
+        BanDTO ban= new BanDTO();
+        ban.setUserUsername(username);
+
+        int result= adminService.validateBan(ban);
+        if(result==0)
+            return new ResponseEntity<>("Ban validato!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel ban dell'user", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/ban")
+    public ResponseEntity<String> completeBanUser(@RequestParam("username") String username) {
+        if(adminService.completeBan(username))
+            return new ResponseEntity<>("Ban completato!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel ban dell'user", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @DeleteMapping("/ban")
+    public ResponseEntity<String> rollbackBanUser(@RequestParam("username") String username) {
+        if(adminService.rollbackBan(username))
+            return new ResponseEntity<>("Rollback eseguito!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel rollback...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

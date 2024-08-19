@@ -3,6 +3,7 @@ package org.caesar.productservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.productservice.Data.Entities.Review;
 import org.caesar.productservice.Data.Services.ReviewService;
 import org.caesar.productservice.Dto.AverageDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
@@ -91,11 +92,30 @@ public class ReviewController {
     }
 
     // Endpoint per l'eliminazione della recensione tramite id
-    @DeleteMapping("/admin/review")
-    public ResponseEntity<String> deleteReviewById(@RequestParam("review_id") UUID reviewId) {
-        if(reviewService.deleteReview(reviewId))
-            return new ResponseEntity<>("Recensione eliminata con sucesso!", HttpStatus.OK);
+    @PutMapping("/admin/review")
+    public ResponseEntity<String> validateDeleteReviews(@RequestParam("username") String username, @RequestParam("rollback") boolean rollback) {
+        if(reviewService.validateDeleteReviews(username, rollback))
+            return new ResponseEntity<>("Validazione dell'eliminazione avvenuta con sucesso!", HttpStatus.OK);
         else
-            return new ResponseEntity<>("Problemi nell'eliminazione della recensione...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Problemi nella validazione dell'elimazione delle recensioni...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @DeleteMapping("/admin/review")
+    public ResponseEntity<List<ReviewDTO>> completeDeleteReviews(@RequestParam("username") String username) {
+        List<ReviewDTO> result= reviewService.completeDeleteReviews(username);
+
+        if(result!=null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PostMapping("/admin/review")
+    public ResponseEntity<String> rollbackDeleteReviews(@RequestBody List<ReviewDTO> reviews) {
+        for(ReviewDTO review: reviews) {
+            if(!generalService.addReview(review, review.getUsername()).endsWith("!"))
+                return new ResponseEntity<>("Problemi nel rollback...", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>("Rollback eseguito con successo!", HttpStatus.OK);
     }
 }

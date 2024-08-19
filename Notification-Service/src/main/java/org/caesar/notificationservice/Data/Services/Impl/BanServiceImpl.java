@@ -30,6 +30,15 @@ public class BanServiceImpl implements BanService {
         return bans.stream().map(a -> modelMapper.map(a, BanDTO.class)).toList();
     }
 
+    @Override
+    public boolean checkIfBanned(String username) {
+        try{
+            return banRepository.findByUserUsernameAndEndDateIsNull(username)!=null;
+        }catch (Exception | Error e){
+            return false;
+        }
+    }
+
     //Metodo per bannare un utente
     @Override
     public UUID validateBan(BanDTO banDTO) {
@@ -79,6 +88,22 @@ public class BanServiceImpl implements BanService {
             ban.setConfirmed(confirm);
             banRepository.save(ban);
 
+            return true;
+        } catch (Exception | Error e) {
+            log.debug(e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollback(String username) {
+        try {
+            Ban ban= banRepository.findByUserUsernameAndConfirmedIsFalse(username);
+
+            if(ban==null)
+                return false;
+
+            banRepository.delete(ban);
             return true;
         } catch (Exception | Error e) {
             log.debug(e.getMessage());

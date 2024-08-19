@@ -10,7 +10,7 @@ public interface AdminService {
     List<String> getAdmins();
     int validateBan(BanDTO banDTO);
     boolean completeBan(String username);
-    void rollbackBan(String username, boolean ban);
+    boolean rollbackBan(String username);
     int validateSbanUser(String username);
     List<String> getBansUser(int start);
 }

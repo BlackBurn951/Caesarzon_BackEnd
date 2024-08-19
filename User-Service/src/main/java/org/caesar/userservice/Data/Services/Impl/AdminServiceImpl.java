@@ -60,8 +60,8 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public void rollbackBan(String username, boolean ban) {
-        adminRepository.banUser(username, ban, true);
+    public boolean rollbackBan(String username) {
+        return adminRepository.banUser(username, false, true)==0;
     }
 
 

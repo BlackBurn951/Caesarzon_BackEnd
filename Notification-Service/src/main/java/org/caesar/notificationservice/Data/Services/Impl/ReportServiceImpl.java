@@ -58,9 +58,47 @@ public class ReportServiceImpl implements ReportService {
 
     //Metodo per eliminare una segnalazione
     @Override
-    public boolean deleteReport(UUID reviewId) {
+    public boolean validateDeleteReport(UUID reviewId) {
         try {
-            reportRepository.deleteByReviewId(reviewId);
+            List<Report> reports= reportRepository.findByReviewId(reviewId);
+
+            for(Report report: reports){
+                report.setEffective(false);
+            }
+            reportRepository.saveAll(reports);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della segnalazione");
+            return false;
+        }
+    }
+
+    @Override
+    public List<ReportDTO> completeDeleteReport(UUID reviewId) {
+        try {
+            List<Report> reports= reportRepository.findByReviewId(reviewId);
+
+            reportRepository.deleteAll(reports);
+
+            return reports.stream()
+                    .map(a -> modelMapper.map(a, ReportDTO.class)).toList();
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della segnalazione");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean rollbackPreComplete(UUID reviewId) {
+        try {
+            List<Report> reports= reportRepository.findByReviewId(reviewId);
+
+            for(Report report: reports){
+                report.setEffective(true);
+            }
+            reportRepository.saveAll(reports);
+
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della segnalazione");
