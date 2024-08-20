@@ -30,6 +30,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.security.SecureRandom;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -70,18 +71,79 @@ public class GeneralServiceImpl implements GeneralService {
         return List.of();
     }
 
-    @Override // Restituisce il prodotto con le sue disponibilità e immagini
+    @Override // Restituisce il prodotto con le sue disponibilità e immagini, in più se l'utente non è guest salva la ricerca
     public ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id){
         ProductDTO productDTO = productService.getProductById(id);
+
         if(productDTO != null){
-            List<AvailabilityDTO> availabilities = availabilityService.getAvailabilitiesByProductID(productDTO);
+            List<AvailabilityDTO> availabilities = availabilityService.getAvailabilitiesByProduct(productDTO);
+
             for(AvailabilityDTO availabilityDTO: availabilities)
                 availabilityDTO.setProduct(null);
             productDTO.setAvailabilities(availabilities);
-            //lastViewService.save(username, productDTO);
+
+//            if(!username.equals("guest"))
+            //lastViewService.save(username, productDTO);   TODO da tornare anche le immagini
             return productDTO;
         }
         return null;
+    }
+
+
+    @Override
+    @Transactional // Aggiunge il prodotto ricevuto da front al db dei prodotti
+    public boolean addProduct(ProductDTO sendProductDTO) {
+
+        // Aggiorna l'ID del productDTO dopo averlo salvato
+        sendProductDTO.setId(productService.addOrUpdateProduct(sendProductDTO).getId());
+
+        if(sendProductDTO.getId()==null)
+            return false;
+
+        //TODO DA FARE AGGIUNTA FOTO
+
+        return availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteProduct(UUID id) {
+        ProductDTO product = productService.getProductById(id);
+
+        if(product != null)
+            return availabilityService.deleteAvailabilityByProduct(product) && productService.deleteProductById(id);
+
+        return false;
+    }
+
+    @Override  //TODO DA CONTROLLARE SE SERVE, SE SI MODIFICARE
+    public boolean deleteAvailabilityByProduct(Product product) {
+        System.out.println("Sono nell'elimina della disponibilità");
+        List<Availability> availabilitiesToDelete = new ArrayList<>();
+        for(Availability availability : availabilityRepository.findAll()) {
+            if(availability.getProduct().equals(product)){
+                System.out.println("Disponibilità trovata");
+                availabilitiesToDelete.add(availability);
+            }
+        }
+        if(!availabilitiesToDelete.isEmpty()) {
+            availabilityRepository.deleteAll(availabilitiesToDelete);
+            return true;
+        }else
+            return false;
+    }
+
+
+
+    //SEZIONE RECENSIONI
+    @Override
+    public List<ReviewDTO> getProductReviews(UUID productID) {
+        ProductDTO productDTO= productService.getProductById(productID);
+
+        if(productDTO == null)
+            return null;
+
+        return reviewService.getReviewsByProduct(productDTO);
     }
 
     @Override
@@ -108,58 +170,65 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional // Aggiunge il prodotto ricevuto da front al db dei prodotti
-    public boolean addProduct(ProductDTO sendProductDTO) {
+    public AverageDTO getReviewAverage(UUID productId) {
+        ProductDTO productDTO= productService.getProductById(productId);
 
-        // Aggiorna l'ID del productDTO dopo averlo salvato
-        sendProductDTO.setId(productService.addOrUpdateProduct(sendProductDTO).getId());
+        if(productDTO==null)
+            return null;
 
-        if(sendProductDTO.getId()==null)
-            return false;
-
-        return availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO);
+        return reviewService.getReviewAverage(productDTO);
     }
 
     @Override
-    public boolean deleteProduct(UUID id) {
-        ProductDTO product = productService.getProductById(id);
-        System.out.println("product: " + product.getName());
-        if(product != null){
-            System.out.println("Cerco di eliminare le disponibilità");
-            if(availabilityService.deleteAvailabilityByProduct(modelMapper.map(product, Product.class)))
-            {
-                System.out.println("Sono riuscito a eliminare le disponibilità");
-                // if(imageService.deleteImage(product))
-                if (productService.deleteProductById(id))
-                {
-                    System.out.println("Prodotto eliminato");
-                    return true;
-                }else{
-                    System.out.println("Prodotto non eliminato");
-                }
-            }else {
-                System.out.println("Problema nell'eliminar ele disponibilità");
-                return false;
-            }
+    @Transactional
+    public boolean addReview(ReviewDTO reviewDTO, String username) {
+        //TODO CHECK CONVALIDA CONTROLLO DI POTER FARE SOLO UNA RECENSIONE PER UTENTE E PRODOTTO
+
+        ProductDTO productDTO= productService.getProductById(reviewDTO.getProductID());
+
+        if(productDTO==null)
+            return false;
+
+        reviewDTO.setUsername(username);
+
+        return reviewService.addReview(reviewDTO, productDTO);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteReviewByUser(String username, UUID productId) {
+        ProductDTO productDTO= productService.getProductById(productId);
+
+        if(productDTO==null)
+            return false;
+
+        ReviewDTO reviewDTO= reviewService.getReviewByUsernameAndProduct(username, productDTO);
+
+        if(reviewDTO==null)
+            return false;
+
+        if(reviewService.deleteReview(reviewDTO.getId())) {
+            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", request.getHeader("Authorization"));
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            return restTemplate.exchange(
+                    "http://notification-service/notify-api/user/report?review-id=" + reviewDTO.getId(),
+                    HttpMethod.DELETE,
+                    entity,
+                    String.class
+            ).getStatusCode() == HttpStatus.OK;
         }
+
         return false;
     }
 
     @Override
-    public boolean deleteAvailabilityByProduct(Product product) {
-        System.out.println("Sono nell'elimina della disponibilità");
-        List<Availability> availabilitiesToDelete = new ArrayList<>();
-        for(Availability availability : availabilityRepository.findAll()) {
-            if(availability.getProduct().equals(product)){
-                System.out.println("Disponibilità trovata");
-                availabilitiesToDelete.add(availability);
-            }
-        }
-        if(!availabilitiesToDelete.isEmpty()) {
-            availabilityRepository.deleteAll(availabilitiesToDelete);
-            return true;
-        }else
-            return false;
+    @Transactional
+    public boolean deleteReviewByAdmin(String username, UUID productId) {
+        return false;
     }
 
 
@@ -174,6 +243,8 @@ public class GeneralServiceImpl implements GeneralService {
 
         List<ProductCartDTO> result= new Vector<>();
         ProductCartDTO prod;
+        DecimalFormat df = new DecimalFormat("#.##");
+
         for(ProductOrderDTO p: productCart){
             prod = new ProductCartDTO();
 
@@ -181,7 +252,7 @@ public class GeneralServiceImpl implements GeneralService {
 
             prod.setName(productDTO.getName());
             prod.setId(productDTO.getId());
-            prod.setTotal(Math.round(p.getTotal() * 100.0) / 100.0);
+            prod.setTotal(Double.parseDouble(df.format(productDTO.getPrice())));
             prod.setQuantity(p.getQuantity());
             prod.setSize(p.getSize());
 
@@ -282,10 +353,8 @@ public class GeneralServiceImpl implements GeneralService {
     public String createOrder(String username, BuyDTO buyDTO) {
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
 
-        if(productInOrder==null || productInOrder.isEmpty()) {
-            changeAvaibility(productInOrder, true);
+        if(productInOrder==null || productInOrder.isEmpty())
             return "Errore";
-        }
 
         OrderDTO orderDTO= new OrderDTO();
         orderDTO.setOrderNumber(generaCodice(8));
@@ -301,10 +370,8 @@ public class GeneralServiceImpl implements GeneralService {
 
         OrderDTO savedOrder = orderService.addOrder(orderDTO);
 
-        if(savedOrder==null) {
-            changeAvaibility(productInOrder, true);
+        if(savedOrder==null)
             return "Errore";
-        }
 
         for(ProductOrderDTO productOrderDTO : productInOrder)
             productOrderDTO.setOrderDTO(savedOrder);
@@ -314,10 +381,8 @@ public class GeneralServiceImpl implements GeneralService {
                         "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
                         "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate()))
             return "Ordine effettuato con successo!";
-        else {
-            changeAvaibility(productInOrder, true);
+        else
             return "Errore"; //☺
-        }
     }
 
     @Override
@@ -432,10 +497,8 @@ public class GeneralServiceImpl implements GeneralService {
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
 
 
-        if(productInOrder==null || productInOrder.isEmpty()) {
-            changeAvaibility(productInOrder, true);
+        if(productInOrder==null || productInOrder.isEmpty())
             return "Errore";
-        }
 
         //Controllo che vengano effettivamente passati indirizzo e carta per pagare
         if(buyDTO.getAddressID() == null || (!payMethod && buyDTO.getCardID() == null) ) {
@@ -449,7 +512,15 @@ public class GeneralServiceImpl implements GeneralService {
             return "Errore";
         }
 
-        double total= productInOrder.stream().mapToDouble(ProductOrderDTO::getTotal).sum();
+        DecimalFormat df = new DecimalFormat("#.##");
+        double total= productInOrder.stream()
+                .mapToDouble( prod -> {
+                    if(prod.getProductDTO().getDiscount()==0)
+                        return Double.parseDouble(df.format(prod.getTotal()*prod.getQuantity())); //CALCOLO SENZA SCONTO
+                    //CALCOLO CON SCONTO
+                    double discount= (prod.getTotal() * prod.getProductDTO().getDiscount()) /100;
+                    return Double.parseDouble(df.format(prod.getTotal()-discount));
+                }).sum();
 
         if(!payMethod) {
             if(!checkPayment(buyDTO.getCardID(), total)) {
@@ -484,7 +555,10 @@ public class GeneralServiceImpl implements GeneralService {
     public List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         List<ProductDTO> productDTO = productService.searchProducts(searchText, minPrice, maxPrice, isClothing);
 
-        return metodoAusiliario(productDTO);
+        if(productDTO==null || productDTO.isEmpty())
+            return null;
+
+        return makeProductSearch(productDTO);
     }
 
     @Override //Restituisce i prodotti visti di recente dall'utente
@@ -492,40 +566,31 @@ public class GeneralServiceImpl implements GeneralService {
         //Metodo per prendere tutte le tuple dei prodotti visti
         List<LastViewDTO> lastViewDTOS = lastViewService.getAllViewed(username);
 
+        if(lastViewDTOS==null || lastViewDTOS.isEmpty())
+            return null;
+
         //Lista degli utlimi prodotti cliccati
         List<ProductDTO> productDTOS = new Vector<>();
-
-        List<ProductSearchDTO> productSearchDTOS = new Vector<>();
-
-        ProductSearchDTO productSearchDTO1;
-
-        AverageDTO averageDTO;
+        ProductDTO productDTO;
 
         for(LastViewDTO l: lastViewDTOS){
-            productDTOS.add(productService.getProductById(l.getId()));
+            productDTO= productService.getProductById(l.getId());
+
+            if(productDTO!=null)
+                productDTOS.add(productDTO);
         }
 
-        for(ProductDTO p: productDTOS){
-            productSearchDTO1 = new ProductSearchDTO();
-            averageDTO = reviewService.getReviewAverage(p.getId());
-
-            productSearchDTO1.setAverageReview(averageDTO.getAverage());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
-
-            productSearchDTO1.setProductName(p.getName());
-            productSearchDTO1.setPrice(p.getPrice());
-
-            productSearchDTOS.add(productSearchDTO1);
-        }
-
-        return productSearchDTOS;
+        return makeProductSearch(productDTOS);
     }
 
     @Override
     public List<ProductSearchDTO> getNewProducts() {
         List<ProductDTO> productDTO = productService.getLastProducts();
 
-        return metodoAusiliario(productDTO);
+        if(productDTO==null || productDTO.isEmpty())
+            return null;
+
+        return makeProductSearch(productDTO);
     }
 
     @Override
@@ -535,29 +600,7 @@ public class GeneralServiceImpl implements GeneralService {
         if(products==null || products.isEmpty())
             return null;
 
-        List<ProductSearchDTO> result= new Vector<>();
-        ProductSearchDTO prod;
-        AverageDTO average;
-        for(ProductDTO p: products){
-            average= reviewService.getReviewAverage(p.getId());
-
-            prod= new ProductSearchDTO();
-            if(average==null) {
-                prod.setReviewsNumber(0);
-                prod.setAverageReview(0.0);
-            } else {
-                prod.setReviewsNumber(average.getNumberOfReview());
-                prod.setAverageReview(average.getAverage());
-            }
-            prod.setProductId(p.getId());
-            prod.setProductName(p.getName());
-            prod.setPrice(p.getPrice());
-            prod.setDiscount(p.getDiscount());
-
-            result.add(prod);
-        }
-
-        return result;
+        return makeProductSearch(products);
     }
 
 
@@ -696,7 +739,7 @@ public class GeneralServiceImpl implements GeneralService {
         for(ProductDTO unavailableDTO: unavaibilities){
             un = new UnavailableDTO();
 
-            List<AvailabilityDTO> ava= availabilityService.getAvailabilitiesByProductID(unavailableDTO)
+            List<AvailabilityDTO> ava= availabilityService.getAvailabilitiesByProduct(unavailableDTO)
                     .stream()
                     .map(a -> {
                         a.setProduct(null);
@@ -785,25 +828,29 @@ public class GeneralServiceImpl implements GeneralService {
         return false;
     }
 
-    List<ProductSearchDTO> metodoAusiliario(List<ProductDTO> productDTO){
+    private List<ProductSearchDTO> makeProductSearch(List<ProductDTO> productDTO){
         List<ProductSearchDTO> productSearchDTO = new Vector<>();
         ProductSearchDTO productSearchDTO1;
         AverageDTO averageDTO;
 
         for(ProductDTO p: productDTO){
             productSearchDTO1 = new ProductSearchDTO();
-            averageDTO = reviewService.getReviewAverage(p.getId());
+
+            averageDTO = reviewService.getReviewAverage(p);
+
+            if(averageDTO==null) {
+                productSearchDTO1.setReviewsNumber(0);
+                productSearchDTO1.setAverageReview(0.0);
+            } else {
+                productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
+                productSearchDTO1.setAverageReview(averageDTO.getAverage());
+            }
 
             productSearchDTO1.setProductId(p.getId());
-            productSearchDTO1.setAverageReview(averageDTO.getAverage());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
 
             productSearchDTO1.setProductName(p.getName());
             productSearchDTO1.setPrice(p.getPrice());
             productSearchDTO1.setDiscount(p.getDiscount());
-
-            productSearchDTO1.setAverageReview(averageDTO.getAverage());
-            productSearchDTO1.setReviewsNumber(averageDTO.getNumberOfReview());
 
             productSearchDTO.add(productSearchDTO1);
         }

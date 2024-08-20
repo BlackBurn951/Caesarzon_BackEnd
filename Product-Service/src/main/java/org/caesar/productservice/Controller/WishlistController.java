@@ -29,6 +29,7 @@ public class WishlistController {
     @PostMapping("/wishlist") // Endpoint per l'aggiunta di una lista desideri
     public ResponseEntity<String> addWishList(@RequestBody WishlistDTO wishlistDTO){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
+
         if(wishlistService.addOrUpdateWishlist(wishlistDTO, username) != null)
             return new ResponseEntity<>("Lista desideri creata", HttpStatus.OK);
         else
@@ -69,7 +70,7 @@ public class WishlistController {
     }
 
     @GetMapping("/wishlists") // Endpoint per ottenere tutte le liste desideri di una determinata visibilità di un utente
-    public ResponseEntity<List<BasicWishlistDTO>> getUserWishlists(@RequestParam("usr") String ownerUsername, @RequestParam("visibility") int visibility){      //TODO da far tornare solo nome e id wishlist
+    public ResponseEntity<List<BasicWishlistDTO>> getUserWishlists(@RequestParam("usr") String ownerUsername, @RequestParam("visibility") int visibility){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
         List<BasicWishlistDTO> result = wishlistService.getAllWishlists(ownerUsername, username, visibility);
@@ -80,7 +81,7 @@ public class WishlistController {
     }
 
     @GetMapping("/wishlists/all") // Endpoint per ottenere tutte le liste desideri di una determinata visibilità di un utente
-    public ResponseEntity<List<BasicWishlistDTO>> getAllUserWishlists(){      //TODO da far tornare solo nome e id wishlist
+    public ResponseEntity<List<BasicWishlistDTO>> getAllUserWishlists(){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
         List<BasicWishlistDTO> result = wishlistService.getAllUserWishlists(username);
