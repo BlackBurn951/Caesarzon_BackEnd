@@ -134,7 +134,7 @@ public class AdminController {
 
     @PutMapping("/ban")
     public ResponseEntity<String> completeBanUser(@RequestParam("username") String username) {
-        if(adminService.completeBan(username))
+        if(adminService.completeBanOrSban(username))
             return new ResponseEntity<>("Ban completato!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nel ban dell'user", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -142,7 +142,7 @@ public class AdminController {
 
     @DeleteMapping("/ban")
     public ResponseEntity<String> rollbackBanUser(@RequestParam("username") String username) {
-        if(adminService.rollbackBan(username, false))
+        if(adminService.rollbackBanOrSban(username, false))
             return new ResponseEntity<>("Rollback eseguito!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nel rollback...", HttpStatus.INTERNAL_SERVER_ERROR);

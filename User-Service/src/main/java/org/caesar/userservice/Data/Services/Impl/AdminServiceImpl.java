@@ -34,23 +34,28 @@ public class AdminServiceImpl implements AdminService {
     //Metodo per bannare un utente
     @Override
     public int validateBan(BanDTO banDTO) {
-        return adminRepository.validateBanUser(banDTO.getUserUsername(), true, false);
+        return adminRepository.validateBanUser(banDTO.getUserUsername(), true);
     }
 
     //Metodo per sbannare un utente
     @Override
     public int validateSbanUser(String username) {
-        return adminRepository.validateBanUser(username, false, false);
+        return adminRepository.validateBanUser(username, false);
     }
 
     @Override
-    public boolean completeBan(String username) {
-        return adminRepository.completeBanUser(username);
+    public boolean completeBanOrSban(String username, boolean ban) {
+        return adminRepository.completeBanUser(username, ban);
     }
 
     @Override
-    public boolean rollbackBan(String username, boolean ban) {
-        return adminRepository.validateBanUser(username, false, true)==0;
+    public boolean releaseLock(String username) {
+        return adminRepository.releaseUserLock(username);
+    }
+
+    @Override
+    public boolean rollbackBanOrSban(String username, boolean ban) {
+        return adminRepository.rollbackBan(username, ban);
     }
 
 
