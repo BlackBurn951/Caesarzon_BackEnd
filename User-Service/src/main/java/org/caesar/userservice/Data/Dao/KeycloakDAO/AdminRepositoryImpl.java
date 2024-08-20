@@ -66,7 +66,7 @@ public class AdminRepositoryImpl implements AdminRepository {
 
     @Override
     @Transactional
-    public int banUser(String username, boolean ban, boolean rollback) {  // 0 -> operazione riuscita 1 -> operazione già svolta in passato 2 -> errore
+    public int validateBanUser(String username, boolean ban, boolean rollback) {  // 0 -> operazione riuscita 1 -> operazione già svolta in passato 2 -> errore
         RealmResource realmResource = keycloak.realm("CaesarRealm");
         try {
             //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak

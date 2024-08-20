@@ -109,14 +109,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean checkOtp(PasswordChangeDTO passwordChangeDTO, String otp) {
-        User user= userRepository.findUserByUsername(passwordChangeDTO.getUsername());
+    public boolean checkOtp(OtpDTO otp) {
+        User user= userRepository.findUserByUsername(otp.getUsername());
 
         if(user==null)
             return false;
 
-        if(user.getOtp().equals(otp)) {
-            changePassword(passwordChangeDTO, user.getUsername());
+        if(user.getOtp().equals(otp.getOtp())) {
             user.setOtp(null);
             return userRepository.updateUser(modelMapper.map(user, UserDTO.class));
         }

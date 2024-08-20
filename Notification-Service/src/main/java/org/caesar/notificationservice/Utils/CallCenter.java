@@ -1,5 +1,6 @@
 package org.caesar.notificationservice.Utils;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.caesar.notificationservice.Dto.ReviewDTO;
@@ -18,11 +19,25 @@ import java.util.*;
 public class CallCenter {
 
     private final RestTemplate restTemplate;
+    private final String ADMIN_SERVICE= "adminsService";
+    private final String PRODUCT_SERVICE= "productService";
 
+    private boolean fallbackGeneric(Throwable e) {
+        System.out.println("Circuit breaker nel call center attivato!");
+        return false;
+    }
+
+    private List<ReviewDTO> fallbackReviewDelete(Throwable e) {
+        System.out.println("Circuit breaker nel call center attivato!");
+        return null;
+    }
+
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean validateReviewDelete(String username) {
         return validateEndpoint(username, false);
     }
 
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackReviewDelete")
     public List<ReviewDTO> completeReviewDelete(String username) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -39,10 +54,12 @@ public class CallCenter {
                 responseType).getBody();
     }
 
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean rollbackPreCompleteReviewDelete(String username) {
         return validateEndpoint(username, true);
     }
 
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean rollbackReviewDelete(List<ReviewDTO> reviews) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 
@@ -73,7 +90,7 @@ public class CallCenter {
     }
 
 
-
+    @CircuitBreaker(name= ADMIN_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean validateBan(String username) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -87,6 +104,7 @@ public class CallCenter {
                 String.class).getStatusCode() == HttpStatus.OK;
     }
 
+    @CircuitBreaker(name= ADMIN_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean completeBan(String username) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -100,6 +118,7 @@ public class CallCenter {
                 String.class).getStatusCode() == HttpStatus.OK;
     }
 
+    @CircuitBreaker(name= ADMIN_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean rollbackBan(String username) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();

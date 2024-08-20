@@ -1,8 +1,5 @@
 package org.caesar.userservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.AdminRepository;
@@ -10,18 +7,10 @@ import org.caesar.userservice.Data.Entities.Admin;
 import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.AdminService;
 import org.caesar.userservice.Dto.BanDTO;
-import org.caesar.userservice.Sagas.BanOrchestrator;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Vector;
 
 @Service
@@ -45,13 +34,13 @@ public class AdminServiceImpl implements AdminService {
     //Metodo per bannare un utente
     @Override
     public int validateBan(BanDTO banDTO) {
-        return adminRepository.banUser(banDTO.getUserUsername(), true, false);
+        return adminRepository.validateBanUser(banDTO.getUserUsername(), true, false);
     }
 
     //Metodo per sbannare un utente
     @Override
     public int validateSbanUser(String username) {
-        return adminRepository.banUser(username, false, false);
+        return adminRepository.validateBanUser(username, false, false);
     }
 
     @Override
@@ -60,8 +49,8 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public boolean rollbackBan(String username) {
-        return adminRepository.banUser(username, false, true)==0;
+    public boolean rollbackBan(String username, boolean ban) {
+        return adminRepository.validateBanUser(username, false, true)==0;
     }
 
 

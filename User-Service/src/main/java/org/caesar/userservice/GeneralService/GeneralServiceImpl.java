@@ -240,18 +240,18 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public boolean recoveryPassword(String username) {
+    public String recoveryPassword(String username) {
         UserDTO user= userService.getUser(username);
 
         if(user==null)
-            return false;
+            return "Utente non trovato...";
 
         String otp= generateOTP();
         if(utils.emailSender(username, user.getEmail(), otp)) {
             user.setOtp(otp);
-            return userService.updateUser(user);
+            return userService.updateUser(user)? "Inserisci il codice otp inviato all'email "+user.getEmail(): "Problemi nell'invio dell'otp...";
         }
-        return false;
+        return "Problemi nell'invio dell'otp...";
     }
 
 

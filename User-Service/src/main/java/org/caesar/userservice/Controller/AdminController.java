@@ -142,7 +142,7 @@ public class AdminController {
 
     @DeleteMapping("/ban")
     public ResponseEntity<String> rollbackBanUser(@RequestParam("username") String username) {
-        if(adminService.rollbackBan(username))
+        if(adminService.rollbackBan(username, false))
             return new ResponseEntity<>("Rollback eseguito!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nel rollback...", HttpStatus.INTERNAL_SERVER_ERROR);
