@@ -210,15 +210,19 @@ public class UserRepositoryImpl implements UserRepository {
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
 
             //Aggiornamento dei dati dell'utente ad eccezione dell'username (attributo unique e non modificabile)
-            UserRepresentation user = new UserRepresentation();
+            UserRepresentation user = userResource.toRepresentation();
             user.setFirstName(userData.getFirstName());
             user.setLastName(userData.getLastName());
             user.setEmail(userData.getEmail());
 
+            System.out.println("Pirima dei campi custom");
             //Aggiunta degli attributi personalizzati
+
+
             user.getAttributes().get("phoneNumber").set(0, userData.getPhoneNumber());
             user.getAttributes().get("onChanges").set(0, String.valueOf(userData.isOnChanges()));
 
+            System.out.println(userData.getOtp());
             boolean vb= userData.getOtp()!=null;
             System.out.println(vb);
             if(userData.getOtp()!=null)
@@ -228,7 +232,7 @@ public class UserRepositoryImpl implements UserRepository {
 
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nella fase di aggiornamento dell'utente su keycloak");
+            System.out.println(e);
             return false;
         }
     }
