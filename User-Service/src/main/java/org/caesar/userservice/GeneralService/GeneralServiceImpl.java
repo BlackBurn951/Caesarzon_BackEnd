@@ -247,10 +247,16 @@ public class GeneralServiceImpl implements GeneralService {
             return "Utente non trovato...";
 
         String otp= generateOTP();
+        System.out.println("stampa prima dell'invio della mail");
         if(utils.emailSender(username, user.getEmail(), otp)) {
+            System.out.println("Email inviata");
             user.setOtp(otp);
-            return userService.updateUser(user)? "Inserisci il codice otp inviato all'email "+user.getEmail(): "Problemi nell'invio dell'otp...";
+
+            if(userService.updateUser(user))
+                return "Inserisci il codice otp inviato all'email "+user.getEmail();
+            return "Problemi nell'invio dell'otp...";
         }
+        System.out.println("Usicto senza aver inviato");
         return "Problemi nell'invio dell'otp...";
     }
 
