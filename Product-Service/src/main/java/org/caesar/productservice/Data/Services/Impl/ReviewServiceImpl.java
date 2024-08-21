@@ -112,13 +112,34 @@ public class ReviewServiceImpl implements ReviewService {
         try {
             List<Review> reviews= reviewRepository.findAllByUsername(username);
 
-            reviewRepository.deleteAllByUsername(username);
-
-            return reviews.stream()
+            List<ReviewDTO> rollbackList= reviews.stream()
                     .map(review -> modelMapper.map(review, ReviewDTO.class)).toList();
+
+            for(Review review : reviews) {
+                review.setDate(null);
+                review.setText(null);
+                review.setProduct(null);
+                review.setEvaluation(0);
+                review.setUsername(null);
+            }
+            reviewRepository.saveAll(reviews);
+
+            return rollbackList;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della recensione");
             return null;
+        }
+    }
+
+    @Override
+    public boolean releaseLock(List<UUID> reviewId) {
+        try {
+            reviewRepository.deleteAllById(reviewId);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della recensione");
+            return false;
         }
     }
 

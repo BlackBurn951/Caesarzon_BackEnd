@@ -8,7 +8,7 @@ import java.util.List;
 public interface AdminService {
 
     List<String> getAdmins();
-    int validateBan(BanDTO banDTO);
+    int validateBan(String username);
     boolean completeBanOrSban(String username, boolean ban);
     boolean rollbackBanOrSban(String username, boolean ban);
     int validateSbanUser(String username);

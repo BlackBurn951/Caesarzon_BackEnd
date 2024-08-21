@@ -106,7 +106,7 @@ public class AdminController {
             return new ResponseEntity<>("Problemi nel ban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/ban/{username}")
+    @PutMapping("/sban/{username}")
     public ResponseEntity<String> sbanUser(@PathVariable String username) {
 
         int result= generalService.sbanUser(username);
@@ -122,10 +122,8 @@ public class AdminController {
     //End-point per bannare e sbannare attraverso saga
     @PostMapping("/ban/{username}")
     public ResponseEntity<String> validateBanUser(@PathVariable String username) {
-        BanDTO ban= new BanDTO();
-        ban.setUserUsername(username);
+        int result= adminService.validateBan(username);
 
-        int result= adminService.validateBan(ban);
         if(result==0)
             return new ResponseEntity<>("Ban validato!", HttpStatus.OK);
         else
@@ -134,10 +132,18 @@ public class AdminController {
 
     @PutMapping("/ban")
     public ResponseEntity<String> completeBanUser(@RequestParam("username") String username) {
-        if(adminService.completeBanOrSban(username))
+        if(adminService.completeBanOrSban(username, true))
             return new ResponseEntity<>("Ban completato!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nel ban dell'user", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/ban/{username}")
+    public ResponseEntity<String> releaseLockBan(@PathVariable String username) {
+        if(adminService.releaseLock(username))
+            return new ResponseEntity<>("Lock rilassato con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel rilascio del lock...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @DeleteMapping("/ban")

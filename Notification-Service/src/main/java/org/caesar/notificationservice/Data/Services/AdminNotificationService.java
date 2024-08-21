@@ -9,9 +9,12 @@ public interface AdminNotificationService {
     List<AdminNotificationDTO> getAdminNotification(String username);
     boolean sendNotificationAllAdmin(List<SaveAdminNotificationDTO> notification);
     boolean deleteAdminNotification(UUID id);
+
     boolean validateDeleteByReport(ReportDTO reportDTO);
     List<SaveAdminNotificationDTO> completeDeleteByReport(ReportDTO reportDTO);
+    boolean releaseLock(List<UUID> notificationIds);
     boolean rollbackPreComplete(ReportDTO reportDTO);
+
     boolean deleteBySupport(SupportDTO supportDTO);
     boolean updateAdminNotification(List<SaveAdminNotificationDTO> notificationDTO);
 

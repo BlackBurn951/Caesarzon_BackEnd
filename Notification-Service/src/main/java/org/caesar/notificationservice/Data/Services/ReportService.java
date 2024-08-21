@@ -9,9 +9,12 @@ public interface ReportService {
     ReportDTO addReport(ReportDTO reportDTO);
     List<ReportDTO> getAllReports(int num);
     ReportDTO getReport(UUID id);
+
     boolean validateDeleteReport(UUID reviewId);
     List<ReportDTO> completeDeleteReport(UUID reviewId);
+    boolean releaseLock(List<UUID> reportsId);
     boolean rollbackPreComplete(UUID reviewId);
+
     ReportDTO getReportByReviewId(UUID reviewId);
     int countReportForUser(String username, UUID reviewId);
     boolean findByUsername1AndReviewId(String username1, UUID reviewId);

@@ -33,8 +33,8 @@ public class AdminServiceImpl implements AdminService {
 
     //Metodo per bannare un utente
     @Override
-    public int validateBan(BanDTO banDTO) {
-        return adminRepository.validateBanUser(banDTO.getUserUsername(), true);
+    public int validateBan(String username) {
+        return adminRepository.validateBanUser(username, true);
     }
 
     //Metodo per sbannare un utente

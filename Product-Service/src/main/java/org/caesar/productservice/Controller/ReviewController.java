@@ -100,14 +100,22 @@ public class ReviewController {
             return new ResponseEntity<>("Problemi nella validazione dell'elimazione delle recensioni...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @DeleteMapping("/admin/review")
-    public ResponseEntity<List<ReviewDTO>> completeDeleteReviews(@RequestParam("username") String username) {
+    @PutMapping("/admin/review/{username}")
+    public ResponseEntity<List<ReviewDTO>> completeDeleteReviews(@PathVariable String username) {
         List<ReviewDTO> result= reviewService.completeDeleteReviews(username);
 
         if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @DeleteMapping("/admin/review")
+    public ResponseEntity<String> completeDeleteReviews(@RequestBody List<UUID> reviewId) {;
+        if(reviewService.releaseLock(reviewId))
+            return new ResponseEntity<>("Rilascio del lock avvenuto con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel rilascio del lock...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PostMapping("/admin/review")

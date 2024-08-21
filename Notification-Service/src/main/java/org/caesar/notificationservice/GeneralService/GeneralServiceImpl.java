@@ -62,19 +62,9 @@ public class GeneralServiceImpl implements GeneralService{
 
         //Controllo se il DTO non è nullo e se il numero di segnalazioni ricevute da un utente è minore di 5 (Su diversi prodotti)
         if(newReportDTO != null && reportService.countReportForUser(newReportDTO.getUsernameUser2(), newReportDTO.getReviewId())>=5 && banService.checkIfBanned(newReportDTO.getUsernameUser2())) {
-            //passo 1 validare il ban qui V
-            //passo 2 validare le notifiche degli admin da cancellare qui V
-            //passo 3 validare la cancellazione delle segnalazioni qui V
-            //passo 4 validare la cancellazione delle recensioni sul product service
-            //passo 5 validare il ban sul user service
-            BanDTO banDTO= new BanDTO();
 
-            banDTO.setAdminUsername("System");
-            banDTO.setReason("Limite di segnalazioni raggiunto");
-            banDTO.setStartDate(LocalDate.now());
-            banDTO.setEndDate(null);
-            banDTO.setUserUsername(newReportDTO.getUsernameUser2());
-            UUID banId= banService.validateBan(banDTO);
+            //Avvio del saga per il ban automatico
+            UUID banId= banService.validateBan();
             if(banId!=null)
                 return reportOrchestrator.processAutomaticBan(banId, newReportDTO);
 

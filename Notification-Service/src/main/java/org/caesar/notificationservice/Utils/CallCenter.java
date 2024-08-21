@@ -48,10 +48,27 @@ public class CallCenter {
         ParameterizedTypeReference<List<ReviewDTO>> responseType=
                 new ParameterizedTypeReference<>(){};
 
-        return restTemplate.exchange("http://product-service/product-api/admin/review?username="+username,
-                HttpMethod.DELETE,
+        return restTemplate.exchange("http://product-service/product-api/admin/review/"+username,
+                HttpMethod.PUT,
                 entity,
                 responseType).getBody();
+    }
+
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
+    public boolean releaseReviewLock(List<UUID> reviewId) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+
+        HttpEntity<List<UUID>> entity = new HttpEntity<>(reviewId, headers);
+
+        return restTemplate.exchange("http://product-service/product-api/admin/review",
+                HttpMethod.DELETE,
+                entity,
+                String.class).getStatusCode()==HttpStatus.OK;
     }
 
     @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
@@ -90,6 +107,7 @@ public class CallCenter {
     }
 
 
+
     @CircuitBreaker(name= ADMIN_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean validateBan(String username) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
@@ -119,7 +137,7 @@ public class CallCenter {
     }
 
     @CircuitBreaker(name= ADMIN_SERVICE, fallbackMethod = "fallbackGeneric")
-    public boolean rollbackBan(String username) {
+    public boolean releaseBanLock(String username) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
@@ -127,6 +145,20 @@ public class CallCenter {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         return restTemplate.exchange("http://user-service/user-api/ban/"+username,
+                HttpMethod.PUT,
+                entity,
+                String.class).getStatusCode() == HttpStatus.OK;
+    }
+
+    @CircuitBreaker(name= ADMIN_SERVICE, fallbackMethod = "fallbackGeneric")
+    public boolean rollbackBan(String username) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://user-service/user-api/ban?username="+username,
                 HttpMethod.DELETE,
                 entity,
                 String.class).getStatusCode() == HttpStatus.OK;

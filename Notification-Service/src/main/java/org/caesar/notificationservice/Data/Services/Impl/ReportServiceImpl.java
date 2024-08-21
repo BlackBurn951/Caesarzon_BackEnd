@@ -79,15 +79,38 @@ public class ReportServiceImpl implements ReportService {
         try {
             List<Report> reports= reportRepository.findByReviewId(reviewId);
 
-            reportRepository.deleteAll(reports);
-
-            return reports.stream()
+            List<ReportDTO> rollbackList= reports.stream()
                     .map(a -> modelMapper.map(a, ReportDTO.class)).toList();
+
+            for(Report report: reports){
+                report.setEffective(false);
+                report.setReportDate(null);
+                report.setReason(null);
+                report.setDescription(null);
+                report.setReviewId(null);
+                report.setUsernameUser1(null);
+                report.setUsernameUser2(null);
+            }
+
+            reportRepository.saveAll(reports);
+
+            return rollbackList;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della segnalazione");
             return null;
         }
     }
+
+    @Override
+    public boolean releaseLock(List<UUID> reportsId) {
+        try{
+            reportRepository.deleteAllById(reportsId);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'eliminazione");
+            return false;
+        }    }
 
     @Override
     public boolean rollbackPreComplete(UUID reviewId) {

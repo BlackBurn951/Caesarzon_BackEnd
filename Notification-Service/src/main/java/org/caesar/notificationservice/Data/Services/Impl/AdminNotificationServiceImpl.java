@@ -121,9 +121,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         try{
             List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
 
-            adminNotificationRepository.deleteAll(notifications);
-
-            return notifications.stream()
+            List<SaveAdminNotificationDTO> rollbackList= notifications.stream()
                     .map(notify -> {
                         SaveAdminNotificationDTO not= new SaveAdminNotificationDTO();
                         not.setId(notify.getId());
@@ -137,9 +135,34 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
                         return not;
                     }).toList();
+
+            for(AdminNotification notify: notifications) {
+                notify.setDate(null);
+                notify.setAdmin(null);
+                notify.setRead(false);
+                notify.setConfirmed(false);
+                notify.setSubject(null);
+                notify.setSupport(null);
+            }
+
+            adminNotificationRepository.saveAll(notifications);
+
+            return rollbackList;
         }catch(Exception | Error e){
             log.debug("Errore nell'eliminazione");
             return null;
+        }
+    }
+
+    @Override
+    public boolean releaseLock(List<UUID> notificationIds) {
+        try{
+            adminNotificationRepository.deleteAllById(notificationIds);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'eliminazione");
+            return false;
         }
     }
 

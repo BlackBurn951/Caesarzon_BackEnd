@@ -363,7 +363,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public int banUser(BanDTO banDTO) {
-        int result= adminService.validateBan(banDTO);
+        int result= adminService.validateBan(banDTO.getUserUsername());
         if(result==0) {
             if(banOrchestrator.processBan(banDTO))
                 return 0;
