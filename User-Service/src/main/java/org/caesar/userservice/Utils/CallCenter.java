@@ -26,29 +26,23 @@ public class CallCenter {
         System.out.println("Servizio per la gestione delle notifiche non disponibile");
         return null;
     }
-
     private boolean fallbackGenericBan(Throwable e){
         System.out.println("Servizio per la gestione delle notifiche non disponibile");
         return false;
     }
 
+
+
     //Chiamate per eseguire il ban
     @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackValidateBan")
-    public UUID validateBan(BanDTO banDTO) {
+    public UUID validateBan() {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
 
-        Map<String, String> requestBody = new HashMap<>();
-        requestBody.put("reason", banDTO.getReason());
-        requestBody.put("startDate", String.valueOf(LocalDate.now()));
-        requestBody.put("endDate", null);
-        requestBody.put("userUsername", banDTO.getUserUsername());
-        requestBody.put("adminUsername", banDTO.getAdminUsername());
-
-        HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
 
          ResponseEntity<UUID> response= restTemplate.exchange("http://notification-service/notify-api/ban",
                 HttpMethod.POST,
@@ -62,8 +56,36 @@ public class CallCenter {
     }
 
     @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackGenericBan")
-    public boolean completeBan(UUID banId) {
+    public boolean completeBan(UUID banId, BanDTO banDTO) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("id", banId.toString());
+        requestBody.put("reason", banDTO.getReason());
+        requestBody.put("startDate", String.valueOf(LocalDate.now()));
+        requestBody.put("endDate", null);
+        requestBody.put("userUsername", banDTO.getUserUsername());
+        requestBody.put("adminUsername", banDTO.getAdminUsername());
+        requestBody.put("confirmed", "false");
+
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
+
+        return restTemplate.exchange("http://notification-service/notify-api/ban",
+                HttpMethod.PUT,
+                entity,
+                String.class).getStatusCode() == HttpStatus.OK;
+    }
+
+
+
+    //Chiamata per il rollback
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackGenericBan")
+    public boolean rollback(UUID banId) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
@@ -71,34 +93,65 @@ public class CallCenter {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         return restTemplate.exchange("http://notification-service/notify-api/ban/"+banId,
-                HttpMethod.POST,
+                HttpMethod.DELETE,
                 entity,
-                String.class).getStatusCode() == HttpStatus.OK;
+                String.class).getStatusCode()==HttpStatus.OK;
     }
 
-
-    //Chiamate per eseguire lo sban
+    //Chiamata per il rilascio del lock
     @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackGenericBan")
-    public boolean validateSban(String username) {
-        return sbanCall(username, "false");
-    }
-
-    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackGenericBan")
-    public boolean completeSban(String username) {
-        return sbanCall(username, "true");
-    }
-
-
-    private boolean sbanCall(String username, String confirm) {
+    public boolean releaseLock(UUID banId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+
+
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        return restTemplate.exchange("http://notification-service/notify-api/ban/" + username+"?confirm="+confirm,
+        return restTemplate.exchange("http://notification-service/notify-api/ban/"+banId,
                 HttpMethod.PUT,
                 entity,
-                String.class).getStatusCode() == HttpStatus.OK;
+                String.class).getStatusCode()==HttpStatus.OK;
+    }
+
+
+
+    //Chiamate per eseguire lo sban
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackValidateBan")
+    public UUID validateSban(String username) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<UUID> response= restTemplate.exchange("http://notification-service/notify-api/sban/"+username,
+                HttpMethod.POST,
+                entity,
+                UUID.class);
+
+        if(response.getStatusCode()==HttpStatus.OK)
+            return response.getBody();
+
+        return null;
+    }
+
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackGenericBan")
+    public boolean completeSban(String username) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://notification-service/notify-api/sban/"+username,
+                HttpMethod.PUT,
+                entity,
+                String.class).getStatusCode()==HttpStatus.OK;
     }
 }
