@@ -47,7 +47,6 @@ public class CardController {
     public ResponseEntity<String> saveUserCardData(@RequestBody CardDTO cardDTO) {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-
         int result=generalService.addCard(username, cardDTO);
         if (result==0)
             return new ResponseEntity<>("Carta salvata!", HttpStatus.OK);

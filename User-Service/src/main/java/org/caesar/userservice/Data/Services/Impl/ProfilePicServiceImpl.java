@@ -30,6 +30,7 @@ public class ProfilePicServiceImpl implements ProfilePicService {
                 profilePic1.setProfilePic(file.getBytes());
                 profilePicRepository.save(profilePic1);
             }else{
+                System.out.println("Username: " + username);
                 ProfilePic profilePic = profilePicRepository.findByUserUsername(username);
                 profilePic.setProfilePic(file.getBytes());
                 profilePicRepository.save(profilePic);
@@ -44,6 +45,7 @@ public class ProfilePicServiceImpl implements ProfilePicService {
     //Metodo per restituire l'immagine dell'utente
     @Override
     public byte[] getUserImage(String username) {
+        System.out.println("USERNAME NEL GETUSERIMAGE: " + username);
         return profilePicRepository.findByUserUsername(username).getProfilePic();
     }
 }
