@@ -13,6 +13,7 @@ import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
+import org.caesar.productservice.Sagas.ReviewOrchestrator;
 import org.caesar.productservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
@@ -53,6 +54,7 @@ public class GeneralServiceImpl implements GeneralService {
     private final RestTemplate restTemplate;
     private final PayPalService payPalService;
     private final ModelMapper modelMapper;
+    private final ReviewOrchestrator reviewOrchestrator;
 
     private final static String USER_SERVICE= "userService";
     private final static String NOTIFY_SERVICE= "notifyService";
@@ -197,22 +199,7 @@ public class GeneralServiceImpl implements GeneralService {
         if(reviewDTO==null)
             return false;
 
-//        if(reviewService.validateDeleteReviews(reviewDTO.getId())) {
-//            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.add("Authorization", request.getHeader("Authorization"));
-//
-//            HttpEntity<String> entity = new HttpEntity<>(headers);
-//
-//            return restTemplate.exchange(
-//                    "http://notification-service/notify-api/user/report?review-id=" + reviewDTO.getId(),
-//                    HttpMethod.DELETE,
-//                    entity,
-//                    String.class
-//            ).getStatusCode() == HttpStatus.OK;
-//        }
-
-        return false;
+        return reviewOrchestrator.processDeleteReview(reviewDTO);
     }
 
 

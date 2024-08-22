@@ -10,7 +10,10 @@ public interface GeneralService {
     boolean addReportRequest(String username1, ReportDTO reportDTO);
     boolean addSupportRequest(String username1, SupportDTO supportDTO);
     boolean manageSupportRequest(String username, UUID supportId, String explain);
-    boolean manageReport(String username, UUID reviewId, boolean product, boolean accept);
+    boolean manageReport(UUID reportId, boolean accept);
     boolean updateAdminNotification(List<AdminNotificationDTO> notificationDTO);
 
+    int validateReportAndNotifications(String username, UUID reviewId);
+    List<SaveAdminNotificationDTO> completeDeleteAdminNotifications(UUID reviewId);
+    boolean rollbackPreComplete(UUID reviewId);
 }

@@ -98,4 +98,43 @@ public class NotificationController {
             return new ResponseEntity<>("Errore", HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
+
+
+    @PutMapping("/user/notifications/{reviewId}")
+    public ResponseEntity<List<SaveAdminNotificationDTO>> completeNotifyDelete(@PathVariable UUID reviewId) {
+        List<SaveAdminNotificationDTO> result= generalService.completeDeleteAdminNotifications(reviewId);
+
+        if(result != null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @DeleteMapping("/user/notifications")
+    public ResponseEntity<String> releaseLock(@RequestBody List<UUID> notificationIds) {
+        if(adminNotificationService.releaseLock(notificationIds))
+            return new ResponseEntity<>("Lock rilasciato con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel rilascio del lock...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/user/notifications")
+    public ResponseEntity<String> rollbackPreComplete(@RequestParam("review-id") UUID reviewId) {
+        if(generalService.rollbackPreComplete(reviewId))
+            return new ResponseEntity<>("Rollback eseguito con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nell'esecuzione del rollback...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PostMapping("/user/notifications")
+    public ResponseEntity<String> rollbackPostComplete(@RequestBody List<SaveAdminNotificationDTO> notifications) {
+        for(SaveAdminNotificationDTO adminNotification: notifications) {
+            adminNotification.setConfirmed(true);
+        }
+
+        if(adminNotificationService.sendNotificationAllAdmin(notifications))
+            return new ResponseEntity<>("Rollback eseguito con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nell'esecuzione del rollback...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

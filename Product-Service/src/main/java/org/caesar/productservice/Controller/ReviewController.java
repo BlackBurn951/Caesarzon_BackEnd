@@ -91,7 +91,29 @@ public class ReviewController {
             return new ResponseEntity<>("Problemi nell'eliminazione della recensione...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     // Endpoint per l'eliminazione della recensione tramite id
+    @PutMapping("/admin/review")
+    public ResponseEntity<String> validateDeleteReview(@RequestParam("review-id") UUID reviewId, @RequestParam("rollback") boolean rollback) {
+        if(reviewService.validateDeleteReviewById(reviewId, rollback))
+            return new ResponseEntity<>("Validazione dell'eliminazione avvenuta con sucesso!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nella validazione dell'elimazione delle recensioni...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/admin/review/review-id/{reviewId}")
+    public ResponseEntity<ReviewDTO> completeDeleteReview(@PathVariable UUID reviewId) {
+        ReviewDTO result= reviewService.completeDeleteReviewById(reviewId);
+
+        if(result!=null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+
+    // Endpoint per l'eliminazione della recensione tramite username
     @PutMapping("/admin/review")
     public ResponseEntity<String> validateDeleteReviews(@RequestParam("username") String username, @RequestParam("rollback") boolean rollback) {
         if(reviewService.validateDeleteReviews(username, rollback))
@@ -111,7 +133,7 @@ public class ReviewController {
     }
 
     @DeleteMapping("/admin/review")
-    public ResponseEntity<String> completeDeleteReviews(@RequestBody List<UUID> reviewId) {;
+    public ResponseEntity<String> releaseLock(@RequestBody List<UUID> reviewId) {;
         if(reviewService.releaseLock(reviewId))
             return new ResponseEntity<>("Rilascio del lock avvenuto con successo!", HttpStatus.OK);
         else

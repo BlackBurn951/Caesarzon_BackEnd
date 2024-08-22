@@ -19,6 +19,9 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
 
     List<Report> findByReviewId(UUID id);
 
+    List<Report> findByUsernameUser2(String username);
+
     Report findByUsernameUser1AndReviewId(String usernameUser1, UUID reviewId);
 
+    List<Report> findAllByReviewId(UUID reviewId);
 }
