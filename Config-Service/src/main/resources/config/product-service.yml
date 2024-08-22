@@ -49,6 +49,12 @@ resilience4j.circuitbreaker:
         - org.springframework.web.client.RestClientException
         - org.springframework.web.client.ResourceAccessException
         - java.lang.IllegalArgumentException
+        - java.io.IOException
+        - java.net.SocketException
+        - java.net.UnknownHostException
+        - java.net.ConnectException
+        - java.net.SocketTimeoutException
+        - java.net.NoRouteToHostException
 
 
   instances:

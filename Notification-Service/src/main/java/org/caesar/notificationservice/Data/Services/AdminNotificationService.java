@@ -17,5 +17,5 @@ public interface AdminNotificationService {
 
     boolean deleteBySupport(SupportDTO supportDTO);
     boolean updateAdminNotification(List<SaveAdminNotificationDTO> notificationDTO);
-
+    boolean deleteByReport(ReportDTO reportDTO);
 }

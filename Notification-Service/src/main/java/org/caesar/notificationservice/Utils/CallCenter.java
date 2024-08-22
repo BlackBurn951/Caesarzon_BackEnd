@@ -11,7 +11,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -32,13 +31,15 @@ public class CallCenter {
         return null;
     }
 
+
+    //End-point per l'eliminazione di tutte le recensioni di un utente
     @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
-    public boolean validateReviewDelete(String username) {
+    public boolean validateReviewDeleteByUsername(String username) {
         return validateEndpoint(username, false);
     }
 
     @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackReviewDelete")
-    public List<ReviewDTO> completeReviewDelete(String username) {
+    public List<ReviewDTO> completeReviewDeleteByUsername(String username) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
@@ -72,7 +73,7 @@ public class CallCenter {
     }
 
     @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
-    public boolean rollbackPreCompleteReviewDelete(String username) {
+    public boolean rollbackPreCompleteReviewDeleteByUsername(String username) {
         return validateEndpoint(username, true);
     }
 
@@ -107,7 +108,38 @@ public class CallCenter {
     }
 
 
+    //End-point per l'eliminazione della singola recensione
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
+    public boolean validateReviewDeleteById(UUID reviewId, boolean rollback) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
 
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://product-service/product-api/admin/review?review-id="+reviewId+"&rollback="+rollback,
+                HttpMethod.PUT,
+                entity,
+                String.class).getStatusCode() == HttpStatus.OK;
+    }
+
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackReviewDelete")
+    public ReviewDTO completeReviewDeleteById(UUID reviewId) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://product-service/product-api/admin/review/review-id/"+reviewId,
+                HttpMethod.PUT,
+                entity,
+                ReviewDTO.class).getBody();
+    }
+
+
+
+    //End-point per il ban dell'utente
     @CircuitBreaker(name= ADMIN_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean validateBan(String username) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();

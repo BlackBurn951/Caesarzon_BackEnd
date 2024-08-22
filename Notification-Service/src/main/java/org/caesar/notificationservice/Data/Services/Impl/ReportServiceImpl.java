@@ -9,6 +9,7 @@ import org.caesar.notificationservice.Data.Dao.ReportRepository;
 import org.caesar.notificationservice.Data.Entities.Report;
 import org.caesar.notificationservice.Data.Services.ReportService;
 import org.caesar.notificationservice.Dto.ReportDTO;
+import org.caesar.notificationservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,10 +44,105 @@ public class ReportServiceImpl implements ReportService {
         return modelMapper.map(reportRepository.findById(id), ReportDTO.class);
     }
 
+    @Override
+    public boolean validateDeleteReportByUsername2(String username) {
+        try {
+            List<Report> reports= reportRepository.findByUsernameUser2(username);
+
+            for(Report report: reports){
+                report.setEffective(false);
+            }
+            reportRepository.saveAll(reports);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della segnalazione");
+            return false;
+        }
+    }
+
+    @Override
+    public List<ReportDTO> completeDeleteReportByUsername2(String username) {
+        try {
+            List<Report> reports= reportRepository.findByUsernameUser2(username);
+
+            List<ReportDTO> rollbackList= reports.stream()
+                    .map(a -> modelMapper.map(a, ReportDTO.class)).toList();
+
+            for(Report report: reports){
+                report.setEffective(false);
+                report.setReportDate(null);
+                report.setReason(null);
+                report.setDescription(null);
+                report.setReviewId(null);
+                report.setUsernameUser1(null);
+                report.setUsernameUser2(null);
+            }
+
+            reportRepository.saveAll(reports);
+
+            return rollbackList;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della segnalazione");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean rollbackPreCompleteByUsername2(String username) {
+        try {
+            List<Report> reports= reportRepository.findByUsernameUser2(username);
+
+            for(Report report: reports){
+                report.setEffective(true);
+            }
+            reportRepository.saveAll(reports);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della segnalazione");
+            return false;
+        }
+    }
+
     //Metodo per aggiungere una segnalazione tramite l'id della recensione segnalata
     @Override
     public ReportDTO getReportByReviewId(UUID id) {
         return modelMapper.map(reportRepository.findByReviewId(id), ReportDTO.class);
+    }
+
+    @Override
+    public List<ReportDTO> getReportsByReviewId(UUID id) {
+        try{
+            List<Report> reviews= reportRepository.findByReviewId(id);
+
+            if(reviews.isEmpty())
+                return null;
+
+            return reviews.stream()
+                    .map(rev -> modelMapper.map(rev, ReportDTO.class))
+                    .toList();
+        }catch (Exception | Error e) {
+            log.debug("Sesso3");
+            return null;
+        }
+    }
+
+    @Override
+    public List<ReportDTO> getReportsByUsername2(String username) {
+        try{
+            List<Report> reviews= reportRepository.findByUsernameUser2(username);
+
+            if(reviews.isEmpty())
+                return null;
+
+            return reviews.stream()
+                    .map(rev -> modelMapper.map(rev, ReportDTO.class))
+                    .toList();
+        }catch (Exception | Error e) {
+            log.debug("Sesso3");
+            return null;
+        }
     }
 
     //Metodo per prendere tutte le segnalazioni
@@ -58,7 +154,7 @@ public class ReportServiceImpl implements ReportService {
 
     //Metodo per eliminare una segnalazione
     @Override
-    public boolean validateDeleteReport(UUID reviewId) {
+    public boolean validateDeleteReportByReview(UUID reviewId) {
         try {
             List<Report> reports= reportRepository.findByReviewId(reviewId);
 
@@ -75,7 +171,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public List<ReportDTO> completeDeleteReport(UUID reviewId) {
+    public List<ReportDTO> completeDeleteReportByReview(UUID reviewId) {
         try {
             List<Report> reports= reportRepository.findByReviewId(reviewId);
 
@@ -113,7 +209,7 @@ public class ReportServiceImpl implements ReportService {
         }    }
 
     @Override
-    public boolean rollbackPreComplete(UUID reviewId) {
+    public boolean rollbackPreCompleteByReview(UUID reviewId) {
         try {
             List<Report> reports= reportRepository.findByReviewId(reviewId);
 
@@ -141,4 +237,15 @@ public class ReportServiceImpl implements ReportService {
         return reportRepository.findByUsernameUser1AndReviewId(username, reviewId) != null;
     }
 
+    @Override
+    public boolean deleteReport(ReportDTO reportDTO) {
+        try {
+            reportRepository.delete(modelMapper.map(reportDTO, Report.class));
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Sesso");
+            return false;
+        }
+    }
 }

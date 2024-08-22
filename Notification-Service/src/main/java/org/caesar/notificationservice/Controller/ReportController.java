@@ -44,10 +44,9 @@ public class ReportController {
 
     //End-point per la gestione della segnalazione da parte dell'admin
     @DeleteMapping("/admin/report")
-    public ResponseEntity<String> deleteReport(@RequestParam("review_id") UUID reviewId, @RequestParam("accept") boolean accept) {
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
+    public ResponseEntity<String> deleteReport(@RequestParam("report-id") UUID reportId, @RequestParam("accept") boolean accept) {
 
-        if(generalService.manageReport(username, reviewId, false, accept))
+        if(generalService.manageReport(reportId, accept))
             return new ResponseEntity<>("Segnalazione eliminata con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'eliminazione della segnalazione", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -55,15 +54,42 @@ public class ReportController {
     }
 
     //End-point per la cancellazione di eventuali segnalazioni e notifiche inerenti ad una notifica
-    @DeleteMapping("/user/report")
-    public ResponseEntity<String> deleteReportFromProduct(@RequestParam("review-id") UUID reviewId) {
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
-
-        if(generalService.manageReport(username, reviewId, true, true))
-            return new ResponseEntity<>("Segnalazione eliminata con successo", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Problemi nell'eliminazione della segnalazione", HttpStatus.INTERNAL_SERVER_ERROR);
-
+    @PutMapping("/user/report")
+    public ResponseEntity<Integer> validateReportAndNotifications(@RequestParam("username") String username, @RequestParam("review-id") UUID reviewId) {
+        return new ResponseEntity<>(generalService.validateReportAndNotifications(username, reviewId), HttpStatus.OK);
     }
 
+    @PutMapping("/user/report/{reviewId}")
+    public ResponseEntity<List<ReportDTO>> completeReportDelete(@PathVariable UUID reviewId) {
+        List<ReportDTO> result= reportService.completeDeleteReportByReview(reviewId);
+
+        if(result != null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @DeleteMapping("/user/report")
+    public ResponseEntity<String> releaseLock(@RequestBody List<UUID> reportIds) {
+        if(reportService.releaseLock(reportIds))
+            return new ResponseEntity<>("Lock rilasciato con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel rilascio del lock...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PostMapping("/user/report")
+    public ResponseEntity<String> rollbackPostComplete(@RequestBody List<ReportDTO> reports) {
+        boolean result= true;
+
+        for(ReportDTO report: reports) {
+            report.setEffective(true);
+            if(reportService.addReport(report)==null)
+                result=false;
+        }
+
+        if(result)
+            return new ResponseEntity<>("Rollback effettuato con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel rollback...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

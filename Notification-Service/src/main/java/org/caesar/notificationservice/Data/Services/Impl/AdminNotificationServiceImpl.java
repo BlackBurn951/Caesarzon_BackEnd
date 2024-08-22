@@ -196,4 +196,16 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
             return false;
         }
     }
+
+    @Override
+    public boolean deleteByReport(ReportDTO reportDTO) {
+        try{
+            adminNotificationRepository.deleteByReport(modelMapper.map(reportDTO, Report.class));
+
+            return true;
+        }catch (Exception | Error e){
+            log.debug("sesso2");
+            return false;
+        }
+    }
 }
