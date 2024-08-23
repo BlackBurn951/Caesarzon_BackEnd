@@ -241,6 +241,8 @@ public class GeneralServiceImpl implements GeneralService {
 
             prod.setQuantity(p.getQuantity());
             prod.setSize(p.getSize());
+            System.out.println("VARIABILE: " + p.isBuyLater());
+            prod.setBuyLater(p.isBuyLater());
 
             double discountPrice = (p.getProductDTO().getPrice() * p.getProductDTO().getDiscount())/100;
             double totalDiscount = p.getProductDTO().getPrice()-discountPrice;
@@ -280,11 +282,11 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public boolean changeQuantity(String username, UUID productID, int quantity, String size) {
+    public boolean changeQuantity(String username, UUID productID, ChangeCartDTO changeCartDTO) {
         ProductDTO productDTO = productService.getProductById(productID);
 
-        if(checkSize(size) && checkQuantity(quantity))
-            return productOrderService.changeQuantity(username,productDTO,quantity, size);
+        if(checkSize(changeCartDTO.getSize()) && checkQuantity(changeCartDTO.getQuantity()))
+            return productOrderService.changeQuantity(username,productDTO,changeCartDTO.getQuantity(), changeCartDTO.getSize());
         return false;
     }
 

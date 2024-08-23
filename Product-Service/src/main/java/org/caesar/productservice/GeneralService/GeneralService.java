@@ -31,7 +31,7 @@ public interface GeneralService {
     List<ProductCartDTO> getCart(String username);
     boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO);
     boolean saveLater(String username, UUID productDTO);
-    boolean changeQuantity(String username, UUID productID, int quantity, String size);
+    boolean changeQuantity(String username, UUID productID, ChangeCartDTO changeCartDTO);
     boolean deleteProductCart(String username, UUID productID);
 
 

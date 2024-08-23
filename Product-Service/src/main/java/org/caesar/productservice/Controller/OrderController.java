@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Services.OrderService;
 import org.caesar.productservice.Data.Services.PayPalService;
 import org.caesar.productservice.Data.Services.ProductOrderService;
+import org.caesar.productservice.Dto.ChangeCartDTO;
 import org.caesar.productservice.Dto.DTOOrder.*;
 import org.caesar.productservice.Dto.ProductCartDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
@@ -55,10 +56,10 @@ public class OrderController {
     }
 
     @PutMapping("/cart/product/{id}")  //Metodo per il salva più tardi e la modifica della quantità del singolo prodotto
-    public ResponseEntity<String> changeCart(@PathVariable UUID id, @RequestParam(value= "quantity", required = false) Integer quantity, @RequestParam(value= "size", required = false) String size, @RequestParam("action") int action) {
+    public ResponseEntity<String> changeCart(@PathVariable UUID id , @RequestParam("action") int action, @RequestBody ChangeCartDTO changeCartDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        boolean result= action==0? generalService.saveLater(username, id): generalService.changeQuantity(username, id, Objects.requireNonNullElse(quantity, -1), size);
+        boolean result= action==0? generalService.saveLater(username, id): generalService.changeQuantity(username, id, changeCartDTO);
         if(result)
             return new ResponseEntity<>("Ordine modificato con successo!", HttpStatus.OK);
         else

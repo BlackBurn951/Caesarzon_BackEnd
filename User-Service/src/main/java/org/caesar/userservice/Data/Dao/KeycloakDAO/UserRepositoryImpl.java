@@ -188,7 +188,7 @@ public class UserRepositoryImpl implements UserRepository {
             User userKeycloak = findUserByUsername(userData.getUsername());
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
 
-            //Aggiornamento dei dati dell'utente ad eccezione dell'username (attributo unique e non modificabile)
+            //Aggiornamento dei dati dell'utente ad eccezione dell'username (attributo unique e non modificabiledisponibilita)
             UserRepresentation user = userResource.toRepresentation();
             user.setFirstName(userData.getFirstName());
             user.setLastName(userData.getLastName());
