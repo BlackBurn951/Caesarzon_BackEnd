@@ -26,27 +26,18 @@ public class UserCardServiceImpl implements UserCardService {
 
     private final UserCardRepository userCardRepository;
     private final ModelMapper modelMapper;
-    private final static String USER_CARD_SERVICE= "userCardService";
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su userCardService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
     //Prende la carta dell'utente tramite id
     @Override
-//    @Retry(name=USER_CARD_SERVICE)
     public UserCardDTO getUserCard(UUID id) {
 
         //Presa della lista delle carte associate all'utente
         UserCard userCard = userCardRepository.findById(id).orElse(null);
-        System.out.println(userCard.getCard().getBalance());
         return modelMapper.map(userCard, UserCardDTO.class);
     }
 
     //Prende gli id di tutte le carte dell'utente
     @Override
-//    @Retry(name=USER_CARD_SERVICE)
     public List<UUID> getCards(String userUsername) {
 
         List<UserCard> userCards = userCardRepository.findAllByUserUsername(userUsername);
@@ -61,7 +52,6 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-//    @Retry(name=USER_CARD_SERVICE)
     public List<UserCardDTO> getUserCards(String userUsername) {
         List<UserCardDTO> result= new Vector<>();
 
@@ -75,17 +65,14 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-//    @Retry(name=USER_CARD_SERVICE)
-    public boolean checkCard(String username, CardDTO cardDTO) {
-        UserCard userCard= userCardRepository.findByUserUsernameAndCard(username, modelMapper.map(cardDTO, Card.class));
+    public boolean checkCard(String username, UUID cardId) {
+        UserCard userCard= userCardRepository.findByUserUsernameAndId(username, cardId);
 
         return userCard != null;
     }
 
     //Aggiunta della relazione carta utente
     @Override
-//    @CircuitBreaker(name=USER_CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=USER_CARD_SERVICE)
     public boolean addUserCards(UserCardDTO userCard) {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
@@ -93,7 +80,7 @@ public class UserCardServiceImpl implements UserCardService {
             userCardRepository.save(userCardEntity);
 
             return true;
-        } catch (RuntimeException | Error e){
+        } catch (Exception | Error e){
             log.debug("Errore nel salvataggio nella tabella di relazione utente carte");
             return false;
         }
@@ -101,13 +88,11 @@ public class UserCardServiceImpl implements UserCardService {
 
     //Eliminazione
     @Override
-//    @CircuitBreaker(name=USER_CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=USER_CARD_SERVICE)
     public boolean deleteUserCard(UserCardDTO userCardDTO) {
         try {
             userCardRepository.deleteById(userCardDTO.getId());
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
             return false;
         }
@@ -115,8 +100,6 @@ public class UserCardServiceImpl implements UserCardService {
 
     //Eliminazione
     @Override
-//    @CircuitBreaker(name=USER_CARD_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=USER_CARD_SERVICE)
     public boolean deleteUserCards(String userUsername) {
         try {
             //Presa di tutte le tuple inerenti all'utente da cancellare
@@ -125,7 +108,7 @@ public class UserCardServiceImpl implements UserCardService {
             //Eliminizaione delle tuple passando direttamente la lista con al suo intenro gli ogetti entity che le rappresentano
             userCardRepository.deleteAll(userCards);
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione di tutte le tuple nella tabella di relazione utente carte");
             return false;
         }

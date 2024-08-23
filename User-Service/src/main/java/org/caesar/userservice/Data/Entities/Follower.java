@@ -27,4 +27,6 @@ public class Follower {
     @Column(name = "amico")
     private boolean friend;
 
+    @Column(name= "in_cancellazione")
+    private boolean onDeleting;
 }

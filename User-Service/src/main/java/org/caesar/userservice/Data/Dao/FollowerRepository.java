@@ -15,5 +15,6 @@ public interface FollowerRepository extends JpaRepository<Follower, UUID> {
     Follower findByUserUsername1AndUserUsername2(String username1, String username2);
     List<Follower> findAllByUserUsername1(String username1, Pageable pageable);
     List<Follower> findAllByUserUsername1AndFriend(String username1, boolean friend, Pageable pageable);
-    void deleteAllByUserUsername1OrUserUsername2(String username1, String username2);
+    void deleteAllByUserUsername1(String username);
+    void deleteAllByUserUsername2(String username);
 }

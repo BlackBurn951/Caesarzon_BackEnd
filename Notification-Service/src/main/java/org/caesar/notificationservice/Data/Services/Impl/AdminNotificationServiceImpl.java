@@ -1,8 +1,5 @@
 package org.caesar.notificationservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Dao.AdminNotificationRepository;
@@ -26,18 +23,8 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     private final AdminNotificationRepository adminNotificationRepository;
     private final ModelMapper modelMapper;
 
-    private final static String ADMIN_NOTIFICATION= "adminNotificationService";
-
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
-
-
     //Metodo per prendere le notifiche dell'admin
     @Override
-//    @Retry(name=ADMIN_NOTIFICATION)
     public List<AdminNotificationDTO> getAdminNotification(String username) {
         try {
 
@@ -75,8 +62,6 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
     //Metodo per inviare le notifiche all'admin
     @Override
-//    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=ADMIN_NOTIFICATION)
     public boolean sendNotificationAllAdmin(List<SaveAdminNotificationDTO> notification) {
         try {
             adminNotificationRepository.saveAll(notification.stream().map(a -> modelMapper.map(a, AdminNotification.class)).toList());
@@ -90,8 +75,6 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
     //Metodo per eliminare le notifiche dell'admin
     @Override
-//    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=ADMIN_NOTIFICATION)
     public boolean deleteAdminNotification(UUID id){
         try{
             adminNotificationRepository.deleteById(id);
@@ -104,8 +87,6 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
     //Metodo per eliminare le notifiche dell'admin tramite richiesta di supporto
     @Override
-//    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=ADMIN_NOTIFICATION)
     public boolean deleteBySupport(SupportDTO supportDTO) {
         try{
             adminNotificationRepository.deleteBySupport(modelMapper.map(supportDTO, Support.class));
@@ -117,13 +98,16 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         }
     }
 
-    //Metodo per eliminare le notifiche dell'admin tramite segnalazione
     @Override
-//    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=ADMIN_NOTIFICATION)
-    public boolean deleteByReport(ReportDTO reportDTO) {
+    public boolean validateDeleteByReport(ReportDTO reportDTO) {
         try{
-            adminNotificationRepository.deleteByReport(modelMapper.map(reportDTO, Report.class));
+            List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
+
+            for(AdminNotification notify: notifications) {
+                notify.setConfirmed(false);
+            }
+
+            adminNotificationRepository.saveAll(notifications);
             return true;
         }catch(Exception | Error e){
             log.debug("Errore nell'eliminazione");
@@ -132,10 +116,53 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
     }
 
+    @Override
+    public List<SaveAdminNotificationDTO> completeDeleteByReport(ReportDTO reportDTO) {
+        try{
+            List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
+
+            adminNotificationRepository.deleteAll(notifications);
+
+            return notifications.stream()
+                    .map(notify -> {
+                        SaveAdminNotificationDTO not= new SaveAdminNotificationDTO();
+                        not.setId(notify.getId());
+                        not.setAdmin(notify.getAdmin());
+                        not.setRead(notify.isRead());
+                        not.setSubject(notify.getSubject());
+                        not.setDate(notify.getDate());
+                        not.setSupport(null);
+                        not.setReport(modelMapper.map(notify.getReport(), ReportDTO.class));
+                        not.setConfirmed(true);
+
+                        return not;
+                    }).toList();
+        }catch(Exception | Error e){
+            log.debug("Errore nell'eliminazione");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean rollbackPreComplete(ReportDTO reportDTO) {
+        try{
+            List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
+
+            for(AdminNotification notify: notifications) {
+                notify.setConfirmed(true);
+            }
+
+            adminNotificationRepository.saveAll(notifications);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'eliminazione");
+            return false;
+        }
+    }
+
     //Metodo per aggiornare lo stato di lettura delle notifiche dell'admin
     @Override
-//    @CircuitBreaker(name=ADMIN_NOTIFICATION, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=ADMIN_NOTIFICATION)
     public boolean updateAdminNotification(List<SaveAdminNotificationDTO> notificationDTO) {
         try{
             adminNotificationRepository.saveAll(notificationDTO.stream().map(a -> modelMapper.map(a, AdminNotification.class)).toList());

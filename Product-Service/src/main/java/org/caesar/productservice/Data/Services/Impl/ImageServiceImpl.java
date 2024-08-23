@@ -1,9 +1,5 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ImageRepository;
@@ -30,17 +26,9 @@ public class ImageServiceImpl implements ImageService {
     private final ModelMapper modelMapper;
     private final ImageRepository imageRepository;
     private final ProductRepository productRepository;
-    private final static String IMAGE_SERVICE = "imageService";
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su imageService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
     //fare modifica dell'immagine con eventuale eliminazione delle singole immagini
     @Override
-//    @CircuitBreaker(name=IMAGE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=IMAGE_SERVICE)
     public boolean addOrUpdateImage(UUID productID, MultipartFile file) {
 
         if(file == null){
@@ -58,14 +46,13 @@ public class ImageServiceImpl implements ImageService {
 
             return true;
 
-        }catch (RuntimeException | Error | IOException e) {
+        }catch (Exception | Error e) {
             log.debug("Errore nell'inserimento dell'immagine");
             return false;
         }
     }
 
     @Override
-//    @Retry(name=IMAGE_SERVICE)
     public ImageDTO getImage(Product product) {
 
         Image image = imageRepository.findImageByProduct(product);
@@ -76,7 +63,6 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-//    @Retry(name=IMAGE_SERVICE)
     public List<Image> getAllProductImages(Product product) {
         List<Image> productImages = new ArrayList<>();
         for(Image image : imageRepository.findAll())
@@ -85,11 +71,7 @@ public class ImageServiceImpl implements ImageService {
         return productImages;
     }
 
-
     @Override
-    @Transactional
-//    @CircuitBreaker(name=IMAGE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=IMAGE_SERVICE)
     public boolean deleteImage(Product product) {
         try {
             List<Image> imagesToDelete = new ArrayList<>();
@@ -105,7 +87,7 @@ public class ImageServiceImpl implements ImageService {
             }else
                 return false;
 
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della carta");
             return false;
         }

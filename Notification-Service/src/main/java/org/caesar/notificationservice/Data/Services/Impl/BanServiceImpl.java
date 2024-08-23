@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,28 +24,45 @@ public class BanServiceImpl implements BanService {
     private final BanRepository banRepository;
     private final ModelMapper modelMapper;
 
-    private final static String BAN_SERVICE= "adminNotificationService";
-
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
-
     //Metodo per restituire tutti gli utenti bannati
-    @Retry(name=BAN_SERVICE)
     public List<BanDTO> getAllBans() {
         List<Ban> bans = banRepository.findAll();
         return bans.stream().map(a -> modelMapper.map(a, BanDTO.class)).toList();
     }
 
+    @Override
+    public boolean checkIfBanned(String username) {
+        try{
+            return banRepository.findByUserUsernameAndEndDateIsNull(username)!=null;
+        }catch (Exception | Error e){
+            return false;
+        }
+    }
+
     //Metodo per bannare un utente
     @Override
-//    @CircuitBreaker(name=BAN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=BAN_SERVICE)
-    public boolean banUser(BanDTO banDTO) {
+    public UUID validateBan(BanDTO banDTO) {
         try {
-            banRepository.save(modelMapper.map(banDTO, Ban.class));
+            banDTO.setConfirmed(false);
+            UUID banId= banRepository.save(modelMapper.map(banDTO, Ban.class)).getId();
+
+            return banId;
+        } catch (Exception | Error e) {
+            log.debug("Errore nell'inserimento della tupla di ban");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean confirmBan(UUID banId) {
+        try {
+            Ban ban= banRepository.findById(banId).orElse(null);
+
+            if(ban==null)
+                return false;
+
+            ban.setConfirmed(true);
+            banRepository.save(ban);
 
             return true;
         } catch (Exception | Error e) {
@@ -55,21 +73,40 @@ public class BanServiceImpl implements BanService {
 
     //Metodo per sbannare un utente
     @Override
-//    @CircuitBreaker(name=BAN_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=BAN_SERVICE)
-    public boolean sbanUser(String username) {
+    public boolean sbanUser(String username, boolean confirm) {
         try {
-            Ban ban= banRepository.findByUserUsername(username);
+            Ban ban;
+            if(!confirm)
+                ban= banRepository.findByUserUsernameAndEndDateIsNull(username);
+            else
+                ban= banRepository.findByUserUsernameAndConfirmedIsFalse(username);
 
             if(ban==null)
                 return false;
 
             ban.setEndDate(LocalDate.now());
+            ban.setConfirmed(confirm);
             banRepository.save(ban);
 
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nell'inserimento della tupla di ban");
+            log.debug(e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollback(String username) {
+        try {
+            Ban ban= banRepository.findByUserUsernameAndConfirmedIsFalse(username);
+
+            if(ban==null)
+                return false;
+
+            banRepository.delete(ban);
+            return true;
+        } catch (Exception | Error e) {
+            log.debug(e.getMessage());
             return false;
         }
     }

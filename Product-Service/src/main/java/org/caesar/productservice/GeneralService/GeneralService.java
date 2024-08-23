@@ -1,6 +1,5 @@
 package org.caesar.productservice.GeneralService;
 
-import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
@@ -13,20 +12,19 @@ import java.util.UUID;
 public interface GeneralService {
 
     //SEZIONE DEI PRODOTTI E STRETTAMENTE CORRELATI
-    List<ImageDTO> getProductImages(UUID id);
+    List<ImageDTO> getProductImage(UUID id);
     List<ImageDTO> getAllProductImages(UUID productID);
     ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id);
     boolean addProduct(ProductDTO ProductDTO);
     boolean deleteProduct(UUID id);
-    boolean deleteAvailabilityByProduct(Product product);
 
     //SEZIONE RECENSIONI
-    List<ReviewDTO> getProductReviews(UUID productID);
+    List<ReviewDTO> getProductReviews(UUID productID, int str);
     List<Integer> getReviewScore(UUID productId);
     AverageDTO getReviewAverage(UUID productId);
-    boolean addReview(ReviewDTO reviewDTO, String username);
+    String addReview(ReviewDTO reviewDTO, String username);
     boolean deleteReviewByUser(String username, UUID productId);
-    boolean deleteReviewByAdmin(String username, UUID productId);
+
 
 
     //SEZIONE DEL CARRELLO
@@ -41,7 +39,6 @@ public interface GeneralService {
     List<ProductCartDTO> getOrder(String username, UUID orderId);
     String createOrder(String username, BuyDTO buyDTO);
     boolean updateOrder(String username, UUID orderId);
-    boolean updateNotifyOrder();
     List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds);
     String checkOrder(String username, BuyDTO buyDTO, boolean payMethod);
 

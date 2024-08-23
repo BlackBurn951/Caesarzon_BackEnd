@@ -1,9 +1,7 @@
 package org.caesar.productservice.Data.Services;
 
-import org.caesar.productservice.Data.Entities.Order;
 import org.caesar.productservice.Dto.DTOOrder.*;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,7 +41,7 @@ public interface OrderService {
 
     OrderDTO getOrder(String username, UUID id);
 
-    List<OrderDTO> getOrdersByState(String state);
+    boolean updateNotifyOrder();
 
     OrderDTO getOrderByIdAndUsername(UUID orderId, String username);
 

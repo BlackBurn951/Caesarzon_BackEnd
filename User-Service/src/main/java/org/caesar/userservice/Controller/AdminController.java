@@ -28,8 +28,6 @@ public class AdminController {
     private final GeneralService generalService;
     private final ProfilePicService profilePicService;
     private final HttpServletRequest httpServletRequest;
-//    private final SagaOrchestrator sagaOrchestrator;
-//    private final SagaConsumer sagaConsumer;
 
 
     @GetMapping("/admins")
@@ -87,18 +85,19 @@ public class AdminController {
     public ResponseEntity<List<UserSearchDTO>> getBan(@RequestParam("str") int start) {
         List<UserSearchDTO> result= generalService.getBans(start);
 
-        if(result!=null)
+        if(!result.isEmpty())
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
+    //End-point per bannare e sbannare un utente utilizzati da un admin
     @PostMapping("/ban")
     public ResponseEntity<String> banUser(@RequestBody BanDTO banDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
         banDTO.setAdminUsername(username);
-//        sagaOrchestrator.orchestrateSaga(0);
-        int result= adminService.banUser(banDTO);
+
+        int result= generalService.banUser(banDTO);
         if(result==0)
             return new ResponseEntity<>("Utente bannato con successo", HttpStatus.OK);
         else if(result==1)
@@ -110,12 +109,42 @@ public class AdminController {
     @PutMapping("/ban/{username}")
     public ResponseEntity<String> sbanUser(@PathVariable String username) {
 
-        int result= adminService.sbanUser(username);
+        int result= generalService.sbanUser(username);
         if(result==0)
             return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
         else if(result==1)
             return new ResponseEntity<>("Utente già sbannato in precedenza", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nello sban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    //End-point per bannare e sbannare attraverso saga
+    @PostMapping("/ban/{username}")
+    public ResponseEntity<String> validateBanUser(@PathVariable String username) {
+        BanDTO ban= new BanDTO();
+        ban.setUserUsername(username);
+
+        int result= adminService.validateBan(ban);
+        if(result==0)
+            return new ResponseEntity<>("Ban validato!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel ban dell'user", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/ban")
+    public ResponseEntity<String> completeBanUser(@RequestParam("username") String username) {
+        if(adminService.completeBan(username))
+            return new ResponseEntity<>("Ban completato!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel ban dell'user", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @DeleteMapping("/ban")
+    public ResponseEntity<String> rollbackBanUser(@RequestParam("username") String username) {
+        if(adminService.rollbackBan(username, false))
+            return new ResponseEntity<>("Rollback eseguito!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel rollback...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

@@ -33,4 +33,6 @@ public class Ban {
     @Column(name= "username_admin")
     private String adminUsername;
 
+    @Column(name= "confermato")
+    private boolean confirmed;
 }

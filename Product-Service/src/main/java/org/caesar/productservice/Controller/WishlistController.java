@@ -3,7 +3,6 @@ package org.caesar.productservice.Controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Data.Services.WishlistProductService;
 import org.caesar.productservice.Data.Services.WishlistService;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.GeneralService.GeneralService;
@@ -12,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -106,7 +104,6 @@ public class WishlistController {
     @DeleteMapping("/wishlist/{id}") // Endpoint per l'eliminazione di una lista desideri di un utente
     public ResponseEntity<String> deleteWishlist(@PathVariable UUID id){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
-        System.out.println("id della lista: "+id.toString());
         if(generalService.deleteWishlist(username, id))
             return new ResponseEntity<>("Lista desideri eliminata correttamente", HttpStatus.OK);
         else

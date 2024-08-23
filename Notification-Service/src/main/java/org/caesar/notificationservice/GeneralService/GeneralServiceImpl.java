@@ -1,14 +1,13 @@
 package org.caesar.notificationservice.GeneralService;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Services.*;
 import org.caesar.notificationservice.Dto.*;
+import org.caesar.notificationservice.Sagas.ReportOrchestrator;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -32,96 +31,94 @@ public class GeneralServiceImpl implements GeneralService{
     private final AdminNotificationService adminNotificationService;
     private final UserNotificationService userNotificationService;
     private final BanService banService;
+    private final ReportOrchestrator reportOrchestrator;
 
-    private final static String GENERAL_SERVICE= "generalService";
+    private final static String ADMINS_SERVICE= "adminsService";
+    private final static String PRODUCT_SERVICE= "productService";
 
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
+    private boolean fallbackAdmins(Throwable e){
+        log.info("Servizio per gli admin non disponibile");
+        return false;
     }
 
+    private boolean fallbackProuct(Throwable e){
+        log.info("Servizio dei prodotti non disponibile");
+        return false;
+    }
 
     @Override
-    @Transactional
-//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=GENERAL_SERVICE)
     public boolean addReportRequest(String username1, ReportDTO reportDTO) {
-        try {
-            //Aggiungo al DTO la data e l'username che ha inviato la segnalazione
-            reportDTO.setReportDate(LocalDate.now());
-            reportDTO.setUsernameUser1(username1);
+        //Aggiungo al DTO la data e l'username che ha inviato la segnalazione
+        reportDTO.setReportDate(LocalDate.now());
+        reportDTO.setUsernameUser1(username1);
 
-            //Controllo che l'utente che segnala non abbia già segnalato quella stessa recensione
-            if(reportService.findByUsername1AndReviewId(reportDTO.getUsernameUser1(), reportDTO.getReviewId()))
+        //Controllo che l'utente che segnala non abbia già segnalato quella stessa recensione
+        if(reportService.findByUsername1AndReviewId(reportDTO.getUsernameUser1(), reportDTO.getReviewId()))
+            return false;
+
+        //Aggiungo la segnalazione
+        reportDTO.setEffective(true);
+        ReportDTO newReportDTO = reportService.addReport(reportDTO);
+
+        //Controllo se il DTO non è nullo e se il numero di segnalazioni ricevute da un utente è minore di 5 (Su diversi prodotti)
+        if(newReportDTO != null && reportService.countReportForUser(newReportDTO.getUsernameUser2(), newReportDTO.getReviewId())>=5 && banService.checkIfBanned(newReportDTO.getUsernameUser2())) {
+            //passo 1 validare il ban qui V
+            //passo 2 validare le notifiche degli admin da cancellare qui V
+            //passo 3 validare la cancellazione delle segnalazioni qui V
+            //passo 4 validare la cancellazione delle recensioni sul product service
+            //passo 5 validare il ban sul user service
+            BanDTO banDTO= new BanDTO();
+
+            banDTO.setAdminUsername("System");
+            banDTO.setReason("Limite di segnalazioni raggiunto");
+            banDTO.setStartDate(LocalDate.now());
+            banDTO.setEndDate(null);
+            banDTO.setUserUsername(newReportDTO.getUsernameUser2());
+            UUID banId= banService.validateBan(banDTO);
+            if(banId!=null)
+                return reportOrchestrator.processAutomaticBan(banId, newReportDTO);
+
+        } else if(newReportDTO != null) {
+            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", request.getHeader("Authorization"));
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            ResponseEntity<List> responseEntity = restTemplate.exchange(
+                    "http://user-service/user-api/admins",
+                    HttpMethod.GET,
+                    entity,
+                    List.class
+            );
+
+            List<String> admins = responseEntity.getBody();
+
+            if(admins==null)
                 return false;
 
-            //Aggiungo la segnalazione
-            ReportDTO newReportDTO = reportService.addReport(reportDTO);
+            List<SaveAdminNotificationDTO> notifications= new Vector<>();
+            SaveAdminNotificationDTO notify;
 
-            //Controllo se il DTO non è nullo e se il numero di segnalazioni ricevute da un utente è minore di 5 (Su diversi prodotti)
-            if(newReportDTO != null && reportService.countReportForUser(newReportDTO.getUsernameUser2(), newReportDTO.getReviewId())>=5) {
-                BanDTO banDTO= new BanDTO();
+            for(String ad: admins) {
+                notify= new SaveAdminNotificationDTO();
+                notify.setDate(LocalDate.now());
+                notify.setSubject("C'è una nuova segnalazione da parte dell'utente: " + username1 );
+                notify.setAdmin(ad);
+                notify.setReport(newReportDTO);
+                notify.setRead(false);
 
-                banDTO.setAdminUsername("System");
-                banDTO.setReason("Limite di segnalazioni raggiunto");
-                banDTO.setStartDate(LocalDate.now());
-                banDTO.setEndDate(null);
-                banDTO.setUserUsername(newReportDTO.getUsernameUser2());
-
-                //Eliminazione delle notifiche relative alla segnalazione per tutti gli admin
-                adminNotificationService.deleteByReport(reportDTO);
-
-                //Eliminazione della segnalazione
-                if(reportService.deleteReport(reportDTO.getReviewId()))
-                    return banService.banUser(banDTO) && deleteReview(reportDTO.getReviewId());
-
-            } else if(newReportDTO != null) {
-                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-                HttpHeaders headers = new HttpHeaders();
-                headers.add("Authorization", request.getHeader("Authorization"));
-
-                HttpEntity<String> entity = new HttpEntity<>(headers);
-                ResponseEntity<List> responseEntity = restTemplate.exchange(
-                        "http://user-service/user-api/admins",
-                        HttpMethod.GET,
-                        entity,
-                        List.class
-                );
-
-                List<String> admins = responseEntity.getBody();
-
-                if(admins==null)
-                    return false;
-
-                List<SaveAdminNotificationDTO> notifications= new Vector<>();
-                SaveAdminNotificationDTO notify;
-
-                for(String ad: admins) {
-                    notify= new SaveAdminNotificationDTO();
-                    notify.setDate(LocalDate.now());
-                    notify.setSubject("C'è una nuova segnalazione da parte dell'utente: " + username1 );
-                    notify.setAdmin(ad);
-                    notify.setReport(newReportDTO);
-                    notify.setRead(false);
-
-                    notifications.add(notify);
-                }
-
-                return adminNotificationService.sendNotificationAllAdmin(notifications);
+                notifications.add(notify);
             }
-            return false;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella gestione della richiesta");
-            return false;
+
+            return adminNotificationService.sendNotificationAllAdmin(notifications);
         }
+        return false;
     }
 
     @Override
     @Transactional
-//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=GENERAL_SERVICE)
+    @CircuitBreaker(name= ADMINS_SERVICE, fallbackMethod = "fallbackAdmins")
     public boolean addSupportRequest(String username, SupportDTO supportDTO) {
-
         supportDTO.setDateRequest(LocalDate.now());
         supportDTO.setUsername(username);
         SupportDTO newSupportDTO = supportRequestService.addSupportRequest(supportDTO);
@@ -165,8 +162,6 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=GENERAL_SERVICE)
     public boolean manageSupportRequest(String username, UUID supportId, String explain) {
         SupportResponseDTO supportResponseDTO = new SupportResponseDTO();
         supportResponseDTO.setSupportCode(supportId);
@@ -197,15 +192,13 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=GENERAL_SERVICE)
     public boolean manageReport(String username, UUID reviewId, boolean product, boolean accept) {
 
         ReportDTO reportDTO = reportService.getReportByReviewId(reviewId);
 
-        reportService.deleteReport(reviewId);
+        reportService.validateDeleteReport(reviewId);
 
-        adminNotificationService.deleteByReport(reportDTO);
+        adminNotificationService.validateDeleteByReport(reportDTO);
 
         if(!product && accept){
             return deleteReview(reviewId);
@@ -216,41 +209,35 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-    @Retry(name=GENERAL_SERVICE)
     public boolean updateAdminNotification(List<AdminNotificationDTO> notificationDTO) {
-        try{
-            List<SaveAdminNotificationDTO> saveNotificationDTO = new Vector<>();
-            SaveAdminNotificationDTO saveAdminNotificationDTO;
 
-            for(AdminNotificationDTO notify: notificationDTO){
-                saveAdminNotificationDTO = new SaveAdminNotificationDTO();
+        List<SaveAdminNotificationDTO> saveNotificationDTO = new Vector<>();
+        SaveAdminNotificationDTO saveAdminNotificationDTO;
 
-                saveAdminNotificationDTO.setId(notify.getId());
-                saveAdminNotificationDTO.setDate(LocalDate.parse(notify.getDate()));
-                saveAdminNotificationDTO.setSubject(notify.getSubject());
-                saveAdminNotificationDTO.setAdmin(notify.getAdmin());
-                saveAdminNotificationDTO.setRead(notify.isRead());
+        for(AdminNotificationDTO notify: notificationDTO){
+            saveAdminNotificationDTO = new SaveAdminNotificationDTO();
 
-                if(notify.getReportId() == null){
-                    saveAdminNotificationDTO.setSupport(supportRequestService.getSupport(notify.getSupportId()));
-                }else{
-                    saveAdminNotificationDTO.setReport(reportService.getReport(notify.getReportId()));
-                }
-                saveNotificationDTO.add(saveAdminNotificationDTO);
+            saveAdminNotificationDTO.setId(notify.getId());
+            saveAdminNotificationDTO.setDate(LocalDate.parse(notify.getDate()));
+            saveAdminNotificationDTO.setSubject(notify.getSubject());
+            saveAdminNotificationDTO.setAdmin(notify.getAdmin());
+            saveAdminNotificationDTO.setRead(notify.isRead());
+
+            if(notify.getReportId() == null){
+                saveAdminNotificationDTO.setSupport(supportRequestService.getSupport(notify.getSupportId()));
+            }else{
+                saveAdminNotificationDTO.setReport(reportService.getReport(notify.getReportId()));
             }
-
-            return adminNotificationService.updateAdminNotification(saveNotificationDTO);
-
-        }catch(Exception | Error e){
-            log.debug("Errore nell'inserimento della notifica per l'admin");
-            return false;
+            saveNotificationDTO.add(saveAdminNotificationDTO);
         }
+
+        return adminNotificationService.updateAdminNotification(saveNotificationDTO);
     }
 
 
     //Metodi di servizio
-    boolean deleteReview(UUID reviewId) {
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackProduct")
+    private boolean deleteReview(UUID reviewId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));

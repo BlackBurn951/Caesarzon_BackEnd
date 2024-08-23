@@ -1,12 +1,8 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.LastViewRepository;
-import org.caesar.productservice.Data.Entities.LastView;
 import org.caesar.productservice.Data.Services.LastViewService;
 import org.caesar.productservice.Dto.LastViewDTO;
 import org.caesar.productservice.Dto.ProductDTO;
@@ -22,16 +18,8 @@ public class LastViewServiceImpl implements LastViewService {
 
     private final LastViewRepository lastViewRepository;
     private final ModelMapper modelMapper;
-    private final static String LASTVIEW_SERVICE = "lastViewService";
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su lastviewService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
     @Override
-//    @CircuitBreaker(name=LASTVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=LASTVIEW_SERVICE)
     public boolean save(String username, ProductDTO productDTO) {
         try{
             LastViewDTO lastViewDTO = new LastViewDTO();
@@ -50,7 +38,6 @@ public class LastViewServiceImpl implements LastViewService {
     }
 
     @Override
-//    @Retry(name=LASTVIEW_SERVICE)
     public List<LastViewDTO> getAllViewed(String username) {
         try{
             return lastViewRepository.getLastViewsByUsername(username).stream().map(a-> modelMapper.map(a, LastViewDTO.class)).toList();

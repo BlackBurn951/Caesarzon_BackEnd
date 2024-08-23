@@ -40,7 +40,7 @@ public class ProductController {
 
     @GetMapping("/image")
     public ResponseEntity<List<ImageDTO>> getProductImages(@RequestParam UUID productID) {
-        List<ImageDTO> images = generalService.getProductImages(productID);
+        List<ImageDTO> images = generalService.getProductImage(productID);
 
         if(!images.isEmpty()){
             return new ResponseEntity<>(images, HttpStatus.OK);

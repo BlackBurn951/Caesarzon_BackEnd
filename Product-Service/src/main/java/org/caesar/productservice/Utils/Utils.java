@@ -1,7 +1,9 @@
 package org.caesar.productservice.Utils;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -18,10 +20,18 @@ import java.util.Objects;
 
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class Utils {
 
     private final RestTemplate restTemplate;
+    private final static String NOTIFY_SERVICE= "notifyService";
 
+    private boolean fallbackCircuitBreaker(Throwable e){
+        log.info("Servizio per l'invio delle notifiche non disponibile");
+        return false;
+    }
+
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     public boolean sendNotify(String username, String subject, String explanation){
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();

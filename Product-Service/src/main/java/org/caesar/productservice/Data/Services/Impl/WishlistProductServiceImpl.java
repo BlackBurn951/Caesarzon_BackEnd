@@ -1,8 +1,5 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.WishlistProductRepository;
@@ -27,17 +24,9 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
     private final ModelMapper modelMapper;
     private final WishlistProductRepository wishlistProductRepository;
-    private final static String WISHLISTPRODUCT_SERVICE = "wishlistProductService";
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su wishlistProductService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
 
     @Override
-//    @CircuitBreaker(name= WISHLISTPRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=WISHLISTPRODUCT_SERVICE)
     public boolean addOrUpdateWishlistProduct(WishListProductDTO wishlistProduct) {
         try {
             WishlistProduct wishlistProductEntity = new WishlistProduct();
@@ -48,21 +37,19 @@ public class WishlistProductServiceImpl implements WishlistProductService {
             wishlistProductRepository.save(wishlistProductEntity);
             return true;
         }
-        catch (RuntimeException | Error e) {
+        catch (Exception | Error e) {
             log.debug("Errore nell'aggiunta del prodotto nella lista desideri");
             return false;
         }
     }
     @Override
-//    @CircuitBreaker(name= WISHLISTPRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=WISHLISTPRODUCT_SERVICE)
     public boolean deleteProductFromWishlist(WishListProductDTO wishListProductDTO){
         try{
             wishlistProductRepository.deleteWishlistProductByProductAndWishlist(
                     modelMapper.map(wishListProductDTO.getProductDTO(), Product.class),
                     modelMapper.map(wishListProductDTO.getWishlistDTO(), Wishlist.class));
             return true;
-        }catch(RuntimeException | Error e) {
+        }catch(Exception | Error e) {
             log.debug("Errore nella rimozione del prodotto dalla lista desideri");
             return false;
         }
@@ -71,7 +58,6 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
 
     @Override
-//    @Retry(name=WISHLISTPRODUCT_SERVICE)
     public List<WishListProductDTO> getWishlistProductsByWishlistID(WishlistDTO wishlistDTO){
         try {
             List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlistDTO, Wishlist.class));
@@ -88,7 +74,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
             return wishListProductDTOS1;
 
 
-        }catch(RuntimeException | Error e) {
+        }catch(Exception | Error e) {
             log.debug("Errore nella presa dei prodotti della lista");
             return null;
         }
@@ -105,15 +91,12 @@ public class WishlistProductServiceImpl implements WishlistProductService {
     }
 
 
-    @Override
-    //Rimuove tutti i prodotti della lista desideri passando l'id della stessa
-//    @CircuitBreaker(name= WISHLISTPRODUCT_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=WISHLISTPRODUCT_SERVICE)
+    @Override  //Rimuove tutti i prodotti della lista desideri passando l'id della stessa
     public boolean deleteAllProductsFromWishlist(WishlistDTO wishlistDTO) {
         try {
             wishlistProductRepository.deleteAllByWishlist(modelMapper.map(wishlistDTO, Wishlist.class));
             return true;
-        }catch(RuntimeException | Error e) {
+        }catch(Exception | Error e) {
             log.debug("Errore nella rimozione dei prodotti dalla lista desideri");
             return false;
         }

@@ -24,18 +24,9 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-    private final static String USER_SERVICE= "userService";
-
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su userService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
-
 
     //Metodo per prendere i dati di un'utente
     @Override
-//    @Retry(name=USER_SERVICE)
     public UserDTO getUser(String username) {
         try {
             // Conversione dell'oggetto entity in un oggetto DTO per poi privarlo dell'id per non farlo girare sulla rete
@@ -51,7 +42,6 @@ public class UserServiceImpl implements UserService {
 
     //Metodo per restituire tutti gli utenti
     @Override
-//    @Retry(name=USER_SERVICE)
     public List<UserDTO> getUsers(int start) {
         List<User> users= userRepository.findAllUsers(start);
 
@@ -66,15 +56,12 @@ public class UserServiceImpl implements UserService {
 
     //Metodo per prendere la lista di utenti
     @Override
-//    @Retry(name=USER_SERVICE)
-    public List<String> getUsersByUsername(String username) {  //TODO FATTO DA CICCIO
+    public List<String> getUsersByUsername(String username) {
         return userRepository.findAllUsersByUsername(username);
     }
 
     //Metodo per salvare un utente
     @Override
-//    @CircuitBreaker(name=USER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=USER_SERVICE)
     public boolean saveUser(UserRegistrationDTO userRegistrationDTO) {
         //Controllo che i campi mandati da front non siano null e che rispettino il formato richiesto
         if(checkUsername(userRegistrationDTO.getUsername()) &&
@@ -88,8 +75,6 @@ public class UserServiceImpl implements UserService {
 
     //Metodo per aggiornare i dati di un utente
     @Override
-//    @CircuitBreaker(name=USER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=USER_SERVICE)
     public boolean updateUser(UserDTO userDTO) {
         //Controllo che i campi mandati da front non siano null e che rispettino il formato richiesto
         if(checkUsername(userDTO.getUsername()) &&
@@ -103,8 +88,6 @@ public class UserServiceImpl implements UserService {
 
     //Metodo per eliminare un utente
     @Override
-//    @CircuitBreaker(name=USER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=USER_SERVICE)
     public boolean deleteUser(String userUsername) {
         try {
             return userRepository.deleteUser(userUsername);
@@ -116,8 +99,6 @@ public class UserServiceImpl implements UserService {
 
     //Metodo per cambiare la password di un utente
     @Override
-//    @CircuitBreaker(name=USER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=USER_SERVICE)
     public boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username) {
         try {
             return userRepository.changePassword(passwordChangeDTO, username);
@@ -128,14 +109,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean checkOtp(PasswordChangeDTO passwordChangeDTO, String otp) {
-        User user= userRepository.findUserByUsername(passwordChangeDTO.getUsername());
+    public boolean checkOtp(OtpDTO otp) {
+        User user= userRepository.findUserByUsername(otp.getUsername());
 
         if(user==null)
             return false;
 
-        if(user.getOtp().equals(otp)) {
-            changePassword(passwordChangeDTO, user.getUsername());
+        if(user.getOtp().equals(otp.getOtp())) {
             user.setOtp(null);
             return userRepository.updateUser(modelMapper.map(user, UserDTO.class));
         }
