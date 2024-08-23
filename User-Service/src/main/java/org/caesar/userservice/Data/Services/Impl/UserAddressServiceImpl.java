@@ -69,7 +69,6 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public boolean checkAddress(String username, UUID addressId) {
         UserAddress userAddress= userAddressRepository.findByUserUsernameAndId(username, addressId);
-        System.out.println(userAddress.getId());
         return userAddress != null;
     }
 

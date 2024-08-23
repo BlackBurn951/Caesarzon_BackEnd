@@ -45,11 +45,11 @@ public class FollowerController {
             return new ResponseEntity<>("Problemi nella registrazione dei followers...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @DeleteMapping("/followers")
-    public ResponseEntity<String> deleteFollower(@RequestBody List<String> followers) {
+    @DeleteMapping("/followers/{usernameToDelete}")
+    public ResponseEntity<String> deleteFollower(@PathVariable String usernameToDelete) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(followerService.deleteFollowers(username, followers))
+        if(followerService.deleteFollowers(username, usernameToDelete))
             return new ResponseEntity<>("Followers eliminati con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'eliminazione dei followers...", HttpStatus.INTERNAL_SERVER_ERROR);

@@ -35,7 +35,7 @@ public class NotificationController {
         if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
     @GetMapping("/admin/notifications")
@@ -47,7 +47,7 @@ public class NotificationController {
         if (result != null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
     //End-point per la creazione di una notifica all'utente

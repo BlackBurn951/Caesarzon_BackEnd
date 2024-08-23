@@ -107,7 +107,6 @@ public class UserDataController {
         if(recovery==0) {
             String result= generalService.recoveryPassword(passwordChangeDTO.getUsername());
 
-            System.out.println(result);
             if(result.contains("@"))
                 return new ResponseEntity<>(result, HttpStatus.OK);
             return new ResponseEntity<>(result, HttpStatus.OK);
