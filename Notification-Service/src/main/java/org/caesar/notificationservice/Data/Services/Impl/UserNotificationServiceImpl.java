@@ -74,6 +74,67 @@ public class UserNotificationServiceImpl implements UserNotificationService {
         }
     }
 
+    @Override
+    public UUID validateNotification() {
+        try{
+            UserNotification notification= new UserNotification();
+
+            notification.setDate(null);
+            notification.setUser(null);
+            notification.setSubject(null);
+            notification.setExplanation(null);
+            notification.setRead(false);
+            notification.setConfirmed(false);
+
+            UUID notifyId= userNotificationRepository.save(notification).getId();
+
+            return notifyId;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean completeNotification(UserNotificationDTO userNotificationDTO) {
+        try{
+            UserNotification notification= new UserNotification();
+
+            notification.setDate(LocalDate.now());
+            notification.setId(userNotificationDTO.getId());
+            notification.setUser(userNotificationDTO.getUser());
+            notification.setSubject(userNotificationDTO.getSubject());
+            notification.setExplanation(userNotificationDTO.getExplanation());
+            notification.setRead(userNotificationDTO.isRead());
+            notification.setConfirmed(false);
+
+            userNotificationRepository.save(notification);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean releaseNotification(UUID notificationId) {
+        try{
+            UserNotification notification= userNotificationRepository.findById(notificationId).orElse(null);
+
+            if(notification==null)
+                return false;
+
+            notification.setConfirmed(true);
+
+            userNotificationRepository.save(notification);
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
     //Metodo per aggiornare lo stato di lettura delle notifiche dell'utente
     @Override
     public boolean updateUserNotification(List<UserNotificationDTO> notificationDTO) {

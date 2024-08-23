@@ -3,18 +3,14 @@ package org.caesar.productservice.Data.Services;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.ProductOrderDTO;
-import org.caesar.productservice.Dto.SendProductOrderDTO;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface ProductOrderService {
 
-    UUID addOrUpdateProductOrder(SendProductOrderDTO productOrder);
+    boolean validateAndCompleteAndReleaseProductInOrder(List<ProductOrderDTO> products, boolean release);
 
-    SendProductOrderDTO getProductOrder(UUID id);
-
-    List<SendProductOrderDTO> getProductOrders();
+    boolean rollbackProductInOrder(List<ProductOrderDTO> products);
 
     boolean deleteProductCarts(String username);
 

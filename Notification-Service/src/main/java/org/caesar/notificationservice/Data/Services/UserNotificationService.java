@@ -8,6 +8,11 @@ import java.util.UUID;
 public interface UserNotificationService {
     List<UserNotificationDTO> getUserNotification(String username);
     boolean addUserNotification(UserNotificationDTO notificationDTO);
+
+    UUID validateNotification();
+    boolean completeNotification(UserNotificationDTO userNotificationDTO);
+    boolean releaseNotification(UUID notificationId);
+
     boolean updateUserNotification(List<UserNotificationDTO> notificationDTO);
     boolean deleteUserNotification(UUID id);
     boolean deleteAllUserNotification(String username);

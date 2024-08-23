@@ -11,6 +11,7 @@ import org.caesar.productservice.Dto.ProductCartDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
 import org.caesar.productservice.Dto.RefundDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
+import org.caesar.productservice.Sagas.OrderOrchestrator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,7 @@ public class OrderController {
     private final ProductOrderService productOrderService;
     private final OrderService orderService;
     private final PayPalService payPalService;
+    private final OrderOrchestrator orderOrchestrator;
 
     //Metodi per la gestione del carrello
     @GetMapping("/cart")
@@ -81,7 +83,7 @@ public class OrderController {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         if(productOrderService.deleteProductCarts(username))
-            return new ResponseEntity<>("Carello svuotato con successo!", HttpStatus.OK);
+            return new ResponseEntity<>("Carrello svuotato con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nel svuotamento del carello...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -163,7 +165,7 @@ public class OrderController {
 
     @PutMapping("/orders/notify")
     public ResponseEntity<String> updateOrderNotify(){
-        if(orderService.updateNotifyOrder())
+        if(orderOrchestrator.processNotifyOrder())
             return new ResponseEntity<>("Notifiche aggiornate con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nell'aggiornamento delle notifiche'...", HttpStatus.INTERNAL_SERVER_ERROR);

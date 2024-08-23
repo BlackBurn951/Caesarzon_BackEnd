@@ -50,13 +50,48 @@ public class NotificationController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    //End-point per la creazione di una notifica all'utente
+
+    //Validazione
     @PostMapping("/notification")
-    public ResponseEntity<String> createNotification(@RequestBody UserNotificationDTO notificationDTO) {
-        if(userNotificationService.addUserNotification(notificationDTO))
-            return new ResponseEntity<>("Notifica creata con successo", HttpStatus.OK);
+    public ResponseEntity<UUID> validateNotification() {
+        UUID result= userNotificationService.validateNotification();
+
+        if(result!=null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
         else
-            return new ResponseEntity<>("Problemi nella creazione della notifica...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    //Completamento
+    @PutMapping("/notification")
+    public ResponseEntity<String> completeNotification(@RequestBody UserNotificationDTO notificationDTO) {
+        if(userNotificationService.completeNotification(notificationDTO))
+            return new ResponseEntity<>("Completamento della notifica avvenuto con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problema nel completamento della notifica...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    //Rilascio lock
+    @PutMapping("/notification")
+    public ResponseEntity<String> releaseNotification(@RequestParam("notify-id") UUID notifyId) {
+        if (userNotificationService.releaseNotification(notifyId))
+            return new ResponseEntity<>("Release del lock avvenuto con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel release del lock...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    //Rollback
+    @DeleteMapping("/notification/{notifyId}")
+    public ResponseEntity<String> rollbackNotification(@PathVariable UUID notifyId) {
+        if(userNotificationService.deleteUserNotification(notifyId))
+            return new ResponseEntity<>("Rollback avvenuto con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problema nel rollback...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+
 
     @PutMapping("/user/notifications")
     public ResponseEntity<String> updateUserNotifications(@RequestBody List<UserNotificationDTO> notificationDTO) {

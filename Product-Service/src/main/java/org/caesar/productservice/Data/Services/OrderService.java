@@ -3,49 +3,41 @@ package org.caesar.productservice.Data.Services;
 import org.caesar.productservice.Dto.DTOOrder.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public interface OrderService {
 
-    //SimpleOrderDTO
-    boolean addOrUpdateOrder(SimpleOrderDTO order);
+    UUID validateOrderForCreate();
 
-    SimpleOrderDTO getOrderById(UUID id);
+    boolean completeOrderForCreate(OrderDTO orderDTO);
 
-    List<SimpleOrderDTO> getAllSimpleOrders(UUID userID);
+    boolean releaseLockOrderForCreate(UUID orderId);
 
-    boolean deleteOrderById(UUID id);
+    boolean rollbackOrderForCreate(UUID orderId);
 
-    //PurchaseOrderDTO
-    boolean addOrUpdateOrder(PurchaseOrderDTO order);
 
-    PurchaseOrderDTO getPurchaseOrderById(UUID id);
+    boolean validateOrderForReturn(UUID orderId);
 
-    List<PurchaseOrderDTO> getAllPurchaseOrders();
+    boolean completeOrderForReturn(UUID orderId);
 
-    boolean deletePurchaseOrderById(UUID id);
+    boolean releaseLockOrderForReturn(UUID orderId);
 
-    //ReturnOrderDTO
-    boolean addOrUpdateReturnOrder(ReturnOrderDTO order);
+    boolean rollbackOrderForReturn(UUID orderId);
 
-    ReturnOrderDTO getReturnOrderById(UUID id);
 
-    List<ReturnOrderDTO> getAllReturnOrders();
+    Map<UUID, List<String>> validateOrderForUpdate(boolean rollback);
 
-    boolean deleteReturnOrderById(UUID id);
+    boolean completeOrderForUpdate(List<UUID> orderIds);
+
+    boolean rollbackOrderForUpdate(List<UUID> orderIds);
+
 
     OrderDTO addOrder(OrderDTO orderDTO);
 
     List<OrderDTO> getOrders(String username);
 
-
     OrderDTO getOrder(String username, UUID id);
 
-    boolean updateNotifyOrder();
-
     OrderDTO getOrderByIdAndUsername(UUID orderId, String username);
-
-    OrderDTO save(OrderDTO orderDTO);
-
-
 }

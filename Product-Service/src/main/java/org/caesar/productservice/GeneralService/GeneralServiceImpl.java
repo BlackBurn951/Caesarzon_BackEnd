@@ -13,6 +13,7 @@ import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
+import org.caesar.productservice.Sagas.OrderOrchestrator;
 import org.caesar.productservice.Sagas.ReviewOrchestrator;
 import org.caesar.productservice.Utils.Utils;
 import org.modelmapper.ModelMapper;
@@ -55,6 +56,7 @@ public class GeneralServiceImpl implements GeneralService {
     private final PayPalService payPalService;
     private final ModelMapper modelMapper;
     private final ReviewOrchestrator reviewOrchestrator;
+    private final OrderOrchestrator orderOrchestrator;
 
     private final static String USER_SERVICE= "userService";
     private final static String NOTIFY_SERVICE= "notifyService";
@@ -325,33 +327,11 @@ public class GeneralServiceImpl implements GeneralService {
         if(buyDTO.getTotal()<=0.0 || buyDTO.getAddressID()==null)
             return "Errore";
 
-        OrderDTO orderDTO= new OrderDTO();
-        orderDTO.setOrderNumber(generaCodice(8));
-        orderDTO.setOrderState("Ricevuto");
-        orderDTO.setOrderTotal(buyDTO.getTotal());
-        orderDTO.setExpectedDeliveryDate(LocalDate.now().plusDays(5));
-        orderDTO.setPurchaseDate(LocalDate.now());
-        orderDTO.setRefund(false);
-        orderDTO.setAddressID(buyDTO.getAddressID());
-        orderDTO.setCardID(buyDTO.getCardID());
-        orderDTO.setUsername(username);
-
-
-        OrderDTO savedOrder = orderService.addOrder(orderDTO);
-
-        if(savedOrder==null)
-            return "Errore";
-
-        for(ProductOrderDTO productOrderDTO : productInOrder)
-            productOrderDTO.setOrderDTO(savedOrder);
-
-        if(productOrderService.saveAll(productInOrder) &&
-                utils.sendNotify(username,
-                        "Ordine numero "+savedOrder.getOrderNumber()+" effettuato",
-                        "Il tuo ordine è in fase di elaborazione e sarà consegnato il "+ savedOrder.getExpectedDeliveryDate()))
+        if(orderOrchestrator.processCreateOrderWithPaypalPayment(username, productInOrder, buyDTO.getTotal(), buyDTO.getAddressID()))
             return "Ordine effettuato con successo!";
-        else
-            return "Errore"; //☺
+
+        changeAvaibility(productInOrder, true);
+        return "Errore"; //☺
     }
 
     @Override
@@ -362,46 +342,35 @@ public class GeneralServiceImpl implements GeneralService {
         if (order.getPurchaseDate().isBefore(tenDaysAgo)) {
             utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" rifiutato",
                     "Il reso è possibile solo entro 10 giorni dall'acquisto");
-            return false;
         }else{
             //Prendo tutti i prodotti nell'ordine restituito
             List<ProductOrderDTO> productOrderDTO = productOrderService.getProductInOrder(username, order);
 
+            if(productOrderDTO==null || productOrderDTO.isEmpty())
+                return false;
+
             //Lista di disponibilità (mi serve solo per aggiornare la disponibilità)
-            List<AvailabilityDTO> availabilityDTOS;
+            List<AvailabilityDTO> availabilityDTOS= new Vector<>();
 
             //Oggetto singolo per restituire la disponibilità attuale del prodotto tramite taglia
             AvailabilityDTO availabilityDTO;
 
             for(ProductOrderDTO productOrderDTO1: productOrderDTO){
-                //Inizializzo qui la lista perchè mi serve sempre vuota
-                availabilityDTOS = new Vector<>();
 
                 //Inizializzo il prodotto andando a prendermi la disponibilità del prodotto passato per argomento e della taglia sempre passata come argomento
                 availabilityDTO = availabilityService.getAvailabilitieByProductId(productOrderDTO1.getProductDTO(), productOrderDTO1.getSize());
 
-                //Alla disponibilità restituita aggiungo di nuovo quella precedentemente sottratta e se nel DB non esisteva più viene ricreata
-                availabilityDTO.setSize(productOrderDTO1.getSize());
-                availabilityDTO.setAmount(productOrderDTO1.getQuantity());
+                if(availabilityDTO==null)
+                    return false;
 
                 //Aggiunto la disponibilità alla lista che mi serve per aggiornare la disponibilità
                 availabilityDTOS.add(availabilityDTO);
-
-                //Aggiorno effettivamente la disponibilità
-                availabilityService.addOrUpdateAvailability(availabilityDTOS, productOrderDTO1.getProductDTO());
             }
 
-            order.setRefundDate(LocalDate.now());
-            order.setOrderState("Rimborsato");
-            order.setRefund(true);
-            if(orderService.save(order)!= null) {
-                if(order.getCardID()!=null)
-                    checkPayment(order.getCardID(), order.getOrderTotal(), true);
-                return utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" accettato",
-                        "Il rimborso sarà effettuato sul metodo di pagamento utilizzato al momento dell'acquisto");
-            }
-            return false;
+
+            return orderOrchestrator.processReturnOrder(username, productOrderDTO, orderId, availabilityDTOS, order.getCardID(), order.getOrderTotal(), order.getOrderNumber());
         }
+        return false;
     }
 
     @Override
@@ -470,12 +439,9 @@ public class GeneralServiceImpl implements GeneralService {
 
         approximatedSecondDecimal(total+= 5);
         if (!payMethod) {
-            if (!checkPayment(buyDTO.getCardID(), total, false)) {
-                changeAvaibility(productInOrder, true);
-                return "Errore";
-            }
-            buyDTO.setTotal(total);
-            return createOrder(username, buyDTO);
+            if(orderOrchestrator.processCreateOrderWithCardPayment(username, productInOrder, total, buyDTO.getAddressID(), buyDTO.getCardID()))
+                return "Ordine effettuato con successo!";
+            changeAvaibility(productInOrder, true);
         } else {
             try {
                 Payment payment = payPalService.createPayment(
@@ -491,8 +457,8 @@ public class GeneralServiceImpl implements GeneralService {
             } catch (PayPalRESTException e) {
                 e.printStackTrace();
             }
-            return "Errore";
         }
+        return "Errore";
     }
 
 

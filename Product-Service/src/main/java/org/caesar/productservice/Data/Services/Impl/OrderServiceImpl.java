@@ -15,9 +15,8 @@ import org.modelmapper.ModelMapper;
 
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -29,83 +28,231 @@ public class OrderServiceImpl implements OrderService {
     private final Utils utils;
 
 
-    @Override  //Aggiunge o modifica un SimpleOrder
-    public boolean addOrUpdateOrder(SimpleOrderDTO order) {
-        return modelMapper.map(order, SimpleOrderDTO.class) != null;
+    //2PC per la creazione dell'ordine
+    @Override
+    public UUID validateOrderForCreate() {
+        try {
+            Order order= new Order();
+
+            order.setOrderState("In validazione");
+            UUID orderId= orderRepository.save(order).getId();
+
+            return orderId;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella creazione dell'ordine");
+            return null;
+        }
     }
 
     @Override
-    public SimpleOrderDTO getOrderById(UUID id) {
+    public boolean completeOrderForCreate(OrderDTO orderDTO) {
+        try {
+            Order order= orderRepository.findById(orderDTO.getId()).orElse(null);
 
-        return modelMapper.map(orderRepository.findById(id).orElse(null),
-                SimpleOrderDTO.class);
-    }
+            if(order==null)
+                return false;
 
-    @Override  // Restituisce tutti i SimpleOrders presenti nel db
-    public List<SimpleOrderDTO> getAllSimpleOrders(UUID userID) {
-        List<SimpleOrderDTO> orders = new ArrayList<>();
-        for (Order order : orderRepository.findAll()) {
-            orders.add(modelMapper.map(order, SimpleOrderDTO.class));
+            order.setOrderNumber(orderDTO.getOrderNumber());
+            order.setExpectedDeliveryDate(orderDTO.getExpectedDeliveryDate());
+            order.setPurchaseDate(orderDTO.getPurchaseDate());
+            order.setRefundDate(orderDTO.getRefundDate());
+            order.setRefund(orderDTO.isRefund());
+            order.setAddressID(orderDTO.getAddressID());
+            order.setCardID(orderDTO.getCardID());
+            order.setOrderTotal(orderDTO.getOrderTotal());
+            order.setUsername(orderDTO.getUsername());
+
+            orderRepository.save(order);
+
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella creazione dell'ordine");
+            return false;
         }
-        return orders;
     }
 
-    @Override  // Elimina l'ordine dal db tramite il suo id
-    public boolean deleteOrderById(UUID id) {
-        for (Order order : orderRepository.findAll()) {
-            if (order.getId().equals(id)) {
-                orderRepository.delete(order);
-                return true;
+    @Override
+    public boolean releaseLockOrderForCreate(UUID orderId) {
+        try {
+            Order order= orderRepository.findById(orderId).orElse(null);
+
+            if(order==null)
+                return false;
+
+            order.setOrderState("Ricevuto");
+
+            orderRepository.save(order);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella creazione dell'ordine");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackOrderForCreate(UUID orderId) {
+        try {
+            orderRepository.deleteById(orderId);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella creazione dell'ordine");
+            return false;
+        }
+    }
+
+
+    //2PC per il reso dell'ordine
+    @Override
+    public boolean validateOrderForReturn(UUID orderId) {
+        try {
+            Order order= orderRepository.findById(orderId).orElse(null);
+
+            if(order==null)
+                return false;
+
+            order.setOrderState("In validazione");
+            orderRepository.save(order);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella creazione dell'ordine");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean completeOrderForReturn(UUID orderId) {
+        try {
+            Order order= orderRepository.findById(orderId).orElse(null);
+
+            if(order==null)
+                return false;
+
+            order.setRefundDate(LocalDate.now());
+            order.setRefund(true);
+            orderRepository.save(order);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella creazione dell'ordine");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean releaseLockOrderForReturn(UUID orderId) {
+        try {
+            Order order= orderRepository.findById(orderId).orElse(null);
+
+            if(order==null)
+                return false;
+
+            order.setOrderState("Rimborsato");
+            orderRepository.save(order);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella creazione dell'ordine");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackOrderForReturn(UUID orderId) {
+        try {
+            Order order= orderRepository.findById(orderId).orElse(null);
+
+            if(order==null)
+                return false;
+
+            order.setOrderState("Ricevuto");
+            order.setRefundDate(null);
+            order.setRefund(false);
+            orderRepository.save(order);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella creazione dell'ordine");
+            return false;
+        }
+    }
+
+
+    //2PC per l'aggiornamento dell'ordine
+    @Override
+    public Map<UUID, List<String>> validateOrderForUpdate(boolean rollback) {
+        try {
+            List<Order> orders= orderRepository.findAllByOrderState("Ricevuto");
+
+            if(orders==null)
+                return null;
+
+            Map<UUID, List<String>> result= new HashMap<>();
+            List<String> numberAndUsername;
+
+            for(Order order:orders) {
+                order.setOrderState("In validazione");
+
+                numberAndUsername= new Vector<>();
+                numberAndUsername.add(order.getOrderNumber());
+                numberAndUsername.add(order.getUsername());
+                result.put(order.getId(), numberAndUsername);
             }
+
+            orderRepository.saveAll(orders);
+
+            return result;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella creazione dell'ordine");
+            return null;
         }
-        return false;
     }
 
-    @Override  // Aggiunge o modifica un PurchaseOrder
-    public boolean addOrUpdateOrder(PurchaseOrderDTO order) {
-        return modelMapper.map(order, PurchaseOrderDTO.class) != null;
-    }
+    @Override
+    public boolean completeOrderForUpdate(List<UUID> orderIds) {
+        try {
+            List<Order> orders= orderRepository.findAllById(orderIds);
 
-    @Override  // Restituisce un PurchaseOrder tramite l'id passato
-    public PurchaseOrderDTO getPurchaseOrderById(UUID id) {
-        Order purchaseOrder = orderRepository.findById(id).orElse(null);
-        return modelMapper.map(purchaseOrder, PurchaseOrderDTO.class);
-    }
+            if(orders==null || orders.isEmpty())
+                return false;
 
-    @Override  // Restituisce tutti i purchaseOrder
-    public List<PurchaseOrderDTO> getAllPurchaseOrders() {
-        List<PurchaseOrderDTO> orders = new ArrayList<>();
-        for (Order order : orderRepository.findAll()) {
-            orders.add(modelMapper.map(order, PurchaseOrderDTO.class));
+            for(Order order:orders) {
+                order.setOrderState("In consegna");
+            }
+
+            orderRepository.saveAll(orders);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella creazione dell'ordine");
+            return false;
         }
-        return orders;
-    }
-
-    @Override  // Elimina un PurchaseOrder tramite il suo id
-    public boolean deletePurchaseOrderById(UUID id) {
-        return false;
-    }
-
-    //ReturnOrderDTOService
-    @Override
-    public boolean addOrUpdateReturnOrder(ReturnOrderDTO order) {
-        return false;
     }
 
     @Override
-    public ReturnOrderDTO getReturnOrderById(UUID id) {
-        return null;
+    public boolean rollbackOrderForUpdate(List<UUID> orderIds) {
+        try {
+            List<Order> orders= orderRepository.findAllById(orderIds);
+
+            if(orders==null || orders.isEmpty())
+                return false;
+
+            for(Order order:orders) {
+                order.setOrderState("Ricevuto");
+            }
+
+            orderRepository.saveAll(orders);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella creazione dell'ordine");
+            return false;
+        }
     }
 
-    @Override
-    public List<ReturnOrderDTO> getAllReturnOrders() {
-        return List.of();
-    }
-
-    @Override
-    public boolean deleteReturnOrderById(UUID id) {
-        return false;
-    }
 
     @Override  // Aggiunge un ordine al db e lo restituisce
     public OrderDTO addOrder(OrderDTO orderDTO) {
@@ -131,27 +278,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public boolean updateNotifyOrder() {
-        List<Order> orders= orderRepository.findAllByOrderState("Ricevuto");
-        for (Order order : orders) {
-            order.setOrderState("In consegna");
-            orderRepository.save(order);
-
-            utils.sendNotify(order.getUsername(),
-                    "Aggiornamento ordine numero " + order.getOrderNumber(),
-                    "Il tuo ordine è in consegna e arriverà presto."
-            );
-        }
-        return true;
-    }
-
-    @Override
     public OrderDTO getOrderByIdAndUsername(UUID orderId, String username) {
         return modelMapper.map(orderRepository.findOrderByIdAndUsername(orderId, username), OrderDTO.class);
-    }
-
-    @Override
-    public OrderDTO save(OrderDTO orderDTO){
-        return  modelMapper.map(orderRepository.save(modelMapper.map(orderDTO, Order.class)), OrderDTO.class);
     }
 }

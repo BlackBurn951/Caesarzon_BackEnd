@@ -68,15 +68,82 @@ public class CardController {
 
 
     //End-point chiamato dal microservizio dei prodotti per pagare in caso di acquisto con la carta
+
+
+    //End-point 2PC per il pagamento
     @PostMapping("/balance/{cardId}")
-    public ResponseEntity<Boolean> pay(@PathVariable("cardId") UUID cardId, @RequestParam("total") double total, @RequestParam("refund") boolean refund) {
+    public ResponseEntity<String> validatePayment(@PathVariable("cardId") UUID cardId, @RequestParam("total") double total, @RequestParam("rollback") boolean rollback) {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        boolean result= generalService.pay(username, cardId, total, refund);
+        boolean result= generalService.validatePayment(username, cardId, total, rollback);
         if(result)
-            return new ResponseEntity<>(true, HttpStatus.OK);
+            return new ResponseEntity<>("Validazione eseguita con successo", HttpStatus.OK);
         else
-            return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Problemi nella validazione...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    //End-point completamento
+    @PutMapping("/balance/{cardId}")
+    public ResponseEntity<String> completePayment(@PathVariable("cardId") UUID cardId, @RequestParam("total") double total) {
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result= generalService.completePayment(username, cardId, total);
+        if(result)
+            return new ResponseEntity<>("Completamento eseguito con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel completamento...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    //End-point rilascio lock
+    @PutMapping("/balance/{cardId}")
+    public ResponseEntity<String> releaseLockPayment(@PathVariable("cardId") UUID cardId) {
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result= generalService.releaseLockPayment(username, cardId);
+        if(result)
+            return new ResponseEntity<>("Completamento eseguito con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel completamento...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    //End-point rollback
+    @PostMapping("/balance/{cardId}/refund")
+    public ResponseEntity<String> rollbackPayment(@PathVariable("cardId") UUID cardId, @RequestParam("total") double total) {
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        boolean result= generalService.rollbackPayment(username, cardId, total);
+        if(result)
+            return new ResponseEntity<>("Rollback eseguito con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel rollback...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+
+    //End-point 2PC per il reso
+    @PostMapping("/balance/{cardId}")
+    public ResponseEntity<String> validateAndReleasePaymentForReturn(@PathVariable("cardId") UUID cardId, @RequestParam("rollback") boolean rollback) {
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        if(generalService.validateAndReleasePaymentForReturn(username, cardId, rollback))
+            return new ResponseEntity<>("Validazione eseguita con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nella validazione...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/balance")
+    public ResponseEntity<String> completeOrRollbackPaymentForReturn(@RequestParam("card-id") UUID cardId, @RequestParam("total") double total, @RequestParam("rollback") boolean rollback) {
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        if(generalService.completeOrRollbackPaymentForReturn(username, cardId, total,rollback))
+            return new ResponseEntity<>("Completamento eseguito con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel completamento...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

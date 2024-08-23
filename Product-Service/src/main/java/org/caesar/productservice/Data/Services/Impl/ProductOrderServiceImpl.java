@@ -27,19 +27,67 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     private final ProductOrderRepository productOrderRepository;
     private final ModelMapper modelMapper;
 
+
     @Override
-    public UUID addOrUpdateProductOrder(SendProductOrderDTO productOrder) {
-        return null;
+    public boolean validateAndCompleteAndReleaseProductInOrder(List<ProductOrderDTO> products, boolean release) {
+        try {
+            List<ProductOrder> productOrderList= new Vector<>();
+            ProductOrder productOrder;
+
+            for(ProductOrderDTO productOrderDTO: products){
+                productOrder = new ProductOrder();
+
+                productOrder.setId(productOrderDTO.getId());
+                productOrder.setOrder(modelMapper.map(productOrderDTO.getOrderDTO(), Order.class));
+                productOrder.setProduct(modelMapper.map(productOrderDTO.getProductDTO(), Product.class));
+                productOrder.setTotal(productOrderDTO.getTotal());
+                productOrder.setUsername(productOrderDTO.getUsername());
+                productOrder.setBuyLater(productOrderDTO.isBuyLater());
+                productOrder.setSize(productOrderDTO.getSize());
+                productOrder.setQuantity(productOrderDTO.getQuantity());
+                productOrder.setOnChanges(!release);
+
+                productOrderList.add(productOrder);
+            }
+
+            productOrderRepository.saveAll(productOrderList);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nel salvataggio degli ordini");
+            return false;
+        }
     }
 
     @Override
-    public SendProductOrderDTO getProductOrder(UUID id) {
-        return null;
-    }
+    public boolean rollbackProductInOrder(List<ProductOrderDTO> products) {
+        try {
+            List<ProductOrder> productOrderList= new Vector<>();
+            ProductOrder productOrder;
 
-    @Override
-    public List<SendProductOrderDTO> getProductOrders() {
-        return List.of();
+            for(ProductOrderDTO productOrderDTO: products){
+                productOrder = new ProductOrder();
+
+                productOrder.setId(productOrderDTO.getId());
+                productOrder.setOrder(null);
+                productOrder.setProduct(modelMapper.map(productOrderDTO.getProductDTO(), Product.class));
+                productOrder.setTotal(productOrderDTO.getTotal());
+                productOrder.setUsername(productOrderDTO.getUsername());
+                productOrder.setBuyLater(productOrderDTO.isBuyLater());
+                productOrder.setSize(productOrderDTO.getSize());
+                productOrder.setQuantity(productOrderDTO.getQuantity());
+                productOrder.setOnChanges(false);
+
+                productOrderList.add(productOrder);
+            }
+
+            productOrderRepository.saveAll(productOrderList);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nel salvataggio degli ordini");
+            return false;
+        }
     }
 
     @Override

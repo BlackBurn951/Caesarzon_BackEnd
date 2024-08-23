@@ -219,25 +219,105 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public boolean pay(String username, UUID cardId, double total, boolean refund) {
+    public boolean validatePayment(String username, UUID cardId, double total, boolean rollback) {
+        if(userCardService.checkCard(username, cardId)) {
+            CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
+
+            if(rollback) {
+                cardDTO.setOnChanges(false);
+
+                return cardService.addCard(cardDTO)!=null;
+            }
+
+            if(cardDTO.getBalance()<total) {
+                cardDTO.setOnChanges(true);
+
+                return cardService.addCard(cardDTO)!=null;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean completePayment(String username, UUID cardId, double total) {
+        if(userCardService.checkCard(username, cardId)) {
+            CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
+
+            double balance= cardDTO.getBalance();
+            if(balance<total) {
+                cardDTO.setBalance(balance-total);
+
+                return cardService.addCard(cardDTO)!=null;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean releaseLockPayment(String username, UUID cardId) {
+        if(userCardService.checkCard(username, cardId)) {
+            CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
+
+            cardDTO.setOnChanges(false);
+
+            return cardService.addCard(cardDTO)!=null;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean rollbackPayment(String username, UUID cardId, double total) {
         if(userCardService.checkCard(username, cardId)) {
             CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
 
             double balance= cardDTO.getBalance();
 
-            if(refund)
-                balance+= total;
-            else {
-                if(balance<total)
-                    return false;
-                balance-=total;
-            }
+
+            balance+= total;
             cardDTO.setBalance(balance);
 
             return cardService.addCard(cardDTO)!=null;
         }
         return false;
     }
+
+
+
+    @Override
+    public boolean validateAndReleasePaymentForReturn(String username, UUID cardId, boolean rollback) {
+        if(userCardService.checkCard(username, cardId)) {
+            CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
+
+            cardDTO.setOnChanges(!rollback);
+
+            return cardService.addCard(cardDTO)!=null;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean completeOrRollbackPaymentForReturn(String username, UUID cardId, double total, boolean rollback) {
+        if(userCardService.checkCard(username, cardId)) {
+            CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
+
+            double balance= cardDTO.getBalance();
+
+            if(rollback)
+                cardDTO.setBalance(balance-total);
+            else
+                cardDTO.setBalance(balance+total);
+
+            return cardService.addCard(cardDTO)!=null;
+        }
+
+        return false;
+    }
+
+
 
     @Override
     public String recoveryPassword(String username) {

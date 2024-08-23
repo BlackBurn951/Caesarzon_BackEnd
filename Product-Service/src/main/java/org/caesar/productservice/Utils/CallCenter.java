@@ -3,6 +3,7 @@ package org.caesar.productservice.Utils;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.common.Uuid;
 import org.caesar.productservice.Dto.ReportDTO;
 import org.caesar.productservice.Dto.SaveAdminNotificationDTO;
 import org.springframework.core.ParameterizedTypeReference;
@@ -12,9 +13,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +38,7 @@ public class CallCenter {
     }
 
 
-
+    //CHIAMATE PER L'ELIMINAZIONE DELLA RECENSIONE
     @CircuitBreaker(name= NOTIFICATION_SERVICE, fallbackMethod = "fallbackValidate")
     public int validateReportAndNotifications(String username, UUID reviewId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
@@ -174,6 +174,161 @@ public class CallCenter {
         HttpEntity<List<SaveAdminNotificationDTO>> entity = new HttpEntity<>(notifications, headers);
 
         return restTemplate.exchange("http://notification-service/notify-api/user/notifications",
+                HttpMethod.POST,
+                entity,
+                String.class).getStatusCode()==HttpStatus.OK;
+    }
+
+
+
+    //CHIAMATE PER IL PAGAMENTO
+    public boolean validatePayment(UUID cardId, double total, boolean rollback) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://user-service/user-api/balance/"+cardId+"?total="+total+"&rollback="+rollback,
+                HttpMethod.POST,
+                entity,
+                String.class).getStatusCode()==HttpStatus.OK;
+    }
+
+    public boolean completePayment(UUID cardId, double total) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://user-service/user-api/balance/"+cardId+"?total="+total,
+                HttpMethod.PUT,
+                entity,
+                String.class).getStatusCode()==HttpStatus.OK;
+    }
+
+    public boolean releaseLockPayment(UUID cardId) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://user-service/user-api/balance/"+cardId,
+                HttpMethod.PUT,
+                entity,
+                String.class).getStatusCode()==HttpStatus.OK;
+    }
+
+    public boolean rollbackPayment(UUID cardId, double total) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://user-service/user-api/balance/"+cardId+"?total="+total,
+                HttpMethod.POST,
+                entity,
+                String.class).getStatusCode()==HttpStatus.OK;
+    }
+
+
+
+    //CHIAMATE PER CREARE LA NOTIFICA DELL'UTENTE
+    public UUID validateNotification() {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<UUID> response= restTemplate.exchange(
+                "http://notification-service/notify-api/notification",
+                HttpMethod.POST,
+                entity,
+                UUID.class);
+
+        if(response.getStatusCode()==HttpStatus.OK)
+            return response.getBody();
+
+        return null;
+    }
+
+    public boolean completeNotification(UUID notifyId, String username, String subject, String explanation) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("id", notifyId.toString());
+        requestBody.put("date", String.valueOf(LocalDate.now()));
+        requestBody.put("subject", subject);
+        requestBody.put("user", username);
+        requestBody.put("read", "false");
+        requestBody.put("explanation", explanation);
+
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
+        return restTemplate.exchange(
+                "http://notification-service/notify-api/notification",
+                HttpMethod.PUT,
+                entity,
+                String.class
+        ).getStatusCode()== HttpStatus.OK;
+    }
+
+    public boolean releaseNotification(UUID notifyId) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        return restTemplate.exchange(
+                "http://notification-service/notify-api/notification?notify-id="+notifyId,
+                HttpMethod.PUT,
+                entity,
+                String.class
+        ).getStatusCode()== HttpStatus.OK;
+    }
+
+    public boolean rollbackNotification(UUID notifyId) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        return restTemplate.exchange(
+                "http://notification-service/notify-api/notification/"+notifyId,
+                HttpMethod.DELETE,
+                entity,
+                String.class
+        ).getStatusCode()== HttpStatus.OK;
+    }
+
+
+
+    //CHIAMATE PER IL RESO
+    public boolean validateAndReleasePaymentForReturn(UUID cardId, boolean rollback) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://user-service/user-api/balance/"+cardId+"?rollback="+rollback,
+                HttpMethod.POST,
+                entity,
+                String.class).getStatusCode()==HttpStatus.OK;
+    }
+
+    public boolean completeOrRollbackPaymentForReturn(UUID cardId, double total, boolean rollback) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        return restTemplate.exchange("http://user-service/user-api/balance?card-id="+cardId+"&total="+total+"&rollback="+rollback,
                 HttpMethod.POST,
                 entity,
                 String.class).getStatusCode()==HttpStatus.OK;
