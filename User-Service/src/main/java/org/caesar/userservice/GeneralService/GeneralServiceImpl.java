@@ -370,10 +370,10 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public int sbanUser(String username) {
-        int result= adminService.validateSbanUser(username);
+    public int sbanUser(SbanDTO sbanDTO) {
+        int result= adminService.validateSbanUser(sbanDTO.getUsername());
         if(result==0) {
-            if(banOrchestrator.processSban(username))
+            if(banOrchestrator.processSban(sbanDTO.getUsername()))
                 return 0;
             return 2;
         }

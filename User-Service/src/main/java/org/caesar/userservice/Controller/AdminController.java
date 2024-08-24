@@ -7,6 +7,7 @@ import org.caesar.userservice.Data.Services.AdminService;
 import org.caesar.userservice.Data.Services.ProfilePicService;
 import org.caesar.userservice.Data.Services.UserService;
 import org.caesar.userservice.Dto.BanDTO;
+import org.caesar.userservice.Dto.SbanDTO;
 import org.caesar.userservice.Dto.UserDTO;
 import org.caesar.userservice.Dto.UserSearchDTO;
 import org.caesar.userservice.GeneralService.GeneralService;
@@ -106,10 +107,10 @@ public class AdminController {
             return new ResponseEntity<>("Problemi nel ban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/ban/{username}")
-    public ResponseEntity<String> sbanUser(@PathVariable String username) {
+    @PutMapping("/sban")
+    public ResponseEntity<String> sbanUser(@RequestBody SbanDTO sbanDTO) {
 
-        int result= generalService.sbanUser(username);
+        int result= generalService.sbanUser(sbanDTO);
         if(result==0)
             return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
         else if(result==1)

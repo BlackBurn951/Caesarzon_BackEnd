@@ -24,7 +24,7 @@ public interface GeneralService {
     boolean pay(String username, UUID cardId, double total, boolean refund);
     String recoveryPassword(String username);
     int banUser(BanDTO banDTO);
-    int sbanUser(String username);
+    int sbanUser(SbanDTO sbanDTO);
 
     boolean deleteUser(String username);
     boolean deleteUserAddress(UUID id);
