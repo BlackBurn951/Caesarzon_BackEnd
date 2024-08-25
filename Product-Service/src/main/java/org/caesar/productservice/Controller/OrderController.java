@@ -37,7 +37,7 @@ public class OrderController {
     //Metodi per la gestione del carrello
     @GetMapping("/cart")
     public ResponseEntity<List<ProductCartDTO>> getCart(){
-         String username= httpServletRequest.getAttribute("preferred_username").toString();
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         List<ProductCartDTO> result= generalService.getCart(username);
 

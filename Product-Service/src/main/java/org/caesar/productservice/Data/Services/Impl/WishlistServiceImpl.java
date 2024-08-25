@@ -48,6 +48,7 @@ public class WishlistServiceImpl implements WishlistService {
                 return null;
 
             Wishlist wishlistEntity = modelMapper.map(wishlistDTO, Wishlist.class);
+            wishlistEntity.setOnDeleting(false);
             return wishlistRepository.save(wishlistEntity).getId();
         }
         catch (Exception | Error e) {
@@ -154,6 +155,60 @@ public class WishlistServiceImpl implements WishlistService {
             return false;
         }
     }
+
+
+
+    @Override
+    public List<WishlistDTO> validateOrRollbackDeleteUserWishlist(String username, boolean rollback) {
+        try{
+            List<Wishlist> wishlists= wishlistRepository.findAllByUserUsername(username);
+
+            for(Wishlist wishlist: wishlists) {
+                wishlist.setOnDeleting(!rollback);
+            }
+
+            wishlistRepository.saveAll(wishlists);
+
+            return wishlists.stream()
+                    .map(nt -> modelMapper.map(nt, WishlistDTO.class))
+                    .toList();
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean completeDeleteUserWishlist(String username) {
+        try{
+            List<Wishlist> wishlists= wishlistRepository.findAllByUserUsername(username);
+
+            for(Wishlist wishlist: wishlists) {
+                wishlist.setName(null);
+                wishlist.setVisibility(null);
+            }
+
+            wishlistRepository.saveAll(wishlists);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean releaseLockDeleteUserWishlist(String username) {
+        try{
+            wishlistRepository.deleteAllByUserUsername(username);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
 
 
     //METODI DI SERVIZIO

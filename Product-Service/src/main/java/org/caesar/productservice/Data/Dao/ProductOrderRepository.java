@@ -27,4 +27,7 @@ public interface ProductOrderRepository extends JpaRepository<ProductOrder, UUID
 
     List<ProductOrder> findAllByUsernameAndOrder(String username, Order order);
 
+    List<ProductOrder> findAllByUsername(String username);
+
+    void deleteAllByUsername(String username);
 }

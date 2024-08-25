@@ -18,4 +18,5 @@ public interface WishlistRepository extends JpaRepository<Wishlist, UUID> {
 
     List<Wishlist> findAllByIdAndUserUsername(UUID id, String userUsername);
 
+    void deleteAllByUserUsername(String userUsername);
 }

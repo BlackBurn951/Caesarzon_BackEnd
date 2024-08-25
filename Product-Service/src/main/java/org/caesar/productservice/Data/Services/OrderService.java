@@ -33,11 +33,15 @@ public interface OrderService {
     boolean rollbackOrderForUpdate(List<UUID> orderIds);
 
 
-    OrderDTO addOrder(OrderDTO orderDTO);
-
     List<OrderDTO> getOrders(String username);
 
     OrderDTO getOrder(String username, UUID id);
 
     OrderDTO getOrderByIdAndUsername(UUID orderId, String username);
+
+
+    List<OrderDTO> validateDeleteUserOrders(String username, boolean rollback);
+    boolean completeDeleteUserOrders(String username);
+    boolean releaseLockDeleteUserOrders(String username);
+    boolean rollbackDeleteUserOrders(List<OrderDTO> orders);
 }

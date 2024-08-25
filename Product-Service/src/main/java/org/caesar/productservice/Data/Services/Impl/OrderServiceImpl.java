@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.caesar.productservice.Data.Dao.OrderRepository;
 import org.caesar.productservice.Data.Entities.Order;
+import org.caesar.productservice.Data.Entities.ProductOrder;
 import org.caesar.productservice.Data.Services.OrderService;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.DTOOrder.PurchaseOrderDTO;
@@ -254,17 +255,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    @Override  // Aggiunge un ordine al db e lo restituisce
-    public OrderDTO addOrder(OrderDTO orderDTO) {
-        try {
-            return modelMapper.map(orderRepository.save(modelMapper.map(orderDTO, Order.class)), OrderDTO.class);
-
-        } catch (Exception | Error e) {
-            log.debug("Errore nella creazione dell'ordine");
-            return null;
-        }
-    }
-
     @Override  // Restituisce tutti gli ordini di un determinato utente
     public List<OrderDTO> getOrders(String username) {
         return orderRepository.findAllOrdersByUsername(username).stream().map(a -> modelMapper.map(a, OrderDTO.class)).toList();
@@ -280,5 +270,73 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDTO getOrderByIdAndUsername(UUID orderId, String username) {
         return modelMapper.map(orderRepository.findOrderByIdAndUsername(orderId, username), OrderDTO.class);
+    }
+
+
+
+    @Override
+    public List<OrderDTO> validateDeleteUserOrders(String username, boolean rollback) {
+        try {
+            List<Order> orders= orderRepository.findAllOrdersByUsername(username);
+
+            List<OrderDTO> result= new Vector<>();
+            for(Order order: orders){
+                result.add(modelMapper.map(order, OrderDTO.class));
+
+                order.setOrderState("In validazione");
+            }
+
+            orderRepository.saveAll(orders);
+            return result;
+        }catch(Exception | Error e) {
+            log.debug("Errore nella presa dei prodotti della lista");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean completeDeleteUserOrders(String username) {
+        try {
+            List<Order> orders= orderRepository.findAllOrdersByUsername(username);
+
+            for(Order order: orders){
+                order.setOrderTotal(0.0);
+                order.setCardID(null);
+                order.setAddressID(null);
+                order.setRefundDate(null);
+                order.setPurchaseDate(null);
+                order.setExpectedDeliveryDate(null);
+            }
+
+            orderRepository.saveAll(orders);
+            return true;
+        }catch(Exception | Error e) {
+            log.debug("Errore nella presa dei prodotti della lista");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean releaseLockDeleteUserOrders(String username) {
+        try {
+            orderRepository.deleteAllByUsername(username);
+
+            return true;
+        }catch(Exception | Error e) {
+            log.debug("Errore nella presa dei prodotti della lista");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackDeleteUserOrders(List<OrderDTO> orders) {
+        try {
+            orderRepository.saveAll(orders.stream().map( od -> modelMapper.map(od, Order.class)).toList());
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella creazione dell'ordine");
+            return false;
+        }
     }
 }

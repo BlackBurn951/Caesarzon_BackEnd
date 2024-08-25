@@ -23,4 +23,7 @@ public class WishlistProduct {
     @ManyToOne
     @JoinColumn(name= "id_prodotto")
     private Product product;
+
+    @Column(name= "in_cancellazione")
+    private boolean onDeleting;
 }

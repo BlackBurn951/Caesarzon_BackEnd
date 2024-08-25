@@ -3,15 +3,11 @@ package org.caesar.productservice.Data.Services.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductOrderRepository;
-import org.caesar.productservice.Data.Entities.Order;
-import org.caesar.productservice.Data.Entities.ProductOrder;
+import org.caesar.productservice.Data.Entities.*;
 import org.caesar.productservice.Data.Services.ProductOrderService;
+import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
-import org.caesar.productservice.Data.Entities.Product;
-import org.caesar.productservice.Dto.ProductDTO;
 
-import org.caesar.productservice.Dto.ProductOrderDTO;
-import org.caesar.productservice.Dto.SendProductOrderDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -234,6 +230,76 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         } catch (Exception | Error e) {
                 log.debug("Errore nella presa dei prodotti nell'ordine");
             return null;
+        }
+    }
+
+
+
+    @Override
+    public boolean validateOrRollbackDeleteUserCart(String username, boolean rollback) {
+        try {
+            List<ProductOrder> products= productOrderRepository.findAllByUsername(username);
+
+            for(ProductOrder productOrder: products){
+                productOrder.setOnChanges(!rollback);
+            }
+
+            return true;
+        }catch(Exception | Error e) {
+            log.debug("Errore nella presa dei prodotti della lista");
+            return false;
+        }
+    }
+
+    @Override
+    public List<ProductOrderDTO> completeDeleteUserCart(String username) {
+        try {
+            List<ProductOrder> products= productOrderRepository.findAllByUsername(username);
+
+            List<ProductOrder> result= new Vector<>();
+
+            for (ProductOrder productOrder: products){
+                result.add(productOrder);
+
+                productOrder.setOrder(null);
+                productOrder.setProduct(null);
+                productOrder.setTotal(0.0);
+                productOrder.setSize(null);
+                productOrder.setQuantity(0);
+            }
+
+            productOrderRepository.saveAll(products);
+
+            return products.stream()
+                    .map(pd -> {
+                        ProductOrderDTO productOrderDTO= new ProductOrderDTO();
+
+                        productOrderDTO.setId(pd.getId());
+                        productOrderDTO.setOrderDTO(modelMapper.map(pd.getOrder(), OrderDTO.class));
+                        productOrderDTO.setProductDTO(modelMapper.map(pd.getProduct(), ProductDTO.class));
+                        productOrderDTO.setTotal(pd.getTotal());
+                        productOrderDTO.setUsername(pd.getUsername());
+                        productOrderDTO.setBuyLater(pd.isBuyLater());
+                        productOrderDTO.setSize(pd.getSize());
+                        productOrderDTO.setQuantity(pd.getQuantity());
+
+                        return productOrderDTO;
+                    }).toList();
+        }catch(Exception | Error e) {
+            log.debug("Errore nella presa dei prodotti della lista");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean releaseLockDeleteUserCart(String username) {
+        try {
+            productOrderRepository.deleteAllByUsername(username);
+
+            return true;
+        }catch(Exception | Error e) {
+            log.debug("Errore nella presa dei prodotti della lista");
+            return false;
         }
     }
 }

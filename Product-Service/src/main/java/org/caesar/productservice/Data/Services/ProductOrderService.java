@@ -3,6 +3,7 @@ package org.caesar.productservice.Data.Services;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.ProductOrderDTO;
+import org.caesar.productservice.Dto.WishlistDTO;
 
 import java.util.List;
 
@@ -27,4 +28,9 @@ public interface ProductOrderService {
     boolean changeQuantity(String username, ProductDTO productDTO, int quantity, String size);
 
     List<ProductOrderDTO> getProductInOrder(String username, OrderDTO orderDTO);
+
+
+    boolean validateOrRollbackDeleteUserCart(String username, boolean rollback);
+    List<ProductOrderDTO> completeDeleteUserCart(String username);
+    boolean releaseLockDeleteUserCart(String username);
 }

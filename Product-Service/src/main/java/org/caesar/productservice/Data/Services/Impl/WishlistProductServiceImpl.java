@@ -31,8 +31,10 @@ public class WishlistProductServiceImpl implements WishlistProductService {
         try {
             WishlistProduct wishlistProductEntity = new WishlistProduct();
 
+            wishlistProductEntity.setId(wishlistProduct.getId());
             wishlistProductEntity.setWishlist(modelMapper.map(wishlistProduct.getWishlistDTO(), Wishlist.class));
             wishlistProductEntity.setProduct(modelMapper.map(wishlistProduct.getProductDTO(), Product.class));
+            wishlistProductEntity.setOnDeleting(false);
 
             wishlistProductRepository.save(wishlistProductEntity);
             return true;
@@ -88,6 +90,97 @@ public class WishlistProductServiceImpl implements WishlistProductService {
         WishlistProduct wishlistProduct= wishlistProductRepository.findByProductAndWishlist(product, wishlist);
 
         return wishlistProduct != null;
+    }
+
+
+
+    @Override
+    public boolean validateOrRollbackDeleteUserWish(List<WishlistDTO> wishlists, boolean rollback) {
+        try {
+            List<WishlistProduct> wishListsProduct= new Vector<>();
+
+            for (WishlistDTO wishlist: wishlists){
+                List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlist, Wishlist.class));
+
+                if(wishListProductDTOS.isEmpty())
+                    return false;
+
+                wishListsProduct.addAll(wishListProductDTOS);
+            }
+
+            for(WishlistProduct wishlistProduct: wishListsProduct){
+                wishlistProduct.setOnDeleting(!rollback);
+            }
+
+            wishlistProductRepository.saveAll(wishListsProduct);
+
+            return true;
+        }catch(Exception | Error e) {
+            log.debug("Errore nella presa dei prodotti della lista");
+            return false;
+        }
+    }
+
+    @Override
+    public List<WishListProductDTO> completeDeleteUserWish(List<WishlistDTO> wishlists) {
+        try {
+            List<WishlistProduct> wishListsProduct= new Vector<>();
+
+            for (WishlistDTO wishlist: wishlists){
+                List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlist, Wishlist.class));
+
+                if(wishListProductDTOS.isEmpty())
+                    return null;
+
+                wishListsProduct.addAll(wishListProductDTOS);
+            }
+
+            List<WishListProductDTO> result= wishListsProduct.stream()
+                    .map(wh -> {
+                        WishListProductDTO wish= new WishListProductDTO();
+                        wish.setId(wh.getId());
+                        wish.setWishlistDTO(modelMapper.map(wh.getWishlist(), WishlistDTO.class));
+                        wish.setProductDTO(modelMapper.map(wh.getProduct(), ProductDTO.class));
+
+                        return wish;
+                    }).toList();
+
+            for(WishlistProduct wishlistProduct: wishListsProduct){
+                wishlistProduct.setProduct(null);
+            }
+
+            wishlistProductRepository.saveAll(wishListsProduct);
+
+            return result;
+        }catch(Exception | Error e) {
+            log.debug("Errore nella presa dei prodotti della lista");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean releaseLockDeleteUserWish(List<WishlistDTO> wishlists) {
+        try {
+            List<WishlistProduct> wishListsProduct= new Vector<>();
+
+            for (WishlistDTO wishlist: wishlists){
+                List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlist, Wishlist.class));
+
+                if(wishListProductDTOS.isEmpty())
+                    return false;
+
+                wishListsProduct.addAll(wishListProductDTOS);
+            }
+
+            for(WishlistProduct wishlistProduct: wishListsProduct){
+                wishlistProductRepository.deleteAllByWishlist(wishlistProduct.getWishlist());
+            }
+
+            return true;
+        }catch(Exception | Error e) {
+            log.debug("Errore nella presa dei prodotti della lista");
+            return false;
+        }
     }
 
 
