@@ -98,6 +98,8 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         }
     }
 
+
+
     @Override
     public boolean validateDeleteByReport(ReportDTO reportDTO) {
         try{
@@ -183,6 +185,66 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
             return false;
         }
     }
+
+
+
+    @Override
+    public boolean validateOrRollbackDeleteBySupports(SupportDTO support, boolean rollback) {
+        try{
+            List<AdminNotification> notifications= adminNotificationRepository.findAllBySupport(modelMapper.map(support, Support.class));
+
+            for(AdminNotification notify: notifications) {
+                notify.setConfirmed(!rollback);
+            }
+
+            adminNotificationRepository.saveAll(notifications);
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'eliminazione");
+            return false;
+        }
+    }
+
+    @Override
+    public List<SaveAdminNotificationDTO> completeDeleteBySupports(SupportDTO support) {
+        try{
+            List<AdminNotification> notifications= adminNotificationRepository.findAllBySupport(modelMapper.map(support, Support.class));
+
+            List<SaveAdminNotificationDTO> rollbackList= notifications.stream()
+                    .map(notify -> {
+                        SaveAdminNotificationDTO not= new SaveAdminNotificationDTO();
+                        not.setId(notify.getId());
+                        not.setAdmin(notify.getAdmin());
+                        not.setRead(notify.isRead());
+                        not.setSubject(notify.getSubject());
+                        not.setDate(notify.getDate());
+                        not.setSupport(modelMapper.map(notify.getSupport(), SupportDTO.class));
+                        not.setReport(null);
+                        not.setConfirmed(true);
+
+                        return not;
+                    }).toList();
+
+            for(AdminNotification notify: notifications) {
+                notify.setDate(null);
+                notify.setAdmin(null);
+                notify.setRead(false);
+                notify.setConfirmed(false);
+                notify.setSubject(null);
+                notify.setReport(null);
+            }
+
+            adminNotificationRepository.saveAll(notifications);
+
+            return rollbackList;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'eliminazione");
+            return null;
+        }
+    }
+
+
+
 
     //Metodo per aggiornare lo stato di lettura delle notifiche dell'admin
     @Override

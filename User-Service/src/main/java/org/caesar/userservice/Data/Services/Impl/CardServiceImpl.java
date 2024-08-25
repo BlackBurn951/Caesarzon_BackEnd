@@ -64,23 +64,75 @@ public class CardServiceImpl implements CardService {
         }
     }
 
-    //Metodo per eliminare le carte dell'utente
-    @Override
-    public boolean deleteUserCards(List<UserCardDTO> userCards) {
-        //Presa degli id dei indirizzi dalle tuple di relazione
-        List<UUID> cardId= new Vector<>();
-        for(UserCardDTO userCard: userCards) {
-            cardId.add(userCard.getCardId());
-        }
 
+
+    @Override
+    public boolean validateOrRollbackCards(List<UUID> cardsId, boolean rollback) {
         try {
-            cardRepository.deleteAllById(cardId);
+            List<Card> cards= cardRepository.findAllById(cardsId);
+
+            for(Card card : cards){
+                card.setOnChanges(!rollback);
+            }
+
+            cardRepository.saveAll(cards);
             return true;
         } catch (Exception | Error e) {
-            log.debug("Problemi nell'eliminazione di tutti le carte");
+            log.debug("Errore nella cancellazione della carta");
             return false;
         }
     }
+
+    @Override
+    public List<CardDTO> completeCards(List<UUID> cardsId) {
+        try {
+            List<Card> cards= cardRepository.findAllById(cardsId);
+
+            List<CardDTO> result= new Vector<>();
+            for(Card card : cards){
+                result.add(modelMapper.map(card, CardDTO.class));
+
+                card.setCvv(null);
+                card.setBalance(0.0);
+                card.setExpiryDate(null);
+                card.setOwner(null);
+                card.setCardNumber(null);
+            }
+
+            cardRepository.saveAll(cards);
+            return result;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della carta");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean releaseLockCards(List<UUID> cardsId) {
+        try {
+            cardRepository.deleteAllById(cardsId);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della carta");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackCards(List<CardDTO> cards) {
+        try {
+            cardRepository.saveAll(cards.stream().map(cd -> modelMapper.map(cd, Card.class)).toList());
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della carta");
+            return false;
+        }
+    }
+
+
+
 
     //Metodi per la convalida
     private boolean checkCardNumber(String cardNumber) {

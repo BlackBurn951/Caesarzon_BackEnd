@@ -7,8 +7,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Dao.SupportRequestRepository;
 import org.caesar.notificationservice.Data.Entities.Support;
+import org.caesar.notificationservice.Data.Entities.UserNotification;
 import org.caesar.notificationservice.Data.Services.SupportRequestService;
 import org.caesar.notificationservice.Dto.SupportDTO;
+import org.caesar.notificationservice.Dto.UserNotificationDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Vector;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +63,73 @@ public class SupportRequestServiceImpl implements SupportRequestService {
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della richiesta di supporto");
+            return false;
+        }
+    }
+
+
+
+    @Override
+    public List<SupportDTO> validateOrRollbackDeleteUserSupport(String username, boolean rollback) {
+        try{
+            List<Support> supports= supportRequestRepository.findAllByUsername(username);
+
+            for(Support support: supports) {
+                support.setOnDeleting(!rollback);
+            }
+
+            supportRequestRepository.saveAll(supports);
+
+            return supports.stream()
+                    .map(nt -> modelMapper.map(nt, SupportDTO.class))
+                    .toList();
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean completeDeleteUserSupport(String username) {
+        try{
+            List<Support> supports= supportRequestRepository.findAllByUsername(username);
+
+            for(Support support: supports) {
+                support.setDateRequest(null);
+                support.setType(null);
+                support.setSubject(null);
+                support.setType(null);
+            }
+
+            supportRequestRepository.saveAll(supports);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean releaseDeleteUserSupport(String username) {
+        try{
+            supportRequestRepository.deleteAllByUsername(username);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackDeleteUserSupport(List<SupportDTO> supports) {
+        try{
+            supportRequestRepository.saveAll(supports.stream().map(nt -> modelMapper.map(nt, Support.class)).toList());
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
             return false;
         }
     }

@@ -5,6 +5,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.caesar.notificationservice.Data.Dao.UserNotificationRepository;
 import org.caesar.notificationservice.Data.Entities.UserNotification;
 import org.caesar.notificationservice.Data.Services.UserNotificationService;
@@ -134,6 +135,78 @@ public class UserNotificationServiceImpl implements UserNotificationService {
             return false;
         }
     }
+
+
+
+    @Override
+    public boolean validateOrRollbackDeleteUserNotifications(String username, boolean rollback) {
+        try{
+            List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
+
+            for(UserNotification notify: notifications) {
+                notify.setConfirmed(!rollback);
+            }
+
+            userNotificationRepository.saveAll(notifications);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
+    @Override
+    public List<UserNotificationDTO> completeDeleteUserNotifications(String username) {
+        try{
+            List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
+
+            List<UserNotification> result= new Vector<>();
+            for(UserNotification notify: notifications) {
+                result.add(notify);
+
+                notify.setDate(null);
+                notify.setRead(false);
+                notify.setSubject(null);
+                notify.setExplanation(null);
+            }
+
+            userNotificationRepository.saveAll(notifications);
+
+            return result.stream()
+                    .map(nt -> modelMapper.map(nt, UserNotificationDTO.class))
+                    .toList();
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean releaseDeleteUserNotifications(String username) {
+        try{
+            userNotificationRepository.deleteAllByUser(username);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackDeleteUserNotifications(List<UserNotificationDTO> notifications) {
+        try{
+            userNotificationRepository.saveAll(notifications.stream().map(nt -> modelMapper.map(nt, UserNotification.class)).toList());
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
+
 
     //Metodo per aggiornare lo stato di lettura delle notifiche dell'utente
     @Override

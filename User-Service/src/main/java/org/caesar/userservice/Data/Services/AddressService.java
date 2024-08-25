@@ -1,6 +1,7 @@
 package org.caesar.userservice.Data.Services;
 
 import org.caesar.userservice.Dto.AddressDTO;
+import org.caesar.userservice.Dto.CardDTO;
 import org.caesar.userservice.Dto.UserAddressDTO;
 
 import java.util.List;
@@ -13,4 +14,9 @@ public interface AddressService {
     AddressDTO getAddress(UUID addressId);
     boolean deleteAddress(UUID addressId);
     boolean deleteAllUserAddresses(List<UserAddressDTO> userAddresses);
+
+    boolean validateOrRollbackAddresses(List<UUID> addressId, boolean rollback);
+    List<AddressDTO> completeAddresses(List<UUID> addressId);
+    boolean releaseLockAddresses(List<UUID> addressId);
+    boolean rollbackAddresses(List<CardDTO> addresses);
 }

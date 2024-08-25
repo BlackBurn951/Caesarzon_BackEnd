@@ -19,6 +19,11 @@ public interface ReportService {
     boolean releaseLock(List<UUID> reportsId);
     boolean rollbackPreCompleteByReview(UUID reviewId);
 
+
+    List<ReportDTO>  validateDeleteReportForUserDelete(String username, boolean rollback);
+    boolean completeDeleteReportForUserDelete(String username);
+
+
     ReportDTO getReportByReviewId(UUID reviewId);
     int countReportForUser(String username, UUID reviewId);
     boolean findByUsername1AndReviewId(String username1, UUID reviewId);

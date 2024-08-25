@@ -19,4 +19,5 @@ public interface UserAddressRepository extends JpaRepository<UserAddress, UUID> 
 
     UserAddress findByUserUsernameAndId(String username, UUID id);
 
+    void deleteAllByUserUsername(String userUsername);
 }

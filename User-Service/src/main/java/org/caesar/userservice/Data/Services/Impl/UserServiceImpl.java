@@ -1,8 +1,5 @@
 package org.caesar.userservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
@@ -90,7 +87,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean deleteUser(String userUsername) {
         try {
-            return userRepository.deleteUser(userUsername);
+            return userRepository.validateOrRollbackDeleteUser(userUsername);
         } catch(Exception | Error e) {
             log.debug("Errore nella cancellazione dell'utente");
             return false;

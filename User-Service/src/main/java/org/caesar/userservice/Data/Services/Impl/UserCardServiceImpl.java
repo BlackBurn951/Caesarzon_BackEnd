@@ -11,6 +11,7 @@ import org.caesar.userservice.Data.Entities.UserCard;
 import org.caesar.userservice.Data.Services.UserCardService;
 import org.caesar.userservice.Dto.CardDTO;
 import org.caesar.userservice.Dto.UserCardDTO;
+import org.caesar.userservice.Dto.UserDTO;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
@@ -98,18 +99,77 @@ public class UserCardServiceImpl implements UserCardService {
         }
     }
 
-    //Eliminazione
-    @Override
-    public boolean deleteUserCards(String userUsername) {
-        try {
-            //Presa di tutte le tuple inerenti all'utente da cancellare
-            List<UserCard> userCards = userCardRepository.findByUserUsername(userUsername);
 
-            //Eliminizaione delle tuple passando direttamente la lista con al suo intenro gli ogetti entity che le rappresentano
-            userCardRepository.deleteAll(userCards);
+
+
+    @Override
+    public List<UUID> validateOrRollbackUserCardsDelete(String username, boolean rollback) {
+        try {
+            List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
+
+            List<UUID> result= new Vector<>();
+            for(UserCard userCard: cards) {
+                result.add(userCard.getId());
+                userCard.setOnDeleting(!rollback);
+            }
+
+            userCardRepository.saveAll(cards);
+
+            return result;
+        } catch (Exception | Error e) {
+            log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
+            return null;
+        }
+    }
+
+    @Override
+    public List<CardDTO> completeUserCardsDelete(String username) {
+        try {
+            List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
+
+            List<CardDTO> result = new Vector<>();
+            for(UserCard userCard: cards) {
+                result.add(modelMapper.map(userCard.getCard(), CardDTO.class));
+                userCard.setCard(null);
+            }
+
+            userCardRepository.saveAll(cards);
+
+            return result;
+        } catch (Exception | Error e) {
+            log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean releaseLockUserCards(String username) {
+        try {
+            userCardRepository.deleteAllByUserUsername(username);
+
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione di tutte le tuple nella tabella di relazione utente carte");
+            log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackUserCards(String username, List<CardDTO> userCards) {
+        try {
+            List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
+
+            for(UserCard userCard: cards) {
+                for(CardDTO card: userCards) {
+                    userCard.setCard(modelMapper.map(card, Card.class));
+                }
+            }
+
+            userCardRepository.saveAll(cards);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
             return false;
         }
     }

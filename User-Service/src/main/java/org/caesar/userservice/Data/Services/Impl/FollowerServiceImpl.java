@@ -3,8 +3,10 @@ package org.caesar.userservice.Data.Services.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.FollowerRepository;
+import org.caesar.userservice.Data.Entities.Address;
 import org.caesar.userservice.Data.Entities.Follower;
 import org.caesar.userservice.Data.Services.FollowerService;
+import org.caesar.userservice.Dto.AddressDTO;
 import org.caesar.userservice.Dto.FollowerDTO;
 import org.caesar.userservice.Dto.UserSearchDTO;
 import org.modelmapper.ModelMapper;
@@ -121,16 +123,68 @@ public class FollowerServiceImpl implements FollowerService {
         }
     }
 
-    //Metodo per la cancellazione di tutti i follower da tutte e due la parti
+
+
     @Override
-    public boolean deleteFollowersByUsername(String username){
-        try{
-            followerRepository.deleteAllByUserUsername1(username);
-            followerRepository.deleteAllByUserUsername2(username);
+    public boolean validateOrRollbackDeleteFollowers(String username, boolean rollback) {
+        try {
+            List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
+
+            for(Follower follower : followers){
+                follower.setOnDeleting(!rollback);
+            }
+
+            followerRepository.saveAll(followers);
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nell'eliminazione dei follower");
+            log.debug("Errore nella cancellazione della carta");
             return false;
         }
     }
+
+    @Override
+    public List<FollowerDTO> completeOrRollbackDeleteFollowers(String username) {
+        try {
+            List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
+
+            List<FollowerDTO> result= new Vector<>();
+            for(Follower follower : followers){
+                result.add(modelMapper.map(follower, FollowerDTO.class));
+
+                follower.setFriend(false);
+            }
+
+            followerRepository.saveAll(followers);
+            return result;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della carta");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean releaseOrDeleteFollowers(String username) {
+        try {
+            followerRepository.deleteAllByUserUsername1(username);
+            followerRepository.deleteAllByUserUsername2(username);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della carta");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackDeleteFollowers(List<FollowerDTO> followers) {
+        try {
+            followerRepository.saveAll(followers.stream().map(cd -> modelMapper.map(cd, Follower.class)).toList());
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della carta");
+            return false;
+        }
+    }
+
 }

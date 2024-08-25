@@ -105,6 +105,8 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
+
+
     //Metodo per aggiungere una segnalazione tramite l'id della recensione segnalata
     @Override
     public ReportDTO getReportByReviewId(UUID id) {
@@ -151,6 +153,8 @@ public class ReportServiceImpl implements ReportService {
         Page<Report> result = reportRepository.findAll(PageRequest.of(num, 20));
         return result.stream().map(a -> modelMapper.map(a, ReportDTO.class)).toList();
     }
+
+
 
     //Metodo per eliminare una segnalazione
     @Override
@@ -224,6 +228,52 @@ public class ReportServiceImpl implements ReportService {
             return false;
         }
     }
+
+
+
+    @Override
+    public List<ReportDTO> validateDeleteReportForUserDelete(String username, boolean rollback) {
+        try {
+            List<Report> reports= reportRepository.findByUsernameUser2(username);
+
+            for(Report report: reports){
+                report.setEffective(!rollback);
+            }
+            reportRepository.saveAll(reports);
+
+            return reports.stream()
+                    .map(a -> modelMapper.map(a, ReportDTO.class)).toList();
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della segnalazione");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean completeDeleteReportForUserDelete(String username) {
+        try {
+            List<Report> reports= reportRepository.findByUsernameUser2(username);
+
+            for(Report report: reports){
+                report.setEffective(false);
+                report.setReportDate(null);
+                report.setReason(null);
+                report.setDescription(null);
+                report.setReviewId(null);
+                report.setUsernameUser1(null);
+                report.setUsernameUser2(null);
+            }
+
+            reportRepository.saveAll(reports);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della segnalazione");
+            return false;
+        }
+    }
+
+
 
     //Metodo per contare le segnalazioni fatte ad un utente
     @Override

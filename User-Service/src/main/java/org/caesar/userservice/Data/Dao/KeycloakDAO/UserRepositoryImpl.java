@@ -115,6 +115,8 @@ public class UserRepositoryImpl implements UserRepository {
 
 
     }
+
+
     //Metodi per la gestione dell'utente
     @Override
     @Transactional
@@ -240,23 +242,60 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     @Transactional
-    public boolean deleteUser(String username) {
-
-        //Presa dell'id dell'utente
-        String userId= findUserByUsername(username).getId();
-
-        //Presa dell'utente rappresentato attraverso l'interfaccia keycloak
-        UserResource userResource= keycloak.realm("CaesarRealm").users().get(userId);
-
+    public boolean validateOrRollbackDeleteUser(String username, boolean rollback) {
         try {
-            userResource.remove();
+
+            //Presa dell'id dell'utente
+            String userId= findUserByUsername(username).getId();
+
+            //Presa dell'utente rappresentato attraverso l'interfaccia keycloak
+            UserResource userResource= keycloak.realm("CaesarRealm").users().get(userId);
+            UserRepresentation user = userResource.toRepresentation();
+
+            boolean vb= !rollback;
+            user.getAttributes().get("onChanges").set(0, String.valueOf(vb));
+
+            userResource.update(user);
+
+            return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione dell'utente");
             return false;
         }
-
-        return true;
     }
+
+    @Override
+    @Transactional
+    public User completeDeleteUser(String username) {
+        try {
+
+            //Presa dell'id dell'utente
+            User user= findUserByUsername(username);
+
+            //Presa dell'utente rappresentato attraverso l'interfaccia keycloak
+            UserResource userResource= keycloak.realm("CaesarRealm").users().get(user.getId());
+
+
+            UserRepresentation userRp = userResource.toRepresentation();
+            userRp.setFirstName("null");
+            userRp.setLastName("null");
+
+            System.out.println("Pirima dei campi custom");
+            //Aggiunta degli attributi personalizzati
+
+
+            userRp.getAttributes().get("phoneNumber").set(0, "null");
+
+            userResource.update(userRp);
+
+            return user;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione dell'utente");
+            return null;
+        }
+    }
+
+
 
     @Override
     @Transactional
