@@ -30,7 +30,8 @@ public class Utils {
             message.setFrom(new InternetAddress("caesar.magnus.info@gmail.com"));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmail));
             message.setSubject("Ripristino password");
-            message.setText("<p style=\"text-align: left;\">&nbsp;</p>\n" +
+
+            String htmlContent = "<p style=\"text-align: left;\">&nbsp;</p>\n" +
                     "<p>&nbsp;</p>\n" +
                     "<table border=\"10\" width=\"690\" cellspacing=\"0\" cellpadding=\"0\" align=\"center\">\n" +
                     "    <tbody>\n" +
@@ -42,13 +43,15 @@ public class Utils {
                     "            <h2><strong>Codice OTP:</strong></h2>\n" +
                     "            <h1>"+otp+"</h1>\n" +
                     "            <p style=\"text-align: left;\">&nbsp;</p>\n" +
-                    "            <h3 style=\"text-align: center;\"><strong>Questo codice scadr&agrave; tra 10 minuti.</strong></h3>\n" +
                     "            <p style=\"text-align: left;\"><strong>Se non riconosci l'indirizzo caesar.magnus.info@gmail.com, puoi ignorare questa email.</strong></p>\n" +
                     "            <p style=\"text-align: left;\"><strong>Ti preghiamo di non rispondere a questa email.</strong></p>\n" +
                     "        </td>\n" +
                     "    </tr>\n" +
                     "    </tbody>\n" +
-                    "</table>");
+                    "</table>";
+
+            // Impostazione del contenuto HTML del messaggio
+            message.setContent(htmlContent, "text/html; charset=utf-8");
 
             // Invio dell'email
             Transport.send(message);

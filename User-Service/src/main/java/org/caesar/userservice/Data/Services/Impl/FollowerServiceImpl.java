@@ -101,21 +101,14 @@ public class FollowerServiceImpl implements FollowerService {
 
     //Eliminazione del singolo follower
     @Override
-    public boolean deleteFollowers(String username1, List<String> followers) {
-        List<Follower> savedFollowers= new Vector<>();
-
-        Follower flw;
-        //Ricerca e presa di tutti gli oggetti entity per eseguire la cancellazione
-        for(String follower : followers) {
-            flw= followerRepository.findByUserUsername1AndUserUsername2(username1, follower);
+    public boolean deleteFollowers(String username1, String usernameToDelete) {
+        try{
+            Follower flw;
+            //Ricerca e presa di tutti gli oggetti entity per eseguire la cancellazione
+            flw= followerRepository.findByUserUsername1AndUserUsername2(username1, usernameToDelete);
 
             if(flw!=null)
-                savedFollowers.add(flw);
-        }
-
-        try{
-            followerRepository.deleteAll(savedFollowers);
-
+                followerRepository.delete(flw);
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nell'eliminazione dei follower");
