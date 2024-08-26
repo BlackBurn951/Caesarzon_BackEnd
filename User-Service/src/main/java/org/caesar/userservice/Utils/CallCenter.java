@@ -154,4 +154,13 @@ public class CallCenter {
                 entity,
                 String.class).getStatusCode()==HttpStatus.OK;
     }
+
+
+
+    //SEZIONE ELIMINAZIONE UTENTE
+
+    //End-point notifiche
+    public ValidateUserDeleteDTO
+
+    //End-point prodotti
 }
