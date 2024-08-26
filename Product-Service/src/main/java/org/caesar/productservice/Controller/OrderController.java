@@ -175,13 +175,21 @@ public class OrderController {
     }
 
     @PutMapping("/refund")  //Metodo per effettuare il reso
-    public ResponseEntity<String> updateOrder(@RequestBody RefundDTO refundDTO) {
+    public ResponseEntity<String> updateUserOrder(@RequestBody RefundDTO refundDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
         if(generalService.updateOrder(username, refundDTO.getPurchaseId()))
             return new ResponseEntity<>("Reso inviato con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nell'invio del reso'...", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+
+    @PutMapping("/refund/{username}")  //Metodo per effettuare il reso
+    public ResponseEntity<String> updateOrder(@PathVariable String username, @RequestBody RefundDTO refundDTO) {
+        if(generalService.updateOrder(username, refundDTO.getPurchaseId()))
+            return new ResponseEntity<>("Reso inviato con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nell'invio del reso'...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     @PutMapping("/orders/notify")
     public ResponseEntity<String> updateOrderNotify(){
