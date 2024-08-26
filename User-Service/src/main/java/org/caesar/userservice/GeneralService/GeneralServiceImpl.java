@@ -251,7 +251,7 @@ public class GeneralServiceImpl implements GeneralService {
             user.setOtp(otp);
 
             if(userService.updateUser(user))
-                return "Inserisci il codice otp inviato all'email "+user.getEmail();
+                return "Inserisci l'otp ricevuto all'email "+user.getEmail();
             return "Problemi nell'invio dell'otp...";
         }
         return "Problemi nell'invio dell'otp...";

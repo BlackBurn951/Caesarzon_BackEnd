@@ -167,7 +167,7 @@ public class UserRepositoryImpl implements UserRepository {
 
             ClientResource clientResource = realmResource.clients().get(clientRepresentation.getId());
 
-            RoleRepresentation role = clientResource.roles().get("admin").toRepresentation();
+            RoleRepresentation role = clientResource.roles().get("basic").toRepresentation();
 
             userResource.roles().clientLevel(clientRepresentation.getId()).add(Collections.singletonList(role));
 
