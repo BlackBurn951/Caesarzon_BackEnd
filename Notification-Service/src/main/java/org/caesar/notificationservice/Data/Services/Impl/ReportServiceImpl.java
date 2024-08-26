@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Vector;
 
 @Service
 @RequiredArgsConstructor
@@ -235,6 +236,9 @@ public class ReportServiceImpl implements ReportService {
     public List<ReportDTO> validateDeleteReportForUserDelete(String username, boolean rollback) {
         try {
             List<Report> reports= reportRepository.findByUsernameUser2(username);
+
+            if(reports.isEmpty())
+                return new Vector<>();
 
             for(Report report: reports){
                 report.setEffective(!rollback);

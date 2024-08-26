@@ -14,7 +14,7 @@ public interface WishlistProductService {
     List<WishListProductDTO> getWishlistProductsByWishlistID(WishlistDTO wishListId);
     boolean thereIsProductInWishList(WishlistDTO wishlistDTO, ProductDTO productDTO);
 
-    boolean validateOrRollbackDeleteUserWish(List<WishlistDTO> wishlists, boolean rollback);
+    int validateOrRollbackDeleteUserWish(List<WishlistDTO> wishlists, boolean rollback);
     List<WishListProductDTO> completeDeleteUserWish(List<WishlistDTO> wishlists);
     boolean releaseLockDeleteUserWish(List<WishlistDTO> wishlists);
 }

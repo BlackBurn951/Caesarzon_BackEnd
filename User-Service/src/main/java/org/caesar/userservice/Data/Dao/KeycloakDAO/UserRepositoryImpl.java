@@ -270,6 +270,22 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
+    @Override
+    public boolean releaseLockDeleteUser(String username) {
+        try{
+            //Presa dell'id dell'utente
+            User user= findUserByUsername(username);
+
+            //Presa dell'utente rappresentato attraverso l'interfaccia keycloak
+            UserResource userResource= keycloak.realm("CaesarRealm").users().get(user.getId());
+
+            userResource.remove();
+
+            return true;
+        }catch (Exception | Error e) {
+            return false;
+        }
+    }
 
 
     @Override

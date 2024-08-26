@@ -84,7 +84,7 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public List<CardDTO> completeCards(List<UUID> cardsId) {
+    public boolean completeCards(List<UUID> cardsId) {
         try {
             List<Card> cards= cardRepository.findAllById(cardsId);
 
@@ -100,10 +100,10 @@ public class CardServiceImpl implements CardService {
             }
 
             cardRepository.saveAll(cards);
-            return result;
+            return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della carta");
-            return null;
+            return false;
         }
     }
 

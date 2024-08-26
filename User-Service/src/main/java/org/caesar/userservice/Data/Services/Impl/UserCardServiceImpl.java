@@ -107,6 +107,9 @@ public class UserCardServiceImpl implements UserCardService {
         try {
             List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
 
+            if(cards.isEmpty())
+                return new Vector<>();
+
             List<UUID> result= new Vector<>();
             for(UserCard userCard: cards) {
                 result.add(userCard.getId());

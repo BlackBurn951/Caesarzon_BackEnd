@@ -16,7 +16,7 @@ public interface AddressService {
     boolean deleteAllUserAddresses(List<UserAddressDTO> userAddresses);
 
     boolean validateOrRollbackAddresses(List<UUID> addressId, boolean rollback);
-    List<AddressDTO> completeAddresses(List<UUID> addressId);
+    boolean completeAddresses(List<UUID> addressId);
     boolean releaseLockAddresses(List<UUID> addressId);
     boolean rollbackAddresses(List<CardDTO> addresses);
 }

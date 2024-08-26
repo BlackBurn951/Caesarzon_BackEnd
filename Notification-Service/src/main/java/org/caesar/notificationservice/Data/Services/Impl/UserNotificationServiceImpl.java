@@ -139,9 +139,12 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
 
     @Override
-    public boolean validateOrRollbackDeleteUserNotifications(String username, boolean rollback) {
+    public int validateOrRollbackDeleteUserNotifications(String username, boolean rollback) {
         try{
             List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
+
+            if(notifications.isEmpty())
+                return 2;
 
             for(UserNotification notify: notifications) {
                 notify.setConfirmed(!rollback);
@@ -149,10 +152,10 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
             userNotificationRepository.saveAll(notifications);
 
-            return true;
+            return 0;
         }catch(Exception | Error e){
             log.debug("Errore nell'inserimento della notifica per l'utente");
-            return false;
+            return 1;
         }
     }
 

@@ -12,8 +12,11 @@ public interface UserService {
     List<String> getUsersByUsername(String username);
     boolean saveUser(UserRegistrationDTO userData);
     boolean updateUser(UserDTO userData);
-    boolean deleteUser(String userId);
     boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username);
     boolean checkOtp(OtpDTO otp);
     boolean logout(String usermame, LogoutDTO logoutDTO);
+
+    boolean validateOrRollbackDeleteUser(String username, boolean rollback);
+    UserDTO completeDeleteUser(String username);
+    boolean releaseLockDeleteUser(String username);
 }

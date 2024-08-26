@@ -84,15 +84,7 @@ public class UserServiceImpl implements UserService {
     }
 
     //Metodo per eliminare un utente
-    @Override
-    public boolean deleteUser(String userUsername) {
-        try {
-            return userRepository.validateOrRollbackDeleteUser(userUsername);
-        } catch(Exception | Error e) {
-            log.debug("Errore nella cancellazione dell'utente");
-            return false;
-        }
-    }
+
 
     //Metodo per cambiare la password di un utente
     @Override
@@ -124,6 +116,22 @@ public class UserServiceImpl implements UserService {
         if(logoutDTO.isLogout())
             return userRepository.logout(usermame);
         return false;
+    }
+
+
+    @Override
+    public boolean validateOrRollbackDeleteUser(String username, boolean rollback) {
+        return userRepository.validateOrRollbackDeleteUser(username, rollback);
+    }
+
+    @Override
+    public UserDTO completeDeleteUser(String username) {
+        return modelMapper.map(userRepository.completeDeleteUser(username), UserDTO.class);
+    }
+
+    @Override
+    public boolean releaseLockDeleteUser(String username) {
+        return userRepository.releaseLockDeleteUser(username);
     }
 
 

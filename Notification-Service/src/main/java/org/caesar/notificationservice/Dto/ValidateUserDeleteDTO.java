@@ -12,5 +12,5 @@ public class ValidateUserDeleteDTO {
     private int adminNotificationForSupport;
     private List<ReportDTO> reports;
     private List<SupportDTO> supports;
-    private boolean userNotification;
+    private int userNotification;
 }

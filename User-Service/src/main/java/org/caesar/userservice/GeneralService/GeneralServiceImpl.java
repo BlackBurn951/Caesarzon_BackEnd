@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.Sagas.BanOrchestrator;
+import org.caesar.userservice.Sagas.DeleteOrchestrator;
 import org.caesar.userservice.Utils.Utils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -46,6 +47,7 @@ public class GeneralServiceImpl implements GeneralService {
     private final Utils utils;
     private final RestTemplate restTemplate;
     private final BanOrchestrator banOrchestrator;
+    private final DeleteOrchestrator deleteOrchestrator;
 
     private final static String DELETE_SERVICE = "deleteService";
 
@@ -380,35 +382,10 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     @CircuitBreaker(name= DELETE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     public boolean deleteUser(String username) {
-        //Chiamate per prendere le tuple di relazione con gli indirizzi e le carte
-        List<UserAddressDTO> userAddresses = userAddressService.getUserAddresses(username);
-        List<UserCardDTO> userCards = userCardService.getUserCards(username);
+        if(userService.validateOrRollbackDeleteUser(username, false))
+            return deleteOrchestrator.processUserDelete(username);
 
-
-        boolean userDeleted = userService.deleteUser(username);
-
-        //Controllo dei casi in cui l'utente non abbia indirizzi e/o carte
-        if(userAddresses!=null && !userAddresses.isEmpty() && userCards!=null && !userCards.isEmpty()) {
-            boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
-            boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
-
-            boolean userCardsDeleted = userCardService.deleteUserCards(username);
-            boolean cardDeleted = cardService.deleteUserCards(userCards);
-
-            return userDeleted && addressesDeleted && userAddressesDeleted && cardDeleted && userCardsDeleted;
-        } else if(userAddresses!=null && !userAddresses.isEmpty() && (userCards==null || userCards.isEmpty())) {
-            boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
-            boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
-
-            return userDeleted && userAddressesDeleted && addressesDeleted;
-        } else if((userAddresses==null || userAddresses.isEmpty()) && (userCards==null || userCards.isEmpty())) {
-            boolean userCardsDeleted = userCardService.deleteUserCards(username);
-            boolean cardDeleted = cardService.deleteUserCards(userCards);
-
-            return userDeleted && userCardsDeleted && cardDeleted;
-        }
-
-        return userDeleted;
+        return false;
     }
 
     @Override

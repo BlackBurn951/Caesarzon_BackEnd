@@ -21,7 +21,7 @@ public interface ReviewService {
     boolean validateDeleteReview(ReviewDTO reviewDTO, boolean rollback);
     boolean completeDeleteReview(ReviewDTO reviewDTO);
 
-    boolean validateDeleteReviews(String username, boolean rollback);
+    int validateDeleteReviews(String username, boolean rollback);
     List<ReviewDTO> completeDeleteReviews(String username);
     boolean releaseLock(List<UUID> reviewId);
 

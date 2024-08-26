@@ -279,6 +279,9 @@ public class OrderServiceImpl implements OrderService {
         try {
             List<Order> orders= orderRepository.findAllOrdersByUsername(username);
 
+            if(orders.isEmpty())
+                return new Vector<>();
+
             List<OrderDTO> result= new Vector<>();
             for(Order order: orders){
                 result.add(modelMapper.map(order, OrderDTO.class));

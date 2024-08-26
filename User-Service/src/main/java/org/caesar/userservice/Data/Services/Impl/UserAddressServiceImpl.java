@@ -101,6 +101,9 @@ public class UserAddressServiceImpl implements UserAddressService {
         try {
             List<UserAddress> addresses= userAddressRepository.findAllByUserUsername(username);
 
+            if(addresses.isEmpty())
+                return new Vector<>();
+
             List<UUID> result= new Vector<>();
             for(UserAddress userAddress: addresses) {
                 result.add(userAddress.getId());

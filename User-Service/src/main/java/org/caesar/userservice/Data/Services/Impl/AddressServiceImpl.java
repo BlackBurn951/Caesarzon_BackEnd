@@ -105,7 +105,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public List<AddressDTO> completeAddresses(List<UUID> addressId) {
+    public boolean completeAddresses(List<UUID> addressId) {
         try {
             List<Address> addresses= addressRepository.findAllById(addressId);
 
@@ -120,10 +120,10 @@ public class AddressServiceImpl implements AddressService {
             }
 
             addressRepository.saveAll(addresses);
-            return result;
+            return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della carta");
-            return null;
+            return false;
         }
     }
 

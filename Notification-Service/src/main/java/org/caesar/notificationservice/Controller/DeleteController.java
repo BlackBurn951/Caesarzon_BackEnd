@@ -76,7 +76,7 @@ public class DeleteController {
 
         result.setUserNotification(userNotificationService.validateOrRollbackDeleteUserNotifications(username, rollback));
 
-        if(result.isUserNotification() && result.getAdminNotificationForReport()!=1 && result.getAdminNotificationForSupport()!=1)
+        if(result.getUserNotification()!=1 && result.getAdminNotificationForReport()!=1 && result.getAdminNotificationForSupport()!=1)
             return new ResponseEntity<>(result, HttpStatus.OK);
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -89,22 +89,8 @@ public class DeleteController {
 
         List<SaveAdminNotificationDTO> adminNotification= new Vector<>();
 
-        if(lists.getSupports()!=null) {
+        if(!lists.getSupports().isEmpty()) {
             result.setSupport(supportRequestService.completeDeleteUserSupport(username));
-
-            for (ReportDTO report: lists.getReports()) {
-                List<SaveAdminNotificationDTO> reportNotification= adminNotificationService.completeDeleteByReport(report);
-
-                if(reportNotification!=null)
-                    adminNotification.addAll(reportNotification);
-                else {
-                    adminNotification = null;
-                    break;
-                }
-            }
-        }
-        if(lists.getReports()!=null && adminNotification!=null) {
-            result.setReport(reportService.completeDeleteReportForUserDelete(username));
 
             for (SupportDTO support: lists.getSupports()) {
                 List<SaveAdminNotificationDTO> supportNotification= adminNotificationService.completeDeleteBySupports(support);
@@ -117,11 +103,28 @@ public class DeleteController {
                 }
             }
         }
-        result.setUserNotification(userNotificationService.completeDeleteUserNotifications(username));
+        if(!lists.getReports().isEmpty() && adminNotification!=null) {
+            result.setReport(reportService.completeDeleteReportForUserDelete(username));
+
+            for (ReportDTO report: lists.getReports()) {
+                List<SaveAdminNotificationDTO> reportNotification= adminNotificationService.completeDeleteByReport(report);
+
+                if(reportNotification!=null)
+                    adminNotification.addAll(reportNotification);
+                else {
+                    adminNotification = null;
+                    break;
+                }
+            }
+        }
+        if(lists.getUserNotification()==2)
+            result.setUserNotification(new Vector<>());
+        else
+            result.setUserNotification(userNotificationService.completeDeleteUserNotifications(username));
 
         if(result.getUserNotification()!=null &&
-                ((lists.getSupports()!=null && result.isSupport() && adminNotification!=null) ||
-                (lists.getReports()!=null && result.isReport() && adminNotification!=null)))
+                ((!lists.getSupports().isEmpty() && result.isSupport() && adminNotification!=null) ||
+                (!lists.getReports().isEmpty() && result.isReport() && adminNotification!=null)))
             return new ResponseEntity<>(result, HttpStatus.OK);
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -130,7 +133,7 @@ public class DeleteController {
     public ResponseEntity<String> releaseLockUserDelete(@RequestBody ReleaseLockUserDeleteDTO lists, @RequestParam("support") boolean support) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        int report= 2, sup= 2, admin= 2;
+        int report= 2, sup= 2, admin= 2, user= 2;
         if(lists.getReportId()!=null) {
             if(reportService.releaseLock(lists.getReportId()))
                 report= 0;
@@ -150,8 +153,15 @@ public class DeleteController {
                 admin=1;
         }
 
-        if(userNotificationService.releaseDeleteUserNotifications(username) &&
-                (report==2 || report==0) && (sup==2 || sup==0) && (admin==2 || admin==0))
+        if(lists.getUserNotification()!=null) {
+            if(userNotificationService.releaseDeleteUserNotifications(username))
+                user= 0;
+            else
+                user=1;
+        }
+
+        if( (user==2 || user==0) && (report==2 || report==0)
+                && (sup==2 || sup==0) && (admin==2 || admin==0))
             return new ResponseEntity<>("Release avvenuto con successo", HttpStatus.OK);
         return new ResponseEntity<>("Problemi nel release dei lock", HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -173,22 +173,22 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-    public boolean validateDeleteReviews(String username, boolean rollback) {
+    public int validateDeleteReviews(String username, boolean rollback) {
         try {
             List<Review> reviews= reviewRepository.findAllByUsername(username);
 
-            if(reviews==null || reviews.isEmpty())
-                return false;
+            if(reviews.isEmpty())
+                return 2;
 
             for(Review review : reviews) {
                 review.setOnChanges(!rollback);
             }
 
             reviewRepository.saveAll(reviews);
-            return true;
+            return 0;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della recensione");
-            return false;
+            return 1;
         }
     }
 

@@ -74,6 +74,9 @@ public class SupportRequestServiceImpl implements SupportRequestService {
         try{
             List<Support> supports= supportRequestRepository.findAllByUsername(username);
 
+            if(supports.isEmpty())
+                return new Vector<>();
+
             for(Support support: supports) {
                 support.setOnDeleting(!rollback);
             }

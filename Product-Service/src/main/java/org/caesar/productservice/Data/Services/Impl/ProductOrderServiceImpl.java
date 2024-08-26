@@ -236,18 +236,21 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
 
     @Override
-    public boolean validateOrRollbackDeleteUserCart(String username, boolean rollback) {
+    public int validateOrRollbackDeleteUserCart(String username, boolean rollback) {
         try {
             List<ProductOrder> products= productOrderRepository.findAllByUsername(username);
+
+            if(products.isEmpty())
+                return 2;
 
             for(ProductOrder productOrder: products){
                 productOrder.setOnChanges(!rollback);
             }
 
-            return true;
+            return 0;
         }catch(Exception | Error e) {
             log.debug("Errore nella presa dei prodotti della lista");
-            return false;
+            return 1;
         }
     }
 

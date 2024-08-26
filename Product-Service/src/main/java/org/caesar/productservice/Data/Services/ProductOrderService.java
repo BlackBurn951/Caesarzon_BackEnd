@@ -30,7 +30,7 @@ public interface ProductOrderService {
     List<ProductOrderDTO> getProductInOrder(String username, OrderDTO orderDTO);
 
 
-    boolean validateOrRollbackDeleteUserCart(String username, boolean rollback);
+    int validateOrRollbackDeleteUserCart(String username, boolean rollback);
     List<ProductOrderDTO> completeDeleteUserCart(String username);
     boolean releaseLockDeleteUserCart(String username);
 }

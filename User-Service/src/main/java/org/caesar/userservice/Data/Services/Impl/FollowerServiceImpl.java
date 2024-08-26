@@ -119,24 +119,27 @@ public class FollowerServiceImpl implements FollowerService {
 
 
     @Override
-    public boolean validateOrRollbackDeleteFollowers(String username, boolean rollback) {
+    public int validateOrRollbackDeleteFollowers(String username, boolean rollback) { //0 -> true 1-> false 2 -> non avente
         try {
             List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
+
+            if(followers.isEmpty())
+                return 2;
 
             for(Follower follower : followers){
                 follower.setOnDeleting(!rollback);
             }
 
             followerRepository.saveAll(followers);
-            return true;
+            return 0;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della carta");
-            return false;
+            return 1;
         }
     }
 
     @Override
-    public List<FollowerDTO> completeOrRollbackDeleteFollowers(String username) {
+    public List<FollowerDTO> completeDeleteFollowers(String username) {
         try {
             List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
 

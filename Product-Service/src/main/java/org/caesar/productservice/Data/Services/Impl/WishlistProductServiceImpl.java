@@ -95,7 +95,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
 
     @Override
-    public boolean validateOrRollbackDeleteUserWish(List<WishlistDTO> wishlists, boolean rollback) {
+    public int validateOrRollbackDeleteUserWish(List<WishlistDTO> wishlists, boolean rollback) {
         try {
             List<WishlistProduct> wishListsProduct= new Vector<>();
 
@@ -103,10 +103,13 @@ public class WishlistProductServiceImpl implements WishlistProductService {
                 List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlist, Wishlist.class));
 
                 if(wishListProductDTOS.isEmpty())
-                    return false;
+                    continue;
 
                 wishListsProduct.addAll(wishListProductDTOS);
             }
+
+            if(wishListsProduct.isEmpty())
+                return 2;
 
             for(WishlistProduct wishlistProduct: wishListsProduct){
                 wishlistProduct.setOnDeleting(!rollback);
@@ -114,10 +117,10 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
             wishlistProductRepository.saveAll(wishListsProduct);
 
-            return true;
+            return 0;
         }catch(Exception | Error e) {
             log.debug("Errore nella presa dei prodotti della lista");
-            return false;
+            return 1;
         }
     }
 

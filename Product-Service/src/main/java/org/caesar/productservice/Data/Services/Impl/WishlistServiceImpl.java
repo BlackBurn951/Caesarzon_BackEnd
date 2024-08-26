@@ -20,6 +20,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.Vector;
 
 @Service
 @RequiredArgsConstructor
@@ -162,6 +163,9 @@ public class WishlistServiceImpl implements WishlistService {
     public List<WishlistDTO> validateOrRollbackDeleteUserWishlist(String username, boolean rollback) {
         try{
             List<Wishlist> wishlists= wishlistRepository.findAllByUserUsername(username);
+
+            if(wishlists.isEmpty())
+                return new Vector<>();
 
             for(Wishlist wishlist: wishlists) {
                 wishlist.setOnDeleting(!rollback);

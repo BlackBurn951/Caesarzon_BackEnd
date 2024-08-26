@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Vector;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,34 +39,49 @@ public class DeleteController {
         List<OrderDTO> orders= orderService.validateDeleteUserOrders(username, rollback);
 
         result.setWishlists(wishlists);
-        result.setWishlistProduct(wishlistProductService.validateOrRollbackDeleteUserWish(wishlists, rollback));
+        if(result.getWishlists()!=null && !result.getWishlists().isEmpty())
+            result.setWishlistProduct(wishlistProductService.validateOrRollbackDeleteUserWish(wishlists, rollback));
+
         result.setReview(reviewService.validateDeleteReviews(username, rollback));
         result.setProductOrder(productOrderService.validateOrRollbackDeleteUserCart(username, rollback));
         result.setOrders(orders);
 
-        if(result.getOrders()!=null && result.getWishlists()!=null && result.isProductOrder() && result.isWishlistProduct() && result.isReview())
+        if(result.getWishlists()==null || result.getOrders()==null || result.getWishlistProduct()==1 || result.getReview()==1 ||
+            result.getProductOrder()==1)
             return new ResponseEntity<>(result, HttpStatus.OK);
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PutMapping("/user/delete")
-    public ResponseEntity<UserDeleteCompleteDTO> completeUserDelete(@RequestBody List<WishlistDTO> wishlists) {
+    public ResponseEntity<UserDeleteCompleteDTO> completeUserDelete(@RequestParam("review") boolean review, @RequestParam("product") boolean product, @RequestParam("order") boolean order, @RequestParam("wish-prod") boolean wishProd, @RequestBody List<WishlistDTO> wishlists) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         UserDeleteCompleteDTO result= new UserDeleteCompleteDTO();
 
-        List<ReviewDTO> reviews= reviewService.completeDeleteReviews(username);
-        List<ProductOrderDTO> productOrders= productOrderService.completeDeleteUserCart(username);
-        List<WishListProductDTO> wishlistProducts= wishlistProductService.completeDeleteUserWish(wishlists);
+        List<ReviewDTO> reviews= new Vector<>();
+        List<ProductOrderDTO> productOrders= new Vector<>();
+        List<WishListProductDTO> wishlistProducts= new Vector<>();
+        if(review)
+            reviews= reviewService.completeDeleteReviews(username);
 
-        result.setWishlists(wishlistService.completeDeleteUserWishlist(username));
+        if(product)
+            productOrders= productOrderService.completeDeleteUserCart(username);
+
+        if(!wishlists.isEmpty())
+            wishlistProducts = wishlistProductService.completeDeleteUserWish(wishlists);
+
+        if(order)
+            result.setOrders(orderService.completeDeleteUserOrders(username));
+
+        if(wishProd)
+            result.setWishlists(wishlistService.completeDeleteUserWishlist(username));
+
         result.setWishlistProduct(wishlistProducts);
-        result.setOrders(orderService.completeDeleteUserOrders(username));
         result.setProductOrder(productOrders);
         result.setReviews(reviews);
 
         if(result.getProductOrder()!=null && result.getWishlistProduct()!=null && result.getReviews()!=null
-            && result.isOrders() && result.isWishlists())
+            && (order && result.isOrders()) && (wishProd && result.isWishlists()))
             return new ResponseEntity<>(result, HttpStatus.OK);
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -74,11 +90,17 @@ public class DeleteController {
     public ResponseEntity<String> releaseUserDelete(@RequestBody RollbackUserDeleteDTO lists) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        boolean productWish= wishlistProductService.releaseLockDeleteUserWish(lists.getWishlists()),
-                wishlist= wishlistService.releaseLockDeleteUserWishlist(username),
-                productOrder= productOrderService.releaseLockDeleteUserCart(username),
-                order= orderService.releaseLockDeleteUserOrders(username),
-                review= reviewService.releaseLock(lists.getReviews().stream().map(ReviewDTO::getId).toList());
+        boolean productOrder= true, productWish= true, wishlist= true, order= true, review= true;
+        if(!lists.getProductOrders().isEmpty())
+            productOrder= productOrderService.releaseLockDeleteUserCart(username);
+        if(!lists.getOrders().isEmpty())
+            order= orderService.releaseLockDeleteUserOrders(username);
+        if(!lists.getReviews().isEmpty())
+            review= reviewService.releaseLock(lists.getReviews().stream().map(ReviewDTO::getId).toList());
+        if(!lists.getWishlists().isEmpty())
+            wishlist= wishlistService.releaseLockDeleteUserWishlist(username);
+        if(!lists.getWishListProducts().isEmpty())
+            productWish= wishlistProductService.releaseLockDeleteUserWish(lists.getWishlists());
 
         if(productWish && wishlist && productOrder && order && review)
             return new ResponseEntity<>("Eliminazione avvenuta con successo!", HttpStatus.OK);

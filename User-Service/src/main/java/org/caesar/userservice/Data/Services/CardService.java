@@ -13,7 +13,7 @@ public interface CardService {
 
 
     boolean validateOrRollbackCards(List<UUID> cardsId, boolean rollback);
-    List<CardDTO> completeCards(List<UUID> cardsId);
+    boolean completeCards(List<UUID> cardsId);
     boolean releaseLockCards(List<UUID> cardsId);
     boolean rollbackCards(List<CardDTO> cards);
 }
