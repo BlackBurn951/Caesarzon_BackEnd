@@ -114,7 +114,7 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional //TODO AGGIUNGERE ELIMINAZIONE IMMAGINI
+        @Transactional //TODO AGGIUNGERE ELIMINAZIONE CORRELATI
     public boolean deleteProduct(UUID id) {
         ProductDTO product = productService.getProductById(id);
 
@@ -569,40 +569,39 @@ public class GeneralServiceImpl implements GeneralService {
 
     //SEZIONE DELLE WISHLIST
     @Override
-    public WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String username) {
+    public WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String ownerUsername, String accessUsername) {
+        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, ownerUsername);
 
-        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
-
-        if(wishlistDTO==null){
-            return null;
-        }
-
-        List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlistDTO);
-
-        if(wishListProductDTOS == null || wishListProductDTOS.isEmpty())
+        if(wishlistDTO==null)
             return null;
 
-        WishProductDTO wishProductDTO = new WishProductDTO();
+        //Caso in cui l'utente vuole accedere alle sue liste desideri
+        if(ownerUsername.equals(accessUsername))
+            return getWishProd(wishlistDTO);
+        else {
+            if(wishlistDTO.getVisibility().equals("Pubblica")) //Pubbliche
+                return getWishProd(wishlistDTO);
+            else if(wishlistDTO.getVisibility().equals("Condivisa")) { //Condivisa
+                //Caso in cui l'utente vuole accedere alle wishlist di un altro utente
+                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Authorization", request.getHeader("Authorization"));
 
-        SingleWishListProductDTO singleWishListProductDTO;
+                HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        List<SingleWishListProductDTO> singleWishListProductDTOS = new Vector<>();
+                ResponseEntity<Boolean> response= restTemplate.exchange(
+                        "http://user-service/user-api/follower/" + accessUsername+"?username="+ownerUsername,
+                        HttpMethod.GET,
+                        entity,
+                        boolean.class
+                );
 
-        for(WishListProductDTO wishListProductDTO: wishListProductDTOS){
-            singleWishListProductDTO = new SingleWishListProductDTO();
-
-            singleWishListProductDTO.setProductName(wishListProductDTO.getProductDTO().getName());
-            singleWishListProductDTO.setPrice(wishListProductDTO.getProductDTO().getPrice());
-            singleWishListProductDTO.setProductId(wishListProductDTO.getProductDTO().getId());
-
-            singleWishListProductDTOS.add(singleWishListProductDTO);
-
+                if(response.getStatusCode()== HttpStatus.OK && response.getBody()) {
+                    return getWishProd(wishlistDTO);
+                }
+            }
+            return null;
         }
-
-        wishProductDTO.setSingleWishListProductDTOS(singleWishListProductDTOS);
-        wishProductDTO.setVisibility(wishlistDTO.getVisibility());
-
-        return wishProductDTO;
     }
 
     @Override
@@ -654,6 +653,35 @@ public class GeneralServiceImpl implements GeneralService {
 
 
     //Metodi di servizio
+
+    private WishProductDTO getWishProd(WishlistDTO wishlist) {
+        List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlist);
+
+        if(wishListProductDTOS == null || wishListProductDTOS.isEmpty())
+            return null;
+
+        WishProductDTO wishProductDTO = new WishProductDTO();
+
+        SingleWishListProductDTO singleWishListProductDTO;
+
+        List<SingleWishListProductDTO> singleWishListProductDTOS = new Vector<>();
+
+        for(WishListProductDTO wishListProductDTO: wishListProductDTOS){
+            singleWishListProductDTO = new SingleWishListProductDTO();
+
+            singleWishListProductDTO.setProductName(wishListProductDTO.getProductDTO().getName());
+            singleWishListProductDTO.setPrice(wishListProductDTO.getProductDTO().getPrice());
+            singleWishListProductDTO.setProductId(wishListProductDTO.getProductDTO().getId());
+
+            singleWishListProductDTOS.add(singleWishListProductDTO);
+
+        }
+
+        wishProductDTO.setSingleWishListProductDTOS(singleWishListProductDTOS);
+        wishProductDTO.setVisibility(wishlist.getVisibility());
+
+        return wishProductDTO;
+    }
 
     // Generatore di codici per gli ordini
     public static String generaCodice(int lunghezza) {

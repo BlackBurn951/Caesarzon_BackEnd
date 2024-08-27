@@ -51,7 +51,7 @@ public interface GeneralService {
 
 
     //SEZIONE DELLE WISHLIST
-    WishProductDTO getWishlistProductsByWishlistID(UUID wishlistId, String username);
+    WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String ownerUsername, String accessUsername);
     boolean addProductIntoWishList(String username, SendWishlistProductDTO sendWishlistProductDTO);
     boolean deleteProductFromWishList(String username, UUID wishId, UUID productId);
     boolean deleteProductsFromWishList(String username, UUID wishlistId);
