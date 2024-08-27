@@ -28,7 +28,6 @@ public class UserDataController {
     private final ProfilePicService profilePicService;
     private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
-    private final Utils utils;
 
 
     //End-point per manipolare i dati anagrafici dell'utente
@@ -114,19 +113,19 @@ public class UserDataController {
 
 
 
-    //End-point per manipolare la foto profilo
-    @GetMapping("/image")
-    public ResponseEntity<byte[]> loadImage(){
-        //Prendendo l'username dell'utente che ha fatto la chiamata
-        String username= httpServletRequest.getAttribute("preferred_username").toString();
-
-        //Presa dell'imagine profilo dell'utente
-        byte[] img = profilePicService.getUserImage(username);
-        if(img != null)
-            return new ResponseEntity<>(img, HttpStatus.OK);
-        else
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//    //End-point per manipolare la foto profilo
+//    @GetMapping("/image")
+//    public ResponseEntity<byte[]> loadImage(){
+//        //Prendendo l'username dell'utente che ha fatto la chiamata
+//        String username= httpServletRequest.getAttribute("preferred_username").toString();
+//
+//        //Presa dell'imagine profilo dell'utente
+//        byte[] img = profilePicService.getUserImage(username);
+//        if(img != null)
+//            return new ResponseEntity<>(img, HttpStatus.OK);
+//        else
+//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 
     @GetMapping("/image/{username}")
     public ResponseEntity<byte[]> loadImages(@PathVariable String username){
@@ -143,6 +142,15 @@ public class UserDataController {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
+        if(profilePicService.saveImage(username, file, false))
+            return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping(value = "/image/admin/{username}")
+    public ResponseEntity<String> uploadImageAdmin(@RequestParam("file") MultipartFile file, @PathVariable String username){
+        //Prendendo l'username dell'utente che ha fatto la chiamata
         if(profilePicService.saveImage(username, file, false))
             return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
         else

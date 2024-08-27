@@ -11,8 +11,8 @@ import java.util.UUID;
 
 public interface ImageService {
 
-    boolean addOrUpdateImage(UUID product, MultipartFile images);
-    ImageDTO getImage(Product product);
-    List<Image> getAllProductImages(Product product);
-    boolean deleteImage(Product product);
+
+    byte[] getImage(ProductDTO prod);
+    Image findImage(UUID productId);
+    boolean saveImage(Image image);
 }

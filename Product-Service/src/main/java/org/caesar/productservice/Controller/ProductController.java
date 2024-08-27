@@ -11,6 +11,7 @@ import org.caesar.productservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -38,15 +39,24 @@ public class ProductController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/image")
-    public ResponseEntity<List<ImageDTO>> getProductImages(@RequestParam UUID productID) {
-        List<ImageDTO> images = generalService.getProductImage(productID);
+    @GetMapping("/image/{productId}")
+    public ResponseEntity<byte[]> getProductImages(@PathVariable UUID productId) {
+        byte[] image = generalService.getProductImage(productId);
 
-        if(!images.isEmpty()){
-            return new ResponseEntity<>(images, HttpStatus.OK);
+        if(image != null){
+            return new ResponseEntity<>(image, HttpStatus.OK);
         }else{
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    @PutMapping("/image/{productId}")
+    public ResponseEntity<String> putProductImages(@RequestParam("file") MultipartFile file, @PathVariable UUID productId) {
+
+        if(generalService.saveImage(productId, file, false))
+            return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PostMapping("/product") //Aggiunge il prodotto inviato con le sue disponibilità al db

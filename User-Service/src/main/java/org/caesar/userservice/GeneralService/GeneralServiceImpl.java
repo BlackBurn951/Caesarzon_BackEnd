@@ -130,7 +130,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         for (UserDTO userDTO : users) {
             userFindDTO= new UserFindDTO();
-
+            userFindDTO.setProfilePic(profilePicService.getUserImage(userDTO.getUsername()));
             userFindDTO.setUsername(userDTO.getUsername());
             userFindDTOs.add(userFindDTO);
         }
@@ -152,7 +152,6 @@ public class GeneralServiceImpl implements GeneralService {
         for(FollowerDTO followerDTO: followers) {
             userSearchDTO= new UserSearchDTO();
             userSearchDTO.setUsername(followerDTO.getUserUsername2());
-            //TODO AGGIUNGERE LA FOTO PROFILO
             if(followerDTO.isFriend())
                 userSearchDTO.setFriend(true);
             userSearchDTO.setFollower(true);
@@ -197,7 +196,6 @@ public class GeneralServiceImpl implements GeneralService {
 
             FollowerDTO followerDTO= followerService.getFollower(username, userDTO.getUsername());
 
-            //TODO AGGIUNGERE FOTO PROFILO
             userSearchDTO.setUsername(userDTO.getUsername());
             if(followerDTO != null) {
                 userSearchDTO.setFollower(true);

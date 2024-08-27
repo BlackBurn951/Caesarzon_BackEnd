@@ -8,7 +8,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.productservice.Data.Dao.ImageRepository;
+import org.caesar.productservice.Data.Entities.Image;
 import org.caesar.productservice.Data.Services.*;
+import org.caesar.productservice.Data.Services.Impl.ImageServiceImpl;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
@@ -26,6 +29,7 @@ import org.caesar.productservice.Dto.ProductDTO;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -48,6 +52,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
+    private final ImageService imageService;
 
     private final Utils utils;
     private final RestTemplate restTemplate;
@@ -56,6 +61,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     private final static String USER_SERVICE= "userService";
     private final static String NOTIFY_SERVICE= "notifyService";
+    private final ImageRepository imageRepository;
 
     private boolean fallbackUser(Throwable e){
         log.info("Servizio utenti non disponibile");
@@ -71,8 +77,13 @@ public class GeneralServiceImpl implements GeneralService {
 
     //SEZIONE DEI PRODOTTI E STRETTAMENTE CORRELATI
     @Override
-    public List<ImageDTO> getProductImage(UUID id) {
-        return List.of();
+    public byte[] getProductImage(UUID id) {
+        ProductDTO prod= productService.getProductById(id);
+
+        if(prod==null)
+            return null;
+
+        return imageService.getImage(id);
     }
 
     @Override
@@ -124,6 +135,24 @@ public class GeneralServiceImpl implements GeneralService {
         return false;
     }
 
+    @Override
+    public boolean saveImage(UUID productId, MultipartFile file, boolean save) {
+        try {
+            if (save) {
+                Image productImage = new Image();
+                productImage.setFile(file.getBytes());
+                imageService.saveImage(productImage);
+            } else {
+                Image productImage = imageService.findImage(productId);
+                productImage.setFile(file.getBytes());
+                imageService.saveImage(productImage);
+            }
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nel caricamento dell'immagine");
+            return false;
+        }
+    }
 
 
     //SEZIONE RECENSIONI
