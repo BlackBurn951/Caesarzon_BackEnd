@@ -103,16 +103,16 @@ public class UserCardServiceImpl implements UserCardService {
 
 
     @Override
-    public List<UUID> validateOrRollbackUserCardsDelete(String username, boolean rollback) {
+    public List<CardDTO> validateOrRollbackUserCardsDelete(String username, boolean rollback) {
         try {
             List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
 
             if(cards.isEmpty())
                 return new Vector<>();
 
-            List<UUID> result= new Vector<>();
+            List<CardDTO> result= new Vector<>();
             for(UserCard userCard: cards) {
-                result.add(userCard.getId());
+                result.add(modelMapper.map(userCard.getCard(), CardDTO.class));
                 userCard.setOnDeleting(!rollback);
             }
 
@@ -126,22 +126,20 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public List<CardDTO> completeUserCardsDelete(String username) {
+    public boolean completeUserCardsDelete(String username) {
         try {
             List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
 
-            List<CardDTO> result = new Vector<>();
             for(UserCard userCard: cards) {
-                result.add(modelMapper.map(userCard.getCard(), CardDTO.class));
                 userCard.setCard(null);
             }
 
             userCardRepository.saveAll(cards);
 
-            return result;
+            return true;
         } catch (Exception | Error e) {
             log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
-            return null;
+            return false;
         }
     }
 

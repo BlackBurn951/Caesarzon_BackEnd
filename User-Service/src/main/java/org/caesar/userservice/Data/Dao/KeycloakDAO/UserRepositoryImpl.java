@@ -217,31 +217,31 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     @Transactional
-    public boolean validateOrRollbackDeleteUser(String username, boolean rollback) {
+    public User validateOrRollbackDeleteUser(String username, boolean rollback) {
         try {
 
             //Presa dell'id dell'utente
-            String userId= findUserByUsername(username).getId();
+            User user= findUserByUsername(username);
 
             //Presa dell'utente rappresentato attraverso l'interfaccia keycloak
-            UserResource userResource= keycloak.realm("CaesarRealm").users().get(userId);
-            UserRepresentation user = userResource.toRepresentation();
+            UserResource userResource= keycloak.realm("CaesarRealm").users().get(user.getId());
+            UserRepresentation userRapr = userResource.toRepresentation();
 
             boolean vb= !rollback;
-            user.getAttributes().get("onChanges").set(0, String.valueOf(vb));
+            userRapr.getAttributes().get("onChanges").set(0, String.valueOf(vb));
 
-            userResource.update(user);
+            userResource.update(userRapr);
 
-            return true;
+            return user;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione dell'utente");
-            return false;
+            return null;
         }
     }
 
     @Override
     @Transactional
-    public User completeDeleteUser(String username) {
+    public boolean completeDeleteUser(String username) {
         try {
 
             //Presa dell'id dell'utente
@@ -263,10 +263,10 @@ public class UserRepositoryImpl implements UserRepository {
 
             userResource.update(userRp);
 
-            return user;
+            return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione dell'utente");
-            return null;
+            return false;
         }
     }
 

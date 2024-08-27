@@ -15,8 +15,8 @@ public interface UserCardService {
     boolean checkCard(String username, UUID cardId);
     boolean deleteUserCard(UserCardDTO userCardDTO);
 
-    List<UUID> validateOrRollbackUserCardsDelete(String username, boolean rollback);
-    List<CardDTO> completeUserCardsDelete(String username);
+    List<CardDTO> validateOrRollbackUserCardsDelete(String username, boolean rollback);
+    boolean completeUserCardsDelete(String username);
     boolean releaseLockUserCards(String username);
     boolean rollbackUserCards(String username, List<CardDTO> cards);
 }

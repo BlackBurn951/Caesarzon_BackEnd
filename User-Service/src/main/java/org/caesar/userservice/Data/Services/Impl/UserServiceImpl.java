@@ -120,13 +120,13 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public boolean validateOrRollbackDeleteUser(String username, boolean rollback) {
-        return userRepository.validateOrRollbackDeleteUser(username, rollback);
+    public UserDTO validateOrRollbackDeleteUser(String username, boolean rollback) {
+        return modelMapper.map(userRepository.validateOrRollbackDeleteUser(username, rollback), UserDTO.class);
     }
 
     @Override
-    public UserDTO completeDeleteUser(String username) {
-        return modelMapper.map(userRepository.completeDeleteUser(username), UserDTO.class);
+    public boolean completeDeleteUser(String username) {
+        return userRepository.completeDeleteUser(username);
     }
 
     @Override

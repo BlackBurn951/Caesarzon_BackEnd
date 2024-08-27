@@ -97,16 +97,16 @@ public class UserAddressServiceImpl implements UserAddressService {
 
 
     @Override
-    public List<UUID> validateOrRollbackUserAddressesDelete(String username, boolean rollback) {
+    public List<AddressDTO> validateOrRollbackUserAddressesDelete(String username, boolean rollback) {
         try {
             List<UserAddress> addresses= userAddressRepository.findAllByUserUsername(username);
 
             if(addresses.isEmpty())
                 return new Vector<>();
 
-            List<UUID> result= new Vector<>();
+            List<AddressDTO> result= new Vector<>();
             for(UserAddress userAddress: addresses) {
-                result.add(userAddress.getId());
+                result.add(modelMapper.map(userAddress.getAddress(), AddressDTO.class));
                 userAddress.setOnDeleting(!rollback);
             }
 
@@ -120,22 +120,20 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public List<AddressDTO> completeUserAddressesDelete(String username) {
+    public boolean completeUserAddressesDelete(String username) {
         try {
             List<UserAddress> addresses= userAddressRepository.findAllByUserUsername(username);
 
-            List<AddressDTO> result = new Vector<>();
             for(UserAddress userAddress: addresses) {
-                result.add(modelMapper.map(userAddress.getAddress(), AddressDTO.class));
                 userAddress.setAddress(null);
             }
 
             userAddressRepository.saveAll(addresses);
 
-            return result;
+            return true;
         } catch (Exception | Error e) {
             log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
-            return null;
+            return false;
         }
     }
 

@@ -17,8 +17,8 @@ public interface UserAddressService {
     boolean deleteUserAddress(UserAddressDTO userAddressDTO);
 
 
-    List<UUID> validateOrRollbackUserAddressesDelete(String username, boolean rollback);
-    List<AddressDTO> completeUserAddressesDelete(String username);
+    List<AddressDTO> validateOrRollbackUserAddressesDelete(String username, boolean rollback);
+    boolean completeUserAddressesDelete(String username);
     boolean releaseLockUserAddresses(String username);
     boolean rollbackUserAddresses(String username, List<AddressDTO> addresses);
 }

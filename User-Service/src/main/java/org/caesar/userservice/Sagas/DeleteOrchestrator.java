@@ -2,10 +2,8 @@ package org.caesar.userservice.Sagas;
 
 import lombok.RequiredArgsConstructor;
 import org.caesar.userservice.Data.Services.*;
-import org.caesar.userservice.Dto.AddressDTO;
-import org.caesar.userservice.Dto.CardDTO;
+import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.Dto.DeleteDTO.*;
-import org.caesar.userservice.Dto.FollowerDTO;
 import org.caesar.userservice.Utils.CallCenter;
 import org.springframework.stereotype.Service;
 
@@ -23,33 +21,41 @@ public class DeleteOrchestrator {
     private final CardService cardService;
     private final FollowerService followerService;
     private final CallCenter callCenter;
+    private final ProfilePicService profilePicService;
+    private final UserService userService;
 
-    public boolean processUserDelete(String username) {
+    public boolean processUserDelete(UserDTO user) {
 
         //Fase di validazione in locale
-        List<UUID> cardId= userCardService.validateOrRollbackUserCardsDelete(username, false),
-                addressId= userAddressService.validateOrRollbackUserAddressesDelete(username, false);
+
+        //Validazione foto profilo
+        ProfilePicDTO profilePic= profilePicService.validateDeleteUser(user.getUsername(), false);
+
+        if(profilePic==null)
+            profilePicService.validateDeleteUser(user.getUsername(), true);
+
+        //Validazione Tabelle di relazione carte e indirizzi
+        List<CardDTO> validationUserCard= userCardService.validateOrRollbackUserCardsDelete(user.getUsername(), false);
+        List<AddressDTO> validationUserAddress= userAddressService.validateOrRollbackUserAddressesDelete(user.getUsername(), false);
 
         int validateAddressAndCard= -1;  //0 -> true entrambi 1 -> true solo carte 2-> true solo indirizzi 3 -> false
 
-        if(cardId==null || addressId==null) {
-            rollbackUserCardAndAddress(username);
+        if(validationUserCard==null || validationUserAddress==null) {
+            rollbackUserCardAndAddress(user.getUsername());
 
             return false;
         }
 
 
         //Controllo che l'utente abbia delle carte/indirizzi a suo nome
-        if(!cardId.isEmpty() || !addressId.isEmpty())
-            validateAddressAndCard= validateCardAndAddress(cardId, addressId, false);
+        if(!validationUserCard.isEmpty() || !validationUserAddress.isEmpty())
+            validateAddressAndCard= validateCardAndAddress(validationUserCard.stream().map(CardDTO::getId).toList(), validationUserAddress.stream().map(AddressDTO::getId).toList(), false);
 
-        int validateFollower= followerService.validateOrRollbackDeleteFollowers(username, false);  //0 -> true 1-> false 2 -> non avente
-
-        //TODO VALIDAZIONE FOTO PROFILO (SICURA)
-
+        //Validazione follower
+        List<FollowerDTO> validateFollower= followerService.validateOrRollbackDeleteFollowers(user.getUsername(), false);  //0 -> true 1-> false 2 -> non avente
 
         //Controllo che non ci siano stati errori a prescindere dai dati presenti o no
-        if(validateFollower!=1 && validateAddressAndCard!=3) {
+        if(validateFollower!=null && validateAddressAndCard!=3 && profilePic!=null) {
 
             //Fase di validazione sul servizio delle notifiche
             ValidateUserDeleteDTO validateNotification= callCenter.validateNotificationService(false);
@@ -67,18 +73,21 @@ public class DeleteOrchestrator {
                     //Fase di completamento in locale
 
                     //Controllo che l'utente abbia follower
-                    List<FollowerDTO> rollbackFollower= new Vector<>();
-                    if(validateFollower!=2) {
-                        rollbackFollower= followerService.completeDeleteFollowers(username);
+                    boolean completeFollower= true;
+                    if(!validateFollower.isEmpty()) {
+                        completeFollower= followerService.completeDeleteFollowers(user.getUsername());
 
-                        if(rollbackFollower==null) {
+                        if(!completeFollower) {
                             //Rollback in locale
-                            followerService.rollbackDeleteFollowers(rollbackFollower);
+                            followerService.rollbackDeleteFollowers(validateFollower);
 
                             if(validateAddressAndCard!=-1) {
-                                validateCardAndAddress(cardId, addressId, true);
-                                rollbackUserCardAndAddress(username);
+                                validateCardAndAddress(validationUserCard.stream().map(CardDTO::getId).toList(), validationUserAddress.stream().map(AddressDTO::getId).toList(), true);
+                                rollbackUserCardAndAddress(user.getUsername());
                             }
+
+                            profilePicService.validateDeleteUser(user.getUsername(), true);
+                            userService.validateOrRollbackDeleteUser(user.getUsername(), true);
 
                             //Rollback sui servizi esterni
                             callCenter.validateNotificationService(true);
@@ -88,22 +97,45 @@ public class DeleteOrchestrator {
                         }
                     }
 
+                    boolean completePic= profilePicService.completeDeleteUser(user.getUsername());
+                    if(!completePic) {
+                        profilePicService.rollbackDeleteUser(user.getUsername(), profilePic);
+                        userService.validateOrRollbackDeleteUser(user.getUsername(), true);
+
+                        if(validateAddressAndCard!=-1) {
+                            validateCardAndAddress(validationUserCard.stream().map(CardDTO::getId).toList(), validationUserAddress.stream().map(AddressDTO::getId).toList(), true);
+                            rollbackUserCardAndAddress(user.getUsername());
+                        }
+
+                        if(!validateFollower.isEmpty())
+                            followerService.rollbackDeleteFollowers(validateFollower);
+
+                        //Rollback sui servizi esterni
+                        callCenter.validateNotificationService(true);
+                        callCenter.validateProductService(true);
+
+                        return false;
+                    }
+
                     //Controllo che l'utente abbia indirizzi e carte
-                    List<AddressDTO> completeUserAddress= new Vector<>();
-                    List<CardDTO> completeUserCard= new Vector<>();
+                    boolean completeUserAddress= true;
+                    boolean completeUserCard= true;
                     switch (validateAddressAndCard) {
                         case 0:
-                            completeUserAddress= userAddressService.completeUserAddressesDelete(username);
-                            completeUserCard= userCardService.completeUserCardsDelete(username);
+                            completeUserAddress= userAddressService.completeUserAddressesDelete(user.getUsername());
+                            completeUserCard= userCardService.completeUserCardsDelete(user.getUsername());
 
-                            if(completeUserAddress==null || completeUserCard==null) {
+                            if(!completeUserAddress || !completeUserCard) {
                                 //Rollback locale
-                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
-                                userCardService.rollbackUserCards(username, completeUserCard);
-                                validateCardAndAddress(cardId, addressId, true);
+                                userAddressService.rollbackUserAddresses(user.getUsername(), validationUserAddress);
+                                userCardService.rollbackUserCards(user.getUsername(), validationUserCard);
+                                validateCardAndAddress(validationUserCard.stream().map(CardDTO::getId).toList(), validationUserAddress.stream().map(AddressDTO::getId).toList(), true);
 
-                                if(!rollbackFollower.isEmpty())
-                                    followerService.rollbackDeleteFollowers(rollbackFollower);
+                                if(!validateFollower.isEmpty())
+                                    followerService.rollbackDeleteFollowers(validateFollower);
+
+                                profilePicService.rollbackDeleteUser(user.getUsername(), profilePic);
+                                userService.validateOrRollbackDeleteUser(user.getUsername(), true);
 
                                 //Rollback sui servizi esterni
                                 callCenter.validateNotificationService(true);
@@ -112,18 +144,21 @@ public class DeleteOrchestrator {
                                 return false;
                             }
 
-                            boolean completeCard= cardService.completeCards(completeUserCard.stream().map(CardDTO::getId).toList()),
-                                    completeAddress= addressService.completeAddresses(completeUserAddress.stream().map(AddressDTO::getId).toList());
+                            boolean completeCard= cardService.completeCards(validationUserCard.stream().map(CardDTO::getId).toList()),
+                                    completeAddress= addressService.completeAddresses(validationUserAddress.stream().map(AddressDTO::getId).toList());
 
                             if(!completeAddress && !completeCard) {
                                 //Rollback in locale
-                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
-                                userCardService.rollbackUserCards(username, completeUserCard);
-                                cardService.rollbackCards(completeUserCard);
-                                addressService.rollbackAddresses(completeUserAddress);
+                                userAddressService.rollbackUserAddresses(user.getUsername(), validationUserAddress);
+                                userCardService.rollbackUserCards(user.getUsername(), validationUserCard);
+                                cardService.rollbackCards(validationUserCard);
+                                addressService.rollbackAddresses(validationUserAddress);
 
-                                if(!rollbackFollower.isEmpty())
-                                    followerService.rollbackDeleteFollowers(rollbackFollower);
+                                if(!validateFollower.isEmpty())
+                                    followerService.rollbackDeleteFollowers(validateFollower);
+
+                                profilePicService.rollbackDeleteUser(user.getUsername(), profilePic);
+                                userService.validateOrRollbackDeleteUser(user.getUsername(), true);
 
                                 //Rollback sui servizi esterni
                                 callCenter.validateNotificationService(true);
@@ -134,13 +169,16 @@ public class DeleteOrchestrator {
                             break;
 
                         case 1:
-                            completeUserCard= userCardService.completeUserCardsDelete(username);
+                            completeUserCard= userCardService.completeUserCardsDelete(user.getUsername());
 
-                            if(completeUserCard==null) {
-                                userCardService.rollbackUserCards(username, completeUserCard);
+                            if(!completeUserCard) {
+                                userCardService.rollbackUserCards(user.getUsername(), validationUserCard);
 
-                                if(!rollbackFollower.isEmpty())
-                                    followerService.rollbackDeleteFollowers(rollbackFollower);
+                                if(!validateFollower.isEmpty())
+                                    followerService.rollbackDeleteFollowers(validateFollower);
+
+                                profilePicService.rollbackDeleteUser(user.getUsername(), profilePic);
+                                userService.validateOrRollbackDeleteUser(user.getUsername(), true);
 
                                 //Rollback sui servizi esterni
                                 callCenter.validateNotificationService(true);
@@ -149,12 +187,15 @@ public class DeleteOrchestrator {
                                 return false;
                             }
 
-                            if(!cardService.completeCards(completeUserCard.stream().map(CardDTO::getId).toList())) {
-                                userCardService.rollbackUserCards(username, completeUserCard);
-                                cardService.rollbackCards(completeUserCard);
+                            if(!cardService.completeCards(validationUserCard.stream().map(CardDTO::getId).toList())) {
+                                userCardService.rollbackUserCards(user.getUsername(), validationUserCard);
+                                cardService.rollbackCards(validationUserCard);
 
-                                if(!rollbackFollower.isEmpty())
-                                    followerService.rollbackDeleteFollowers(rollbackFollower);
+                                if(!validateFollower.isEmpty())
+                                    followerService.rollbackDeleteFollowers(validateFollower);
+
+                                profilePicService.rollbackDeleteUser(user.getUsername(), profilePic);
+                                userService.validateOrRollbackDeleteUser(user.getUsername(), true);
 
                                 //Rollback sui servizi esterni
                                 callCenter.validateNotificationService(true);
@@ -166,13 +207,16 @@ public class DeleteOrchestrator {
                             break;
 
                         case 2:
-                            completeUserAddress= userAddressService.completeUserAddressesDelete(username);
+                            completeUserAddress= userAddressService.completeUserAddressesDelete(user.getUsername());
 
-                            if(completeUserAddress==null) {
-                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
+                            if(!completeUserAddress) {
+                                userAddressService.rollbackUserAddresses(user.getUsername(), validationUserAddress);
 
-                                if(!rollbackFollower.isEmpty())
-                                    followerService.rollbackDeleteFollowers(rollbackFollower);
+                                if(!validateFollower.isEmpty())
+                                    followerService.rollbackDeleteFollowers(validateFollower);
+
+                                profilePicService.rollbackDeleteUser(user.getUsername(), profilePic);
+                                userService.validateOrRollbackDeleteUser(user.getUsername(), true);
 
                                 //Rollback sui servizi esterni
                                 callCenter.validateNotificationService(true);
@@ -181,12 +225,15 @@ public class DeleteOrchestrator {
                                 return false;
                             }
 
-                            if(!addressService.completeAddresses(completeUserAddress.stream().map(AddressDTO::getId).toList())) {
-                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
-                                addressService.rollbackAddresses(completeUserAddress);
+                            if(!addressService.completeAddresses(validationUserAddress.stream().map(AddressDTO::getId).toList())) {
+                                userAddressService.rollbackUserAddresses(user.getUsername(), validationUserAddress);
+                                addressService.rollbackAddresses(validationUserAddress);
 
-                                if(!rollbackFollower.isEmpty())
-                                    followerService.rollbackDeleteFollowers(rollbackFollower);
+                                if(!validateFollower.isEmpty())
+                                    followerService.rollbackDeleteFollowers(validateFollower);
+
+                                profilePicService.rollbackDeleteUser(user.getUsername(), profilePic);
+                                userService.validateOrRollbackDeleteUser(user.getUsername(), true);
 
                                 //Rollback sui servizi esterni
                                 callCenter.validateNotificationService(true);
@@ -196,6 +243,33 @@ public class DeleteOrchestrator {
                             }
 
                             break;
+                    }
+
+                    if(!userService.completeDeleteUser(user.getUsername())) {
+                        if(!validateFollower.isEmpty())
+                            followerService.rollbackDeleteFollowers(validateFollower);
+
+                        if(validateAddressAndCard==0) {
+                            userAddressService.rollbackUserAddresses(user.getUsername(), validationUserAddress);
+                            userCardService.rollbackUserCards(user.getUsername(), validationUserCard);
+                            cardService.rollbackCards(validationUserCard);
+                            addressService.rollbackAddresses(validationUserAddress);
+                        }
+                        else if(validateAddressAndCard==1) {
+                            userCardService.rollbackUserCards(user.getUsername(), validationUserCard);
+                            cardService.rollbackCards(validationUserCard);
+                        }
+                        else if(validateAddressAndCard==2) {
+                            userAddressService.rollbackUserAddresses(user.getUsername(), validationUserAddress);
+                            addressService.rollbackAddresses(validationUserAddress);
+                        }
+                        profilePicService.rollbackDeleteUser(user.getUsername(), profilePic);
+                        userService.updateUser(user);
+
+                        callCenter.validateNotificationService(true);
+                        callCenter.validateProductService(true);
+
+                        return false;
                     }
 
                     //Fase di completamento sul servizio notifiche con controllo che l'utente abbia almeno qualcosa da completare
@@ -214,23 +288,26 @@ public class DeleteOrchestrator {
                             rollbackNotification.setAdminNotification(validateNotification.getAdminNotificationForReport());
                             callCenter.rollbackNotificationService(rollbackNotification);
 
-                            if(!rollbackFollower.isEmpty())
-                                followerService.rollbackDeleteFollowers(rollbackFollower);
+                            if(!validateFollower.isEmpty())
+                                followerService.rollbackDeleteFollowers(validateFollower);
 
                             if(validateAddressAndCard==0) {
-                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
-                                userCardService.rollbackUserCards(username, completeUserCard);
-                                cardService.rollbackCards(completeUserCard);
-                                addressService.rollbackAddresses(completeUserAddress);
+                                userAddressService.rollbackUserAddresses(user.getUsername(), validationUserAddress);
+                                userCardService.rollbackUserCards(user.getUsername(), validationUserCard);
+                                cardService.rollbackCards(validationUserCard);
+                                addressService.rollbackAddresses(validationUserAddress);
                             }
                             else if(validateAddressAndCard==1) {
-                                userCardService.rollbackUserCards(username, completeUserCard);
-                                cardService.rollbackCards(completeUserCard);
+                                userCardService.rollbackUserCards(user.getUsername(), validationUserCard);
+                                cardService.rollbackCards(validationUserCard);
                             }
                             else if(validateAddressAndCard==2) {
-                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
-                                addressService.rollbackAddresses(completeUserAddress);
+                                userAddressService.rollbackUserAddresses(user.getUsername(), validationUserAddress);
+                                addressService.rollbackAddresses(validationUserAddress);
                             }
+                            profilePicService.rollbackDeleteUser(user.getUsername(), profilePic);
+                            userService.updateUser(user);
+
                             callCenter.validateProductService(true);
 
                             return false;
@@ -267,47 +344,49 @@ public class DeleteOrchestrator {
                                 rollbackNotification.setAdminNotification(validateNotification.getAdminNotificationForReport());
                                 callCenter.rollbackNotificationService(rollbackNotification);
                             }
-                            if(!rollbackFollower.isEmpty())
-                                followerService.rollbackDeleteFollowers(rollbackFollower);
+                            if(!validateFollower.isEmpty())
+                                followerService.rollbackDeleteFollowers(validateFollower);
 
                             if(validateAddressAndCard==0) {
-                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
-                                userCardService.rollbackUserCards(username, completeUserCard);
-                                cardService.rollbackCards(completeUserCard);
-                                addressService.rollbackAddresses(completeUserAddress);
+                                userAddressService.rollbackUserAddresses(user.getUsername(), validationUserAddress);
+                                userCardService.rollbackUserCards(user.getUsername(), validationUserCard);
+                                cardService.rollbackCards(validationUserCard);
+                                addressService.rollbackAddresses(validationUserAddress);
                             }
                             else if(validateAddressAndCard==1) {
-                                userCardService.rollbackUserCards(username, completeUserCard);
-                                cardService.rollbackCards(completeUserCard);
+                                userCardService.rollbackUserCards(user.getUsername(), validationUserCard);
+                                cardService.rollbackCards(validationUserCard);
                             }
                             else if(validateAddressAndCard==2) {
-                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
-                                addressService.rollbackAddresses(completeUserAddress);
+                                userAddressService.rollbackUserAddresses(user.getUsername(), validationUserAddress);
+                                addressService.rollbackAddresses(validationUserAddress);
                             }
+                            profilePicService.rollbackDeleteUser(user.getUsername(), profilePic);
+                            userService.updateUser(user);
 
                             return false;
                         }
                     }
 
                     //Fase di rilascio lock su tutti i servizi
-                    if(validateFollower!=2)
-                        followerService.releaseOrDeleteFollowers(username);
+                    if(!validateFollower.isEmpty())
+                        followerService.releaseOrDeleteFollowers(user.getUsername());
                     switch (validateAddressAndCard) {
                         case 0:
-                            userCardService.releaseLockUserCards(username);
-                            userAddressService.releaseLockUserAddresses(username);
-                            addressService.releaseLockAddresses(completeUserAddress.stream().map(AddressDTO::getId).toList());
-                            cardService.releaseLockCards(completeUserCard.stream().map(CardDTO::getId).toList());
+                            userCardService.releaseLockUserCards(user.getUsername());
+                            userAddressService.releaseLockUserAddresses(user.getUsername());
+                            addressService.releaseLockAddresses(validationUserAddress.stream().map(AddressDTO::getId).toList());
+                            cardService.releaseLockCards(validationUserCard.stream().map(CardDTO::getId).toList());
                             break;
 
                         case 1:
-                            userCardService.releaseLockUserCards(username);
-                            cardService.releaseLockCards(completeUserCard.stream().map(CardDTO::getId).toList());
+                            userCardService.releaseLockUserCards(user.getUsername());
+                            cardService.releaseLockCards(validationUserCard.stream().map(CardDTO::getId).toList());
                             break;
 
                         case 2:
-                            userAddressService.releaseLockUserAddresses(username);
-                            addressService.releaseLockAddresses(completeUserAddress.stream().map(AddressDTO::getId).toList());
+                            userAddressService.releaseLockUserAddresses(user.getUsername());
+                            addressService.releaseLockAddresses(validationUserAddress.stream().map(AddressDTO::getId).toList());
                             break;
                     }
 
@@ -337,6 +416,8 @@ public class DeleteOrchestrator {
                     if(!validateProduct.getWishlistProduct().isEmpty())
                         releaseProduct.setWishListProducts(validateProduct.getWishlistProduct());
                     callCenter.releaseProductService(releaseProduct);
+                    profilePicService.releaseDeleteUser(user.getUsername());
+                    userService.releaseLockDeleteUser(user.getUsername());
 
                     return true;
                 }
@@ -350,11 +431,11 @@ public class DeleteOrchestrator {
         }
 
         //Fase di rollback pre completamento in locale
-        validateCardAndAddress(cardId, addressId, true);
-        followerService.validateOrRollbackDeleteFollowers(username, true);
-        rollbackUserCardAndAddress(username);
-        //TODO ROLLBACK FOTO PROFILO (SICURA)
-
+        validateCardAndAddress(validationUserCard.stream().map(CardDTO::getId).toList(), validationUserAddress.stream().map(AddressDTO::getId).toList(), true);
+        followerService.validateOrRollbackDeleteFollowers(user.getUsername(), true);
+        rollbackUserCardAndAddress(user.getUsername());
+        profilePicService.validateDeleteUser(user.getUsername(), true);
+        userService.validateOrRollbackDeleteUser(user.getUsername(), true);
 
         return false;
     }

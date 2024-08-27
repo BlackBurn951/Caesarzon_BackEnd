@@ -1,5 +1,6 @@
 package org.caesar.userservice.Data.Services;
 
+import org.caesar.userservice.Dto.ProfilePicDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface ProfilePicService {
@@ -8,4 +9,8 @@ public interface ProfilePicService {
     byte[] getUserImage(String username);
 
     //TODO 2PC PER ELIMINAZIONE UTENTE
+    ProfilePicDTO validateDeleteUser(String username, boolean rollback);
+    boolean completeDeleteUser(String username);
+    boolean releaseDeleteUser(String username);
+    boolean rollbackDeleteUser(String username, ProfilePicDTO image);
 }

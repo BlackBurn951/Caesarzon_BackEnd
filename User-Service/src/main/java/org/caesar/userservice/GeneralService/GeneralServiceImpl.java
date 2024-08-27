@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.Sagas.BanOrchestrator;
@@ -382,8 +383,9 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     @CircuitBreaker(name= DELETE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     public boolean deleteUser(String username) {
-        if(userService.validateOrRollbackDeleteUser(username, false))
-            return deleteOrchestrator.processUserDelete(username);
+        UserDTO user= userService.validateOrRollbackDeleteUser(username, false);
+        if(user!=null)
+            return deleteOrchestrator.processUserDelete(user);
 
         return false;
     }

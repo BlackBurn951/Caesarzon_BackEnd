@@ -16,7 +16,7 @@ public interface UserService {
     boolean checkOtp(OtpDTO otp);
     boolean logout(String usermame, LogoutDTO logoutDTO);
 
-    boolean validateOrRollbackDeleteUser(String username, boolean rollback);
-    UserDTO completeDeleteUser(String username);
+    UserDTO validateOrRollbackDeleteUser(String username, boolean rollback);
+    boolean completeDeleteUser(String username);
     boolean releaseLockDeleteUser(String username);
 }

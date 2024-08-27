@@ -13,8 +13,8 @@ public interface FollowerService {
     boolean deleteFollowers(String username1, String usernameToDelete);
 
 
-    int validateOrRollbackDeleteFollowers(String username, boolean rollback);
-    List<FollowerDTO> completeDeleteFollowers(String username);
+    List<FollowerDTO> validateOrRollbackDeleteFollowers(String username, boolean rollback);
+    boolean completeDeleteFollowers(String username);
     boolean releaseOrDeleteFollowers(String username);
     boolean rollbackDeleteFollowers(List<FollowerDTO> followers);
 }

@@ -119,35 +119,18 @@ public class FollowerServiceImpl implements FollowerService {
 
 
     @Override
-    public int validateOrRollbackDeleteFollowers(String username, boolean rollback) { //0 -> true 1-> false 2 -> non avente
+    public List<FollowerDTO> validateOrRollbackDeleteFollowers(String username, boolean rollback) { //0 -> true 1-> false 2 -> non avente
         try {
             List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
 
             if(followers.isEmpty())
-                return 2;
-
-            for(Follower follower : followers){
-                follower.setOnDeleting(!rollback);
-            }
-
-            followerRepository.saveAll(followers);
-            return 0;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della carta");
-            return 1;
-        }
-    }
-
-    @Override
-    public List<FollowerDTO> completeDeleteFollowers(String username) {
-        try {
-            List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
+                return new Vector<>();
 
             List<FollowerDTO> result= new Vector<>();
             for(Follower follower : followers){
                 result.add(modelMapper.map(follower, FollowerDTO.class));
 
-                follower.setFriend(false);
+                follower.setOnDeleting(!rollback);
             }
 
             followerRepository.saveAll(followers);
@@ -155,6 +138,23 @@ public class FollowerServiceImpl implements FollowerService {
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della carta");
             return null;
+        }
+    }
+
+    @Override
+    public boolean completeDeleteFollowers(String username) {
+        try {
+            List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
+
+            for(Follower follower : followers){
+                follower.setFriend(false);
+            }
+
+            followerRepository.saveAll(followers);
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della carta");
+            return false;
         }
     }
 
