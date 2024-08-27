@@ -4,6 +4,7 @@ import org.caesar.productservice.Data.Entities.Image;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ImagesDTO;
+import org.caesar.productservice.Dto.ProductDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

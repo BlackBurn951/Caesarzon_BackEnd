@@ -8,6 +8,7 @@ import org.caesar.productservice.Data.Entities.Image;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ImageService;
 import org.caesar.productservice.Dto.ImageDTO;
+import org.caesar.productservice.Dto.ProductDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,7 +26,6 @@ public class ImageServiceImpl implements ImageService {
 
     private final ModelMapper modelMapper;
     private final ImageRepository imageRepository;
-    private final ProductRepository productRepository;
 
 
 

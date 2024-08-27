@@ -119,8 +119,6 @@ public class GeneralServiceImpl implements GeneralService {
         if(sendProductDTO.getId()==null)
             return false;
 
-        //TODO DA FARE AGGIUNTA FOTO
-
         return availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO);
     }
 

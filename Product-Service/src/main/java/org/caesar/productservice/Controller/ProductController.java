@@ -1,6 +1,7 @@
 package org.caesar.productservice.Controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Path;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Services.SearchService;
