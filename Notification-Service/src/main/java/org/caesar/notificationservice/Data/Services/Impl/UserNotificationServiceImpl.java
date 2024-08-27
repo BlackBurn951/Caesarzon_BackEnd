@@ -139,12 +139,12 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
 
     @Override
-    public int validateOrRollbackDeleteUserNotifications(String username, boolean rollback) {
+    public List<UserNotificationDTO> validateOrRollbackDeleteUserNotifications(String username, boolean rollback) {
         try{
             List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
 
             if(notifications.isEmpty())
-                return 2;
+                return new Vector<>();
 
             for(UserNotification notify: notifications) {
                 notify.setConfirmed(!rollback);
@@ -152,15 +152,17 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
             userNotificationRepository.saveAll(notifications);
 
-            return 0;
+            return notifications.stream()
+                    .map(nt -> modelMapper.map(nt, UserNotificationDTO.class))
+                    .toList();
         }catch(Exception | Error e){
             log.debug("Errore nell'inserimento della notifica per l'utente");
-            return 1;
+            return null;
         }
     }
 
     @Override
-    public List<UserNotificationDTO> completeDeleteUserNotifications(String username) {
+    public boolean completeDeleteUserNotifications(String username) {
         try{
             List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
 
@@ -176,12 +178,10 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
             userNotificationRepository.saveAll(notifications);
 
-            return result.stream()
-                    .map(nt -> modelMapper.map(nt, UserNotificationDTO.class))
-                    .toList();
+            return true;
         }catch(Exception | Error e){
             log.debug("Errore nell'inserimento della notifica per l'utente");
-            return null;
+            return false;
         }
     }
 

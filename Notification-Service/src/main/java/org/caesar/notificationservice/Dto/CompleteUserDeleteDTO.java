@@ -8,8 +8,8 @@ import java.util.List;
 @Getter
 @Setter
 public class CompleteUserDeleteDTO {
-    private List<SaveAdminNotificationDTO> adminNotification;
-    private List<UserNotificationDTO> userNotification;
+    private boolean adminNotification;
+    private boolean userNotification;
     private boolean report;
     private boolean support;
 }

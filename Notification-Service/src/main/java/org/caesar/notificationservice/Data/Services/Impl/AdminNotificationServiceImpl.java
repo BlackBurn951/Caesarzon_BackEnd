@@ -101,7 +101,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
 
     @Override
-    public boolean validateDeleteByReport(ReportDTO reportDTO) {
+    public List<SaveAdminNotificationDTO> validateDeleteByReport(ReportDTO reportDTO) {
         try{
             List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
 
@@ -110,20 +110,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
             }
 
             adminNotificationRepository.saveAll(notifications);
-            return true;
-        }catch(Exception | Error e){
-            log.debug("Errore nell'eliminazione");
-            return false;
-        }
-
-    }
-
-    @Override
-    public List<SaveAdminNotificationDTO> completeDeleteByReport(ReportDTO reportDTO) {
-        try{
-            List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
-
-            List<SaveAdminNotificationDTO> rollbackList= notifications.stream()
+            return notifications.stream()
                     .map(notify -> {
                         SaveAdminNotificationDTO not= new SaveAdminNotificationDTO();
                         not.setId(notify.getId());
@@ -137,6 +124,17 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
                         return not;
                     }).toList();
+        }catch(Exception | Error e){
+            log.debug("Errore nell'eliminazione");
+            return null;
+        }
+
+    }
+
+    @Override
+    public boolean completeDeleteByReport(ReportDTO reportDTO) {
+        try{
+            List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
 
             for(AdminNotification notify: notifications) {
                 notify.setDate(null);
@@ -149,10 +147,10 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
             adminNotificationRepository.saveAll(notifications);
 
-            return rollbackList;
+            return true;
         }catch(Exception | Error e){
             log.debug("Errore nell'eliminazione");
-            return null;
+            return false;
         }
     }
 
@@ -189,7 +187,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
 
     @Override
-    public boolean validateOrRollbackDeleteBySupports(SupportDTO support, boolean rollback) {
+    public List<SaveAdminNotificationDTO> validateOrRollbackDeleteBySupports(SupportDTO support, boolean rollback) {
         try{
             List<AdminNotification> notifications= adminNotificationRepository.findAllBySupport(modelMapper.map(support, Support.class));
 
@@ -198,19 +196,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
             }
 
             adminNotificationRepository.saveAll(notifications);
-            return true;
-        }catch(Exception | Error e){
-            log.debug("Errore nell'eliminazione");
-            return false;
-        }
-    }
-
-    @Override
-    public List<SaveAdminNotificationDTO> completeDeleteBySupports(SupportDTO support) {
-        try{
-            List<AdminNotification> notifications= adminNotificationRepository.findAllBySupport(modelMapper.map(support, Support.class));
-
-            List<SaveAdminNotificationDTO> rollbackList= notifications.stream()
+            return notifications.stream()
                     .map(notify -> {
                         SaveAdminNotificationDTO not= new SaveAdminNotificationDTO();
                         not.setId(notify.getId());
@@ -224,6 +210,16 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
                         return not;
                     }).toList();
+        }catch(Exception | Error e){
+            log.debug("Errore nell'eliminazione");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean completeDeleteBySupports(SupportDTO support) {
+        try{
+            List<AdminNotification> notifications= adminNotificationRepository.findAllBySupport(modelMapper.map(support, Support.class));
 
             for(AdminNotification notify: notifications) {
                 notify.setDate(null);
@@ -236,10 +232,10 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
             adminNotificationRepository.saveAll(notifications);
 
-            return rollbackList;
+            return true;
         }catch(Exception | Error e){
             log.debug("Errore nell'eliminazione");
-            return null;
+            return false;
         }
     }
 

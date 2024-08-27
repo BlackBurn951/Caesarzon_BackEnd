@@ -140,7 +140,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public boolean rollbackAddresses(List<CardDTO> addresses) {
+    public boolean rollbackAddresses(List<AddressDTO> addresses) {
         try {
             addressRepository.saveAll(addresses.stream().map(cd -> modelMapper.map(cd, Address.class)).toList());
 

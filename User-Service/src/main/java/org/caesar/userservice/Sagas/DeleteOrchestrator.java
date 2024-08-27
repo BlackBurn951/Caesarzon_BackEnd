@@ -32,8 +32,12 @@ public class DeleteOrchestrator {
 
         int validateAddressAndCard= -1;  //0 -> true entrambi 1 -> true solo carte 2-> true solo indirizzi 3 -> false
 
-//        if(cardId==null || addressId==null)
-//            //TODO ROLLBACK
+        if(cardId==null || addressId==null) {
+            rollbackUserCardAndAddress(username);
+
+            return false;
+        }
+
 
         //Controllo che l'utente abbia delle carte/indirizzi a suo nome
         if(!cardId.isEmpty() || !addressId.isEmpty())
@@ -43,8 +47,6 @@ public class DeleteOrchestrator {
 
         //TODO VALIDAZIONE FOTO PROFILO (SICURA)
 
-//        if(validateFollower==1)
-//            //TODO ROLLBACK
 
         //Controllo che non ci siano stati errori a prescindere dai dati presenti o no
         if(validateFollower!=1 && validateAddressAndCard!=3) {
@@ -65,14 +67,25 @@ public class DeleteOrchestrator {
                     //Fase di completamento in locale
 
                     //Controllo che l'utente abbia follower
-                    List<FollowerDTO> rollbackFollower;
+                    List<FollowerDTO> rollbackFollower= new Vector<>();
                     if(validateFollower!=2) {
                         rollbackFollower= followerService.completeDeleteFollowers(username);
 
-//                        if(rollbackFollower!=null) {
-//
-//                            //TOdo ROLLBACK
-//                        }
+                        if(rollbackFollower==null) {
+                            //Rollback in locale
+                            followerService.rollbackDeleteFollowers(rollbackFollower);
+
+                            if(validateAddressAndCard!=-1) {
+                                validateCardAndAddress(cardId, addressId, true);
+                                rollbackUserCardAndAddress(username);
+                            }
+
+                            //Rollback sui servizi esterni
+                            callCenter.validateNotificationService(true);
+                            callCenter.validateProductService(true);
+
+                            return false;
+                        }
                     }
 
                     //Controllo che l'utente abbia indirizzi e carte
@@ -83,62 +96,197 @@ public class DeleteOrchestrator {
                             completeUserAddress= userAddressService.completeUserAddressesDelete(username);
                             completeUserCard= userCardService.completeUserCardsDelete(username);
 
-//                            if(completeUserAddress==null || completeUserCard==null) {
-//                                //TODO ROLLBACK
-//                            }
+                            if(completeUserAddress==null || completeUserCard==null) {
+                                //Rollback locale
+                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
+                                userCardService.rollbackUserCards(username, completeUserCard);
+                                validateCardAndAddress(cardId, addressId, true);
+
+                                if(!rollbackFollower.isEmpty())
+                                    followerService.rollbackDeleteFollowers(rollbackFollower);
+
+                                //Rollback sui servizi esterni
+                                callCenter.validateNotificationService(true);
+                                callCenter.validateProductService(true);
+
+                                return false;
+                            }
 
                             boolean completeCard= cardService.completeCards(completeUserCard.stream().map(CardDTO::getId).toList()),
                                     completeAddress= addressService.completeAddresses(completeUserAddress.stream().map(AddressDTO::getId).toList());
 
-//                            if(!completeAddress && !completeCard)
-//                                //TODO ROLLBACK
+                            if(!completeAddress && !completeCard) {
+                                //Rollback in locale
+                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
+                                userCardService.rollbackUserCards(username, completeUserCard);
+                                cardService.rollbackCards(completeUserCard);
+                                addressService.rollbackAddresses(completeUserAddress);
+
+                                if(!rollbackFollower.isEmpty())
+                                    followerService.rollbackDeleteFollowers(rollbackFollower);
+
+                                //Rollback sui servizi esterni
+                                callCenter.validateNotificationService(true);
+                                callCenter.validateProductService(true);
+
+                                return false;
+                            }
                             break;
 
                         case 1:
                             completeUserCard= userCardService.completeUserCardsDelete(username);
 
-//                            if(completeUserCard==null) {
-//                                //TODO ROLLBACK
-//                            }
+                            if(completeUserCard==null) {
+                                userCardService.rollbackUserCards(username, completeUserCard);
 
-//                            if(!cardService.completeCards(completeUserCard.stream().map(CardDTO::getId).toList()))
-//                                //TODO ROLLBACK
+                                if(!rollbackFollower.isEmpty())
+                                    followerService.rollbackDeleteFollowers(rollbackFollower);
+
+                                //Rollback sui servizi esterni
+                                callCenter.validateNotificationService(true);
+                                callCenter.validateProductService(true);
+
+                                return false;
+                            }
+
+                            if(!cardService.completeCards(completeUserCard.stream().map(CardDTO::getId).toList())) {
+                                userCardService.rollbackUserCards(username, completeUserCard);
+                                cardService.rollbackCards(completeUserCard);
+
+                                if(!rollbackFollower.isEmpty())
+                                    followerService.rollbackDeleteFollowers(rollbackFollower);
+
+                                //Rollback sui servizi esterni
+                                callCenter.validateNotificationService(true);
+                                callCenter.validateProductService(true);
+
+                                return false;
+                            }
+
                             break;
 
                         case 2:
                             completeUserAddress= userAddressService.completeUserAddressesDelete(username);
 
-//                            if(completeUserAddress==null) {
-//                                //TODO ROLLBACK
-//                            }
+                            if(completeUserAddress==null) {
+                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
 
-//                            if(!addressService.completeAddresses(completeUserAddress.stream().map(AddressDTO::getId).toList()))
-////                                //TODO ROLLBACK
+                                if(!rollbackFollower.isEmpty())
+                                    followerService.rollbackDeleteFollowers(rollbackFollower);
+
+                                //Rollback sui servizi esterni
+                                callCenter.validateNotificationService(true);
+                                callCenter.validateProductService(true);
+
+                                return false;
+                            }
+
+                            if(!addressService.completeAddresses(completeUserAddress.stream().map(AddressDTO::getId).toList())) {
+                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
+                                addressService.rollbackAddresses(completeUserAddress);
+
+                                if(!rollbackFollower.isEmpty())
+                                    followerService.rollbackDeleteFollowers(rollbackFollower);
+
+                                //Rollback sui servizi esterni
+                                callCenter.validateNotificationService(true);
+                                callCenter.validateProductService(true);
+
+                                return false;
+                            }
+
                             break;
                     }
 
                     //Fase di completamento sul servizio notifiche con controllo che l'utente abbia almeno qualcosa da completare
                     CompleteUserDeleteDTO completeNotification= new CompleteUserDeleteDTO();
                     if(!validateNotification.getReports().isEmpty() || !validateNotification.getSupports().isEmpty()
-                            || validateNotification.getUserNotification()==0) {
+                            || !validateNotification.getUserNotification().isEmpty()) {
 
                         completeNotification= callCenter.completeNotificationService(validateNotification);
 
-//                        if(completeNotification==null)
-//                            //TODO ROLLBACK
+                        if(completeNotification==null) {
+                            NotifyRollbackUserDeleteDTO rollbackNotification= new NotifyRollbackUserDeleteDTO();
+                            rollbackNotification.setReports(validateNotification.getReports());
+                            rollbackNotification.setSupports(validateNotification.getSupports());
+                            rollbackNotification.setUserNotification(validateNotification.getUserNotification());
+                            validateNotification.getAdminNotificationForReport().addAll(validateNotification.getAdminNotificationForSupport());
+                            rollbackNotification.setAdminNotification(validateNotification.getAdminNotificationForReport());
+                            callCenter.rollbackNotificationService(rollbackNotification);
+
+                            if(!rollbackFollower.isEmpty())
+                                followerService.rollbackDeleteFollowers(rollbackFollower);
+
+                            if(validateAddressAndCard==0) {
+                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
+                                userCardService.rollbackUserCards(username, completeUserCard);
+                                cardService.rollbackCards(completeUserCard);
+                                addressService.rollbackAddresses(completeUserAddress);
+                            }
+                            else if(validateAddressAndCard==1) {
+                                userCardService.rollbackUserCards(username, completeUserCard);
+                                cardService.rollbackCards(completeUserCard);
+                            }
+                            else if(validateAddressAndCard==2) {
+                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
+                                addressService.rollbackAddresses(completeUserAddress);
+                            }
+                            callCenter.validateProductService(true);
+
+                            return false;
+                        }
                     }
 
                     //Fase di completamento sul servizio prodotti con controllo che l'utente abbia almeno qualcosa da completare
                     UserDeleteCompleteDTO completeProduct= new UserDeleteCompleteDTO();
                     if(!validateProduct.getWishlists().isEmpty() || !validateProduct.getOrders().isEmpty()
-                        || validateProduct.getProductOrder()!=2 | validateProduct.getWishlistProduct()!=2 || validateProduct.getReview()!=2) {
+                        || !validateProduct.getProductOrder().isEmpty() | !validateProduct.getWishlistProduct().isEmpty() || !validateProduct.getReview().isEmpty()) {
 
-                        boolean review= validateProduct.getReview()==0, product= validateProduct.getProductOrder()==0,
-                                order= !validateProduct.getOrders().isEmpty(), wishProd= validateProduct.getWishlistProduct()==0;
+                        boolean review= !validateProduct.getReview().isEmpty(), product= !validateProduct.getProductOrder().isEmpty(),
+                                order= !validateProduct.getOrders().isEmpty(), wishProd= !validateProduct.getWishlistProduct().isEmpty();
                         completeProduct= callCenter.completeProductService(review, product, order, wishProd, validateProduct.getWishlists());
 
-//                        if(completeProduct==null)
-//                            //TODO ROLLBACK
+                        if(completeProduct==null) {
+                            ProductRollbackUserDeleteDTO rollbackProduct= new ProductRollbackUserDeleteDTO();
+
+                            rollbackProduct.setWishListProducts(validateProduct.getWishlistProduct());
+                            rollbackProduct.setWishlists(validateProduct.getWishlists());
+                            rollbackProduct.setOrders(validateProduct.getOrders());
+                            rollbackProduct.setProductOrders(validateProduct.getProductOrder());
+                            rollbackProduct.setReviews(validateProduct.getReview());
+
+                            callCenter.rollbackProductService(rollbackProduct);
+
+                            if(!validateNotification.getReports().isEmpty() || !validateNotification.getSupports().isEmpty()
+                                    || !validateNotification.getUserNotification().isEmpty()) {
+                                NotifyRollbackUserDeleteDTO rollbackNotification= new NotifyRollbackUserDeleteDTO();
+                                rollbackNotification.setReports(validateNotification.getReports());
+                                rollbackNotification.setSupports(validateNotification.getSupports());
+                                rollbackNotification.setUserNotification(validateNotification.getUserNotification());
+                                validateNotification.getAdminNotificationForReport().addAll(validateNotification.getAdminNotificationForSupport());
+                                rollbackNotification.setAdminNotification(validateNotification.getAdminNotificationForReport());
+                                callCenter.rollbackNotificationService(rollbackNotification);
+                            }
+                            if(!rollbackFollower.isEmpty())
+                                followerService.rollbackDeleteFollowers(rollbackFollower);
+
+                            if(validateAddressAndCard==0) {
+                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
+                                userCardService.rollbackUserCards(username, completeUserCard);
+                                cardService.rollbackCards(completeUserCard);
+                                addressService.rollbackAddresses(completeUserAddress);
+                            }
+                            else if(validateAddressAndCard==1) {
+                                userCardService.rollbackUserCards(username, completeUserCard);
+                                cardService.rollbackCards(completeUserCard);
+                            }
+                            else if(validateAddressAndCard==2) {
+                                userAddressService.rollbackUserAddresses(username, completeUserAddress);
+                                addressService.rollbackAddresses(completeUserAddress);
+                            }
+
+                            return false;
+                        }
                     }
 
                     //Fase di rilascio lock su tutti i servizi
@@ -178,20 +326,37 @@ public class DeleteOrchestrator {
 
                     ProductRollbackUserDeleteDTO releaseProduct= new ProductRollbackUserDeleteDTO();
 
-                    if(!completeProduct.getProductOrder().isEmpty())
-                        releaseProduct.setProductOrders(completeProduct.getProductOrder());
+                    if(!validateProduct.getProductOrder().isEmpty())
+                        releaseProduct.setProductOrders(validateProduct.getProductOrder());
                     if(!validateProduct.getOrders().isEmpty())
                         releaseProduct.setOrders(validateProduct.getOrders());
-                    if(!completeProduct.getReviews().isEmpty())
-                        releaseProduct.setReviews(completeProduct.getReviews());
+                    if(!validateProduct.getReview().isEmpty())
+                        releaseProduct.setReviews(validateProduct.getReview());
                     if(!validateProduct.getWishlists().isEmpty())
                         releaseProduct.setWishlists(validateProduct.getWishlists());
-                    if(!completeProduct.getWishlistProduct().isEmpty())
-                        releaseProduct.setWishListProducts(completeProduct.getWishlistProduct());
+                    if(!validateProduct.getWishlistProduct().isEmpty())
+                        releaseProduct.setWishListProducts(validateProduct.getWishlistProduct());
                     callCenter.releaseProductService(releaseProduct);
+
+                    return true;
                 }
+
+                //Fase di rollback pre completamento in locale e sui servizi esterni
+                callCenter.validateProductService(true);
             }
+
+            //Fase di rollback pre completamento in locale e sul servizio notifiche
+            callCenter.validateNotificationService(true);
         }
+
+        //Fase di rollback pre completamento in locale
+        validateCardAndAddress(cardId, addressId, true);
+        followerService.validateOrRollbackDeleteFollowers(username, true);
+        rollbackUserCardAndAddress(username);
+        //TODO ROLLBACK FOTO PROFILO (SICURA)
+
+
+        return false;
     }
 
     //Metodi di servizio
@@ -212,5 +377,11 @@ public class DeleteOrchestrator {
             return address? 2: 3;
 
         return 3;
+    }
+
+    //Metodi per il rollback
+    private void rollbackUserCardAndAddress(String username) {
+        userCardService.validateOrRollbackUserCardsDelete(username, true);
+        userAddressService.validateOrRollbackUserAddressesDelete(username, true);
     }
 }

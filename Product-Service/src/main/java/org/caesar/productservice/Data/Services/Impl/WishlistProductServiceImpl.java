@@ -95,7 +95,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
 
     @Override
-    public int validateOrRollbackDeleteUserWish(List<WishlistDTO> wishlists, boolean rollback) {
+    public List<WishListProductDTO> validateOrRollbackDeleteUserWish(List<WishlistDTO> wishlists, boolean rollback) {
         try {
             List<WishlistProduct> wishListsProduct= new Vector<>();
 
@@ -109,7 +109,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
             }
 
             if(wishListsProduct.isEmpty())
-                return 2;
+                return new Vector<>();
 
             for(WishlistProduct wishlistProduct: wishListsProduct){
                 wishlistProduct.setOnDeleting(!rollback);
@@ -117,28 +117,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
             wishlistProductRepository.saveAll(wishListsProduct);
 
-            return 0;
-        }catch(Exception | Error e) {
-            log.debug("Errore nella presa dei prodotti della lista");
-            return 1;
-        }
-    }
-
-    @Override
-    public List<WishListProductDTO> completeDeleteUserWish(List<WishlistDTO> wishlists) {
-        try {
-            List<WishlistProduct> wishListsProduct= new Vector<>();
-
-            for (WishlistDTO wishlist: wishlists){
-                List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlist, Wishlist.class));
-
-                if(wishListProductDTOS.isEmpty())
-                    return null;
-
-                wishListsProduct.addAll(wishListProductDTOS);
-            }
-
-            List<WishListProductDTO> result= wishListsProduct.stream()
+            return wishListsProduct.stream()
                     .map(wh -> {
                         WishListProductDTO wish= new WishListProductDTO();
                         wish.setId(wh.getId());
@@ -147,6 +126,25 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
                         return wish;
                     }).toList();
+        }catch(Exception | Error e) {
+            log.debug("Errore nella presa dei prodotti della lista");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean completeDeleteUserWish(List<WishlistDTO> wishlists) {
+        try {
+            List<WishlistProduct> wishListsProduct= new Vector<>();
+
+            for (WishlistDTO wishlist: wishlists){
+                List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlist, Wishlist.class));
+
+                if(wishListProductDTOS.isEmpty())
+                    return false;
+
+                wishListsProduct.addAll(wishListProductDTOS);
+            }
 
             for(WishlistProduct wishlistProduct: wishListsProduct){
                 wishlistProduct.setProduct(null);
@@ -154,10 +152,10 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
             wishlistProductRepository.saveAll(wishListsProduct);
 
-            return result;
+            return true;
         }catch(Exception | Error e) {
             log.debug("Errore nella presa dei prodotti della lista");
-            return null;
+            return false;
         }
     }
 

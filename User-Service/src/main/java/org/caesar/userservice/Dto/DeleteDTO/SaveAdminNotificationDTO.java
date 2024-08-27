@@ -2,7 +2,7 @@ package org.caesar.userservice.Dto.DeleteDTO;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.caesar.notificationservice.Dto.SupportDTO;
+import org.caesar.userservice.Dto.DeleteDTO.SupportDTO;
 
 import java.time.LocalDate;
 import java.util.UUID;

@@ -9,8 +9,8 @@ import java.util.List;
 @Setter
 public class UserDeleteCompleteDTO {
     private boolean wishlists;
-    private List<WishListProductDTO> wishlistProduct;
-    private List<ReviewDTO> reviews;
-    private List<ProductOrderDTO> productOrder;
+    private boolean wishlistProduct;
+    private boolean reviews;
+    private boolean productOrder;
     private boolean orders;
 }

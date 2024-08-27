@@ -10,8 +10,8 @@ import java.util.List;
 @Setter
 public class UserDeleteValidationDTO {
     private List<WishlistDTO> wishlists;
-    private int wishlistProduct;
-    private int review;
-    private int productOrder;
+    private List<WishListProductDTO> wishlistProduct;
+    private List<ReviewDTO> review;
+    private List<ProductOrderDTO> productOrder;
     private List<OrderDTO> orders;
 }

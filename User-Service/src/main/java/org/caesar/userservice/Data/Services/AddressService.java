@@ -18,5 +18,5 @@ public interface AddressService {
     boolean validateOrRollbackAddresses(List<UUID> addressId, boolean rollback);
     boolean completeAddresses(List<UUID> addressId);
     boolean releaseLockAddresses(List<UUID> addressId);
-    boolean rollbackAddresses(List<CardDTO> addresses);
+    boolean rollbackAddresses(List<AddressDTO> addresses);
 }

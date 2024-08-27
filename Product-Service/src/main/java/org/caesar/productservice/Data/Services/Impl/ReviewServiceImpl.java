@@ -173,32 +173,30 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-    public int validateDeleteReviews(String username, boolean rollback) {
+    public List<ReviewDTO> validateDeleteReviews(String username, boolean rollback) {
         try {
             List<Review> reviews= reviewRepository.findAllByUsername(username);
 
             if(reviews.isEmpty())
-                return 2;
+                return new Vector<>();
 
             for(Review review : reviews) {
                 review.setOnChanges(!rollback);
             }
 
             reviewRepository.saveAll(reviews);
-            return 0;
+            return reviews.stream()
+                    .map(review -> modelMapper.map(review, ReviewDTO.class)).toList();
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della recensione");
-            return 1;
+            return null;
         }
     }
 
     @Override
-    public List<ReviewDTO> completeDeleteReviews(String username) {
+    public boolean completeDeleteReviews(String username) {
         try {
             List<Review> reviews= reviewRepository.findAllByUsername(username);
-
-            List<ReviewDTO> rollbackList= reviews.stream()
-                    .map(review -> modelMapper.map(review, ReviewDTO.class)).toList();
 
             for(Review review : reviews) {
                 review.setDate(null);
@@ -209,10 +207,10 @@ public class ReviewServiceImpl implements ReviewService {
             }
             reviewRepository.saveAll(reviews);
 
-            return rollbackList;
+            return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della recensione");
-            return null;
+            return false;
         }
     }
 

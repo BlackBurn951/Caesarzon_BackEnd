@@ -37,46 +37,33 @@ public class DeleteController {
         result.setReports(reportService.validateDeleteReportForUserDelete(username, rollback));
 
         if(result.getReports()==null)
-            result.setAdminNotificationForReport(1);
+            result.setAdminNotificationForReport(null);
         else if(!result.getReports().isEmpty()) {
-            boolean adminReports= true;
 
             for (ReportDTO report: result.getReports()) {
                 if(rollback)
                     adminNotificationService.rollbackPreComplete(report);
-                else if(!adminNotificationService.validateDeleteByReport(report))
-                    adminReports = false;
+                result.setAdminNotificationForReport(adminNotificationService.validateDeleteByReport(report));
             }
-
-            if(adminReports)
-                result.setAdminNotificationForReport(0);
-            else
-                result.setAdminNotificationForReport(1);
         }
         else
-            result.setAdminNotificationForReport(2);
+            result.setAdminNotificationForReport(new Vector<>());
 
         if(result.getSupports()==null)
-            result.setAdminNotificationForReport(1);
+            result.setAdminNotificationForSupport(null);
         else if(!result.getSupports().isEmpty()) {
-            boolean adminSupport= true;
 
             for (SupportDTO support: result.getSupports()) {
-                if(!adminNotificationService.validateOrRollbackDeleteBySupports(support, rollback))
-                    adminSupport = false;
+                result.setAdminNotificationForSupport(adminNotificationService.validateOrRollbackDeleteBySupports(support, rollback));
             }
-
-            if(adminSupport)
-                result.setAdminNotificationForSupport(0);
-            else
-                result.setAdminNotificationForSupport(1);
         }
         else
-            result.setAdminNotificationForSupport(2);
+            result.setAdminNotificationForSupport(new Vector<>());
 
         result.setUserNotification(userNotificationService.validateOrRollbackDeleteUserNotifications(username, rollback));
 
-        if(result.getUserNotification()!=1 && result.getAdminNotificationForReport()!=1 && result.getAdminNotificationForSupport()!=1)
+        if(result.getUserNotification()!=null && result.getAdminNotificationForReport()!=null && result.getAdminNotificationForSupport()!=null
+                && result.getReports()!=null && result.getReports().isEmpty())
             return new ResponseEntity<>(result, HttpStatus.OK);
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -87,44 +74,37 @@ public class DeleteController {
 
         CompleteUserDeleteDTO result= new CompleteUserDeleteDTO();
 
-        List<SaveAdminNotificationDTO> adminNotification= new Vector<>();
-
+        boolean supportNotify= true,
+                reportNotify= true;
         if(!lists.getSupports().isEmpty()) {
             result.setSupport(supportRequestService.completeDeleteUserSupport(username));
 
-            for (SupportDTO support: lists.getSupports()) {
-                List<SaveAdminNotificationDTO> supportNotification= adminNotificationService.completeDeleteBySupports(support);
 
-                if(supportNotification!=null)
-                    adminNotification.addAll(supportNotification);
-                else {
-                    adminNotification = null;
+            for (SupportDTO support: lists.getSupports()) {
+                supportNotify= adminNotificationService.completeDeleteBySupports(support);
+
+                if(!supportNotify)
                     break;
-                }
             }
         }
-        if(!lists.getReports().isEmpty() && adminNotification!=null) {
+        if(!lists.getReports().isEmpty() && supportNotify) {
             result.setReport(reportService.completeDeleteReportForUserDelete(username));
 
             for (ReportDTO report: lists.getReports()) {
-                List<SaveAdminNotificationDTO> reportNotification= adminNotificationService.completeDeleteByReport(report);
+                reportNotify= adminNotificationService.completeDeleteByReport(report);
 
-                if(reportNotification!=null)
-                    adminNotification.addAll(reportNotification);
-                else {
-                    adminNotification = null;
+                if(!reportNotify)
                     break;
-                }
             }
         }
-        if(lists.getUserNotification()==2)
-            result.setUserNotification(new Vector<>());
+        if(lists.getUserNotification().isEmpty())
+            result.setUserNotification(true);
         else
             result.setUserNotification(userNotificationService.completeDeleteUserNotifications(username));
 
-        if(result.getUserNotification()!=null &&
-                ((!lists.getSupports().isEmpty() && result.isSupport() && adminNotification!=null) ||
-                (!lists.getReports().isEmpty() && result.isReport() && adminNotification!=null)))
+        if(result.isUserNotification() &&
+                ((!lists.getSupports().isEmpty() && result.isSupport() && supportNotify) ||
+                (!lists.getReports().isEmpty() && result.isReport() && reportNotify)))
             return new ResponseEntity<>(result, HttpStatus.OK);
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }

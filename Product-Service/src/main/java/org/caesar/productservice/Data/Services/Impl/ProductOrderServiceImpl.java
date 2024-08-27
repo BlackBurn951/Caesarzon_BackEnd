@@ -236,42 +236,16 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
 
     @Override
-    public int validateOrRollbackDeleteUserCart(String username, boolean rollback) {
+    public List<ProductOrderDTO> validateOrRollbackDeleteUserCart(String username, boolean rollback) {
         try {
             List<ProductOrder> products= productOrderRepository.findAllByUsername(username);
 
             if(products.isEmpty())
-                return 2;
+                return new Vector<>();
 
             for(ProductOrder productOrder: products){
                 productOrder.setOnChanges(!rollback);
             }
-
-            return 0;
-        }catch(Exception | Error e) {
-            log.debug("Errore nella presa dei prodotti della lista");
-            return 1;
-        }
-    }
-
-    @Override
-    public List<ProductOrderDTO> completeDeleteUserCart(String username) {
-        try {
-            List<ProductOrder> products= productOrderRepository.findAllByUsername(username);
-
-            List<ProductOrder> result= new Vector<>();
-
-            for (ProductOrder productOrder: products){
-                result.add(productOrder);
-
-                productOrder.setOrder(null);
-                productOrder.setProduct(null);
-                productOrder.setTotal(0.0);
-                productOrder.setSize(null);
-                productOrder.setQuantity(0);
-            }
-
-            productOrderRepository.saveAll(products);
 
             return products.stream()
                     .map(pd -> {
@@ -291,6 +265,28 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         }catch(Exception | Error e) {
             log.debug("Errore nella presa dei prodotti della lista");
             return null;
+        }
+    }
+
+    @Override
+    public boolean completeDeleteUserCart(String username) {
+        try {
+            List<ProductOrder> products= productOrderRepository.findAllByUsername(username);
+
+            for (ProductOrder productOrder: products){
+                productOrder.setOrder(null);
+                productOrder.setProduct(null);
+                productOrder.setTotal(0.0);
+                productOrder.setSize(null);
+                productOrder.setQuantity(0);
+            }
+
+            productOrderRepository.saveAll(products);
+
+            return true;
+        }catch(Exception | Error e) {
+            log.debug("Errore nella presa dei prodotti della lista");
+            return false;
         }
     }
 

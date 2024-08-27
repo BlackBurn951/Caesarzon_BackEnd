@@ -46,8 +46,8 @@ public class DeleteController {
         result.setProductOrder(productOrderService.validateOrRollbackDeleteUserCart(username, rollback));
         result.setOrders(orders);
 
-        if(result.getWishlists()==null || result.getOrders()==null || result.getWishlistProduct()==1 || result.getReview()==1 ||
-            result.getProductOrder()==1)
+        if(result.getWishlists()==null || result.getOrders()==null || result.getWishlistProduct()==null || result.getReview()==null ||
+            result.getProductOrder()==null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -58,17 +58,14 @@ public class DeleteController {
 
         UserDeleteCompleteDTO result= new UserDeleteCompleteDTO();
 
-        List<ReviewDTO> reviews= new Vector<>();
-        List<ProductOrderDTO> productOrders= new Vector<>();
-        List<WishListProductDTO> wishlistProducts= new Vector<>();
         if(review)
-            reviews= reviewService.completeDeleteReviews(username);
+            result.setReviews(reviewService.completeDeleteReviews(username));
 
         if(product)
-            productOrders= productOrderService.completeDeleteUserCart(username);
+            result.setProductOrder(productOrderService.completeDeleteUserCart(username));
 
         if(!wishlists.isEmpty())
-            wishlistProducts = wishlistProductService.completeDeleteUserWish(wishlists);
+            result.setWishlists(wishlistProductService.completeDeleteUserWish(wishlists));
 
         if(order)
             result.setOrders(orderService.completeDeleteUserOrders(username));
@@ -76,12 +73,8 @@ public class DeleteController {
         if(wishProd)
             result.setWishlists(wishlistService.completeDeleteUserWishlist(username));
 
-        result.setWishlistProduct(wishlistProducts);
-        result.setProductOrder(productOrders);
-        result.setReviews(reviews);
-
-        if(result.getProductOrder()!=null && result.getWishlistProduct()!=null && result.getReviews()!=null
-            && (order && result.isOrders()) && (wishProd && result.isWishlists()))
+        if((review && result.isReviews()) && (product && result.isProductOrder()) && (!wishlists.isEmpty() && result.isWishlists())
+            && (order && result.isOrders()) && (wishProd && result.isWishlistProduct()))
             return new ResponseEntity<>(result, HttpStatus.OK);
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -8,9 +8,9 @@ import java.util.List;
 @Getter
 @Setter
 public class ValidateUserDeleteDTO {
-    private int adminNotificationForReport;  //0 -> presenti e validate 1 -> presenti ed errore 2 -> non presenti
-    private int adminNotificationForSupport;
+    private List<SaveAdminNotificationDTO> adminNotificationForReport;  //0 -> presenti e validate 1 -> presenti ed errore 2 -> non presenti
+    private List<SaveAdminNotificationDTO> adminNotificationForSupport;
     private List<ReportDTO> reports;
     private List<SupportDTO> supports;
-    private int userNotification;
+    private List<UserNotificationDTO> userNotification;
 }
