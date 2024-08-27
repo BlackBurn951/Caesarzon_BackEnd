@@ -83,7 +83,7 @@ public class GeneralServiceImpl implements GeneralService {
         if(prod==null)
             return null;
 
-        return imageService.getImage(id);
+        return imageService.getImage(prod);
     }
 
     @Override
