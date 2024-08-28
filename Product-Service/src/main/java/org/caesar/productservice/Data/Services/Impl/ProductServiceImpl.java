@@ -43,7 +43,7 @@ public class ProductServiceImpl implements ProductService{
             Product product = new Product();
 
             //Aggiungendo la data di ultima modifica
-            product.setLastModified(LocalDate.now());
+            productDTO.setLastModified(LocalDate.now());
 
             if(productDTO.getId() != null && productRepository.findById(productDTO.getId()).isPresent())
             {

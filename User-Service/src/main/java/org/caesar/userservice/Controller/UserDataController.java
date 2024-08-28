@@ -113,19 +113,19 @@ public class UserDataController {
 
 
 
-//    //End-point per manipolare la foto profilo
-//    @GetMapping("/image")
-//    public ResponseEntity<byte[]> loadImage(){
-//        //Prendendo l'username dell'utente che ha fatto la chiamata
-//        String username= httpServletRequest.getAttribute("preferred_username").toString();
-//
-//        //Presa dell'imagine profilo dell'utente
-//        byte[] img = profilePicService.getUserImage(username);
-//        if(img != null)
-//            return new ResponseEntity<>(img, HttpStatus.OK);
-//        else
-//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-//    }
+    //End-point per manipolare la foto profilo
+    @GetMapping("/image")
+    public ResponseEntity<byte[]> loadImage(){
+        //Prendendo l'username dell'utente che ha fatto la chiamata
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        //Presa dell'imagine profilo dell'utente
+        byte[] img = profilePicService.getUserImage(username);
+        if(img != null)
+            return new ResponseEntity<>(img, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     @GetMapping("/image/{username}")
     public ResponseEntity<byte[]> loadImages(@PathVariable String username){
