@@ -20,7 +20,7 @@ import java.util.UUID;
 public class WishlistController {
 
     private final WishlistService wishlistService;
-           private final GeneralService generalService;
+    private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
 
 
@@ -57,10 +57,10 @@ public class WishlistController {
     }
 
     @GetMapping("/wishlist/products") // Endpoint per ottenere tutti i prodotti da una lista desideri di un utente
-    public ResponseEntity<WishProductDTO> getWishlistProductsByWishlistID(@RequestParam("wish-id") UUID wishlistID){
-        String username = httpServletRequest.getAttribute("preferred_username").toString();
+    public ResponseEntity<WishProductDTO> getWishlistProductsByWishlistID(@RequestParam("wish-id") UUID wishlistID, @RequestParam("usr") String ownerUsername){
+        String accessUsername = httpServletRequest.getAttribute("preferred_username").toString();
 
-        WishProductDTO wishProductDTO = generalService.getWishlistProductsByWishlistID(wishlistID, username);
+        WishProductDTO wishProductDTO = generalService.getWishlistProductsByWishlistID(wishlistID, ownerUsername, accessUsername);
         if(wishProductDTO != null)
             return new ResponseEntity<>(wishProductDTO, HttpStatus.OK);
         else
@@ -114,7 +114,7 @@ public class WishlistController {
     @DeleteMapping("/wishlist/product")
     public ResponseEntity<String> deleteWishlistProductByProductID(@RequestParam("wish-id") UUID wishId, @RequestParam("product-id") UUID productId){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
-
+        System.out.println("wishId: "+wishId+"\n prodId: "+productId);
         if(generalService.deleteProductFromWishList(username, wishId, productId))
             return new ResponseEntity<>("Prodotto eliminato correttamente dalla lista desideri", HttpStatus.OK);
         else

@@ -26,7 +26,7 @@ public class BanServiceImpl implements BanService {
 
     //Metodo per restituire tutti gli utenti bannati
     public List<BanDTO> getAllBans() {
-        List<Ban> bans = banRepository.findAll();
+        List<Ban> bans = banRepository.findAllByEndDateIsNull();
         return bans.stream().map(a -> modelMapper.map(a, BanDTO.class)).toList();
     }
 

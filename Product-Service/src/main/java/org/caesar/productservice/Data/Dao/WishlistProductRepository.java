@@ -1,5 +1,6 @@
 package org.caesar.productservice.Data.Dao;
 
+import jakarta.transaction.Transactional;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Wishlist;
 import org.caesar.productservice.Data.Entities.WishlistProduct;
@@ -14,8 +15,10 @@ public interface WishlistProductRepository extends JpaRepository<WishlistProduct
     void deleteByProduct(Product productID);
     void deleteByWishlist(Wishlist wishlistID);
 
-    void deleteWishlistProductByProductAndWishlist(Product product, Wishlist wishlist);
+    @Transactional
+    void deleteByProductAndWishlist(Product product, Wishlist wishlist);
 
+    @Transactional
     void deleteAllByWishlist(Wishlist wishlist);
 
     List<WishlistProduct> findAllByWishlist(Wishlist wishlist);

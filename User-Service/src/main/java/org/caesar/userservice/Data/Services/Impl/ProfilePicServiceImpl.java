@@ -23,29 +23,31 @@ public class ProfilePicServiceImpl implements ProfilePicService {
     @Override
     public boolean saveImage(String username, MultipartFile file, boolean save) {
         try {
-            //Ricerca sul db della vecchia foto profilo per eseguire l'aggiornamento in caso ne aggiunge una nuova
-            if(save){
+            // Converti l'username in minuscolo
+            String lowercaseUsername = username.toLowerCase();
+
+            // Ricerca sul db della vecchia foto profilo per eseguire l'aggiornamento in caso ne aggiunge una nuova
+            if (save) {
                 ProfilePic profilePic1 = new ProfilePic();
-                profilePic1.setUserUsername(username);
+                profilePic1.setUserUsername(lowercaseUsername);
                 profilePic1.setProfilePic(file.getBytes());
                 profilePicRepository.save(profilePic1);
-            }else{
-                System.out.println("Username: " + username);
-                ProfilePic profilePic = profilePicRepository.findByUserUsername(username);
+            } else {
+                ProfilePic profilePic = profilePicRepository.findByUserUsername(lowercaseUsername);
                 profilePic.setProfilePic(file.getBytes());
                 profilePicRepository.save(profilePic);
             }
             return true;
-        }catch (Exception | Error e){
-            log.debug("Errore nel caricamento dell'imaggine");
+        } catch (Exception | Error e) {
+            log.debug("Errore nel caricamento dell'immagine");
             return false;
         }
     }
 
+
     //Metodo per restituire l'immagine dell'utente
     @Override
     public byte[] getUserImage(String username) {
-        System.out.println("USERNAME NEL GETUSERIMAGE: " + username);
         return profilePicRepository.findByUserUsername(username).getProfilePic();
     }
 }

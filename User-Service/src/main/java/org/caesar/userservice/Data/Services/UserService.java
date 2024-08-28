@@ -14,6 +14,6 @@ public interface UserService {
     boolean updateUser(UserDTO userData);
     boolean deleteUser(String userId);
     boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username);
-    boolean checkOtp(OtpDTO otp);
+    boolean checkOtp(PasswordChangeDTO passwordChangeDTO, String otp);
     boolean logout(String usermame, LogoutDTO logoutDTO);
 }
