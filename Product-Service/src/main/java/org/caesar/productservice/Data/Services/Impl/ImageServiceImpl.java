@@ -34,7 +34,6 @@ public class ImageServiceImpl implements ImageService {
         try{
             Image img= imageRepository.findByProduct(modelMapper.map(prod, Product.class));
 
-            System.out.println("Immagine: "+ img.getId());
             if(img==null)
                 return null;
 
