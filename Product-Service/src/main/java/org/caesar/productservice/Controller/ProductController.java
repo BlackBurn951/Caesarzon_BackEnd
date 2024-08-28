@@ -54,18 +54,20 @@ public class ProductController {
     @PutMapping("/image/{productId}")
     public ResponseEntity<String> putProductImages(@RequestParam("file") MultipartFile file, @PathVariable UUID productId) {
 
-        if(generalService.saveImage(productId, file, false))
+        if(generalService.saveImage(productId, file))
             return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PostMapping("/product") //Aggiunge il prodotto inviato con le sue disponibilità al db
-    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody ProductDTO sendProductDTO) {
-        if(generalService.addProduct(sendProductDTO))
-            return new ResponseEntity<>("Product aggiunto", HttpStatus.OK);
+    public ResponseEntity<UUID> addProductAndAvailabilities(@RequestBody ProductDTO sendProductDTO) {
+        UUID prodId= generalService.addProduct(sendProductDTO);
+
+        if(prodId!=null)
+            return new ResponseEntity<>(prodId, HttpStatus.OK);
         else
-            return new ResponseEntity<>("Prodotto non aggiunto", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @DeleteMapping("/product/{productID}")

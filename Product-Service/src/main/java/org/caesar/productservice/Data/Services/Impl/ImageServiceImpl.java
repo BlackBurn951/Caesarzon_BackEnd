@@ -32,23 +32,51 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public byte[] getImage(ProductDTO prod) {
         try{
-            return imageRepository.findByProduct(modelMapper.map(prod, Product.class)).getFile();
+            Image img= imageRepository.findByProduct(modelMapper.map(prod, Product.class));
+
+            System.out.println("Immagine: "+ img.getId());
+            if(img==null)
+                return null;
+
+            return img.getFile();
         } catch (Exception | Error e) {
             return null;
         }
     }
 
     @Override
-    public Image findImage(UUID productId){
-        return imageRepository.findImageByProductId(productId);
+    public ImageDTO findImage(ProductDTO product){
+        try{
+            Image img= imageRepository.findByProduct(modelMapper.map(product, Product.class));
 
+            if(img==null)
+                return null;
+
+            return modelMapper.map(img, ImageDTO.class);
+        } catch (Exception | Error e) {
+            return null;
+        }
     }
 
     @Override
-    public boolean saveImage(Image image) {
-        imageRepository.save(image);
-        return true;
+    public boolean saveImage(ImageDTO image) {
+        try{
+            imageRepository.save(modelMapper.map(image, Image.class));
+
+            return true;
+        } catch (Exception | Error e) {
+            return false;
+        }
     }
 
+    @Override
+    public boolean deleteImage(ProductDTO product) {
+        try{
+            imageRepository.deleteByProduct(modelMapper.map(product, Product.class));
 
+            return true;
+        } catch (Exception | Error e) {
+            return false;
+        }
+    }
 }

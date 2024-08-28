@@ -102,8 +102,6 @@ public class GeneralServiceImpl implements GeneralService {
                 availabilityDTO.setProduct(null);
             productDTO.setAvailabilities(availabilities);
 
-//            if(!username.equals("guest"))
-            //lastViewService.save(username, productDTO);   TODO da tornare anche le immagini
             return productDTO;
         }
         return null;
@@ -111,41 +109,43 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional // Aggiunge il prodotto ricevuto da front al db dei prodotti
-    public boolean addProduct(ProductDTO sendProductDTO) {
+    public UUID addProduct(ProductDTO sendProductDTO) {
 
         // Aggiorna l'ID del productDTO dopo averlo salvato
         sendProductDTO.setId(productService.addOrUpdateProduct(sendProductDTO).getId());
 
         if(sendProductDTO.getId()==null)
-            return false;
+            return null;
 
-        return availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO);
+        if(availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO))
+            return sendProductDTO.getId();
+
+        return null;
     }
 
     @Override
-        @Transactional //TODO AGGIUNGERE ELIMINAZIONE CORRELATI
+    @Transactional //TODO AGGIUNGERE ELIMINAZIONE CORRELATI
     public boolean deleteProduct(UUID id) {
         ProductDTO product = productService.getProductById(id);
 
         if(product != null)
-            return availabilityService.deleteAvailabilityByProduct(product) && productService.deleteProductById(id);
+            return availabilityService.deleteAvailabilityByProduct(product) && productService.deleteProductById(id)
+                    && imageService.deleteImage(product);
 
         return false;
     }
 
     @Override
-    public boolean saveImage(UUID productId, MultipartFile file, boolean save) {
+    public boolean saveImage(UUID productId, MultipartFile file) {
         try {
-            if (save) {
-                Image productImage = new Image();
-                productImage.setFile(file.getBytes());
-                imageService.saveImage(productImage);
-            } else {
-                Image productImage = imageService.findImage(productId);
-                productImage.setFile(file.getBytes());
-                imageService.saveImage(productImage);
-            }
-            return true;
+            ProductDTO product = productService.getProductById(productId);
+
+            if(product==null)
+                return false;
+
+            ImageDTO image= new ImageDTO(file.getBytes(), product);
+
+            return imageService.saveImage(image);
         } catch (Exception | Error e) {
             log.debug("Errore nel caricamento dell'immagine");
             return false;

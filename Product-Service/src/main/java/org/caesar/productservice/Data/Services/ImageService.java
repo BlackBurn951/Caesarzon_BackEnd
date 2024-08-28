@@ -14,6 +14,7 @@ public interface ImageService {
 
 
     byte[] getImage(ProductDTO prod);
-    Image findImage(UUID productId);
-    boolean saveImage(Image image);
+    ImageDTO findImage(ProductDTO product);
+    boolean saveImage(ImageDTO image);
+    boolean deleteImage(ProductDTO product);
 }

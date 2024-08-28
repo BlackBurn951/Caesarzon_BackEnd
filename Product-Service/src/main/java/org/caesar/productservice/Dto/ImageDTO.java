@@ -9,9 +9,9 @@ import org.caesar.productservice.Data.Entities.Product;
 public class ImageDTO {
 
     private byte[] file;
-    private Product product;
+    private ProductDTO product;
 
-    public ImageDTO(byte[] image, Product product) {
+    public ImageDTO(byte[] image, ProductDTO product) {
         this.file = image;
         this.product = product;
     }

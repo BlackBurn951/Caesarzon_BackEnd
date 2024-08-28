@@ -16,9 +16,9 @@ public interface GeneralService {
     byte[] getProductImage(UUID id);
     List<ImageDTO> getAllProductImages(UUID productID);
     ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id);
-    boolean addProduct(ProductDTO ProductDTO);
+    UUID addProduct(ProductDTO ProductDTO);
     boolean deleteProduct(UUID id);
-    boolean saveImage(UUID productId, MultipartFile file, boolean save);
+    boolean saveImage(UUID productId, MultipartFile file);
 
     //SEZIONE RECENSIONI
     List<ReviewDTO> getProductReviews(UUID productID, int str);

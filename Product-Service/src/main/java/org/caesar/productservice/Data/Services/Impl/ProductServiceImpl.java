@@ -57,6 +57,7 @@ public class ProductServiceImpl implements ProductService{
                 product.setPrimaryColor(productDTO.getPrimaryColor());
                 product.setSecondaryColor(productDTO.getSecondaryColor());
                 product.setSport(productDTO.getSport());
+                product.setLastModified(productDTO.getLastModified());
             }else{
                 product = modelMapper.map(productDTO, Product.class);
             }

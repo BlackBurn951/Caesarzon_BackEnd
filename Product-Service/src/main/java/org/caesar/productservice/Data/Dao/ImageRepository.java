@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface ImageRepository extends JpaRepository<Image, UUID> {
 
     Image findByProduct(Product product);
+    void deleteByProduct(Product product);
 }
