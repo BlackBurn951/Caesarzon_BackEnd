@@ -634,7 +634,7 @@ public class GeneralServiceImpl implements GeneralService {
     @Override
     public boolean addProductIntoWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
 
-        WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO);
+        WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO, true);
 
 
         if(wishListProductDTO==null)
@@ -649,8 +649,9 @@ public class GeneralServiceImpl implements GeneralService {
         sendWishlistProductDTO.setProductID(productId);
         sendWishlistProductDTO.setWishlistID(wishId);
 
-        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO);
+        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO, false);
 
+        System.out.println("Nome wishlist: "+wishListProductDTO.getWishlistDTO().getName()+"\nNome prodotto: "+wishListProductDTO.getProductDTO().getName());
         if(wishListProductDTO==null)
             return false;
 
@@ -729,7 +730,7 @@ public class GeneralServiceImpl implements GeneralService {
         return bd.doubleValue();
     }
 
-    private WishListProductDTO getWishListProductDTO(String username, SendWishlistProductDTO wishlistProductDTO) {
+    private WishListProductDTO getWishListProductDTO(String username, SendWishlistProductDTO wishlistProductDTO, boolean add) {
         ProductDTO productDTO= productService.getProductById(wishlistProductDTO.getProductID());
 
         if(productDTO==null)
@@ -737,12 +738,15 @@ public class GeneralServiceImpl implements GeneralService {
 
         WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistProductDTO.getWishlistID(), username);
 
+        System.out.println(wishlistDTO.getName());
         if(wishlistDTO==null)
             return null;
 
-        if(wishlistProductService.thereIsProductInWishList(wishlistDTO, productDTO))
+        System.out.println("Prima controllo");
+        if(wishlistProductService.thereIsProductInWishList(wishlistDTO, productDTO) && add)
             return null;
 
+        System.out.println("Dopo controllo");
         WishListProductDTO wishListProductDTO= new WishListProductDTO();
 
         wishListProductDTO.setWishlistDTO(wishlistDTO);

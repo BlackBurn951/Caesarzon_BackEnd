@@ -20,7 +20,7 @@ import java.util.UUID;
 public class WishlistController {
 
     private final WishlistService wishlistService;
-           private final GeneralService generalService;
+    private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
 
 
@@ -114,7 +114,7 @@ public class WishlistController {
     @DeleteMapping("/wishlist/product")
     public ResponseEntity<String> deleteWishlistProductByProductID(@RequestParam("wish-id") UUID wishId, @RequestParam("product-id") UUID productId){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
-
+        System.out.println("wishId: "+wishId+"\n prodId: "+productId);
         if(generalService.deleteProductFromWishList(username, wishId, productId))
             return new ResponseEntity<>("Prodotto eliminato correttamente dalla lista desideri", HttpStatus.OK);
         else

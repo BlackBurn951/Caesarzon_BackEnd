@@ -60,7 +60,13 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public boolean saveImage(ImageDTO image) {
         try{
-            imageRepository.save(modelMapper.map(image, Image.class));
+            Image img= imageRepository.findByProduct(modelMapper.map(image.getProduct(), Product.class));
+
+            if(img==null)
+                return false;
+
+            img.setFile(image.getFile());
+            imageRepository.save(img);
 
             return true;
         } catch (Exception | Error e) {
