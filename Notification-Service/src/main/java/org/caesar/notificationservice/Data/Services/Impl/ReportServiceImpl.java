@@ -45,68 +45,6 @@ public class ReportServiceImpl implements ReportService {
         return modelMapper.map(reportRepository.findById(id), ReportDTO.class);
     }
 
-    @Override
-    public boolean validateDeleteReportByUsername2(String username) {
-        try {
-            List<Report> reports= reportRepository.findByUsernameUser2(username);
-
-            for(Report report: reports){
-                report.setEffective(false);
-            }
-            reportRepository.saveAll(reports);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della segnalazione");
-            return false;
-        }
-    }
-
-    @Override
-    public List<ReportDTO> completeDeleteReportByUsername2(String username) {
-        try {
-            List<Report> reports= reportRepository.findByUsernameUser2(username);
-
-            List<ReportDTO> rollbackList= reports.stream()
-                    .map(a -> modelMapper.map(a, ReportDTO.class)).toList();
-
-            for(Report report: reports){
-                report.setEffective(false);
-                report.setReportDate(null);
-                report.setReason(null);
-                report.setDescription(null);
-                report.setReviewId(null);
-                report.setUsernameUser1(null);
-                report.setUsernameUser2(null);
-            }
-
-            reportRepository.saveAll(reports);
-
-            return rollbackList;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della segnalazione");
-            return null;
-        }
-    }
-
-    @Override
-    public boolean rollbackPreCompleteByUsername2(String username) {
-        try {
-            List<Report> reports= reportRepository.findByUsernameUser2(username);
-
-            for(Report report: reports){
-                report.setEffective(true);
-            }
-            reportRepository.saveAll(reports);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della segnalazione");
-            return false;
-        }
-    }
-
-
 
     //Metodo per aggiungere una segnalazione tramite l'id della recensione segnalata
     @Override
@@ -159,29 +97,30 @@ public class ReportServiceImpl implements ReportService {
 
     //Metodo per eliminare una segnalazione
     @Override
-    public boolean validateDeleteReportByReview(UUID reviewId) {
+    public List<ReportDTO> validateDeleteReportByReview(UUID reviewId) {
         try {
             List<Report> reports= reportRepository.findByReviewId(reviewId);
+
+            if(reports.isEmpty())
+                return new Vector<>();
 
             for(Report report: reports){
                 report.setEffective(false);
             }
             reportRepository.saveAll(reports);
 
-            return true;
+            return reports.stream()
+                    .map(a -> modelMapper.map(a, ReportDTO.class)).toList();
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della segnalazione");
-            return false;
+            return null;
         }
     }
 
     @Override
-    public List<ReportDTO> completeDeleteReportByReview(UUID reviewId) {
+    public boolean completeDeleteReportByReview(UUID reviewId) {
         try {
             List<Report> reports= reportRepository.findByReviewId(reviewId);
-
-            List<ReportDTO> rollbackList= reports.stream()
-                    .map(a -> modelMapper.map(a, ReportDTO.class)).toList();
 
             for(Report report: reports){
                 report.setEffective(false);
@@ -195,10 +134,10 @@ public class ReportServiceImpl implements ReportService {
 
             reportRepository.saveAll(reports);
 
-            return rollbackList;
+            return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della segnalazione");
-            return null;
+            return false;
         }
     }
 
@@ -233,7 +172,7 @@ public class ReportServiceImpl implements ReportService {
 
 
     @Override
-    public List<ReportDTO> validateDeleteReportForUserDelete(String username, boolean rollback) {
+    public List<ReportDTO> validateDeleteReportByUsername2(String username, boolean rollback) {
         try {
             List<Report> reports= reportRepository.findByUsernameUser2(username);
 
@@ -254,7 +193,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public boolean completeDeleteReportForUserDelete(String username) {
+    public boolean completeDeleteReportByUsername2(String username) {
         try {
             List<Report> reports= reportRepository.findByUsernameUser2(username);
 

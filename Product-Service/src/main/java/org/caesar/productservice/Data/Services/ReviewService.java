@@ -15,8 +15,8 @@ public interface ReviewService {
     ReviewDTO getReviewByUsernameAndProduct(String username, ProductDTO productDTO);
     List<ReviewDTO> getReviewsByProduct(ProductDTO productDTO, int str);
 
-    boolean validateDeleteReviewById(UUID reviewId, boolean rollback);
-    ReviewDTO completeDeleteReviewById(UUID reviewId);
+    ReviewDTO validateDeleteReviewById(UUID reviewId, boolean rollback);
+    boolean completeDeleteReviewById(UUID reviewId);
 
     boolean validateDeleteReview(ReviewDTO reviewDTO, boolean rollback);
     boolean completeDeleteReview(ReviewDTO reviewDTO);

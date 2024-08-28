@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Vector;
 
 @RestController
@@ -34,7 +33,7 @@ public class DeleteController {
         ValidateUserDeleteDTO result= new ValidateUserDeleteDTO();
 
         result.setSupports(supportRequestService.validateOrRollbackDeleteUserSupport(username, rollback));
-        result.setReports(reportService.validateDeleteReportForUserDelete(username, rollback));
+        result.setReports(reportService.validateDeleteReportByUsername2(username, rollback));
 
         if(result.getReports()==null)
             result.setAdminNotificationForReport(null);
@@ -88,7 +87,7 @@ public class DeleteController {
             }
         }
         if(!lists.getReports().isEmpty() && supportNotify) {
-            result.setReport(reportService.completeDeleteReportForUserDelete(username));
+            result.setReport(reportService.completeDeleteReportByUsername2(username));
 
             for (ReportDTO report: lists.getReports()) {
                 reportNotify= adminNotificationService.completeDeleteByReport(report);

@@ -60,13 +60,11 @@ public class ReportController {
     }
 
     @PutMapping("/user/report/{reviewId}")
-    public ResponseEntity<List<ReportDTO>> completeReportDelete(@PathVariable UUID reviewId) {
-        List<ReportDTO> result= reportService.completeDeleteReportByReview(reviewId);
-
-        if(result != null)
-            return new ResponseEntity<>(result, HttpStatus.OK);
+    public ResponseEntity<String> completeReportDelete(@PathVariable UUID reviewId) {
+        if(reportService.completeDeleteReportByReview(reviewId))
+            return new ResponseEntity<>("Completamento eseguito con successo!", HttpStatus.OK);
         else
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Prolemi nel completamento...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @DeleteMapping("/user/report")

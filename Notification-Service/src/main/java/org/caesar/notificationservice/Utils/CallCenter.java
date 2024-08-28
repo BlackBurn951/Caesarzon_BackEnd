@@ -34,25 +34,39 @@ public class CallCenter {
 
     //End-point per l'eliminazione di tutte le recensioni di un utente
     @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
-    public boolean validateReviewDeleteByUsername(String username) {
-        return validateEndpoint(username, false);
+    public List<ReviewDTO> validateAndRollbackReviewDeleteByUsername(String username, boolean rollback) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+
+        ParameterizedTypeReference<List<ReviewDTO>> responseType=
+                new ParameterizedTypeReference<>(){};
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<List<ReviewDTO>> response= restTemplate.exchange("http://product-service/product-api/admin/review?username="+username+"&rollback="+rollback,
+                HttpMethod.PUT,
+                entity,
+                responseType);
+
+        if(response.getStatusCode()==HttpStatus.OK)
+            return response.getBody();
+
+        return null;
     }
 
     @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackReviewDelete")
-    public List<ReviewDTO> completeReviewDeleteByUsername(String username) {
+    public boolean completeReviewDeleteByUsername(String username) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ParameterizedTypeReference<List<ReviewDTO>> responseType=
-                new ParameterizedTypeReference<>(){};
-
         return restTemplate.exchange("http://product-service/product-api/admin/review/"+username,
                 HttpMethod.PUT,
                 entity,
-                responseType).getBody();
+                String.class).getStatusCode()==HttpStatus.OK;
     }
 
     @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
@@ -110,21 +124,26 @@ public class CallCenter {
 
     //End-point per l'eliminazione della singola recensione
     @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
-    public boolean validateReviewDeleteById(UUID reviewId, boolean rollback) {
+    public ReviewDTO validateReviewDeleteById(UUID reviewId, boolean rollback) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        return restTemplate.exchange("http://product-service/product-api/admin/review?review-id="+reviewId+"&rollback="+rollback,
+        ResponseEntity<ReviewDTO> response= restTemplate.exchange("http://product-service/product-api/admin/review?review-id="+reviewId+"&rollback="+rollback,
                 HttpMethod.PUT,
                 entity,
-                String.class).getStatusCode() == HttpStatus.OK;
+                ReviewDTO.class);
+
+        if(response.getStatusCode()==HttpStatus.OK)
+            return response.getBody();
+
+        return null;
     }
 
     @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackReviewDelete")
-    public ReviewDTO completeReviewDeleteById(UUID reviewId) {
+    public boolean completeReviewDeleteById(UUID reviewId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
@@ -134,7 +153,7 @@ public class CallCenter {
         return restTemplate.exchange("http://product-service/product-api/admin/review/review-id/"+reviewId,
                 HttpMethod.PUT,
                 entity,
-                ReviewDTO.class).getBody();
+                String.class).getStatusCode()==HttpStatus.OK;
     }
 
 

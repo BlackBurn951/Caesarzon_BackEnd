@@ -10,18 +10,14 @@ public interface ReportService {
     List<ReportDTO> getAllReports(int num);
     ReportDTO getReport(UUID id);
 
-    boolean validateDeleteReportByUsername2(String username);
-    List<ReportDTO> completeDeleteReportByUsername2(String username);
-    boolean rollbackPreCompleteByUsername2(String username);
-
-    boolean validateDeleteReportByReview(UUID reviewId);
-    List<ReportDTO> completeDeleteReportByReview(UUID reviewId);
+    List<ReportDTO> validateDeleteReportByReview(UUID reviewId);
+    boolean completeDeleteReportByReview(UUID reviewId);
     boolean releaseLock(List<UUID> reportsId);
     boolean rollbackPreCompleteByReview(UUID reviewId);
 
 
-    List<ReportDTO>  validateDeleteReportForUserDelete(String username, boolean rollback);
-    boolean completeDeleteReportForUserDelete(String username);
+    List<ReportDTO> validateDeleteReportByUsername2(String username, boolean rollback);
+    boolean completeDeleteReportByUsername2(String username);
 
 
     ReportDTO getReportByReviewId(UUID reviewId);

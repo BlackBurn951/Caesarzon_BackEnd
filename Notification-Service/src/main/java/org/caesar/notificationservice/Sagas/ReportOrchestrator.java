@@ -27,64 +27,62 @@ public class ReportOrchestrator {
 
     public boolean processAutomaticBan(UUID banId, String username, List<ReportDTO> reports) {
         //Fase di convalida in locale
-        boolean validateAdminNotify= true,
-                validateReport= reportService.validateDeleteReportByUsername2(username);
+        List<SaveAdminNotificationDTO> validateAdminNotify= new Vector<>();
+        List<ReportDTO> validateReport= reportService.validateDeleteReportByUsername2(username, false);
 
         for(ReportDTO report: reports){
-            if(!adminNotificationService.validateDeleteByReport(report))
-                validateAdminNotify= false;
+            validateAdminNotify.addAll(adminNotificationService.validateDeleteByReport(report));
         }
 
-        if(validateAdminNotify && validateReport) {
+        if(!validateAdminNotify.isEmpty() && !validateReport.isEmpty()) {
 
             //Fase di convalida sui servizi esterni
-            boolean validateReview= callCenter.validateReviewDeleteByUsername(username),
-                    validateBan= callCenter.validateBan(username);
+            List<ReviewDTO> validateReview= callCenter.validateAndRollbackReviewDeleteByUsername(username, false);
+            boolean validateBan= callCenter.validateBan(username);
 
-            if(validateReview && validateBan) {
+            if(validateReview!=null && validateBan) {
 
                 //Fase di completamento in locale
                 BanDTO banDTO = generateBan(banId, username);
 
-                boolean banConfirmed= banService.confirmBan(banDTO);
+                boolean banConfirmed= banService.confirmBan(banDTO),
+                        completeNotification= true,
+                        completeReports= true;
 
-                List<SaveAdminNotificationDTO> adminNotifications= new Vector<>();
                 for(ReportDTO report: reports){
-                    List<SaveAdminNotificationDTO> temp= adminNotificationService.completeDeleteByReport(report);
-
-                    if(temp!=null)
-                        adminNotifications.addAll(temp);
-                    else
-                        adminNotifications= null;
+                    if(!adminNotificationService.completeDeleteByReport(report)) {
+                        completeNotification= false;
+                        break;
+                    }
                 }
 
-                List<ReportDTO> rollbackReports= reportService.completeDeleteReportByUsername2(username);
+                completeReports= reportService.completeDeleteReportByUsername2(username);
 
-                if(banConfirmed && adminNotifications!=null && rollbackReports!=null) {
+                if(banConfirmed && completeNotification && completeReports) {
 
                     //Fase di completamento sui servizi esterni
-                    boolean banCompleted= callCenter.completeBan(username);
-                    List<ReviewDTO> reviews= callCenter.completeReviewDeleteByUsername(username);
+                    boolean banCompleted= callCenter.completeBan(username),
+                            completeReviews= callCenter.completeReviewDeleteByUsername(username);
 
-                    if(banCompleted && reviews!=null) {
+                    if(banCompleted && completeReviews) {
 
                         //Fase di rilascio dei lock su tutti i servizi
                         banService.releaseLock(banId);
-                        adminNotificationService.releaseLock(adminNotifications.stream().map(SaveAdminNotificationDTO::getId).toList());
-                        reportService.releaseLock(rollbackReports.stream().map(ReportDTO::getId).toList());
-                        callCenter.releaseReviewLock(reviews.stream().map(ReviewDTO::getId).toList());
+                        adminNotificationService.releaseLock(validateAdminNotify.stream().map(SaveAdminNotificationDTO::getId).toList());
+                        reportService.releaseLock(validateReport.stream().map(ReportDTO::getId).toList());
+                        callCenter.releaseReviewLock(validateReview.stream().map(ReviewDTO::getId).toList());
                         callCenter.releaseBanLock(username);
                         return true;
                     }
 
                     //Fase di rollback post completamento totale
-                    rollbackPostCompleteLocal(banId, rollbackReports, adminNotifications);
-                    rollbackPostCompleteRemote(username, reviews);
+                    rollbackPostCompleteLocal(banId, validateReport, validateAdminNotify);
+                    rollbackPostCompleteRemote(username, validateReview);
                     return false;
                 }
 
                 //Fase di rollback post completamento in locale
-                rollbackPostCompleteLocal(banId, rollbackReports, adminNotifications);
+                rollbackPostCompleteLocal(banId, validateReport, validateAdminNotify);
                 rollbackPreCompleteRemoteForUsername(username);
                 return false;
             }
@@ -97,60 +95,57 @@ public class ReportOrchestrator {
 
 
 
-        rollbackPreCompleteLocalForUsername(banId, reports, username);
+        rollbackPreCompleteLocalForUsername(banId, reports);
         return false;
     }
 
     public boolean processManageReport(List<ReportDTO> reports) {
         //Fase di convalida in locale
-        boolean validateAdminNotify= true,
-                validateReport= reportService.validateDeleteReportByReview(reports.getFirst().getReviewId());
+        List<SaveAdminNotificationDTO> validateAdminNotify= new Vector<>();
+        List<ReportDTO> validateReport= reportService.validateDeleteReportByReview(reports.getFirst().getReviewId());
 
         for(ReportDTO report: reports){
-            if(!adminNotificationService.validateDeleteByReport(report))
-                validateAdminNotify= false;
+            validateAdminNotify.addAll(adminNotificationService.validateDeleteByReport(report));
         }
 
-        if(validateAdminNotify && validateReport) {
+        if(!validateAdminNotify.isEmpty() && !validateReport.isEmpty()) {
 
             //Fase di convalida sul servizio esterno
-            boolean validateReview= callCenter.validateReviewDeleteById(reports.getFirst().getReviewId(), false);  //eliminare singola recensione
-            if(validateReview) {
+            ReviewDTO validateReview= callCenter.validateReviewDeleteById(reports.getFirst().getReviewId(), false);  //eliminare singola recensione
+            if(validateReview!=null) {
 
                 //Fase di completamento in locale
-                List<SaveAdminNotificationDTO> adminNotifications= new Vector<>();
+                boolean completeAdminNotification= true;
                 for(ReportDTO report: reports){
-                    List<SaveAdminNotificationDTO> temp= adminNotificationService.completeDeleteByReport(report);
-
-                    if(temp!=null)
-                        adminNotifications.addAll(temp);
-                    else
-                        adminNotifications= null;
+                    if(adminNotificationService.completeDeleteByReport(report)) {
+                        completeAdminNotification= false;
+                        break;
+                    }
                 }
 
-                List<ReportDTO> rollbackReports= reportService.completeDeleteReportByReview(reports.getFirst().getReviewId());
-                if(adminNotifications!=null && rollbackReports!=null) {
+                boolean rollbackReports= reportService.completeDeleteReportByReview(reports.getFirst().getReviewId());
+                if(completeAdminNotification && rollbackReports) {
 
                     //Fase di completamento sul servizio esterno
-                    ReviewDTO reviews= callCenter.completeReviewDeleteById(reports.getFirst().getReviewId());
-                    if(reviews!=null) {
+                    boolean completeReviews= callCenter.completeReviewDeleteById(reports.getFirst().getReviewId());
+                    if(completeReviews) {
 
                         //Fase di rilasciamento di tutti i lock
-                        adminNotificationService.releaseLock(adminNotifications.stream().map(SaveAdminNotificationDTO::getId).toList());
-                        reportService.releaseLock(rollbackReports.stream().map(ReportDTO::getId).toList());
-                        callCenter.releaseReviewLock(List.of(reviews.getId()));
+                        adminNotificationService.releaseLock(validateAdminNotify.stream().map(SaveAdminNotificationDTO::getId).toList());
+                        reportService.releaseLock(validateReport.stream().map(ReportDTO::getId).toList());
+                        callCenter.releaseReviewLock(List.of(validateReview.getId()));
 
                         return true;
                     }
 
                     //Fase di rollback post completamento totale
-                    rollbackPostCompleteLocal(null, rollbackReports, adminNotifications);
-                    rollbackPostCompleteRemote(null, List.of(reviews));
+                    rollbackPostCompleteLocal(null, validateReport, validateAdminNotify);
+                    rollbackPostCompleteRemote(null, List.of(validateReview));
                     return false;
                 }
 
                 //Fase di rollback post completamento in locale
-                rollbackPostCompleteLocal(null, rollbackReports, adminNotifications);
+                rollbackPostCompleteLocal(null, validateReport, validateAdminNotify);
                 rollbackPreCompleteRemoteForReviewId(reports.getFirst().getReviewId());
                 return false;
             }
@@ -168,12 +163,12 @@ public class ReportOrchestrator {
 
 
     //Metodi di servizio
-    private void rollbackPreCompleteLocalForUsername(UUID banId, List<ReportDTO> reports, String username) {
+    private void rollbackPreCompleteLocalForUsername(UUID banId, List<ReportDTO> reports) {
         banService.rollback(banId);
         for(ReportDTO report: reports){
             adminNotificationService.rollbackPreComplete(report);
+            reportService.addReport(report);
         }
-        reportService.rollbackPreCompleteByUsername2(username);
     }
     private void rollbackPreCompleteRemoteForUsername(String username) {
         callCenter.rollbackBan(username);
