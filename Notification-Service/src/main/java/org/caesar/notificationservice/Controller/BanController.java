@@ -46,8 +46,8 @@ public class BanController {
     }
 
     @GetMapping("/bans")
-    public ResponseEntity<List<BanDTO>> getBans() {
-        List<BanDTO> result = banService.getAllBans();
+    public ResponseEntity<List<BanDTO>> getBans(@RequestParam("num") int num) {
+        List<BanDTO> result = banService.getAllBans(num);
         if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else

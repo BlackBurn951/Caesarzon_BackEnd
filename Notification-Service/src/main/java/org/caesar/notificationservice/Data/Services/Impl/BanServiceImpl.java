@@ -10,7 +10,9 @@ import org.caesar.notificationservice.Data.Entities.Ban;
 import org.caesar.notificationservice.Data.Services.BanService;
 import org.caesar.notificationservice.Dto.BanDTO;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,8 +27,8 @@ public class BanServiceImpl implements BanService {
     private final ModelMapper modelMapper;
 
     //Metodo per restituire tutti gli utenti bannati
-    public List<BanDTO> getAllBans() {
-        List<Ban> bans = banRepository.findAllByEndDateIsNull();
+    public List<BanDTO> getAllBans(@RequestParam("num") int num) {
+        List<Ban> bans = banRepository.findAllByEndDateIsNull(PageRequest.of(num, 20));
         return bans.stream().map(a -> modelMapper.map(a, BanDTO.class)).toList();
     }
 

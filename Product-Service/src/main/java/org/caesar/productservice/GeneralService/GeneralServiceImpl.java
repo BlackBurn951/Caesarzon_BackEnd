@@ -10,8 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ImageRepository;
 import org.caesar.productservice.Data.Entities.Image;
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.*;
-import org.caesar.productservice.Data.Services.Impl.ImageServiceImpl;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
@@ -109,7 +109,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional // Aggiunge il prodotto ricevuto da front al db dei prodotti
-    public UUID addProduct(ProductDTO sendProductDTO) {
+    public UUID addProduct(ProductDTO sendProductDTO, boolean isNew) {
 
         // Aggiorna l'ID del productDTO dopo averlo salvato
         sendProductDTO.setId(productService.addOrUpdateProduct(sendProductDTO).getId());
@@ -117,8 +117,14 @@ public class GeneralServiceImpl implements GeneralService {
         if(sendProductDTO.getId()==null)
             return null;
 
-        if(availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO))
-            return sendProductDTO.getId();
+        if(availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO)) {
+            if(isNew) {
+                ImageDTO img = new ImageDTO(null, sendProductDTO);
+                if (!imageService.updateImage(img, true))
+                    return null;
+            }
+                return sendProductDTO.getId();
+        }
 
         return null;
     }
@@ -136,7 +142,7 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public boolean saveImage(UUID productId, MultipartFile file) {
+    public boolean saveImage(UUID productId, MultipartFile file, boolean isNew) {
         try {
             ProductDTO product = productService.getProductById(productId);
 
@@ -145,7 +151,7 @@ public class GeneralServiceImpl implements GeneralService {
 
             ImageDTO image= new ImageDTO(file.getBytes(), product);
 
-            return imageService.saveImage(image);
+            return imageService.updateImage(image, isNew);
         } catch (Exception | Error e) {
             log.debug("Errore nel caricamento dell'immagine");
             return false;
@@ -498,7 +504,6 @@ public class GeneralServiceImpl implements GeneralService {
             changeAvaibility(productInOrder, true);
             return "Errore";
         }
-
 
         double total = productInOrder.stream()
                 .mapToDouble(prod -> {
