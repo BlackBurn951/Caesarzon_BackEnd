@@ -91,6 +91,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
             return notifyId;
         }catch(Exception | Error e){
+            System.out.println(e);
             log.debug("Errore nell'inserimento della notifica per l'utente");
             return null;
         }
@@ -200,7 +201,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     @Override
     public boolean rollbackDeleteUserNotifications(List<UserNotificationDTO> notifications) {
         try{
-            userNotificationRepository.saveAll(notifications.stream().map(nt -> modelMapper.map(nt, UserNotification.class)).toList());
+            userNotificationRepository.deleteAll(notifications.stream().map(nt -> modelMapper.map(nt, UserNotification.class)).toList());
 
             return true;
         }catch(Exception | Error e){
@@ -238,6 +239,8 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     @Override
     public boolean deleteUserNotification(UUID id){
         try{
+
+
             userNotificationRepository.deleteById(id);
             return true;
         }catch(Exception | Error e){

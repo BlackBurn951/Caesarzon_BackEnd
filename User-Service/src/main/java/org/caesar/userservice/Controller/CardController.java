@@ -70,7 +70,7 @@ public class CardController {
 
 
     //End-point 2PC per il pagamento
-    @PostMapping("/balance/{cardId}")
+    @PostMapping("/balance/payment/{cardId}")
     public ResponseEntity<String> validatePayment(@PathVariable("cardId") UUID cardId, @RequestParam("total") double total, @RequestParam("rollback") boolean rollback) {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
@@ -96,7 +96,7 @@ public class CardController {
     }
 
     //End-point rilascio lock
-    @PutMapping("/balance/{cardId}")
+    @PutMapping("/balance/release/{cardId}")
     public ResponseEntity<String> releaseLockPayment(@PathVariable("cardId") UUID cardId) {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();

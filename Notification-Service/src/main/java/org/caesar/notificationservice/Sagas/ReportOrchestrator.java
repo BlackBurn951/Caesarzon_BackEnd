@@ -31,7 +31,7 @@ public class ReportOrchestrator {
         List<ReportDTO> validateReport= reportService.validateDeleteReportByUsername2(username, false);
 
         for(ReportDTO report: reports){
-            validateAdminNotify.addAll(adminNotificationService.validateDeleteByReport(report));
+            validateAdminNotify.addAll(adminNotificationService.validateDeleteByReport(report, false));
         }
 
         if(!validateAdminNotify.isEmpty() && !validateReport.isEmpty()) {
@@ -92,9 +92,6 @@ public class ReportOrchestrator {
         }
 
         //Fase di rollback pre completamento in locale
-
-
-
         rollbackPreCompleteLocalForUsername(banId, reports);
         return false;
     }
@@ -102,10 +99,10 @@ public class ReportOrchestrator {
     public boolean processManageReport(List<ReportDTO> reports) {
         //Fase di convalida in locale
         List<SaveAdminNotificationDTO> validateAdminNotify= new Vector<>();
-        List<ReportDTO> validateReport= reportService.validateDeleteReportByReview(reports.getFirst().getReviewId());
+        List<ReportDTO> validateReport= reportService.validateDeleteReportByReview(reports.getFirst().getReviewId(), false);
 
         for(ReportDTO report: reports){
-            validateAdminNotify.addAll(adminNotificationService.validateDeleteByReport(report));
+            validateAdminNotify.addAll(adminNotificationService.validateDeleteByReport(report, false));
         }
 
         if(!validateAdminNotify.isEmpty() && !validateReport.isEmpty()) {
@@ -117,15 +114,16 @@ public class ReportOrchestrator {
                 //Fase di completamento in locale
                 boolean completeAdminNotification= true;
                 for(ReportDTO report: reports){
-                    if(adminNotificationService.completeDeleteByReport(report)) {
+                    if(!adminNotificationService.completeDeleteByReport(report)) {
                         completeAdminNotification= false;
                         break;
                     }
                 }
-
+                System.out.println("Completamento in locale delle notifiche terminato");
                 boolean rollbackReports= reportService.completeDeleteReportByReview(reports.getFirst().getReviewId());
+                System.out.println(completeAdminNotification+" "+rollbackReports);
                 if(completeAdminNotification && rollbackReports) {
-
+                    System.out.println("Completamento in locale terminato");
                     //Fase di completamento sul servizio esterno
                     boolean completeReviews= callCenter.completeReviewDeleteById(reports.getFirst().getReviewId());
                     if(completeReviews) {
@@ -172,7 +170,7 @@ public class ReportOrchestrator {
     }
     private void rollbackPreCompleteRemoteForUsername(String username) {
         callCenter.rollbackBan(username);
-        callCenter.rollbackPreCompleteReviewDeleteByUsername(username);
+        callCenter.validateAndRollbackReviewDeleteByUsername(username, true);
     }
     private void rollbackPostCompleteLocal(UUID banId, List<ReportDTO> reports, List<SaveAdminNotificationDTO> adminNotifications) {
         if(banId!=null)
@@ -196,7 +194,7 @@ public class ReportOrchestrator {
         for(ReportDTO report: reports){
             adminNotificationService.rollbackPreComplete(report);
         }
-        reportService.rollbackPreCompleteByReview(reports.getFirst().getReviewId());
+        reportService.validateDeleteReportByReview(reports.getFirst().getReviewId(), true);
     }
     private void rollbackPreCompleteRemoteForReviewId(UUID reviewId) {
         callCenter.validateReviewDeleteById(reviewId, true);

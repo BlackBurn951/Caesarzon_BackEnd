@@ -83,8 +83,9 @@ public class AddressController {
     public ResponseEntity<Boolean> getUserAddress(@PathVariable UUID addressId) {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-
+        System.out.println(username);
         boolean result= generalService.checkAddress(username, addressId);
+        System.out.println(result);
         if(result)
             return new ResponseEntity<>(true, HttpStatus.OK);
         else

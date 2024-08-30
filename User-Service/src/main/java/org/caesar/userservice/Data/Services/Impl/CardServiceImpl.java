@@ -37,12 +37,14 @@ public class CardServiceImpl implements CardService {
     //Metodo per aggiungere una carta
     @Override
     public UUID addCard(CardDTO cardDTO) {
+        System.out.println("Aggiornamento della carta");
         //Controllo che i campi mandati rispettino i criteri
         if(!checkCardNumber(cardDTO.getCardNumber()) || !checkOwner(cardDTO.getOwner()) ||
             !checkCvv(cardDTO.getCvv()) || !checkExpiryDate(cardDTO.getExpiryDate()))
             return null;
-
+        System.out.println("Superata validazione");
         try{
+            System.out.println("Salvataggio");
             Card card = modelMapper.map(cardDTO, Card.class);
 
             return cardRepository.save(card).getId();

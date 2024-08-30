@@ -10,7 +10,7 @@ public interface AdminNotificationService {
     boolean sendNotificationAllAdmin(List<SaveAdminNotificationDTO> notification);
     boolean deleteAdminNotification(UUID id);
 
-    List<SaveAdminNotificationDTO> validateDeleteByReport(ReportDTO reportDTO);
+    List<SaveAdminNotificationDTO> validateDeleteByReport(ReportDTO reportDTO, boolean rollback);
     boolean completeDeleteByReport(ReportDTO reportDTO);
     boolean releaseLock(List<UUID> notificationIds);
     boolean rollbackPreComplete(ReportDTO reportDTO);

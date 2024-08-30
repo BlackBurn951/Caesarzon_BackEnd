@@ -63,8 +63,8 @@ public class GeneralServiceImpl implements GeneralService{
         ReportDTO newReportDTO = reportService.addReport(reportDTO);
 
         //Controllo se il DTO non è nullo e se il numero di segnalazioni ricevute da un utente è minore di 5 (Su diversi prodotti)
-        if(newReportDTO != null && reportService.countReportForUser(newReportDTO.getUsernameUser2(), newReportDTO.getReviewId())>=5 && banService.checkIfBanned(newReportDTO.getUsernameUser2())) {
-
+        if(newReportDTO != null && reportService.countReportForUser(newReportDTO.getUsernameUser2())>=5 && !banService.checkIfBanned(newReportDTO.getUsernameUser2())) {
+            System.out.println("Entrato nel saga");
             //Avvio del saga per il ban automatico
             UUID banId= banService.validateBan();
             List<ReportDTO> reports= reportService.getReportsByUsername2(newReportDTO.getUsernameUser2());
@@ -99,6 +99,7 @@ public class GeneralServiceImpl implements GeneralService{
                 notify.setAdmin(ad);
                 notify.setReport(newReportDTO);
                 notify.setRead(false);
+                notify.setConfirmed(true);
 
                 notifications.add(notify);
             }
@@ -228,48 +229,31 @@ public class GeneralServiceImpl implements GeneralService{
 
 
     @Override
-    public int validateReportAndNotifications(String username, UUID reviewId) {  //0 -> validazione riuscita, 1 -> dati non presenti, 2 -> errore
-        List<ReportDTO> reports= reportService.getReportsByReviewId(reviewId);
-
-        if(reports==null)
-            return 1;
-
-        boolean validateAdminNotify= true,
-                validateReport= reportService.validateDeleteReportByReview(reviewId);
-
-        for(ReportDTO report: reports){
-            if(!adminNotificationService.validateDeleteByReport(report))
-                validateAdminNotify= false;
-        }
-
-        if(validateAdminNotify && validateReport)
-            return 0;
-
-        return 2;
-    }
-
-    @Override
-    public List<SaveAdminNotificationDTO> completeDeleteAdminNotifications(UUID reviewId) {
+    public DeleteReviewDTO validateReportAndNotifications(String username, UUID reviewId, boolean rollback) {
+        DeleteReviewDTO response= new DeleteReviewDTO();
         List<ReportDTO> reports= reportService.getReportsByReviewId(reviewId);
 
         if(reports==null)
             return null;
+        if(reports.isEmpty())
+            return response;
 
-        List<SaveAdminNotificationDTO> result= new Vector<>();
+        response.setReports(reportService.validateDeleteReportByReview(reviewId, rollback));
+
+        List<SaveAdminNotificationDTO> adminNotify;
         for(ReportDTO report: reports){
-            List<SaveAdminNotificationDTO> temp= adminNotificationService.completeDeleteByReport(report);
-
-            if(temp!=null)
-                result.addAll(temp);
-            else
+            adminNotify= adminNotificationService.validateDeleteByReport(report, rollback);
+            if(adminNotify==null)
                 return null;
+
+            response.getAdminNotify().addAll(adminNotify);
         }
 
-        return result;
+        return response;
     }
 
     @Override
-    public boolean rollbackPreComplete(UUID reviewId) {
+    public boolean completeDeleteAdminNotifications(UUID reviewId) {
         List<ReportDTO> reports= reportService.getReportsByReviewId(reviewId);
 
         if(reports==null)
@@ -277,10 +261,12 @@ public class GeneralServiceImpl implements GeneralService{
 
         boolean result= true;
         for(ReportDTO report: reports){
-            if(!adminNotificationService.rollbackPreComplete(report))
-                result= false;
+            if(!adminNotificationService.completeDeleteByReport(report)) {
+                result = false;
+                break;
+            }
         }
 
-        return result && reportService.rollbackPreCompleteByReview(reviewId);
+        return result;
     }
 }

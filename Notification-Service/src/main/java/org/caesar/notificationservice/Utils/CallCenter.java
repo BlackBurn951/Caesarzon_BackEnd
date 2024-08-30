@@ -26,14 +26,19 @@ public class CallCenter {
         return false;
     }
 
-    private List<ReviewDTO> fallbackReviewDelete(Throwable e) {
+    private List<ReviewDTO> fallbackReviewsDelete(Throwable e) {
+        System.out.println("Circuit breaker nel call center attivato!");
+        return null;
+    }
+
+    private ReviewDTO fallbackReviewDelete(Throwable e) {
         System.out.println("Circuit breaker nel call center attivato!");
         return null;
     }
 
 
     //End-point per l'eliminazione di tutte le recensioni di un utente
-    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackReviewsDelete")
     public List<ReviewDTO> validateAndRollbackReviewDeleteByUsername(String username, boolean rollback) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -44,7 +49,7 @@ public class CallCenter {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<List<ReviewDTO>> response= restTemplate.exchange("http://product-service/product-api/admin/review?username="+username+"&rollback="+rollback,
+        ResponseEntity<List<ReviewDTO>> response= restTemplate.exchange("http://product-service/product-api/admin/reviews?username="+username+"&rollback="+rollback,
                 HttpMethod.PUT,
                 entity,
                 responseType);
@@ -55,7 +60,7 @@ public class CallCenter {
         return null;
     }
 
-    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackReviewDelete")
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean completeReviewDeleteByUsername(String username) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -87,11 +92,6 @@ public class CallCenter {
     }
 
     @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
-    public boolean rollbackPreCompleteReviewDeleteByUsername(String username) {
-        return validateEndpoint(username, true);
-    }
-
-    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean rollbackReviewDelete(List<ReviewDTO> reviews) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 
@@ -108,22 +108,9 @@ public class CallCenter {
                 String.class).getStatusCode()==HttpStatus.OK;
     }
 
-    private boolean validateEndpoint(String username, boolean rollback) {
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", request.getHeader("Authorization"));
 
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        return restTemplate.exchange("http://product-service/product-api/admin/review?username="+username+"&rollback="+rollback,
-                HttpMethod.PUT,
-                entity,
-                String.class).getStatusCode() == HttpStatus.OK;
-    }
-
-
-    //End-point per l'eliminazione della singola recensione
-    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
+    //End-point per l'eliminazione della singola recensione   //TODO DA AGGIUSTARE CIRCUIT BREAKER
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackReviewDelete")
     public ReviewDTO validateReviewDeleteById(UUID reviewId, boolean rollback) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -142,7 +129,7 @@ public class CallCenter {
         return null;
     }
 
-    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackReviewDelete")
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean completeReviewDeleteById(UUID reviewId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();

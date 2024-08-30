@@ -73,7 +73,7 @@ public class NotificationController {
     }
 
     //Rilascio lock
-    @PutMapping("/notification")
+    @PutMapping("/notification/release")
     public ResponseEntity<String> releaseNotification(@RequestParam("notify-id") UUID notifyId) {
         if (userNotificationService.releaseNotification(notifyId))
             return new ResponseEntity<>("Release del lock avvenuto con successo!", HttpStatus.OK);
@@ -136,13 +136,11 @@ public class NotificationController {
 
 
     @PutMapping("/user/notifications/{reviewId}")
-    public ResponseEntity<List<SaveAdminNotificationDTO>> completeNotifyDelete(@PathVariable UUID reviewId) {
-        List<SaveAdminNotificationDTO> result= generalService.completeDeleteAdminNotifications(reviewId);
-
-        if(result != null)
-            return new ResponseEntity<>(result, HttpStatus.OK);
+    public ResponseEntity<String> completeNotifyDelete(@PathVariable UUID reviewId) {
+        if(generalService.completeDeleteAdminNotifications(reviewId))
+            return new ResponseEntity<>("Completamento eseguito con successo!", HttpStatus.OK);
         else
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Problemi nel completamento...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @DeleteMapping("/user/notifications")
@@ -151,14 +149,6 @@ public class NotificationController {
             return new ResponseEntity<>("Lock rilasciato con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nel rilascio del lock...", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @PutMapping("/user/notifications")
-    public ResponseEntity<String> rollbackPreComplete(@RequestParam("review-id") UUID reviewId) {
-        if(generalService.rollbackPreComplete(reviewId))
-            return new ResponseEntity<>("Rollback eseguito con successo!", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Problemi nell'esecuzione del rollback...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PostMapping("/user/notifications")

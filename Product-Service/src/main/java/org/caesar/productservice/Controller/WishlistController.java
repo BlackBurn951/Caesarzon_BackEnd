@@ -20,7 +20,7 @@ import java.util.UUID;
 public class WishlistController {
 
     private final WishlistService wishlistService;
-           private final GeneralService generalService;
+    private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
 
 

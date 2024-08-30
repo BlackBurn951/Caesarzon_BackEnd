@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Services.ReportService;
+import org.caesar.notificationservice.Dto.DeleteReviewDTO;
 import org.caesar.notificationservice.Dto.ReportDTO;
 import org.caesar.notificationservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
@@ -55,8 +56,8 @@ public class ReportController {
 
     //End-point per la cancellazione di eventuali segnalazioni e notifiche inerenti ad una notifica
     @PutMapping("/user/report")
-    public ResponseEntity<Integer> validateReportAndNotifications(@RequestParam("username") String username, @RequestParam("review-id") UUID reviewId) {
-        return new ResponseEntity<>(generalService.validateReportAndNotifications(username, reviewId), HttpStatus.OK);
+    public ResponseEntity<DeleteReviewDTO> validateReportAndNotifications(@RequestParam("username") String username, @RequestParam("review-id") UUID reviewId, @RequestParam("rollback") boolean rollback) {
+        return new ResponseEntity<>(generalService.validateReportAndNotifications(username, reviewId, rollback), HttpStatus.OK);
     }
 
     @PutMapping("/user/report/{reviewId}")
@@ -69,6 +70,7 @@ public class ReportController {
 
     @DeleteMapping("/user/report")
     public ResponseEntity<String> releaseLock(@RequestBody List<UUID> reportIds) {
+        System.out.println("Sono nell'end-point per il release");
         if(reportService.releaseLock(reportIds))
             return new ResponseEntity<>("Lock rilasciato con successo!", HttpStatus.OK);
         else

@@ -1,15 +1,11 @@
 package org.caesar.notificationservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.notificationservice.Data.Dao.ReportRepository;
 import org.caesar.notificationservice.Data.Entities.Report;
 import org.caesar.notificationservice.Data.Services.ReportService;
 import org.caesar.notificationservice.Dto.ReportDTO;
-import org.caesar.notificationservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,16 +45,16 @@ public class ReportServiceImpl implements ReportService {
     //Metodo per aggiungere una segnalazione tramite l'id della recensione segnalata
     @Override
     public ReportDTO getReportByReviewId(UUID id) {
-        return modelMapper.map(reportRepository.findByReviewId(id), ReportDTO.class);
+        return modelMapper.map(reportRepository.findAllByReviewId(id), ReportDTO.class);
     }
 
     @Override
     public List<ReportDTO> getReportsByReviewId(UUID id) {
         try{
-            List<Report> reviews= reportRepository.findByReviewId(id);
+            List<Report> reviews= reportRepository.findAllByReviewId(id);
 
             if(reviews.isEmpty())
-                return null;
+                return new Vector<>();
 
             return reviews.stream()
                     .map(rev -> modelMapper.map(rev, ReportDTO.class))
@@ -97,22 +93,22 @@ public class ReportServiceImpl implements ReportService {
 
     //Metodo per eliminare una segnalazione
     @Override
-    public List<ReportDTO> validateDeleteReportByReview(UUID reviewId) {
+    public List<ReportDTO> validateDeleteReportByReview(UUID reviewId, boolean rollback) {
         try {
-            List<Report> reports= reportRepository.findByReviewId(reviewId);
+            List<Report> reports= reportRepository.findAllByReviewId(reviewId);
 
             if(reports.isEmpty())
                 return new Vector<>();
 
             for(Report report: reports){
-                report.setEffective(false);
+                report.setEffective(rollback);
             }
             reportRepository.saveAll(reports);
 
             return reports.stream()
                     .map(a -> modelMapper.map(a, ReportDTO.class)).toList();
         } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della segnalazione");
+            log.debug("Errore nella validazione dell'eliminazione della segnalazione per id recensione");
             return null;
         }
     }
@@ -120,14 +116,13 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public boolean completeDeleteReportByReview(UUID reviewId) {
         try {
-            List<Report> reports= reportRepository.findByReviewId(reviewId);
+            List<Report> reports= reportRepository.findAllByReviewId(reviewId);
 
             for(Report report: reports){
                 report.setEffective(false);
                 report.setReportDate(null);
                 report.setReason(null);
                 report.setDescription(null);
-                report.setReviewId(null);
                 report.setUsernameUser1(null);
                 report.setUsernameUser2(null);
             }
@@ -136,7 +131,7 @@ public class ReportServiceImpl implements ReportService {
 
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della segnalazione");
+            log.debug("Errore nel completamento dell'eliminazione della segnalazione per id recensione");
             return false;
         }
     }
@@ -151,23 +146,6 @@ public class ReportServiceImpl implements ReportService {
             log.debug("Errore nell'eliminazione");
             return false;
         }    }
-
-    @Override
-    public boolean rollbackPreCompleteByReview(UUID reviewId) {
-        try {
-            List<Report> reports= reportRepository.findByReviewId(reviewId);
-
-            for(Report report: reports){
-                report.setEffective(true);
-            }
-            reportRepository.saveAll(reports);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della segnalazione");
-            return false;
-        }
-    }
 
 
 
@@ -187,7 +165,7 @@ public class ReportServiceImpl implements ReportService {
             return reports.stream()
                     .map(a -> modelMapper.map(a, ReportDTO.class)).toList();
         } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della segnalazione");
+            log.debug("Errore nella validazione della cancellazione delle segnalazioni per username utente segnalato");
             return null;
         }
     }
@@ -211,7 +189,7 @@ public class ReportServiceImpl implements ReportService {
 
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della segnalazione");
+            log.debug("Errore nel completamento dell'eliminazione delle segnalazioni per username utente segnalato");
             return false;
         }
     }
@@ -220,8 +198,8 @@ public class ReportServiceImpl implements ReportService {
 
     //Metodo per contare le segnalazioni fatte ad un utente
     @Override
-    public int countReportForUser(String username, UUID reviewId) {
-        return reportRepository.countByUsernameUser2AndReviewId(username, reviewId);
+    public int countReportForUser(String username) {
+        return reportRepository.countByUsernameUser2(username);
     }
 
     //Metodo prendere un utente tramite username e id recensione

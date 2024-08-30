@@ -40,6 +40,7 @@ public class OrderOrchestrator {
 
             if(notifyId!=null && validatePayment){
 
+
                 //Fase di completamento in locale
                 OrderDTO order= generateOrder(total, addressId, cardId, username);
                 order.setId(orderId);
@@ -49,6 +50,7 @@ public class OrderOrchestrator {
 
                 for(ProductOrderDTO productOrderDTO: productInOrder){
                     productOrderDTO.setOrderDTO(order);
+                    System.out.println(productOrderDTO.getTotal()+" "+order.getId());
                 }
 
                 completeProduct= productOrderService.validateAndCompleteAndReleaseProductInOrder(productInOrder, false);
@@ -91,7 +93,7 @@ public class OrderOrchestrator {
         //Fase di rollback pre completamento in locale
         rollbackLocal(orderId, productInOrder);
 
-        return true;
+        return false;
     }
 
     public boolean processCreateOrderWithPaypalPayment(String username, List<ProductOrderDTO> productInOrder, double total, UUID addressId) {
@@ -289,18 +291,20 @@ public class OrderOrchestrator {
 
             //Fase di completamento in locale
             boolean completeOrder = orderService.completeOrderForReturn(orderId);
+            List<Integer> rollbackAvailability= new Vector<>();
 
             for (ProductOrderDTO productOrderDTO : productInOrder) {
                 for(AvailabilityDTO availabilityDTO : availabilities) {
                     int amount= availabilityDTO.getAmount();
+                    rollbackAvailability.add(amount);
 
                     availabilityDTO.setAmount(amount+productOrderDTO.getQuantity());
                 }
             }
 
-            List<Integer> rollbackAvailability= availabilityService.completeAvailability(availabilities);
+            boolean completeAvailability= availabilityService.completeAvailability(availabilities);
 
-            if(completeOrder && rollbackAvailability!=null) {
+            if(completeOrder && completeAvailability) {
 
                 //Fase completamento sui servizi esterni
                 boolean completeCard= callCenter.completeOrRollbackPaymentForReturn(cardId, total, false),
@@ -317,11 +321,19 @@ public class OrderOrchestrator {
                     return true;
                 }
 
+                for(int i=0; i<availabilities.size(); i++) {
+                    availabilities.get(i).setAmount(rollbackAvailability.get(i));
+                }
+
                 //Fase di rollback post completamento su i servizi esterni
                 rollbackLocalReturn(orderId, availabilities, false);
                 rollbackRemoteReturn(orderId, total, false);
 
                 return false;
+            }
+
+            for(int i=0; i<availabilities.size(); i++) {
+                availabilities.get(i).setAmount(rollbackAvailability.get(i));
             }
 
             //Fase di rollback post completamento in locale
@@ -344,18 +356,20 @@ public class OrderOrchestrator {
 
            //Fase di completamento in locale
            boolean completeOrder = orderService.completeOrderForReturn(orderId);
+           List<Integer> rollbackAvailability= new Vector<>();
 
            for (ProductOrderDTO productOrderDTO : productInOrder) {
                for(AvailabilityDTO availabilityDTO : availabilities) {
                    int amount= availabilityDTO.getAmount();
+                   rollbackAvailability.add(amount);
 
                    availabilityDTO.setAmount(amount+productOrderDTO.getQuantity());
                }
            }
 
-           List<Integer> rollbackAvailability= availabilityService.completeAvailability(availabilities);
+           boolean completeAvailability= availabilityService.completeAvailability(availabilities);
 
-           if(completeOrder && rollbackAvailability!=null) {
+           if(completeOrder && completeAvailability) {
 
                //Fase completamento sui servizi esterni
                boolean completeNotify= callCenter.completeNotification(notifyId, username, "Reso ordine: "+orderNumber+" accettato", "Il rimborso sarà effettuato sul metodo di pagamento utilizzato al momento dell'acquisto");
@@ -369,6 +383,10 @@ public class OrderOrchestrator {
 
                    return true;
                }
+           }
+
+           for(int i=0; i<availabilities.size(); i++) {
+               availabilities.get(i).setAmount(rollbackAvailability.get(i));
            }
 
            //Fase di rollback post completamento in locale

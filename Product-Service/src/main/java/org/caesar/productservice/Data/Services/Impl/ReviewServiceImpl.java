@@ -114,7 +114,6 @@ public class ReviewServiceImpl implements ReviewService {
 
             review.setDate(null);
             review.setText(null);
-            review.setProduct(null);
             review.setEvaluation(0);
             review.setUsername(null);
 
@@ -156,7 +155,6 @@ public class ReviewServiceImpl implements ReviewService {
 
             review.setDate(null);
             review.setText(null);
-            review.setProduct(null);
             review.setEvaluation(0);
             review.setUsername(null);
 
@@ -199,7 +197,6 @@ public class ReviewServiceImpl implements ReviewService {
             for(Review review : reviews) {
                 review.setDate(null);
                 review.setText(null);
-                review.setProduct(null);
                 review.setEvaluation(0);
                 review.setUsername(null);
             }

@@ -232,7 +232,7 @@ public class GeneralServiceImpl implements GeneralService {
                 return cardService.addCard(cardDTO)!=null;
             }
 
-            if(cardDTO.getBalance()<total) {
+            if(cardDTO.getBalance()>=total) {
                 cardDTO.setOnChanges(true);
 
                 return cardService.addCard(cardDTO)!=null;
@@ -248,7 +248,7 @@ public class GeneralServiceImpl implements GeneralService {
             CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
 
             double balance= cardDTO.getBalance();
-            if(balance<total) {
+            if(balance>=total) {
                 cardDTO.setBalance(balance-total);
 
                 return cardService.addCard(cardDTO)!=null;
@@ -279,8 +279,9 @@ public class GeneralServiceImpl implements GeneralService {
             double balance= cardDTO.getBalance();
 
 
-            balance+= total;
+            balance= balance+total;
             cardDTO.setBalance(balance);
+            cardDTO.setOnChanges(false);
 
             return cardService.addCard(cardDTO)!=null;
         }

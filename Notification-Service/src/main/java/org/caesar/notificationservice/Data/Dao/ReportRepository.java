@@ -12,16 +12,14 @@ import java.util.UUID;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, UUID> {
 
-    @Query("SELECT COUNT(*) FROM segnala as s WHERE s.username_utente2 = :username AND s.id_recensione != :reviewId")
-    int countByUsernameUser2AndReviewId(@Param("username") String username, @Param("reviewId") UUID reviewId);
+    @Query("SELECT COUNT(*) FROM segnala where username_utente2= :username GROUP BY username_utente2 HAVING COUNT(DISTINCT id_recensione) > 1")
+    int countByUsernameUser2(@Param("username") String username);
 
     void deleteByReviewId(UUID id);
 
-    List<Report> findByReviewId(UUID id);
+    List<Report> findAllByReviewId(UUID id);
 
     List<Report> findByUsernameUser2(String username);
 
     Report findByUsernameUser1AndReviewId(String usernameUser1, UUID reviewId);
-
-    List<Report> findAllByReviewId(UUID reviewId);
 }

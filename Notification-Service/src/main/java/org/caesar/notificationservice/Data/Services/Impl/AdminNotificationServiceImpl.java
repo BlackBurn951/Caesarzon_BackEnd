@@ -101,7 +101,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
 
     @Override
-    public List<SaveAdminNotificationDTO> validateDeleteByReport(ReportDTO reportDTO) {
+    public List<SaveAdminNotificationDTO> validateDeleteByReport(ReportDTO reportDTO, boolean rollback) {
         try{
             List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
 
@@ -120,12 +120,12 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
                         not.setDate(notify.getDate());
                         not.setSupport(null);
                         not.setReport(modelMapper.map(notify.getReport(), ReportDTO.class));
-                        not.setConfirmed(true);
+                        not.setConfirmed(!rollback);
 
                         return not;
                     }).toList();
         }catch(Exception | Error e){
-            log.debug("Errore nell'eliminazione");
+            log.debug("Errore nella validazione dell'eliminazione per segnalazione");
             return null;
         }
 
@@ -134,9 +134,12 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     @Override
     public boolean completeDeleteByReport(ReportDTO reportDTO) {
         try{
+            System.out.println("Segnalazione arrivata per eliminare: "+reportDTO.getReason());
             List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
 
+            System.out.println("Post presa lista notifiche");
             for(AdminNotification notify: notifications) {
+                System.out.println("Admin a cui è indirizzata la notifica: "+notify.getAdmin());
                 notify.setDate(null);
                 notify.setAdmin(null);
                 notify.setRead(false);
@@ -149,7 +152,8 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
             return true;
         }catch(Exception | Error e){
-            log.debug("Errore nell'eliminazione");
+            System.out.println(e);
+            log.debug("Errore nel completamento dell'eliminazione per segnalazione");
             return false;
         }
     }
@@ -161,7 +165,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
             return true;
         }catch(Exception | Error e){
-            log.debug("Errore nell'eliminazione");
+            log.debug("Errore nel rilascio dei lock");
             return false;
         }
     }
@@ -179,7 +183,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
             return true;
         }catch(Exception | Error e){
-            log.debug("Errore nell'eliminazione");
+            log.debug("Errore nel rollback pre completamento per segnalazione");
             return false;
         }
     }
@@ -211,7 +215,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
                         return not;
                     }).toList();
         }catch(Exception | Error e){
-            log.debug("Errore nell'eliminazione");
+            log.debug("Errore nela validazione dell'eliminazione per richiesta di supporto");
             return null;
         }
     }
@@ -234,7 +238,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
             return true;
         }catch(Exception | Error e){
-            log.debug("Errore nell'eliminazione");
+            log.debug("Errore nel completamento dell'eliminazione per richiesta di supporto");
             return false;
         }
     }

@@ -3,7 +3,7 @@ package org.caesar.productservice.Utils;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.common.Uuid;
+import org.caesar.productservice.Dto.DeleteReviewDTO;
 import org.caesar.productservice.Dto.ReportDTO;
 import org.caesar.productservice.Dto.SaveAdminNotificationDTO;
 import org.springframework.core.ParameterizedTypeReference;
@@ -24,8 +24,9 @@ public class CallCenter {
 
     private final String NOTIFICATION_SERVICE= "notifyService";
 
-    private int fallbackValidate(Throwable e) {
-        return 2;
+    private DeleteReviewDTO fallbackValidate(Throwable e) {
+        System.out.println("Circuit breaker partito");
+        return null;
     }
     private List<SaveAdminNotificationDTO> fallbackCompleteNotify(Throwable e) {
         return null;
@@ -40,7 +41,7 @@ public class CallCenter {
 
     //CHIAMATE PER L'ELIMINAZIONE DELLA RECENSIONE
     @CircuitBreaker(name= NOTIFICATION_SERVICE, fallbackMethod = "fallbackValidate")
-    public int validateReportAndNotifications(String username, UUID reviewId) {
+    public DeleteReviewDTO validateAndRollbackReportAndNotifications(String username, UUID reviewId, boolean rollback) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 
 
@@ -50,49 +51,43 @@ public class CallCenter {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<Integer> response= restTemplate.exchange("http://notification-service/notify-api/user/report?username="+username+"&review-id="+reviewId,
+        ResponseEntity<DeleteReviewDTO> response= restTemplate.exchange("http://notification-service/notify-api/user/report?username="+username+"&review-id="+reviewId+"&rollback="+rollback,
                 HttpMethod.PUT,
                 entity,
-                Integer.class);
+                DeleteReviewDTO.class);
 
         if(response.getStatusCode() == HttpStatus.OK)
-            return response.getBody().intValue();
+            return response.getBody();
 
-        return 2;
+        return null;
     }
 
-    @CircuitBreaker(name= NOTIFICATION_SERVICE, fallbackMethod = "fallbackCompleteNotify")
-    public List<SaveAdminNotificationDTO> completeNotificationDelete(UUID reviewId) {
+    @CircuitBreaker(name= NOTIFICATION_SERVICE, fallbackMethod = "fallbackGeneric")
+    public boolean completeNotificationDelete(UUID reviewId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        ParameterizedTypeReference<List<SaveAdminNotificationDTO>> responseType=
-                new ParameterizedTypeReference<>(){};
 
         return restTemplate.exchange("http://notification-service/notify-api/user/notifications/"+reviewId,
                 HttpMethod.PUT,
                 entity,
-                responseType).getBody();
+                String.class).getStatusCode()==HttpStatus.OK;
     }
 
-    @CircuitBreaker(name= NOTIFICATION_SERVICE, fallbackMethod = "fallbackCompleteReport")
-    public List<ReportDTO> completeReportDelete(UUID reviewId) {
+    @CircuitBreaker(name= NOTIFICATION_SERVICE, fallbackMethod = "fallbackGeneric")
+    public boolean completeReportDelete(UUID reviewId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ParameterizedTypeReference<List<ReportDTO>> responseType=
-                new ParameterizedTypeReference<>(){};
-
         return restTemplate.exchange("http://notification-service/notify-api/user/report/"+reviewId,
                 HttpMethod.PUT,
                 entity,
-                responseType).getBody();
+                String.class).getStatusCode()==HttpStatus.OK;
     }
 
     @CircuitBreaker(name= NOTIFICATION_SERVICE, fallbackMethod = "fallbackGeneric")
@@ -125,24 +120,6 @@ public class CallCenter {
 
         return restTemplate.exchange("http://notification-service/notify-api/user/notifications",
                 HttpMethod.DELETE,
-                entity,
-                String.class).getStatusCode()==HttpStatus.OK;
-    }
-
-
-    @CircuitBreaker(name= NOTIFICATION_SERVICE, fallbackMethod = "fallbackGeneric")
-    public boolean rollbackPreComplete(UUID reviewId) {
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", request.getHeader("Authorization"));
-
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        return restTemplate.exchange("http://notification-service/notify-api/user/notifications?review-id="+reviewId,
-                HttpMethod.PUT,
                 entity,
                 String.class).getStatusCode()==HttpStatus.OK;
     }
@@ -189,7 +166,7 @@ public class CallCenter {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        return restTemplate.exchange("http://user-service/user-api/balance/"+cardId+"?total="+total+"&rollback="+rollback,
+        return restTemplate.exchange("http://user-service/user-api/balance/payment/"+cardId+"?total="+total+"&rollback="+rollback,
                 HttpMethod.POST,
                 entity,
                 String.class).getStatusCode()==HttpStatus.OK;
@@ -215,7 +192,7 @@ public class CallCenter {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        return restTemplate.exchange("http://user-service/user-api/balance/"+cardId,
+        return restTemplate.exchange("http://user-service/user-api/balance/release/"+cardId,
                 HttpMethod.PUT,
                 entity,
                 String.class).getStatusCode()==HttpStatus.OK;
@@ -228,7 +205,7 @@ public class CallCenter {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        return restTemplate.exchange("http://user-service/user-api/balance/"+cardId+"?total="+total,
+        return restTemplate.exchange("http://user-service/user-api/balance/"+cardId+"/refund?total="+total,
                 HttpMethod.POST,
                 entity,
                 String.class).getStatusCode()==HttpStatus.OK;
@@ -284,7 +261,7 @@ public class CallCenter {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
         return restTemplate.exchange(
-                "http://notification-service/notify-api/notification?notify-id="+notifyId,
+                "http://notification-service/notify-api/notification/release?notify-id="+notifyId,
                 HttpMethod.PUT,
                 entity,
                 String.class
@@ -329,7 +306,7 @@ public class CallCenter {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         return restTemplate.exchange("http://user-service/user-api/balance?card-id="+cardId+"&total="+total+"&rollback="+rollback,
-                HttpMethod.POST,
+                HttpMethod.PUT,
                 entity,
                 String.class).getStatusCode()==HttpStatus.OK;
     }

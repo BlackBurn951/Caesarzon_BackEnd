@@ -42,7 +42,7 @@ public class DeleteController {
             for (ReportDTO report: result.getReports()) {
                 if(rollback)
                     adminNotificationService.rollbackPreComplete(report);
-                result.setAdminNotificationForReport(adminNotificationService.validateDeleteByReport(report));
+                result.setAdminNotificationForReport(adminNotificationService.validateDeleteByReport(report, false));
             }
         }
         else

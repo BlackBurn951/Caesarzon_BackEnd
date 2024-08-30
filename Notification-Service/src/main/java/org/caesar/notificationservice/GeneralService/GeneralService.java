@@ -13,7 +13,6 @@ public interface GeneralService {
     boolean manageReport(UUID reportId, boolean accept);
     boolean updateAdminNotification(List<AdminNotificationDTO> notificationDTO);
 
-    int validateReportAndNotifications(String username, UUID reviewId);
-    List<SaveAdminNotificationDTO> completeDeleteAdminNotifications(UUID reviewId);
-    boolean rollbackPreComplete(UUID reviewId);
+    DeleteReviewDTO validateReportAndNotifications(String username, UUID reviewId, boolean rollback);
+    boolean completeDeleteAdminNotifications(UUID reviewId);
 }

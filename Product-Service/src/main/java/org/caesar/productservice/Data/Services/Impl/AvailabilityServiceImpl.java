@@ -46,18 +46,15 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     @Override
-    public List<Integer> completeAvailability(List<AvailabilityDTO> availability) {
+    public boolean completeAvailability(List<AvailabilityDTO> availability) {
         try{
             List<Availability> availabilities= new Vector<>();
-            List<Integer> result= new Vector<>();
 
             for (AvailabilityDTO availabilityDTO : availability) {
                 Availability ava= availabilityRepository.findById(availabilityDTO.getId()).orElse(null);
 
                 if(ava==null)
-                    return null;
-
-                result.add(ava.getAmount());
+                    return false;
 
                 ava.setAmount(availabilityDTO.getAmount());
                 availabilities.add(ava);
@@ -65,10 +62,10 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
             availabilityRepository.saveAll(availabilities);
 
-            return result;
+            return true;
         } catch(Exception | Error e) {
             log.debug("Errore nella cancellazione delle disponibilità per singolo prodotto");
-            return null;
+            return false;
         }
     }
 

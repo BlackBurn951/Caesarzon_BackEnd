@@ -114,14 +114,14 @@ public class ReviewController {
 
 
     // Endpoint per l'eliminazione della recensione tramite username
-    @PutMapping("/admin/review")
-    public ResponseEntity<String> validateDeleteReviews(@RequestParam("username") String username, @RequestParam("rollback") boolean rollback) {
+    @PutMapping("/admin/reviews")
+    public ResponseEntity<List<ReviewDTO>> validateDeleteReviews(@RequestParam("username") String username, @RequestParam("rollback") boolean rollback) {
         List<ReviewDTO> result= reviewService.validateDeleteReviews(username, rollback);
 
         if(result!=null)
-            return new ResponseEntity<>("Validazione dell'eliminazione avvenuta con sucesso!", HttpStatus.OK);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         else
-            return new ResponseEntity<>("Problemi nella validazione dell'elimazione delle recensioni...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PutMapping("/admin/review/{username}")

@@ -30,11 +30,16 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             List<ProductOrder> productOrderList= new Vector<>();
             ProductOrder productOrder;
 
+            System.out.println("Sono prima del for");
             for(ProductOrderDTO productOrderDTO: products){
+                System.out.println("Sono nel for");
                 productOrder = new ProductOrder();
 
                 productOrder.setId(productOrderDTO.getId());
-                productOrder.setOrder(modelMapper.map(productOrderDTO.getOrderDTO(), Order.class));
+                if(productOrderDTO.getOrderDTO()!=null)
+                    productOrder.setOrder(modelMapper.map(productOrderDTO.getOrderDTO(), Order.class));
+                else
+                    productOrder.setOrder(null);
                 productOrder.setProduct(modelMapper.map(productOrderDTO.getProductDTO(), Product.class));
                 productOrder.setTotal(productOrderDTO.getTotal());
                 productOrder.setUsername(productOrderDTO.getUsername());
@@ -50,7 +55,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nel salvataggio degli ordini");
+            log.debug("Errore nella validazione, completamento o rollback dell'ordine");
             return false;
         }
     }
@@ -81,7 +86,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nel salvataggio degli ordini");
+            log.debug("Errore nel rollback dell'ordine");
             return false;
         }
     }

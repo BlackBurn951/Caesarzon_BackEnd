@@ -56,7 +56,7 @@ public class UserCardServiceImpl implements UserCardService {
     public List<UserCardDTO> getUserCards(String userUsername) {
         List<UserCardDTO> result= new Vector<>();
 
-        List<UserCard> userCards = userCardRepository.findByUserUsername(userUsername);
+        List<UserCard> userCards = userCardRepository.findAllByUserUsername(userUsername);
 
         for(UserCard ut: userCards) {
             result.add(modelMapper.map(ut, UserCardDTO.class));

@@ -3,10 +3,7 @@ package org.caesar.productservice.Sagas;
 import lombok.RequiredArgsConstructor;
 import org.caesar.productservice.Data.Services.ProductService;
 import org.caesar.productservice.Data.Services.ReviewService;
-import org.caesar.productservice.Dto.ProductDTO;
-import org.caesar.productservice.Dto.ReportDTO;
-import org.caesar.productservice.Dto.ReviewDTO;
-import org.caesar.productservice.Dto.SaveAdminNotificationDTO;
+import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Utils.CallCenter;
 import org.springframework.stereotype.Service;
 
@@ -29,15 +26,15 @@ public class ReviewOrchestrator {
         if(validateReview) {
 
             //Fase di validazione sul servizio esterno
-            int validateRemote= callCenter.validateReportAndNotifications(reviewDTO.getUsername(), reviewDTO.getId());
+            DeleteReviewDTO validateRemote= callCenter.validateAndRollbackReportAndNotifications(reviewDTO.getUsername(), reviewDTO.getId(), false);
 
-            if(validateRemote==0 || validateRemote==1) {
+            if(validateRemote!=null) {
 
                 //Fase di completamento in locale
                 boolean completeReview = reviewService.completeDeleteReview(reviewDTO);
 
                 //Caso in cui non ci siano segnalazioni a capo di questa recensione
-                if(validateRemote==1 && completeReview) {
+                if(validateRemote.getReports().isEmpty() && completeReview) {
                     reviewService.releaseLock(List.of(reviewDTO.getId()));
 
                     return true;
@@ -46,35 +43,35 @@ public class ReviewOrchestrator {
                 if(completeReview) {
 
                     //Fase di completamento sul servizio esterno
-                    List<SaveAdminNotificationDTO> adminNotifications= callCenter.completeNotificationDelete(reviewDTO.getId());
-                    List<ReportDTO> reports= callCenter.completeReportDelete(reviewDTO.getId());
+                    boolean completeAdminNotify= callCenter.completeNotificationDelete(reviewDTO.getId());
+                    boolean completeReport= callCenter.completeReportDelete(reviewDTO.getId());
 
-                    if(adminNotifications!=null && reports!=null) {
+                    if(completeAdminNotify && completeReport) {
 
                         //Fase di rilascio di tutti i lock
                         reviewService.releaseLock(List.of(reviewDTO.getId()));
-                        callCenter.releaseReportLock(reports.stream().map(ReportDTO::getId).toList());
-                        callCenter.releaseNotificationLock(adminNotifications.stream().map(SaveAdminNotificationDTO::getId).toList());
+                        callCenter.releaseNotificationLock(validateRemote.getAdminNotify().stream().map(SaveAdminNotificationDTO::getId).toList());
+                        callCenter.releaseReportLock(validateRemote.getReports().stream().map(ReportDTO::getId).toList());
 
                         return true;
                     }
 
                     //Fase di rollback post completamento in locale e sul servizio esterno
                     rollbackPostCompleteLocal(reviewDTO);
-                    rollbackPostCompleteRemote(adminNotifications, reports);
+                    rollbackPostCompleteRemote(validateRemote.getAdminNotify(), validateRemote.getReports());
 
                     return false;
                 }
 
                 //Fase di rollback post completamento in locale
                 rollbackPostCompleteLocal(reviewDTO);
-                rollbackPreCompleteRemote(reviewDTO.getId());
+                rollbackPreCompleteRemote(reviewDTO.getUsername(), reviewDTO.getId());
 
                 return false;
             }
 
             //Fase di rollback pre completamento in locale e sul servizio esterno
-            rollbackPreCompleteRemote(reviewDTO.getId());
+            rollbackPreCompleteRemote(reviewDTO.getUsername(), reviewDTO.getId());
         }
 
         //Fase di rollback pre completamento in locale
@@ -87,8 +84,8 @@ public class ReviewOrchestrator {
     private boolean rollbackPreCompleteLocal(ReviewDTO reviewDTO) {
         return reviewService.validateDeleteReview(reviewDTO, true);
     }
-    private boolean rollbackPreCompleteRemote(UUID reviewId) {
-        return callCenter.rollbackPreComplete(reviewId);
+    private boolean rollbackPreCompleteRemote(String username, UUID reviewId) {
+        return callCenter.validateAndRollbackReportAndNotifications(username, reviewId, true)!=null;
     }
     private boolean rollbackPostCompleteLocal(ReviewDTO reviewDTO) {
         ProductDTO productDTO= productService.getProductById(reviewDTO.getId());
