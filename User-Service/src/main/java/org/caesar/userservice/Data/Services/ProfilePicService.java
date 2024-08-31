@@ -10,7 +10,5 @@ public interface ProfilePicService {
 
     //TODO 2PC PER ELIMINAZIONE UTENTE
     ProfilePicDTO validateDeleteUser(String username, boolean rollback);
-    boolean completeDeleteUser(String username);
     boolean releaseDeleteUser(String username);
-    boolean rollbackDeleteUser(String username, ProfilePicDTO image);
 }

@@ -14,7 +14,6 @@ public interface UserRepository{
     boolean updateUser(UserDTO userDTO);
 
     User validateOrRollbackDeleteUser(String username, boolean rollback);
-    boolean completeDeleteUser(String username);
     boolean releaseLockDeleteUser(String username);
 
     boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username);
