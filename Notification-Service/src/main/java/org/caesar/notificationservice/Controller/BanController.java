@@ -20,8 +20,8 @@ public class BanController {
     private final BanService banService;
 
     @PostMapping("/ban")
-    public ResponseEntity<UUID> validateBanUser(@RequestBody BanDTO banDTO) {
-        UUID banId= banService.validateBan(banDTO);
+    public ResponseEntity<UUID> validateBanUser() {
+            UUID banId= banService.validateBan();
 
         if(banId!=null)
             return new ResponseEntity<>(banId, HttpStatus.OK);
@@ -29,20 +29,50 @@ public class BanController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PostMapping("/ban/{banId}")
-    public ResponseEntity<String> confirmBanUser(@PathVariable UUID banId) {
-        if(banService.confirmBan(banId))
+    @PutMapping("/ban")
+    public ResponseEntity<String> confirmBanUser(@RequestBody BanDTO banDTO) {
+        if(banService.confirmBan(banDTO))
             return new ResponseEntity<>("Ban eseguito con successo", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nell'esecuzione del ban...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/ban/{username}")
-    public ResponseEntity<String> sbanUser(@PathVariable("username") String username, @RequestParam("confirm") boolean confirm) {
-        if(banService.sbanUser(username, confirm))
-            return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
+
+
+    @PutMapping("/ban/{banId}")
+    public ResponseEntity<String> releaseLock(@PathVariable UUID banId) {
+        if(banService.releaseLock(banId))
+            return new ResponseEntity<>("Lock rilasciato con successo!", HttpStatus.OK);
         else
-            return new ResponseEntity<>("Problemi nello sban dell'user...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Problemi nell'esecuzione del ban...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @DeleteMapping("/ban/{banId}")
+    public ResponseEntity<String> rollback(@PathVariable UUID banId) {
+        if(banService.rollback(banId))
+            return new ResponseEntity<>("Rollback eseguito con successo", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nell'esecuzione del rollback...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+
+    @PostMapping("/sban/{username}")
+    public ResponseEntity<UUID> validateSbanUser(@PathVariable String username) {
+        UUID sbanId= banService.validateSbanUser(username);
+
+        if(sbanId!=null)
+            return new ResponseEntity<>(sbanId, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/sban/{username}")
+    public ResponseEntity<String> confirmSbanUser(@PathVariable String username) {
+        if(banService.completeSbanUser(username))
+            return new ResponseEntity<>("Sban completato con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel completamento dello sban", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @GetMapping("/bans")

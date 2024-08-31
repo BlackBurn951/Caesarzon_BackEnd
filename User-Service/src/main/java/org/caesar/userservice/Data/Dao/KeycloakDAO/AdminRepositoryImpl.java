@@ -66,7 +66,7 @@ public class AdminRepositoryImpl implements AdminRepository {
 
     @Override
     @Transactional
-    public int validateBanUser(String username, boolean ban, boolean rollback) {  // 0 -> operazione riuscita 1 -> operazione già svolta in passato 2 -> errore
+    public int validateBanUser(String username, boolean ban) {  // 0 -> operazione riuscita 1 -> operazione già svolta in passato 2 -> errore
         RealmResource realmResource = keycloak.realm("CaesarRealm");
         try {
             //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
@@ -74,20 +74,12 @@ public class AdminRepositoryImpl implements AdminRepository {
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
             UserRepresentation user = userResource.toRepresentation();
 
-            if(userKeycloak.isOnChanges()) {
-                if(rollback) {
-                    user.getAttributes().get("onChanges").set(0, "false");
-                    user.setEnabled(!ban);
-
-                    userResource.update(user);
-                }
+            if(userKeycloak.isOnChanges())
                 return 2;
-            }
 
             if((!user.isEnabled() && ban) || (user.isEnabled() && !ban))
                 return 1;
 
-            user.setEnabled(!ban);
             user.getAttributes().get("onChanges").set(0, "true");
 
             userResource.update(user);
@@ -100,7 +92,27 @@ public class AdminRepositoryImpl implements AdminRepository {
 
     @Override
     @Transactional
-    public boolean completeBanUser(String username) {
+    public boolean completeBanUser(String username, boolean ban) {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+        try {
+            //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
+            User userKeycloak = findUserByUsername(username);
+            UserResource userResource = realmResource.users().get(userKeycloak.getId());
+            UserRepresentation user = userResource.toRepresentation();
+
+            user.setEnabled(!ban);
+
+            userResource.update(user);
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nel ban dell'user");
+            return  false;
+        }
+    }
+
+    @Override
+    @Transactional
+    public boolean releaseUserLock(String username) {
         RealmResource realmResource = keycloak.realm("CaesarRealm");
         try {
             //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
@@ -111,6 +123,28 @@ public class AdminRepositoryImpl implements AdminRepository {
             user.getAttributes().get("onChanges").set(0, "false");
 
             userResource.update(user);
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nel ban dell'user");
+            return  false;
+        }
+    }
+
+    @Override
+    @Transactional
+    public boolean rollbackBan(String username, boolean ban) {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+        try {
+            //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
+            User userKeycloak = findUserByUsername(username);
+            UserResource userResource = realmResource.users().get(userKeycloak.getId());
+            UserRepresentation user = userResource.toRepresentation();
+
+            user.getAttributes().get("onChanges").set(0, "false");
+            user.setEnabled(!ban);
+
+            userResource.update(user);
+
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nel ban dell'user");

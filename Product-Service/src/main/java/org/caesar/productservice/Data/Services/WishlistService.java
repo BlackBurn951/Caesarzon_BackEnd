@@ -2,6 +2,7 @@ package org.caesar.productservice.Data.Services;
 
 import org.caesar.productservice.Dto.BasicWishlistDTO;
 import org.caesar.productservice.Dto.ChangeVisibilityDTO;
+import org.caesar.productservice.Dto.WishListProductDTO;
 import org.caesar.productservice.Dto.WishlistDTO;
 
 import java.util.List;
@@ -17,4 +18,5 @@ public interface WishlistService {
     boolean deleteWishlist(UUID id);
     boolean changeVisibility(String username, ChangeVisibilityDTO changeVisibilityDTO);
 
+    List<WishlistDTO> validateOrRollbackDeleteUserWishlist(String username, boolean rollback);
 }

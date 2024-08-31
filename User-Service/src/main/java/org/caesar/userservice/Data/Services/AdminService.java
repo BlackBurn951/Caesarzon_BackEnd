@@ -8,9 +8,10 @@ import java.util.List;
 public interface AdminService {
 
     List<String> getAdmins();
-    int validateBan(BanDTO banDTO);
-    boolean completeBan(String username);
-    boolean rollbackBan(String username, boolean ban);
+    int validateBan(String username);
+    boolean completeBanOrSban(String username, boolean ban);
+    boolean rollbackBanOrSban(String username, boolean ban);
     int validateSbanUser(String username);
+    boolean releaseLock(String username);
     List<String> getBansUser(int start);
 }

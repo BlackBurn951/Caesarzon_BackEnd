@@ -37,12 +37,12 @@ public class CardServiceImpl implements CardService {
     //Metodo per aggiungere una carta
     @Override
     public UUID addCard(CardDTO cardDTO) {
+        System.out.println("Aggiornamento della carta");
         //Controllo che i campi mandati rispettino i criteri
         if(!checkCardNumber(cardDTO.getCardNumber()) || !checkOwner(cardDTO.getOwner()) ||
             !checkCvv(cardDTO.getCvv()) || !checkExpiryDate(cardDTO.getExpiryDate())) {
             System.out.println("sono nel check di tutti i controlli");
             return null;
-        }
 
         try{
             System.out.println("ho passato i controlli");
@@ -67,23 +67,76 @@ public class CardServiceImpl implements CardService {
         }
     }
 
-    //Metodo per eliminare le carte dell'utente
-    @Override
-    public boolean deleteUserCards(List<UserCardDTO> userCards) {
-        //Presa degli id dei indirizzi dalle tuple di relazione
-        List<UUID> cardId= new Vector<>();
-        for(UserCardDTO userCard: userCards) {
-            cardId.add(userCard.getCardId());
-        }
 
+
+    @Override
+    public boolean validateOrRollbackCards(List<UUID> cardsId, boolean rollback) {
         try {
-            cardRepository.deleteAllById(cardId);
+            List<Card> cards= cardRepository.findAllById(cardsId);
+
+            for(Card card : cards){
+                card.setOnChanges(!rollback);
+            }
+
+            cardRepository.saveAll(cards);
             return true;
         } catch (Exception | Error e) {
-            log.debug("Problemi nell'eliminazione di tutti le carte");
+            log.debug("Errore nella cancellazione della carta");
             return false;
         }
     }
+
+    @Override
+    public boolean completeCards(List<UUID> cardsId) {
+        try {
+            List<Card> cards= cardRepository.findAllById(cardsId);
+
+            List<CardDTO> result= new Vector<>();
+            for(Card card : cards){
+                result.add(modelMapper.map(card, CardDTO.class));
+
+                card.setCvv(null);
+                card.setBalance(0.0);
+                card.setExpiryDate(null);
+                card.setOwner(null);
+                card.setCardNumber(null);
+            }
+
+            cardRepository.saveAll(cards);
+            return true;
+        } catch (Exception | Error e) {
+            System.out.println(e);
+            log.debug("Errore nella cancellazione della carta");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean releaseLockCards(List<UUID> cardsId) {
+        try {
+            cardRepository.deleteAllById(cardsId);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della carta");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackCards(List<CardDTO> cards) {
+        try {
+            cardRepository.saveAll(cards.stream().map(cd -> modelMapper.map(cd, Card.class)).toList());
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della carta");
+            return false;
+        }
+    }
+
+
+
 
     //Metodi per la convalida
     private boolean checkCardNumber(String cardNumber) {
@@ -92,7 +145,7 @@ public class CardServiceImpl implements CardService {
     }
 
     private boolean checkOwner(String owner) {
-        System.out.println("checkOwner: " + owner);
+        System.out.println("check owner carta: "+ owner.matches("^(?=.{5,40}$)[a-zA-Z]+( [a-zA-Z]+){0,3}$"));
         return owner!= null && owner.length()>5 && owner.length()<=40 &&
                 owner.matches("^(?=.{5,40}$)[a-zA-Z]+( [a-zA-Z]+){0,3}$");
     }
@@ -112,14 +165,17 @@ public class CardServiceImpl implements CardService {
         Pattern pattern = Pattern.compile("([0-9]+)-([0-9]+)");
         Matcher matcher = pattern.matcher(expiryDate);
 
+        System.out.println("check data: prima regex");
         int month=0, year=0;
         System.out.println("sono prima del match: "+expiryDate);
         if(matcher.matches()) {
+            System.out.println("check data: dopo regex "+"\n"+month+"\n"+year);
             month = Integer.parseInt(matcher.group(2));
             year = Integer.parseInt(matcher.group(1));
             System.out.println("Month: "+month+ " Year: "+year);
         }
 
+        System.out.println("check data: ");
         //Presa della data attuale e separazione tra mese e anno
         LocalDate date = LocalDate.now();
 

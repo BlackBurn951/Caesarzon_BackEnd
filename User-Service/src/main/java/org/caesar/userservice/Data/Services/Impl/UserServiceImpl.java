@@ -1,8 +1,5 @@
 package org.caesar.userservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.KeycloakDAO.UserRepository;
@@ -87,15 +84,7 @@ public class UserServiceImpl implements UserService {
     }
 
     //Metodo per eliminare un utente
-    @Override
-    public boolean deleteUser(String userUsername) {
-        try {
-            return userRepository.deleteUser(userUsername);
-        } catch(Exception | Error e) {
-            log.debug("Errore nella cancellazione dell'utente");
-            return false;
-        }
-    }
+
 
     //Metodo per cambiare la password di un utente
     @Override
@@ -128,6 +117,22 @@ public class UserServiceImpl implements UserService {
         if(logoutDTO.isLogout())
             return userRepository.logout(usermame);
         return false;
+    }
+
+
+    @Override
+    public UserDTO validateOrRollbackDeleteUser(String username, boolean rollback) {
+        return modelMapper.map(userRepository.validateOrRollbackDeleteUser(username, rollback), UserDTO.class);
+    }
+
+    @Override
+    public boolean completeDeleteUser(String username) {
+        return userRepository.completeDeleteUser(username);
+    }
+
+    @Override
+    public boolean releaseLockDeleteUser(String username) {
+        return userRepository.releaseLockDeleteUser(username);
     }
 
 

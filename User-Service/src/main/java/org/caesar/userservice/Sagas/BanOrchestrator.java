@@ -16,22 +16,64 @@ public class BanOrchestrator {
     private final AdminService adminService;
 
     public boolean processBan(BanDTO banDTO) {
-        UUID banId= callCenter.validateBan(banDTO);
+        //Fase di validazione sul servizio delle notifiche
+        UUID banId= callCenter.validateBan();
 
         if(banId!=null) {
-            if(callCenter.completeBan(banId))
-                return adminService.completeBan(banDTO.getUserUsername());  //TODO DA POTER AGGIUNGERE ROLLBACK PER SERVIZIO NOTIFICHE
+
+            //Fase di completamento su i due servizi
+            boolean localBanCompleted= adminService.completeBanOrSban(banDTO.getUserUsername(), true),
+                    remoteBanCompleted= callCenter.completeBan(banId, banDTO);
+
+            if(localBanCompleted && remoteBanCompleted) {
+
+                //Fase di rilascio dei lock su i due servizi
+                adminService.releaseLock(banDTO.getUserUsername());   //GESTIONE ERRORE FATTA SUL DB CON PROCEDURE FUCTION
+                callCenter.releaseLock(banId);
+
+                return true;
+            }
+
+            //Fase di rollback post completamento
+            adminService.rollbackBanOrSban(banDTO.getUserUsername(), false);
+            callCenter.rollback(banId);
+
+            return false;
         }
-        adminService.rollbackBan(banDTO.getUserUsername(), false);
+
+        //Fase di rollback della validazione in locale
+        adminService.releaseLock(banDTO.getUserUsername());
         return false;
     }
 
     public boolean processSban(String username) {
-        if(callCenter.validateSban(username)) {
-            if(callCenter.completeSban(username))
-                return adminService.completeBan(username);
+
+        //Fase di validazione sul servizio delle notifiche
+        UUID sbanId= callCenter.validateSban(username);
+        if(sbanId!=null) {
+
+            //Fase di completamento su i due servizi
+            boolean localCompletedSban= adminService.completeBanOrSban(username, false),
+                    remoteCompletedSban= callCenter.completeSban(username);
+
+            if(localCompletedSban && remoteCompletedSban) {
+
+                //Fase di rilascio dei lock su i due servizi
+                adminService.releaseLock(username);   //GESTIONE ERRORE FATTA SUL DB CON PROCEDURE FUCTION
+                callCenter.releaseLock(sbanId);
+
+                return true;
+            }
+
+            //Fase di rollback post completamento
+            adminService.rollbackBanOrSban(username, true);
+            callCenter.rollback(sbanId);
+
+            return false;
         }
-        adminService.rollbackBan(username, true);
+
+        //Fase di rollback della validazione in locale
+        adminService.releaseLock(username);
         return false;
     }
 }

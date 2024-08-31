@@ -30,8 +30,10 @@ public class WishlistProductServiceImpl implements WishlistProductService {
         try {
             WishlistProduct wishlistProductEntity = new WishlistProduct();
 
+            wishlistProductEntity.setId(wishlistProduct.getId());
             wishlistProductEntity.setWishlist(modelMapper.map(wishlistProduct.getWishlistDTO(), Wishlist.class));
             wishlistProductEntity.setProduct(modelMapper.map(wishlistProduct.getProductDTO(), Product.class));
+            wishlistProductEntity.setOnDeleting(false);
 
             wishlistProductRepository.save(wishlistProductEntity);
             return true;
@@ -88,6 +90,38 @@ public class WishlistProductServiceImpl implements WishlistProductService {
         WishlistProduct wishlistProduct= wishlistProductRepository.findByProductAndWishlist(product, wishlist);
 
         return wishlistProduct != null;
+    }
+
+
+
+    @Override
+    public boolean validateOrRollbackDeleteUserWish(List<WishlistDTO> wishlists, boolean rollback) {
+        try {
+            List<WishlistProduct> wishListsProduct= new Vector<>();
+
+            for (WishlistDTO wishlist: wishlists){
+                List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlist, Wishlist.class));
+
+                if(wishListProductDTOS.isEmpty())
+                    continue;
+
+                wishListsProduct.addAll(wishListProductDTOS);
+            }
+
+            if(wishListsProduct.isEmpty())
+                return true;
+
+            for(WishlistProduct wishlistProduct: wishListsProduct){
+                wishlistProduct.setOnDeleting(!rollback);
+            }
+
+            wishlistProductRepository.saveAll(wishListsProduct);
+
+            return true;
+        }catch(Exception | Error e) {
+            log.debug("Errore nella validazione dei prodotti nella wishlist");
+            return false;
+        }
     }
 
 

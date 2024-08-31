@@ -7,8 +7,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.AddressRepository;
 import org.caesar.userservice.Data.Entities.Address;
+import org.caesar.userservice.Data.Entities.Card;
 import org.caesar.userservice.Data.Services.AddressService;
 import org.caesar.userservice.Dto.AddressDTO;
+import org.caesar.userservice.Dto.CardDTO;
 import org.caesar.userservice.Dto.UserAddressDTO;
 import org.modelmapper.ModelMapper;
 
@@ -83,13 +85,82 @@ public class AddressServiceImpl implements AddressService {
         }
     }
 
+
+
+    @Override
+    public boolean validateOrRollbackAddresses(List<UUID> addressId, boolean rollback) {
+        try {
+            List<Address> addresses= addressRepository.findAllById(addressId);
+
+            for(Address address : addresses){
+                address.setOnUse(!rollback);
+            }
+
+            addressRepository.saveAll(addresses);
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della carta");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean completeAddresses(List<UUID> addressId) {
+        try {
+            List<Address> addresses= addressRepository.findAllById(addressId);
+
+            List<AddressDTO> result= new Vector<>();
+            for(Address address : addresses){
+                result.add(modelMapper.map(address, AddressDTO.class));
+
+                address.setRoadName(null);
+                address.setHouseNumber(null);
+                address.setRoadType(null);
+                address.setCity(null);
+            }
+
+            addressRepository.saveAll(addresses);
+            return true;
+        } catch (Exception | Error e) {
+            System.out.println(e);
+            log.debug("Errore nella cancellazione della carta");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean releaseLockAddresses(List<UUID> addressId) {
+        try {
+            addressRepository.deleteAllById(addressId);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della carta");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackAddresses(List<AddressDTO> addresses) {
+        try {
+            addressRepository.saveAll(addresses.stream().map(cd -> modelMapper.map(cd, Address.class)).toList());
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della carta");
+            return false;
+        }
+    }
+
     //Metodi per la convalida
     private boolean checkRoadName(String roadName) {
+        System.out.println(roadName.matches("^(?=(?:.*[a-zA-Z]){2,})[a-zA-Z0-9 ]{2,30}$"));
         return roadName!=null && (roadName.length()>=2 && roadName.length()<=30) &&
                 roadName.matches("^(?=(?:.*[a-zA-Z]){2,})[a-zA-Z0-9 ]{2,30}$");
     }
 
     private boolean checkHouseNumber(String houseNumber) {
+        System.out.println(houseNumber.matches("^[0-9a-zA-Z]{1,8}$"));
         return houseNumber!=null && (!houseNumber.isEmpty() && houseNumber.length()<=8) &&
                 houseNumber.matches("^[0-9a-zA-Z]{1,8}$");
     }
@@ -102,8 +173,11 @@ public class AddressServiceImpl implements AddressService {
             List<String> roadTypes = Files.readAllLines(Path.of("User-Service/src/main/resources/static/road-types.txt"));
 
             for(String types: roadTypes) {
-                if(roadType.equals(types))
+                if(roadType.equals(types)) {
+                    System.out.println("Va bene");
                     return true;
+                }
+
             }
 
             return false;
