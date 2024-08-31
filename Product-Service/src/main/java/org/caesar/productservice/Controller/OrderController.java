@@ -160,10 +160,10 @@ public class OrderController {
     }
 
     @PostMapping("/purchase")  //Metodo per effettuare l'acquisto del carello
-    public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO, @RequestParam("pay-method") boolean payMethod){
+    public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO, @RequestParam("pay-method") boolean payMethod, @RequestParam("platform") boolean platform){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
         
-        String result= generalService.checkOrder(username, buyDTO, payMethod);
+        String result= generalService.checkOrder(username, buyDTO, payMethod, platform);
         if(result.equals("Errore")|| result.endsWith("..."))
             return new ResponseEntity<>(result+"...", HttpStatus.INTERNAL_SERVER_ERROR);
         else

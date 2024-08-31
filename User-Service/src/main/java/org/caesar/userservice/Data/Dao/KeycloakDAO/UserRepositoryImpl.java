@@ -87,15 +87,15 @@ public class UserRepositoryImpl implements UserRepository {
                     .anyMatch(role -> role.getName().equals("basic"));
 
             if (hasBasicRole) {
-//                if(userRepresentation.getAttributes().get("onChanges").getFirst().equals("true"))
-//                    continue;
+                if(userRepresentation.getAttributes().get("onChanges").getFirst().equals("true"))
+                    continue;
                 User user = new User();
                 user.setId(userRepresentation.getId());
                 user.setFirstName(userRepresentation.getFirstName());
                 user.setLastName(userRepresentation.getLastName());
                 user.setUsername(userRepresentation.getUsername());
                 user.setEmail(userRepresentation.getEmail());
-                //user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
+                user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
 
                 result.add(user);
             }
@@ -211,6 +211,10 @@ public class UserRepositoryImpl implements UserRepository {
             System.out.println("sono piombato");
             //Aggiornamento dei dati dell'utente ad eccezione dell'username (attributo unique e non modificabiledisponibilita)
             UserRepresentation user = userResource.toRepresentation();
+
+            if(user.getAttributes().get("onChanges").getFirst().equals("true"))
+                return false;
+
             user.setFirstName(userData.getFirstName());
             user.setLastName(userData.getLastName());
             user.setEmail(userData.getEmail());
@@ -246,6 +250,9 @@ public class UserRepositoryImpl implements UserRepository {
             UserResource userResource= keycloak.realm("CaesarRealm").users().get(user.getId());
             UserRepresentation userRapr = userResource.toRepresentation();
 
+            if(userRapr.getAttributes().get("onChanges").getFirst().equals("true") && !rollback)
+                return null;
+
             boolean vb= !rollback;
             userRapr.getAttributes().get("onChanges").set(0, String.valueOf(vb));
 
@@ -280,12 +287,12 @@ public class UserRepositoryImpl implements UserRepository {
     @Transactional
     public boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username) {
 
-        String userId= findUserByUsername(username).getId();
+        User user= findUserByUsername(username);
 
-        if(userId==null)
+        if(user==null || user.isOnChanges())
             return false;
 
-        UserResource userResource= keycloak.realm("CaesarRealm").users().get(userId);
+        UserResource userResource= keycloak.realm("CaesarRealm").users().get(user.getId());
 
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setType(CredentialRepresentation.PASSWORD);

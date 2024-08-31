@@ -43,7 +43,7 @@ public interface GeneralService {
     boolean updateOrder(String username, UUID orderId);
     List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds);
     boolean rollbackCheckAvailability(String username, List<UUID> productIds);
-    String checkOrder(String username, BuyDTO buyDTO, boolean payMethod);
+    String checkOrder(String username, BuyDTO buyDTO, boolean payMethod, boolean platform);
 
 
     //SEZIONE RICERCA DEI PRODOTTI

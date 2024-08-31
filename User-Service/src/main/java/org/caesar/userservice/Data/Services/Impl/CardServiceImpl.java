@@ -47,6 +47,7 @@ public class CardServiceImpl implements CardService {
             System.out.println("ho passato i controlli");
             Card card = modelMapper.map(cardDTO, Card.class);
 
+            card.setOnChanges(false);
             return cardRepository.save(card).getId();
         }catch(Exception | Error e){
             log.debug("Errore nel salvataggio della carta dell'utente");
@@ -72,6 +73,9 @@ public class CardServiceImpl implements CardService {
     public boolean validateOrRollbackCards(List<UUID> cardsId, boolean rollback) {
         try {
             List<Card> cards= cardRepository.findAllById(cardsId);
+
+            if(cards.getFirst().isOnChanges() && !rollback)
+                return false;
 
             for(Card card : cards){
                 card.setOnChanges(!rollback);
