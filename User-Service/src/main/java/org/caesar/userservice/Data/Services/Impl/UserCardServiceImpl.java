@@ -126,47 +126,9 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public boolean completeUserCardsDelete(String username) {
-        try {
-            //List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
-
-//            for(UserCard userCard: cards) {
-//                userCard.setCard(null);
-//            }
-//
-//            userCardRepository.saveAll(cards);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
-            return false;
-        }
-    }
-
-    @Override
     public boolean releaseLockUserCards(String username) {
         try {
             userCardRepository.deleteAllByUserUsername(username);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean rollbackUserCards(String username, List<CardDTO> userCards) {
-        try {
-            List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
-
-            for(UserCard userCard: cards) {
-                for(CardDTO card: userCards) {
-                    userCard.setCard(modelMapper.map(card, Card.class));
-                }
-            }
-
-            userCardRepository.saveAll(cards);
 
             return true;
         } catch (Exception | Error e) {

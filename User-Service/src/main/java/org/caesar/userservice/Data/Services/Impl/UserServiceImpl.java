@@ -126,11 +126,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean completeDeleteUser(String username) {
-        return userRepository.completeDeleteUser(username);
-    }
-
-    @Override
     public boolean releaseLockDeleteUser(String username) {
         return userRepository.releaseLockDeleteUser(username);
     }

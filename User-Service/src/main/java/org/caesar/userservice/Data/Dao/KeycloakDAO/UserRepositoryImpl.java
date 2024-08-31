@@ -259,38 +259,6 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    @Transactional
-    public boolean completeDeleteUser(String username) {
-        try {
-
-            //Presa dell'id dell'utente
-            User user= findUserByUsername(username);
-
-            //Presa dell'utente rappresentato attraverso l'interfaccia keycloak
-            UserResource userResource= keycloak.realm("CaesarRealm").users().get(user.getId());
-
-
-            UserRepresentation userRp = userResource.toRepresentation();
-//            userRp.setFirstName("null");
-//            userRp.setLastName("null");
-
-            System.out.println("Pirima dei campi custom");
-            //Aggiunta degli attributi personalizzati
-
-
-            userRp.getAttributes().get("phoneNumber").set(0, "null");
-
-            userResource.update(userRp);
-
-            return true;
-        } catch (Exception | Error e) {
-            System.out.println(e);
-            log.debug("Errore nella cancellazione dell'utente");
-            return false;
-        }
-    }
-
-    @Override
     public boolean releaseLockDeleteUser(String username) {
         try{
             //Presa dell'id dell'utente

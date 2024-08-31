@@ -40,8 +40,7 @@ public class CardServiceImpl implements CardService {
         System.out.println("Aggiornamento della carta");
         //Controllo che i campi mandati rispettino i criteri
         if(!checkCardNumber(cardDTO.getCardNumber()) || !checkOwner(cardDTO.getOwner()) ||
-            !checkCvv(cardDTO.getCvv()) || !checkExpiryDate(cardDTO.getExpiryDate())) {
-            System.out.println("sono nel check di tutti i controlli");
+            !checkCvv(cardDTO.getCvv()) || !checkExpiryDate(cardDTO.getExpiryDate()))
             return null;
 
         try{
@@ -86,30 +85,6 @@ public class CardServiceImpl implements CardService {
         }
     }
 
-    @Override
-    public boolean completeCards(List<UUID> cardsId) {
-        try {
-            List<Card> cards= cardRepository.findAllById(cardsId);
-
-            List<CardDTO> result= new Vector<>();
-            for(Card card : cards){
-                result.add(modelMapper.map(card, CardDTO.class));
-
-                card.setCvv(null);
-                card.setBalance(0.0);
-                card.setExpiryDate(null);
-                card.setOwner(null);
-                card.setCardNumber(null);
-            }
-
-            cardRepository.saveAll(cards);
-            return true;
-        } catch (Exception | Error e) {
-            System.out.println(e);
-            log.debug("Errore nella cancellazione della carta");
-            return false;
-        }
-    }
 
     @Override
     public boolean releaseLockCards(List<UUID> cardsId) {
@@ -122,19 +97,6 @@ public class CardServiceImpl implements CardService {
             return false;
         }
     }
-
-    @Override
-    public boolean rollbackCards(List<CardDTO> cards) {
-        try {
-            cardRepository.saveAll(cards.stream().map(cd -> modelMapper.map(cd, Card.class)).toList());
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della carta");
-            return false;
-        }
-    }
-
 
 
 
