@@ -21,14 +21,13 @@ public interface ProductOrderService {
 
     boolean deleteProductCart(String username, ProductDTO productDTO);
 
-    boolean saveAll(List<ProductOrderDTO> orderDTOS);
-
     boolean saveLater(String username, ProductDTO productDTO);
 
     boolean changeQuantity(String username, ProductDTO productDTO, int quantity, String size);
 
     List<ProductOrderDTO> getProductInOrder(String username, OrderDTO orderDTO);
 
-
     boolean validateOrRollbackDeleteUserCart(String username, boolean rollback);
+
+    int checkIfBought(String username, ProductDTO productDTO);
 }

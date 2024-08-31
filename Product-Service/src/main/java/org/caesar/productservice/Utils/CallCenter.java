@@ -159,17 +159,22 @@ public class CallCenter {
 
 
     //CHIAMATE PER IL PAGAMENTO
-    public boolean validatePayment(UUID cardId, double total, boolean rollback) {
+    public int validatePayment(UUID cardId, double total, boolean rollback) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        return restTemplate.exchange("http://user-service/user-api/balance/payment/"+cardId+"?total="+total+"&rollback="+rollback,
+        ResponseEntity<Integer> response= restTemplate.exchange("http://user-service/user-api/balance/payment/"+cardId+"?total="+total+"&rollback="+rollback,
                 HttpMethod.POST,
                 entity,
-                String.class).getStatusCode()==HttpStatus.OK;
+                Integer.class);
+
+        if(response.getStatusCode()==HttpStatus.OK)
+            return response.getBody();
+
+        return 2;
     }
 
     public boolean completePayment(UUID cardId, double total) {

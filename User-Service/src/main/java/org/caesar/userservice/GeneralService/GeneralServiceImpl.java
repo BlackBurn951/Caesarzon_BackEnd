@@ -223,24 +223,26 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public boolean validatePayment(String username, UUID cardId, double total, boolean rollback) {
+    public int validatePayment(String username, UUID cardId, double total, boolean rollback) {  //0 -> true 1 -> saldo insuficente 2-> false
         if(userCardService.checkCard(username, cardId)) {
             CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
 
             if(rollback) {
                 cardDTO.setOnChanges(false);
 
-                return cardService.addCard(cardDTO)!=null;
+                return cardService.addCard(cardDTO)!=null? 0: 2;
             }
 
             if(cardDTO.getBalance()>=total) {
                 cardDTO.setOnChanges(true);
 
-                return cardService.addCard(cardDTO)!=null;
+                return cardService.addCard(cardDTO)!=null? 0: 2;
             }
+            else
+                return 1;
         }
 
-        return false;
+        return 2;
     }
 
     @Override

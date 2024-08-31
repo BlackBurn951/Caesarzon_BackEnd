@@ -26,7 +26,9 @@ public class OrderOrchestrator {
     private final AvailabilityService availabilityService;
     private final CallCenter callCenter;
 
-    public boolean processCreateOrderWithCardPayment(String username, List<ProductOrderDTO> productInOrder, double total, UUID addressId, UUID cardId) {
+    public String processCreateOrderWithCardPayment(String username, List<ProductOrderDTO> productInOrder, double total, UUID addressId, UUID cardId) {
+
+        String response= "Errore";
 
         //Fase di validazione in locale
         UUID orderId= orderService.validateOrderForCreate();
@@ -36,9 +38,9 @@ public class OrderOrchestrator {
 
             //Fase di validazione sui servizi esterni
             UUID notifyId= callCenter.validateNotification();
-            boolean validatePayment= callCenter.validatePayment(cardId, total, false);
+            int validatePayment= callCenter.validatePayment(cardId, total, false);
 
-            if(notifyId!=null && validatePayment){
+            if(notifyId!=null && validatePayment==0){
 
 
                 //Fase di completamento in locale
@@ -69,31 +71,34 @@ public class OrderOrchestrator {
                         callCenter.releaseLockPayment(cardId);
                         callCenter.releaseNotification(notifyId);
 
-                        return true;
+                        return "Ordine effettuato con successo!";
                     }
 
                     //Fase di rollback post completamento su tutti i servizi
                     rollbackLocal(orderId, productInOrder);
                     rollbackRemote(cardId, total, false);
 
-                    return false;
+                    return response;
                 }
 
                 //Fase di rollback post completamento in locale
                 rollbackLocal(orderId, productInOrder);
                 rollbackRemote(cardId, total, true);
 
-                return false;
+                return response;
             }
 
             //Fase di rollback pre completamento sui servizi esterni
             rollbackRemote(cardId, total, true);
+
+            if(validatePayment==1)
+                response= "Saldo sulla carta insufficiente per completare l'acquisto...";
         }
 
         //Fase di rollback pre completamento in locale
         rollbackLocal(orderId, productInOrder);
 
-        return false;
+        return response;
     }
 
     public boolean processCreateOrderWithPaypalPayment(String username, List<ProductOrderDTO> productInOrder, double total, UUID addressId) {

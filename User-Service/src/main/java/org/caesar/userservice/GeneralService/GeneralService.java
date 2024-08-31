@@ -23,7 +23,7 @@ public interface GeneralService {
     boolean checkAddress(String username, UUID addressId);
 
     //2PC per il pagamento con carta
-    boolean validatePayment(String username, UUID cardId, double total, boolean rollback);
+    int validatePayment(String username, UUID cardId, double total, boolean rollback);
     boolean completePayment(String username, UUID cardId, double total);
     boolean releaseLockPayment(String username, UUID cardId);
     boolean rollbackPayment(String username, UUID cardId, double total);

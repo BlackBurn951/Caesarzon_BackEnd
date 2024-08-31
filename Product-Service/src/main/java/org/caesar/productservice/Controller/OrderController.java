@@ -150,12 +150,21 @@ public class OrderController {
             return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    @PostMapping("/rollback/pre-order")
+    public ResponseEntity<String> rollbackCheckAvailability(@RequestBody List<UUID> productIds) {
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
+
+        if(generalService.rollbackCheckAvailability(username, productIds))
+            return new ResponseEntity<>("Disponibilità riassegnata correttamente!", HttpStatus.OK);
+        return new ResponseEntity<>("Problemi nel riassegnamento della disponibilità...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @PostMapping("/purchase")  //Metodo per effettuare l'acquisto del carello
     public ResponseEntity<String> makeOrder(@RequestBody BuyDTO buyDTO, @RequestParam("pay-method") boolean payMethod){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
         
         String result= generalService.checkOrder(username, buyDTO, payMethod);
-        if(result.equals("Errore"))
+        if(result.equals("Errore")|| result.endsWith("..."))
             return new ResponseEntity<>(result+"...", HttpStatus.INTERNAL_SERVER_ERROR);
         else
             return new ResponseEntity<>(result, HttpStatus.OK);

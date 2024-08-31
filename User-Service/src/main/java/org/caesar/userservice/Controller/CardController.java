@@ -71,15 +71,15 @@ public class CardController {
 
     //End-point 2PC per il pagamento
     @PostMapping("/balance/payment/{cardId}")
-    public ResponseEntity<String> validatePayment(@PathVariable("cardId") UUID cardId, @RequestParam("total") double total, @RequestParam("rollback") boolean rollback) {
+    public ResponseEntity<Integer> validatePayment(@PathVariable("cardId") UUID cardId, @RequestParam("total") double total, @RequestParam("rollback") boolean rollback) {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        boolean result= generalService.validatePayment(username, cardId, total, rollback);
-        if(result)
-            return new ResponseEntity<>("Validazione eseguita con successo", HttpStatus.OK);
+        int result= generalService.validatePayment(username, cardId, total, rollback);
+        if(result!=2)
+            return new ResponseEntity<>(result, HttpStatus.OK);
         else
-            return new ResponseEntity<>("Problemi nella validazione...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(2, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     //End-point completamento

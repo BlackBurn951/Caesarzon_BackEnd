@@ -68,8 +68,14 @@ public class GeneralServiceImpl implements GeneralService{
             //Avvio del saga per il ban automatico
             UUID banId= banService.validateBan();
             List<ReportDTO> reports= reportService.getReportsByUsername2(newReportDTO.getUsernameUser2());
-            if(banId!=null && reports!=null)
-                return reportOrchestrator.processAutomaticBan(banId, newReportDTO.getUsernameUser2(), reports);
+            if(banId!=null && reports!=null) {
+                if(reportOrchestrator.processAutomaticBan(banId, newReportDTO.getUsernameUser2(), reports))
+                    return true;
+
+                reportService.deleteReport(newReportDTO);
+
+                return false;
+            }
 
         } else if(newReportDTO != null) {
             HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();

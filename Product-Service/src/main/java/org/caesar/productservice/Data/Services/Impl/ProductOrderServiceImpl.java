@@ -148,36 +148,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         }
     }
 
-    @Override
-    public boolean saveAll(List<ProductOrderDTO> orderDTOS) {
-        try {
-            List<ProductOrder> productOrderList= new Vector<>();
-            ProductOrder productOrder;
-
-            for(ProductOrderDTO productOrderDTO: orderDTOS){
-                productOrder = new ProductOrder();
-
-                productOrder.setId(productOrderDTO.getId());
-                productOrder.setOrder(modelMapper.map(productOrderDTO.getOrderDTO(), Order.class));
-                productOrder.setProduct(modelMapper.map(productOrderDTO.getProductDTO(), Product.class));
-                productOrder.setTotal(productOrderDTO.getTotal());
-                productOrder.setUsername(productOrderDTO.getUsername());
-                productOrder.setBuyLater(productOrderDTO.isBuyLater());
-                productOrder.setSize(productOrderDTO.getSize());
-                productOrder.setQuantity(productOrderDTO.getQuantity());
-
-                productOrderList.add(productOrder);
-            }
-
-            productOrderRepository.saveAll(productOrderList);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nel salvataggio degli ordini");
-            return false;
-        }
-    }
-
 
     @Override
     public boolean saveLater(String username, ProductDTO productDTO) {
@@ -265,6 +235,20 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             System.out.println(e);
             log.debug("Errore nella presa dei prodotti della lista");
             return false;
+        }
+    }
+
+    @Override
+    public int checkIfBought(String username, ProductDTO productDTO) {  // 0 -> true 1 -> false 2 -> errore
+        try {
+            List<ProductOrder> result= productOrderRepository.findAllByUsernameAndOrderIsNotNullAndProduct(username, modelMapper.map(productDTO, Product.class));
+
+            if(result.isEmpty())
+                return 1;
+
+            return 0;
+        } catch (Exception | Error e) {
+            return 2;
         }
     }
 }

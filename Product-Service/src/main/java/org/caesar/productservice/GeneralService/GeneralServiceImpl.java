@@ -124,11 +124,19 @@ public class GeneralServiceImpl implements GeneralService {
         if(availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO)) {
             if(isNew) {
                 ImageDTO img = new ImageDTO(null, sendProductDTO);
-                if (!imageService.updateImage(img, true))
+                if (!imageService.updateImage(img, true)) {
+                    productService.deleteProductById(sendProductDTO.getId());
+                    availabilityService.deleteAvailabilityByProduct(sendProductDTO);
+
                     return null;
+                }
             }
                 return sendProductDTO.getId();
         }
+
+        if(isNew)
+            productService.deleteProductById(sendProductDTO.getId());
+
 
         return null;
     }
@@ -155,7 +163,14 @@ public class GeneralServiceImpl implements GeneralService {
 
             ImageDTO image= new ImageDTO(file.getBytes(), product);
 
-            return imageService.updateImage(image, isNew);
+            boolean result= imageService.updateImage(image, false);
+            if(isNew && !result) {
+                deleteProduct(productId);
+
+                return false;
+            }
+
+            return result;
         } catch (Exception | Error e) {
             log.debug("Errore nel caricamento dell'immagine");
             return false;
@@ -215,6 +230,12 @@ public class GeneralServiceImpl implements GeneralService {
         ProductDTO productDTO= productService.getProductById(reviewDTO.getProductID());
 
         if(productDTO==null)
+            return "Problemi nell'aggiunta della recensione...";
+
+        int bought= productOrderService.checkIfBought(username, productDTO);
+        if(bought==1)
+            return "Non puoi aggiungere una recensione ad un prodotto che non hai ancora acquistato, acquistalo e lasciaci la tua opinione";
+        else if(bought==2)
             return "Problemi nell'aggiunta della recensione...";
 
         reviewDTO.setUsername(username);
@@ -444,6 +465,17 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
+    public boolean rollbackCheckAvailability(String username, List<UUID> productIds) {
+        //Presa di tutti i prodotti presenti nel carello dell'utente
+        List<ProductOrderDTO> productInOrder= getProductInOrder(username, productIds);
+
+        if(productInOrder==null || productInOrder.isEmpty())
+            return false;
+
+        return changeAvaibility(productInOrder, true);
+    }
+
+    @Override
     @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
     public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> false carta -> true paypal
 
@@ -477,9 +509,12 @@ public class GeneralServiceImpl implements GeneralService {
 
         approximatedSecondDecimal(total+= 5);
         if (!payMethod) {
-            if(orderOrchestrator.processCreateOrderWithCardPayment(username, productInOrder, total, buyDTO.getAddressID(), buyDTO.getCardID()))
-                return "Ordine effettuato con successo!";
-            changeAvaibility(productInOrder, true);
+            String response= orderOrchestrator.processCreateOrderWithCardPayment(username, productInOrder, total, buyDTO.getAddressID(), buyDTO.getCardID());
+
+            if(!response.endsWith("!"))
+                changeAvaibility(productInOrder, true);
+
+            return response;
         } else {
             try {
                 Payment payment = payPalService.createPayment(
