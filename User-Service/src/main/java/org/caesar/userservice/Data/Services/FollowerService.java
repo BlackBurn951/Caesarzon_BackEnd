@@ -11,5 +11,10 @@ public interface FollowerService {
     boolean isFriend(String username, String friendUsername);
     FollowerDTO getFollower(String username1, String username2);
     boolean deleteFollowers(String username1, String usernameToDelete);
-    boolean deleteFollowersByUsername(String username);
+
+
+    List<FollowerDTO> validateOrRollbackDeleteFollowers(String username, boolean rollback);
+    boolean completeDeleteFollowers(String username);
+    boolean releaseOrDeleteFollowers(String username);
+    boolean rollbackDeleteFollowers(List<FollowerDTO> followers);
 }

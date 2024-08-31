@@ -10,5 +10,10 @@ public interface CardService {
     UUID addCard(CardDTO cardDTO);
     CardDTO getCard(UUID cardId);
     boolean deleteCard(UUID cardId);
-    boolean deleteUserCards(List<UserCardDTO> userCards);
+
+
+    boolean validateOrRollbackCards(List<UUID> cardsId, boolean rollback);
+    boolean completeCards(List<UUID> cardsId);
+    boolean releaseLockCards(List<UUID> cardsId);
+    boolean rollbackCards(List<CardDTO> cards);
 }

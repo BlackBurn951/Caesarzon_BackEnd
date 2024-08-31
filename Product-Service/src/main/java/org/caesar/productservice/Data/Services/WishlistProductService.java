@@ -1,12 +1,10 @@
 package org.caesar.productservice.Data.Services;
 
 import org.caesar.productservice.Dto.ProductDTO;
-import org.caesar.productservice.Dto.SingleWishListProductDTO;
 import org.caesar.productservice.Dto.WishListProductDTO;
 import org.caesar.productservice.Dto.WishlistDTO;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface WishlistProductService {
 
@@ -15,4 +13,6 @@ public interface WishlistProductService {
     boolean deleteProductFromWishlist(WishListProductDTO wishListProductDTO);
     List<WishListProductDTO> getWishlistProductsByWishlistID(WishlistDTO wishListId);
     boolean thereIsProductInWishList(WishlistDTO wishlistDTO, ProductDTO productDTO);
+
+    boolean validateOrRollbackDeleteUserWish(List<WishlistDTO> wishlists, boolean rollback);
 }

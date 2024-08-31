@@ -35,4 +35,14 @@ public class Ban {
 
     @Column(name= "confermato")
     private boolean confirmed;
+
+    public Ban() {
+        id= null;
+        reason= null;
+        startDate= null;
+        endDate= null;
+        userUsername= null;
+        adminUsername= null;
+        confirmed= false;
+    }
 }

@@ -98,31 +98,21 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         }
     }
 
+
+
     @Override
-    public boolean validateDeleteByReport(ReportDTO reportDTO) {
+    public List<SaveAdminNotificationDTO> validateDeleteByReport(ReportDTO reportDTO, boolean rollback) {
         try{
             List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
+
+            if (notifications.isEmpty())
+                return new Vector<>();
 
             for(AdminNotification notify: notifications) {
                 notify.setConfirmed(false);
             }
 
             adminNotificationRepository.saveAll(notifications);
-            return true;
-        }catch(Exception | Error e){
-            log.debug("Errore nell'eliminazione");
-            return false;
-        }
-
-    }
-
-    @Override
-    public List<SaveAdminNotificationDTO> completeDeleteByReport(ReportDTO reportDTO) {
-        try{
-            List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
-
-            adminNotificationRepository.deleteAll(notifications);
-
             return notifications.stream()
                     .map(notify -> {
                         SaveAdminNotificationDTO not= new SaveAdminNotificationDTO();
@@ -133,13 +123,53 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
                         not.setDate(notify.getDate());
                         not.setSupport(null);
                         not.setReport(modelMapper.map(notify.getReport(), ReportDTO.class));
-                        not.setConfirmed(true);
+                        not.setConfirmed(!rollback);
 
                         return not;
                     }).toList();
         }catch(Exception | Error e){
-            log.debug("Errore nell'eliminazione");
+            log.debug("Errore nella validazione dell'eliminazione per segnalazione");
             return null;
+        }
+
+    }
+
+    @Override
+    public boolean completeDeleteByReport(ReportDTO reportDTO) {
+        try{
+            System.out.println("Segnalazione arrivata per eliminare: "+reportDTO.getReason());
+            List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
+
+            System.out.println("Post presa lista notifiche");
+            for(AdminNotification notify: notifications) {
+                System.out.println("Admin a cui è indirizzata la notifica: "+notify.getAdmin());
+                notify.setDate(null);
+                notify.setAdmin(null);
+                notify.setRead(false);
+                notify.setConfirmed(false);
+                notify.setSubject(null);
+                notify.setSupport(null);
+            }
+
+            adminNotificationRepository.saveAll(notifications);
+
+            return true;
+        }catch(Exception | Error e){
+            System.out.println(e);
+            log.debug("Errore nel completamento dell'eliminazione per segnalazione");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean releaseLock(List<UUID> notificationIds) {
+        try{
+            adminNotificationRepository.deleteAllById(notificationIds);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nel rilascio dei lock");
+            return false;
         }
     }
 
@@ -156,7 +186,49 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
             return true;
         }catch(Exception | Error e){
-            log.debug("Errore nell'eliminazione");
+            log.debug("Errore nel rollback pre completamento per segnalazione");
+            return false;
+        }
+    }
+
+
+
+    @Override
+    public boolean validateOrRollbackDeleteBySupports(SupportDTO support, boolean rollback) {
+        try{
+            List<AdminNotification> notifications= adminNotificationRepository.findAllBySupport(modelMapper.map(support, Support.class));
+
+            if (notifications.isEmpty())
+                return true;
+
+            for(AdminNotification notify: notifications) {
+                notify.setConfirmed(rollback);
+            }
+
+            adminNotificationRepository.saveAll(notifications);
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nela validazione dell'eliminazione per richiesta di supporto");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean validateOrRollbackDeleteByReportsOnUserDelete(ReportDTO report, boolean rollback) {
+        try{
+            List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(report, Report.class));
+
+            if (notifications.isEmpty())
+                return true;
+
+            for(AdminNotification notify: notifications) {
+                notify.setConfirmed(rollback);
+            }
+
+            adminNotificationRepository.saveAll(notifications);
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nella validazione dell'eliminazione per segnalazione");
             return false;
         }
     }
@@ -170,6 +242,18 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
             return true;
         }catch(Exception | Error e){
             log.debug("Errore nell'inserimento della notifica per l'admin");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean deleteByReport(ReportDTO reportDTO) {
+        try{
+            adminNotificationRepository.deleteByReport(modelMapper.map(reportDTO, Report.class));
+
+            return true;
+        }catch (Exception | Error e){
+            log.debug("sesso2");
             return false;
         }
     }

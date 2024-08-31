@@ -10,6 +10,12 @@ import java.util.UUID;
 
 public interface AvailabilityService {
 
+    boolean validateAvailability(List<AvailabilityDTO> availability);
+    boolean completeAvailability(List<AvailabilityDTO> availability);
+    boolean releaseLockAvailability(List<AvailabilityDTO> availability);
+    boolean rollbackAvailability(List<AvailabilityDTO> availability, boolean validate);
+
+
     boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilities, ProductDTO product);
     boolean deleteAvailability(UUID id);
     boolean deleteAvailabilityByProduct(ProductDTO product);

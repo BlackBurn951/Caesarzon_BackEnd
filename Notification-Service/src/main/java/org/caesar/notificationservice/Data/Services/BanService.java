@@ -8,8 +8,15 @@ import java.util.UUID;
 public interface BanService {
     List<BanDTO> getAllBans(int num);
     boolean checkIfBanned(String username);
-    UUID validateBan(BanDTO banDTO);
-    boolean confirmBan(UUID banId);
-    boolean sbanUser(String username, boolean confirm);
-    boolean rollback(String username);
+
+    UUID validateBan();
+    boolean confirmBan(BanDTO banDTO);
+
+    boolean releaseLock(UUID banId);
+    boolean rollback(UUID banId);
+
+
+    UUID validateSbanUser(String username);
+    boolean completeSbanUser(String username);
+
 }

@@ -3,8 +3,10 @@ package org.caesar.userservice.Data.Services.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.FollowerRepository;
+import org.caesar.userservice.Data.Entities.Address;
 import org.caesar.userservice.Data.Entities.Follower;
 import org.caesar.userservice.Data.Services.FollowerService;
+import org.caesar.userservice.Dto.AddressDTO;
 import org.caesar.userservice.Dto.FollowerDTO;
 import org.caesar.userservice.Dto.UserSearchDTO;
 import org.modelmapper.ModelMapper;
@@ -118,16 +120,75 @@ public class FollowerServiceImpl implements FollowerService {
         }
     }
 
-    //Metodo per la cancellazione di tutti i follower da tutte e due la parti
+
+
     @Override
-    public boolean deleteFollowersByUsername(String username){
-        try{
-            followerRepository.deleteAllByUserUsername1(username);
-            followerRepository.deleteAllByUserUsername2(username);
+    public List<FollowerDTO> validateOrRollbackDeleteFollowers(String username, boolean rollback) { //0 -> true 1-> false 2 -> non avente
+        try {
+            System.out.println("Appena entrato nel metodo");
+            List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
+
+            System.out.println("Subito dopo la presa");
+            if(followers.isEmpty())
+                return new Vector<>();
+
+            List<FollowerDTO> result= new Vector<>();
+            for(Follower follower : followers){
+                System.out.println("User 1 "+ follower.getUserUsername1()+" "+follower.getUserUsername2());
+                result.add(modelMapper.map(follower, FollowerDTO.class));
+
+                follower.setOnDeleting(!rollback);
+            }
+
+            followerRepository.saveAll(followers);
+            return result;
+        } catch (Exception | Error e) {
+            System.out.println(e);
+            log.debug("Errore nella validazione o nel rollback pre completamento dei follower ");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean completeDeleteFollowers(String username) {
+        try {
+            List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
+
+            for(Follower follower : followers){
+                follower.setFriend(false);
+            }
+
+            followerRepository.saveAll(followers);
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nell'eliminazione dei follower");
+            log.debug("Errore nel completamento dell'eliminazione dei follower");
             return false;
         }
     }
+
+    @Override
+    public boolean releaseOrDeleteFollowers(String username) {
+        try {
+            followerRepository.deleteAllByUserUsername1(username);
+            followerRepository.deleteAllByUserUsername2(username);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nel rilascio del lock dei follower");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackDeleteFollowers(List<FollowerDTO> followers) {
+        try {
+            followerRepository.saveAll(followers.stream().map(cd -> modelMapper.map(cd, Follower.class)).toList());
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nel rollback post completamento dei follower");
+            return false;
+        }
+    }
+
 }

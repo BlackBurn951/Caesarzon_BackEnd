@@ -92,23 +92,53 @@ public class ReviewController {
             return new ResponseEntity<>("Problemi nell'eliminazione della recensione...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     // Endpoint per l'eliminazione della recensione tramite id
     @PutMapping("/admin/review")
-    public ResponseEntity<String> validateDeleteReviews(@RequestParam("username") String username, @RequestParam("rollback") boolean rollback) {
-        if(reviewService.validateDeleteReviews(username, rollback))
-            return new ResponseEntity<>("Validazione dell'eliminazione avvenuta con sucesso!", HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Problemi nella validazione dell'elimazione delle recensioni...", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @DeleteMapping("/admin/review")
-    public ResponseEntity<List<ReviewDTO>> completeDeleteReviews(@RequestParam("username") String username) {
-        List<ReviewDTO> result= reviewService.completeDeleteReviews(username);
+    public ResponseEntity<ReviewDTO> validateDeleteReview(@RequestParam("review-id") UUID reviewId, @RequestParam("rollback") boolean rollback) {
+        ReviewDTO result= reviewService.validateDeleteReviewById(reviewId, rollback);
 
         if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/admin/review/review-id/{reviewId}")
+    public ResponseEntity<String> completeDeleteReview(@PathVariable UUID reviewId) {
+        if(reviewService.completeDeleteReviewById(reviewId))
+            return new ResponseEntity<>("Completamento eseguito con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel completamento...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+
+    // Endpoint per l'eliminazione della recensione tramite username
+    @PutMapping("/admin/reviews")
+    public ResponseEntity<List<ReviewDTO>> validateDeleteReviews(@RequestParam("username") String username, @RequestParam("rollback") boolean rollback) {
+        List<ReviewDTO> result= reviewService.validateDeleteReviews(username, rollback);
+
+        if(result!=null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/admin/review/{username}")
+    public ResponseEntity<String> completeDeleteReviews(@PathVariable String username) {
+        if(reviewService.completeDeleteReviews(username))
+            return new ResponseEntity<>("Completamento avvenuto con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel completamneto...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @DeleteMapping("/admin/review")
+    public ResponseEntity<String> releaseLock(@RequestBody List<UUID> reviewId) {;
+        if(reviewService.releaseLock(reviewId))
+            return new ResponseEntity<>("Rilascio del lock avvenuto con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel rilascio del lock...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PostMapping("/admin/review")

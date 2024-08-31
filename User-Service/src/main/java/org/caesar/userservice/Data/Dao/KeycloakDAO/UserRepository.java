@@ -12,7 +12,10 @@ public interface UserRepository{
     User findUserByUsername(String username);
     boolean saveUser(UserRegistrationDTO userRegistrationDTO);
     boolean updateUser(UserDTO userDTO);
-    boolean deleteUser(String username);
+
+    User validateOrRollbackDeleteUser(String username, boolean rollback);
+    boolean completeDeleteUser(String username);
+    boolean releaseLockDeleteUser(String username);
 
     boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username);
     boolean logout(String username);

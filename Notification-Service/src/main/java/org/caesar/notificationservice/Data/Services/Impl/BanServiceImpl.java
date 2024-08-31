@@ -43,12 +43,13 @@ public class BanServiceImpl implements BanService {
         }
     }
 
-    //Metodo per bannare un utente
+
+    //Metodi per bannare un utente
     @Override
-    public UUID validateBan(BanDTO banDTO) {
+    public UUID validateBan() {
         try {
-            banDTO.setConfirmed(false);
-            UUID banId= banRepository.save(modelMapper.map(banDTO, Ban.class)).getId();
+            Ban ban= new Ban();
+            UUID banId= banRepository.save(ban).getId();
 
             return banId;
         } catch (Exception | Error e) {
@@ -58,7 +59,27 @@ public class BanServiceImpl implements BanService {
     }
 
     @Override
-    public boolean confirmBan(UUID banId) {
+    public boolean confirmBan(BanDTO banDTO) {
+        try {
+            Ban ban= banRepository.findById(banDTO.getId()).orElse(null);
+
+            if(ban==null)
+                return false;
+
+            banRepository.save(modelMapper.map(banDTO, Ban.class));
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nell'inserimento della tupla di ban");
+            return false;
+        }
+    }
+
+
+
+    //Metodi per concludere un operazione di ban/sban
+    @Override
+    public boolean releaseLock(UUID banId) {
         try {
             Ban ban= banRepository.findById(banId).orElse(null);
 
@@ -75,23 +96,13 @@ public class BanServiceImpl implements BanService {
         }
     }
 
-    //Metodo per sbannare un utente
     @Override
-    public boolean sbanUser(String username, boolean confirm) {
+    public boolean rollback(UUID banId) {
         try {
-            Ban ban;
-            if(!confirm)
-                ban= banRepository.findByUserUsernameAndEndDateIsNull(username);
-            else
-                ban= banRepository.findByUserUsernameAndConfirmedIsFalse(username);
-
-            if(ban==null)
+            if(banId==null)
                 return false;
 
-            ban.setEndDate(LocalDate.now());
-            ban.setConfirmed(confirm);
-            banRepository.save(ban);
-
+            banRepository.deleteById(banId);
             return true;
         } catch (Exception | Error e) {
             log.debug(e.getMessage());
@@ -99,15 +110,38 @@ public class BanServiceImpl implements BanService {
         }
     }
 
+
+
+    //Metodi per lo sban di un utente
     @Override
-    public boolean rollback(String username) {
+    public UUID validateSbanUser(String username) {
         try {
-            Ban ban= banRepository.findByUserUsernameAndConfirmedIsFalse(username);
+            Ban ban= banRepository.findByUserUsernameAndEndDateIsNull(username);
+
+            if(ban==null)
+                return null;
+
+            ban.setConfirmed(false);
+            banRepository.save(ban);
+
+            return ban.getId();
+        } catch (Exception | Error e) {
+            log.debug(e.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public boolean completeSbanUser(String username) {
+        try {
+            Ban ban= banRepository.findByUserUsernameAndEndDateIsNull(username);
 
             if(ban==null)
                 return false;
 
-            banRepository.delete(ban);
+            ban.setEndDate(LocalDate.now());
+            banRepository.save(ban);
+
             return true;
         } catch (Exception | Error e) {
             log.debug(e.getMessage());

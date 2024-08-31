@@ -1,13 +1,12 @@
 package org.caesar.userservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.ProfilePicRepository;
 import org.caesar.userservice.Data.Entities.ProfilePic;
 import org.caesar.userservice.Data.Services.ProfilePicService;
+import org.caesar.userservice.Dto.ProfilePicDTO;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProfilePicServiceImpl implements ProfilePicService {
 
     private final ProfilePicRepository profilePicRepository;
+    private final ModelMapper modelMapper;
 
     //Salva l'immagine dell'utente
     @Override
@@ -49,5 +49,69 @@ public class ProfilePicServiceImpl implements ProfilePicService {
     @Override
     public byte[] getUserImage(String username) {
         return profilePicRepository.findByUserUsername(username).getProfilePic();
+    }
+
+
+
+    @Override
+    public ProfilePicDTO validateDeleteUser(String username, boolean rollback) {
+        try {
+            ProfilePic image= profilePicRepository.findByUserUsername(username);
+
+            if(image==null)
+                return null;
+
+            image.setOnDeleting(!rollback);
+
+            profilePicRepository.save(image);
+
+            return modelMapper.map(image, ProfilePicDTO.class);
+        }catch (Exception | Error e){
+            log.debug("Errore nel caricamento dell'imaggine");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean completeDeleteUser(String username) {
+        try {
+            ProfilePic image= profilePicRepository.findByUserUsername(username);
+
+            if(image==null)
+                return false;
+
+//            image.setProfilePic(null);
+
+//            profilePicRepository.save(image);
+
+            return true;
+        }catch (Exception | Error e){
+            log.debug("Errore nel caricamento dell'imaggine");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean releaseDeleteUser(String username) {
+        try {
+            profilePicRepository.deleteByUserUsername(username);
+
+            return true;
+        }catch (Exception | Error e){
+            log.debug("Errore nel caricamento dell'imaggine");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackDeleteUser(String username, ProfilePicDTO image) {
+        try {
+            profilePicRepository.save(modelMapper.map(image, ProfilePic.class));
+
+            return true;
+        }catch (Exception | Error e){
+            log.debug("Errore nel caricamento dell'imaggine");
+            return false;
+        }
     }
 }

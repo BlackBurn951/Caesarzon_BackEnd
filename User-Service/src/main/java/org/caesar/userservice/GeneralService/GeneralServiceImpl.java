@@ -6,9 +6,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.userservice.Data.Entities.User;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.Sagas.BanOrchestrator;
+import org.caesar.userservice.Sagas.DeleteOrchestrator;
 import org.caesar.userservice.Utils.Utils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -46,6 +48,7 @@ public class GeneralServiceImpl implements GeneralService {
     private final Utils utils;
     private final RestTemplate restTemplate;
     private final BanOrchestrator banOrchestrator;
+    private final DeleteOrchestrator deleteOrchestrator;
 
     private final static String DELETE_SERVICE = "deleteService";
 
@@ -99,7 +102,7 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     public int addCard(String userUsername, CardDTO cardDTO) {
         List<UserCardDTO> cards= userCardService.getUserCards(userUsername);
-        System.out.println("dimensione delle carte di: "+userUsername+" dimensione"+cards.size());
+        System.out.println("Dati della carta: "+cardDTO.getCardNumber()+"\n"+cardDTO.getOwner()+"\n"+cardDTO.getExpiryDate()+"\n"+cardDTO.getCvv() );
         if(cards.size()<5) {
             for(UserCardDTO card: cards) {
                 CardDTO userCard= cardService.getCard(card.getCardId());
@@ -220,25 +223,108 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public boolean pay(String username, UUID cardId, double total, boolean refund) {
+    public int validatePayment(String username, UUID cardId, double total, boolean rollback) {  //0 -> true 1 -> saldo insuficente 2-> false
+        if(userCardService.checkCard(username, cardId)) {
+            CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
+
+            if(rollback) {
+                cardDTO.setOnChanges(false);
+
+                return cardService.addCard(cardDTO)!=null? 0: 2;
+            }
+
+            if(cardDTO.getBalance()>=total) {
+                cardDTO.setOnChanges(true);
+
+                return cardService.addCard(cardDTO)!=null? 0: 2;
+            }
+            else
+                return 1;
+        }
+
+        return 2;
+    }
+
+    @Override
+    public boolean completePayment(String username, UUID cardId, double total) {
+        if(userCardService.checkCard(username, cardId)) {
+            CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
+
+            double balance= cardDTO.getBalance();
+            if(balance>=total) {
+                cardDTO.setBalance(balance-total);
+
+                return cardService.addCard(cardDTO)!=null;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean releaseLockPayment(String username, UUID cardId) {
+        if(userCardService.checkCard(username, cardId)) {
+            CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
+
+            cardDTO.setOnChanges(false);
+
+            return cardService.addCard(cardDTO)!=null;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean rollbackPayment(String username, UUID cardId, double total) {
         if(userCardService.checkCard(username, cardId)) {
             CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
 
             double balance= cardDTO.getBalance();
 
-            if(refund)
-                balance+= total;
-            else {
-                if(balance<total)
-                    return false;
-                balance-=total;
-            }
+
+            balance= balance+total;
             cardDTO.setBalance(balance);
+            cardDTO.setOnChanges(false);
 
             return cardService.addCard(cardDTO)!=null;
         }
         return false;
     }
+
+
+
+    @Override
+    public boolean validateAndReleasePaymentForReturn(String username, UUID cardId, boolean rollback) {
+        if(userCardService.checkCard(username, cardId)) {
+            CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
+
+            cardDTO.setOnChanges(!rollback);
+
+            return cardService.addCard(cardDTO)!=null;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean completeOrRollbackPaymentForReturn(String username, UUID cardId, double total, boolean rollback) {
+        if(userCardService.checkCard(username, cardId)) {
+            CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
+
+            double balance= cardDTO.getBalance();
+
+            if(rollback)
+                cardDTO.setBalance(balance-total);
+            else
+                cardDTO.setBalance(balance+total);
+
+            return cardService.addCard(cardDTO)!=null;
+        }
+
+        return false;
+    }
+
+
 
     @Override
     public String recoveryPassword(String username) {
@@ -301,35 +387,11 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     @CircuitBreaker(name= DELETE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     public boolean deleteUser(String username) {
-        //Chiamate per prendere le tuple di relazione con gli indirizzi e le carte
-        List<UserAddressDTO> userAddresses = userAddressService.getUserAddresses(username);
-        List<UserCardDTO> userCards = userCardService.getUserCards(username);
+        UserDTO user= userService.validateOrRollbackDeleteUser(username, false);
+        if(user!=null)
+            return deleteOrchestrator.processUserDelete(user);
 
-
-        boolean userDeleted = userService.deleteUser(username);
-
-        //Controllo dei casi in cui l'utente non abbia indirizzi e/o carte
-        if(userAddresses!=null && !userAddresses.isEmpty() && userCards!=null && !userCards.isEmpty()) {
-            boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
-            boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
-
-            boolean userCardsDeleted = userCardService.deleteUserCards(username);
-            boolean cardDeleted = cardService.deleteUserCards(userCards);
-
-            return userDeleted && addressesDeleted && userAddressesDeleted && cardDeleted && userCardsDeleted;
-        } else if(userAddresses!=null && !userAddresses.isEmpty() && (userCards==null || userCards.isEmpty())) {
-            boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
-            boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
-
-            return userDeleted && userAddressesDeleted && addressesDeleted;
-        } else if((userAddresses==null || userAddresses.isEmpty()) && (userCards==null || userCards.isEmpty())) {
-            boolean userCardsDeleted = userCardService.deleteUserCards(username);
-            boolean cardDeleted = cardService.deleteUserCards(userCards);
-
-            return userDeleted && userCardsDeleted && cardDeleted;
-        }
-
-        return userDeleted;
+        return false;
     }
 
     @Override
@@ -361,7 +423,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public int banUser(BanDTO banDTO) {
-        int result= adminService.validateBan(banDTO);
+        int result= adminService.validateBan(banDTO.getUserUsername());
         if(result==0) {
             if(banOrchestrator.processBan(banDTO))
                 return 0;

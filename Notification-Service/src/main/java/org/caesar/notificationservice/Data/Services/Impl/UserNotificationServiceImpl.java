@@ -5,6 +5,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.caesar.notificationservice.Data.Dao.UserNotificationRepository;
 import org.caesar.notificationservice.Data.Entities.UserNotification;
 import org.caesar.notificationservice.Data.Services.UserNotificationService;
@@ -74,6 +75,93 @@ public class UserNotificationServiceImpl implements UserNotificationService {
            return false;
         }
     }
+
+    @Override
+    public UUID validateNotification() {
+        try{
+            UserNotification notification= new UserNotification();
+
+            notification.setDate(null);
+            notification.setUser(null);
+            notification.setSubject(null);
+            notification.setExplanation(null);
+            notification.setRead(false);
+            notification.setConfirmed(false);
+
+            UUID notifyId= userNotificationRepository.save(notification).getId();
+
+            return notifyId;
+        }catch(Exception | Error e){
+            System.out.println(e);
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean completeNotification(UserNotificationDTO userNotificationDTO) {
+        try{
+            UserNotification notification= new UserNotification();
+
+            notification.setDate(LocalDate.now());
+            notification.setId(userNotificationDTO.getId());
+            notification.setUser(userNotificationDTO.getUser());
+            notification.setSubject(userNotificationDTO.getSubject());
+            notification.setExplanation(userNotificationDTO.getExplanation());
+            notification.setRead(userNotificationDTO.isRead());
+            notification.setConfirmed(false);
+
+            userNotificationRepository.save(notification);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean releaseNotification(UUID notificationId) {
+        try{
+            UserNotification notification= userNotificationRepository.findById(notificationId).orElse(null);
+
+            if(notification==null)
+                return false;
+
+            notification.setConfirmed(true);
+
+            userNotificationRepository.save(notification);
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
+
+
+    @Override
+    public boolean validateOrRollbackDeleteUserNotifications(String username, boolean rollback) {
+        try{
+            List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
+
+            if(notifications.isEmpty())
+                return true;
+
+            for(UserNotification notify: notifications) {
+                notify.setConfirmed(rollback);
+            }
+
+            userNotificationRepository.saveAll(notifications);
+
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return false;
+        }
+    }
+
+
 
     //Metodo per aggiornare lo stato di lettura delle notifiche dell'utente
     @Override
