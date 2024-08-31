@@ -55,15 +55,19 @@ public class FollowerServiceImpl implements FollowerService {
     //Aggiunta del follower
     @Override
     public boolean addFollowers(String username1, List<UserSearchDTO> followers) {
+        System.out.println("Follower cher arriva: "+followers.getFirst().getUsername()+" "+followers.getFirst().isFriend());
         //Controllo che venga inviato almeno un dato
-        if(followers==null || followers.isEmpty())
+        if(followers==null || followers.isEmpty()) {
             return false;
+        }
         List<UserSearchDTO> followz = new Vector<>();
 
         for(UserSearchDTO f: followers) {
             Follower follower  = followerRepository.findByUserUsername1AndUserUsername2(username1, f.getUsername());
             if(follower!=null){
+                System.out.println("Follower trovato: "+f.getUsername()+" stato: "+f.isFriend());
                 follower.setFriend(f.isFriend());
+                System.out.println("Follower trovato: "+follower.getUserUsername2()+" nuovo stato: "+follower.isFriend());
                 followerRepository.save(follower);
             }else{
                 followz.add(f);

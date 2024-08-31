@@ -73,6 +73,7 @@ public class WishlistServiceImpl implements WishlistService {
     @Override
     @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     public List<BasicWishlistDTO> getAllWishlists(String ownerUsername, String accessUsername, int visibility) {
+        System.out.println("username dell'utente: "+ownerUsername+"visibilità: "+visibility);
         String vs= "";
         switch (visibility) {
             case 0 -> vs= "Pubblica";
