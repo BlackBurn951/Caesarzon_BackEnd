@@ -477,7 +477,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
-    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> false carta -> true paypal
+    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod, boolean platform) {  //PayMethod -> false carta -> true paypal  Platform -> true angular -> false android
 
         System.out.println(buyDTO.getAddressID()+" "+buyDTO.getTotal()+" "+buyDTO.getCardID()+" "+buyDTO.getProductsIds());
         List<ProductOrderDTO> productInOrder = getProductInOrder(username, buyDTO.getProductsIds());
@@ -517,11 +517,17 @@ public class GeneralServiceImpl implements GeneralService {
             return response;
         } else {
             try {
+                String redirect= "";
+
+                if(platform)
+                    redirect= "http://localhost:4200/order-final";
+                else
+                    redirect= "caesarzon://payment";
                 Payment payment = payPalService.createPayment(
                         total, "EUR", "paypal",
                         "sale", "Pagamento ordine",
-                        "http://localhost:4200/order-final",
-                        "http://localhost:4200/order-final");
+                        redirect,
+                        redirect);
                 for (Links link : payment.getLinks()) {
                     if (link.getRel().equals("approval_url")) {
                         return link.getHref();
