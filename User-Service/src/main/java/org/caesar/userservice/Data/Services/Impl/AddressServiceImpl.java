@@ -28,24 +28,15 @@ public class AddressServiceImpl implements AddressService {
 
     private final ModelMapper modelMapper;
     private final AddressRepository addressRepository;
-    private final static String ADDRESS_SERVICE = "addressService";
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su addressService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
     //Metodo per prendere un indirizzo
     @Override
-//    @Retry(name=ADDRESS_SERVICE)
     public AddressDTO getAddress(UUID addressId) {
         return modelMapper.map(addressRepository.findById(addressId), AddressDTO.class);
     }
 
     //Metodo per aggiungere un indirizzo
     @Override
-//    @CircuitBreaker(name=ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=ADDRESS_SERVICE)
     public UUID addAddress(AddressDTO addressDTO) {
         //Controllo che i campi inviati rispettino i criteri
         if(!checkRoadName(addressDTO.getRoadName()) ||
@@ -56,7 +47,7 @@ public class AddressServiceImpl implements AddressService {
             Address address = modelMapper.map(addressDTO, Address.class);
             // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
             return addressRepository.save(address).getId();
-        }catch(RuntimeException | Error e){
+        }catch(Exception | Error e){
             log.debug("Errore nell'inserimento dell'indirizzo dell'utente");
             return null;
         }
@@ -64,13 +55,11 @@ public class AddressServiceImpl implements AddressService {
 
     //Metodo per eliminare un indirizzo tramite id
     @Override
-//    @CircuitBreaker(name=ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=ADDRESS_SERVICE)
     public boolean deleteAddress(UUID addressId) {
         try {
             addressRepository.deleteById(addressId);
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione dell'indirizzo");
             return false;
         }
@@ -78,8 +67,6 @@ public class AddressServiceImpl implements AddressService {
 
     //Metodo per eliminare tutti gli indirizzi associati ad un utente
     @Override
-//    @CircuitBreaker(name=ADDRESS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=ADDRESS_SERVICE)
     public boolean deleteAllUserAddresses(List<UserAddressDTO> userAddresses) {
         //Presa degli id dei indirizzi dalle tuple di relazione
         List<UUID> addressId= new Vector<>();
@@ -90,7 +77,7 @@ public class AddressServiceImpl implements AddressService {
         try {
             addressRepository.deleteAllById(addressId);
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Problemi nell'eliminazione di tutti gli indirizzi");
             return false;
         }
@@ -120,10 +107,9 @@ public class AddressServiceImpl implements AddressService {
             }
 
             return false;
-        } catch (IOException e) {
-            //TODO LOG GESTIONE ERRORE
+        } catch (Exception | Error e) {
+            log.debug("Problemi nel controllo dei tipi via");
+            return false;
         }
-
-        return false;
     }
 }

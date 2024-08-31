@@ -3,12 +3,13 @@ package org.caesar.productservice.GeneralService;
 import com.paypal.api.payments.Links;
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.PayPalRESTException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Data.Dao.AvailabilityRepository;
-import org.caesar.productservice.Data.Entities.Availability;
+import org.caesar.productservice.Data.Dao.ImageRepository;
+import org.caesar.productservice.Data.Entities.Image;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
@@ -28,42 +29,61 @@ import org.caesar.productservice.Dto.ProductDTO;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.SecureRandom;
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional
 public class GeneralServiceImpl implements GeneralService {
 
     private final ProductService productService;
     private final ReviewService reviewService;
-    private final AvailabilityRepository availabilityRepository;
-
-
     private final AvailabilityService availabilityService;
 
-    private final ModelMapper modelMapper;
     private final ProductOrderService productOrderService;
     private final OrderService orderService;
     private final LastViewService lastViewService;
 
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
+    private final ImageService imageService;
+
     private final Utils utils;
     private final RestTemplate restTemplate;
     private final PayPalService payPalService;
+    private final ModelMapper modelMapper;
+
+    private final static String USER_SERVICE= "userService";
+    private final static String NOTIFY_SERVICE= "notifyService";
+    private final ImageRepository imageRepository;
+
+    private boolean fallbackUser(Throwable e){
+        log.info("Servizio utenti non disponibile");
+        return false;
+    }
+
+    private boolean fallbackNotify(Throwable e){
+        log.info("Servizio per l'invio delle notifiche non disponibile");
+        return false;
+    }
 
 
 
     //SEZIONE DEI PRODOTTI E STRETTAMENTE CORRELATI
     @Override
-    public List<ImageDTO> getProductImages(UUID id) {
-        return List.of();
+    public byte[] getProductImage(UUID id) {
+        ProductDTO prod= productService.getProductById(id);
+
+        if(prod==null)
+            return null;
+
+        return imageService.getImage(prod);
     }
 
     @Override
@@ -82,68 +102,72 @@ public class GeneralServiceImpl implements GeneralService {
                 availabilityDTO.setProduct(null);
             productDTO.setAvailabilities(availabilities);
 
-//            if(!username.equals("guest"))
-            //lastViewService.save(username, productDTO);   TODO da tornare anche le immagini
             return productDTO;
         }
         return null;
     }
 
-
     @Override
     @Transactional // Aggiunge il prodotto ricevuto da front al db dei prodotti
-    public boolean addProduct(ProductDTO sendProductDTO) {
+    public UUID addProduct(ProductDTO sendProductDTO, boolean isNew) {
 
         // Aggiorna l'ID del productDTO dopo averlo salvato
         sendProductDTO.setId(productService.addOrUpdateProduct(sendProductDTO).getId());
 
         if(sendProductDTO.getId()==null)
-            return false;
+            return null;
 
-        //TODO DA FARE AGGIUNTA FOTO
+        if(availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO)) {
+            if(isNew) {
+                ImageDTO img = new ImageDTO(null, sendProductDTO);
+                if (!imageService.updateImage(img, true))
+                    return null;
+            }
+                return sendProductDTO.getId();
+        }
 
-        return availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO);
+        return null;
     }
 
     @Override
-    @Transactional
+    @Transactional //TODO AGGIUNGERE ELIMINAZIONE CORRELATI
     public boolean deleteProduct(UUID id) {
         ProductDTO product = productService.getProductById(id);
 
         if(product != null)
-            return availabilityService.deleteAvailabilityByProduct(product) && productService.deleteProductById(id);
+            return availabilityService.deleteAvailabilityByProduct(product) && productService.deleteProductById(id)
+                    && imageService.deleteImage(product);
 
         return false;
     }
 
-    @Override  //TODO DA CONTROLLARE SE SERVE, SE SI MODIFICARE
-    public boolean deleteAvailabilityByProduct(Product product) {
-        System.out.println("Sono nell'elimina della disponibilità");
-        List<Availability> availabilitiesToDelete = new ArrayList<>();
-        for(Availability availability : availabilityRepository.findAll()) {
-            if(availability.getProduct().equals(product)){
-                System.out.println("Disponibilità trovata");
-                availabilitiesToDelete.add(availability);
-            }
-        }
-        if(!availabilitiesToDelete.isEmpty()) {
-            availabilityRepository.deleteAll(availabilitiesToDelete);
-            return true;
-        }else
-            return false;
-    }
+    @Override
+    public boolean saveImage(UUID productId, MultipartFile file, boolean isNew) {
+        try {
+            ProductDTO product = productService.getProductById(productId);
 
+            if(product==null)
+                return false;
+
+            ImageDTO image= new ImageDTO(file.getBytes(), product);
+
+            return imageService.updateImage(image, isNew);
+        } catch (Exception | Error e) {
+            log.debug("Errore nel caricamento dell'immagine");
+            return false;
+        }
+    }
 
 
     //SEZIONE RECENSIONI
     @Override
-    public List<ReviewDTO> getProductReviews(UUID productID) {
+    public List<ReviewDTO> getProductReviews(UUID productID, int str) {
         ProductDTO productDTO= productService.getProductById(productID);
 
         if(productDTO == null)
             return null;
 
-        return reviewService.getReviewsByProduct(productDTO);
+        return reviewService.getReviewsByProduct(productDTO, str);
     }
 
     @Override
@@ -180,14 +204,12 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    @Transactional
-    public boolean addReview(ReviewDTO reviewDTO, String username) {
-        //TODO CHECK CONVALIDA CONTROLLO DI POTER FARE SOLO UNA RECENSIONE PER UTENTE E PRODOTTO
+    public String addReview(ReviewDTO reviewDTO, String username) {
 
         ProductDTO productDTO= productService.getProductById(reviewDTO.getProductID());
 
         if(productDTO==null)
-            return false;
+            return "Problemi nell'aggiunta della recensione...";
 
         reviewDTO.setUsername(username);
 
@@ -196,6 +218,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackNotify")
     public boolean deleteReviewByUser(String username, UUID productId) {
         ProductDTO productDTO= productService.getProductById(productId);
 
@@ -207,27 +230,21 @@ public class GeneralServiceImpl implements GeneralService {
         if(reviewDTO==null)
             return false;
 
-        if(reviewService.deleteReview(reviewDTO.getId())) {
-            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Authorization", request.getHeader("Authorization"));
+//        if(reviewService.validateDeleteReviews(reviewDTO.getId())) {
+//            HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.add("Authorization", request.getHeader("Authorization"));
+//
+//            HttpEntity<String> entity = new HttpEntity<>(headers);
+//
+//            return restTemplate.exchange(
+//                    "http://notification-service/notify-api/user/report?review-id=" + reviewDTO.getId(),
+//                    HttpMethod.DELETE,
+//                    entity,
+//                    String.class
+//            ).getStatusCode() == HttpStatus.OK;
+//        }
 
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-
-            return restTemplate.exchange(
-                    "http://notification-service/notify-api/user/report?review-id=" + reviewDTO.getId(),
-                    HttpMethod.DELETE,
-                    entity,
-                    String.class
-            ).getStatusCode() == HttpStatus.OK;
-        }
-
-        return false;
-    }
-
-    @Override
-    @Transactional
-    public boolean deleteReviewByAdmin(String username, UUID productId) {
         return false;
     }
 
@@ -236,57 +253,57 @@ public class GeneralServiceImpl implements GeneralService {
     //SEZIONE DEL CARRELLO
     @Override  //Restituisce il carrello dell'utente con la lista dei prodotti al suo interno
     public List<ProductCartDTO> getCart(String username) {
-        List<ProductOrderDTO> productCart= productOrderService.getProductOrdersByUsername(username);
+        List<ProductOrderDTO> productCart = productOrderService.getProductOrdersByUsername(username);
 
-        if(productCart==null || productCart.isEmpty())
+        if (productCart == null || productCart.isEmpty()) {
             return null;
+        }
 
-        List<ProductCartDTO> result= new Vector<>();
+        List<ProductCartDTO> result = new Vector<>();
         ProductCartDTO prod;
-        DecimalFormat df = new DecimalFormat("#.##");
 
-        for(ProductOrderDTO p: productCart){
+        for (ProductOrderDTO p : productCart) {
             prod = new ProductCartDTO();
 
-            ProductDTO productDTO= productService.getProductById(p.getProductDTO().getId());
+            ProductDTO productDTO = productService.getProductById(p.getProductDTO().getId());
 
             prod.setName(productDTO.getName());
             prod.setId(productDTO.getId());
-            prod.setTotal(Double.parseDouble(df.format(productDTO.getPrice())));
+
+            prod.setTotal(approximatedSecondDecimal(productDTO.getPrice()));
+
             prod.setQuantity(p.getQuantity());
             prod.setSize(p.getSize());
+            System.out.println("VARIABILE: " + p.isBuyLater());
+            prod.setBuyLater(p.isBuyLater());
 
-            double discountPrice= (p.getProductDTO().getPrice()*p.getProductDTO().getDiscount())/100;
-            double totalDiscount= Math.round((p.getProductDTO().getPrice()-discountPrice)*p.getQuantity() * 100.0) / 100.0;
-            prod.setDiscountTotal(totalDiscount);
+            double discountPrice = (p.getProductDTO().getPrice() * p.getProductDTO().getDiscount())/100;
+            double totalDiscount = p.getProductDTO().getPrice()-discountPrice;
+            prod.setDiscountTotal(approximatedSecondDecimal(totalDiscount));
 
             result.add(prod);
         }
         return result;
     }
 
-    @Override
-    @Transactional   // Genera un nuovo carrello alla scelta del primo prodotto dell'utente
+    @Override  // Aggiunge al carrello il singolo prodotto scelto dall'utente (anche in caso di acquisto rapido si passa da qui)
     public boolean createCart(String username, SendProductOrderDTO sendProductOrderDTO) {
         ProductDTO productDTO = productService.getProductById(sendProductOrderDTO.getProductID());
 
-        //TODO CHECK DELLA DISPONIBILITà
         if(productDTO==null)
             return false;
 
         ProductOrderDTO productOrderDTO = new ProductOrderDTO();
 
         productOrderDTO.setProductDTO(productDTO);
-        double total= Math.round((productDTO.getPrice()*sendProductOrderDTO.getQuantity()) * 100.0) / 100.0;
-        productOrderDTO.setTotal(total);
+        productOrderDTO.setTotal(approximatedSecondDecimal(productDTO.getPrice()*sendProductOrderDTO.getQuantity()));
+
+        if(!checkQuantity(sendProductOrderDTO.getQuantity()) || !checkSize(sendProductOrderDTO.getSize()))
+            return false;
+
         productOrderDTO.setQuantity(sendProductOrderDTO.getQuantity());
+        productOrderDTO.setSize(sendProductOrderDTO.getSize());
         productOrderDTO.setUsername(username);
-
-        if (productDTO.getIs_clothing())
-            productOrderDTO.setSize(sendProductOrderDTO.getSize());
-        else
-            productOrderDTO.setSize(null);
-
 
         return productOrderService.save(productOrderDTO);
     }
@@ -298,9 +315,12 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public boolean changeQuantity(String username, UUID productID, int quantity, String size) {
+    public boolean changeQuantity(String username, UUID productID, ChangeCartDTO changeCartDTO) {
         ProductDTO productDTO = productService.getProductById(productID);
-        return productOrderService.changeQuantity(username,productDTO,quantity, size);
+
+        if(checkSize(changeCartDTO.getSize()) && checkQuantity(changeCartDTO.getQuantity()))
+            return productOrderService.changeQuantity(username,productDTO,changeCartDTO.getQuantity(), changeCartDTO.getSize());
+        return false;
     }
 
     @Override
@@ -317,32 +337,26 @@ public class GeneralServiceImpl implements GeneralService {
         OrderDTO orderDTO = orderService.getOrder(username, orderId);
 
         List<ProductOrderDTO> productsOrder= productOrderService.getProductInOrder(username, orderDTO);
-
         if(productsOrder==null && productsOrder.isEmpty())
-            return null;
-
-        List<ProductDTO> products= productService.getAllProductsById(productsOrder.stream().map(a -> a.getProductDTO().getId()).toList());
-
-        if(products==null && products.isEmpty())
             return null;
 
         List<ProductCartDTO> productCartDTOS = new Vector<>();
         ProductCartDTO productCartDTO;
+        double discountTotal;
 
         for (ProductOrderDTO productOrderDTO : productsOrder) {
-            for (ProductDTO product : products) {
-                if (productOrderDTO.getProductDTO().getId().equals(product.getId())) {
-                    productCartDTO = new ProductCartDTO();
+            productCartDTO = new ProductCartDTO();
 
-                    productCartDTO.setId(product.getId());
-                    productCartDTO.setName(product.getName());
-                    productCartDTO.setQuantity(productOrderDTO.getQuantity());
-                    productCartDTO.setTotal(productOrderDTO.getTotal());
-                    productCartDTO.setSize(productCartDTO.getSize());
+            productCartDTO.setId(productOrderDTO.getProductDTO().getId());
+            productCartDTO.setName(productOrderDTO.getProductDTO().getName());
+            productCartDTO.setQuantity(productOrderDTO.getQuantity());
+            productCartDTO.setTotal(productOrderDTO.getTotal());
+            productCartDTO.setSize(productOrderDTO.getSize());
 
-                    productCartDTOS.add(productCartDTO);
-                }
-            }
+            discountTotal= approximatedSecondDecimal((productOrderDTO.getProductDTO().getPrice()*productOrderDTO.getProductDTO().getDiscount())/100);
+            productCartDTO.setDiscountTotal(discountTotal);
+
+            productCartDTOS.add(productCartDTO);
         }
 
         return productCartDTOS;
@@ -354,6 +368,9 @@ public class GeneralServiceImpl implements GeneralService {
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
 
         if(productInOrder==null || productInOrder.isEmpty())
+            return "Errore";
+
+        if(buyDTO.getTotal()<=0.0 || buyDTO.getAddressID()==null)
             return "Errore";
 
         OrderDTO orderDTO= new OrderDTO();
@@ -386,80 +403,57 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
+    @Transactional  //Metodo per eseguire il reso
     public boolean updateOrder(String username, UUID orderId) {
-        try {
-            LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
-            OrderDTO order = orderService.getOrderByIdAndUsername(orderId, username);
-            if (order.getPurchaseDate().isBefore(tenDaysAgo)) {
-                utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" rifiutato",
-                        "Il reso è possibile solo entro 10 giorni dall'acquisto");
-                return false;
-            }else{
-                //Prendo tutti i prodotti nell'ordine restituito
-                List<ProductOrderDTO> productOrderDTO = productOrderService.getProductInOrder(username, order);
+        LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
+        OrderDTO order = orderService.getOrderByIdAndUsername(orderId, username);
+        if (order.getPurchaseDate().isBefore(tenDaysAgo)) {
+            utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" rifiutato",
+                    "Il reso è possibile solo entro 10 giorni dall'acquisto");
+            return false;
+        }else{
+            //Prendo tutti i prodotti nell'ordine restituito
+            List<ProductOrderDTO> productOrderDTO = productOrderService.getProductInOrder(username, order);
 
-                //Lista di disponibilità (mi serve solo per aggiornare la disponibilità)
-                List<AvailabilityDTO> availabilityDTOS;
+            //Lista di disponibilità (mi serve solo per aggiornare la disponibilità)
+            List<AvailabilityDTO> availabilityDTOS;
 
-                //Oggetto singolo per restituire la disponibilità attuale del prodotto tramite taglia
-                AvailabilityDTO availabilityDTO;
+            //Oggetto singolo per restituire la disponibilità attuale del prodotto tramite taglia
+            AvailabilityDTO availabilityDTO;
 
-                for(ProductOrderDTO productOrderDTO1: productOrderDTO){
-                    //Inizializzo qui la lista perchè mi serve sempre vuota
-                    availabilityDTOS = new Vector<>();
+            for(ProductOrderDTO productOrderDTO1: productOrderDTO){
+                //Inizializzo qui la lista perchè mi serve sempre vuota
+                availabilityDTOS = new Vector<>();
 
-                    //Inizializzo il prodotto andando a prendermi la disponibilità del prodotto passato per argomento e della taglia sempre passata come argomento
-                    availabilityDTO = availabilityService.getAvailabilitieByProductId(productOrderDTO1.getProductDTO(), productOrderDTO1.getSize());
+                //Inizializzo il prodotto andando a prendermi la disponibilità del prodotto passato per argomento e della taglia sempre passata come argomento
+                availabilityDTO = availabilityService.getAvailabilitieByProductId(productOrderDTO1.getProductDTO(), productOrderDTO1.getSize());
 
-                    //Alla disponibilità restituita aggiungo di nuovo quella precedentemente sottratta e se nel DB non esisteva più viene ricreata
-                    availabilityDTO.setSize(productOrderDTO1.getSize());
-                    availabilityDTO.setAmount(productOrderDTO1.getQuantity());
+                //Alla disponibilità restituita aggiungo di nuovo quella precedentemente sottratta e se nel DB non esisteva più viene ricreata
+                availabilityDTO.setSize(productOrderDTO1.getSize());
+                availabilityDTO.setAmount(productOrderDTO1.getQuantity());
 
-                    //Aggiunto la disponibilità alla lista che mi serve per aggiornare la disponibilità
-                    availabilityDTOS.add(availabilityDTO);
+                //Aggiunto la disponibilità alla lista che mi serve per aggiornare la disponibilità
+                availabilityDTOS.add(availabilityDTO);
 
-                    //Aggiorno effettivamente la disponibilità
-                    availabilityService.addOrUpdateAvailability(availabilityDTOS, productOrderDTO1.getProductDTO());
-                }
+                //Aggiorno effettivamente la disponibilità
+                availabilityService.addOrUpdateAvailability(availabilityDTOS, productOrderDTO1.getProductDTO());
+            }
 
-                order.setRefundDate(LocalDate.now());
-                order.setOrderState("Rimborsato");
-                order.setRefund(true);
-                orderService.save(order);
+            order.setRefundDate(LocalDate.now());
+            order.setOrderState("Rimborsato");
+            order.setRefund(true);
+            if(orderService.save(order)!= null) {
+                if(order.getCardID()!=null)
+                    checkPayment(order.getCardID(), order.getOrderTotal(), true);
                 return utils.sendNotify(username, "Reso ordine: "+order.getOrderNumber()+" accettato",
-                        "Il rimborso sarà effettuato sulla carta utilizzata al momento del pagamento");
-
+                        "Il rimborso sarà effettuato sul metodo di pagamento utilizzato al momento dell'acquisto");
             }
-        }catch (Exception | Error e) {
-            log.debug("Errore nell'update dell'ordine");
             return false;
         }
     }
 
     @Override
-    public boolean updateNotifyOrder() {
-        try {
-            List<OrderDTO> ordersToUpdate = orderService.getOrdersByState("Ricevuto");
-            for (OrderDTO order : ordersToUpdate) {
-                order.setOrderState("In consegna");
-                orderService.addOrder(order);
-
-                utils.sendNotify(order.getUsername(),
-                        "Aggiornamento ordine numero " + order.getOrderNumber(),
-                        "Il tuo ordine è in consegna e arriverà presto."
-                );
-            }
-            return true;
-        }catch (Exception | Error e) {
-            log.debug("Errore nell'update delle notifiche");
-            return false;
-        }
-
-    }
-
-    @Override
-    @Transactional
-    public List<UnavailableDTO>  checkAvailability(String username, List<UUID> productIds) {
+    public List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds) {
 
         //Presa di tutti i prodotti presenti nel carello dell'utente
         List<ProductOrderDTO> productInOrder= getProductInOrder(username, productIds);
@@ -494,36 +488,36 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
     public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> false carta -> true paypal
 
-        List<ProductOrderDTO> productInOrder= getProductInOrder(username, buyDTO.getProductsIds());
+        List<ProductOrderDTO> productInOrder = getProductInOrder(username, buyDTO.getProductsIds());
 
-
-        if(productInOrder==null || productInOrder.isEmpty())
+        if (productInOrder == null || productInOrder.isEmpty())
             return "Errore";
 
-        //Controllo che vengano effettivamente passati indirizzo e carta per pagare
-        if(buyDTO.getAddressID() == null || (!payMethod && buyDTO.getCardID() == null) ) {
+        // Controllo che vengano effettivamente passati indirizzo e carta per pagare
+        if (buyDTO.getAddressID() == null || (!payMethod && buyDTO.getCardID() == null)) {
             changeAvaibility(productInOrder, true);
             return "Errore";
         }
 
-        //Chiamata per veificare che l'utente che vuole acquistare abbia quell'indirizzo
-        if(!checkAddress(buyDTO.getAddressID())) {
+        // Chiamata per verificare che l'utente che vuole acquistare abbia quell'indirizzo
+        if (!checkAddress(buyDTO.getAddressID())) {
             changeAvaibility(productInOrder, true);
             return "Errore";
         }
 
-        DecimalFormat df = new DecimalFormat("#.##");
-        double total= productInOrder.stream()
-                .mapToDouble( prod -> {
-                    if(prod.getProductDTO().getDiscount()==0)
-                        return Double.parseDouble(df.format(prod.getTotal()*prod.getQuantity())); //CALCOLO SENZA SCONTO
-                    //CALCOLO CON SCONTO
-                    double discount= (prod.getTotal() * prod.getProductDTO().getDiscount()) /100;
-                    return Double.parseDouble(df.format(prod.getTotal()-discount));
+        double total = productInOrder.stream()
+                .mapToDouble(prod -> {
+                    if (prod.getProductDTO().getDiscount() == 0)
+                        return prod.getTotal() * prod.getQuantity(); // CALCOLO SENZA SCONTO
+
+                    // CALCOLO CON SCONTO
+                    double discount = (prod.getTotal() * prod.getProductDTO().getDiscount()) / 100;
+                    return (prod.getTotal() - discount) * prod.getQuantity();
                 }).sum();
 
-        if(!payMethod) {
-            if(!checkPayment(buyDTO.getCardID(), total)) {
+        approximatedSecondDecimal(total+= 5);
+        if (!payMethod) {
+            if (!checkPayment(buyDTO.getCardID(), total, false)) {
                 changeAvaibility(productInOrder, true);
                 return "Errore";
             }
@@ -534,11 +528,11 @@ public class GeneralServiceImpl implements GeneralService {
                 Payment payment = payPalService.createPayment(
                         total, "EUR", "paypal",
                         "sale", "Pagamento ordine",
-                        "http://localhost:4200/order-final", //TODO REDIRECT SUL FRONT ANCHE
+                        "http://localhost:4200/order-final",
                         "http://localhost:4200/order-final");
                 for (Links link : payment.getLinks()) {
                     if (link.getRel().equals("approval_url")) {
-                        return "redirect:" + link.getHref();
+                        return link.getHref();
                     }
                 }
             } catch (PayPalRESTException e) {
@@ -607,15 +601,94 @@ public class GeneralServiceImpl implements GeneralService {
 
     //SEZIONE DELLE WISHLIST
     @Override
-    public WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String username) {
+    public WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String ownerUsername, String accessUsername) {
+        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, ownerUsername);
 
-        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
+        if(wishlistDTO==null)
+            return null;
 
-        if(wishlistDTO==null){
+        //Caso in cui l'utente vuole accedere alle sue liste desideri
+        if(ownerUsername.equals(accessUsername))
+            return getWishProd(wishlistDTO);
+        else {
+            if(wishlistDTO.getVisibility().equals("Pubblica")) //Pubbliche
+                return getWishProd(wishlistDTO);
+            else if(wishlistDTO.getVisibility().equals("Condivisa")) { //Condivisa
+                //Caso in cui l'utente vuole accedere alle wishlist di un altro utente
+                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Authorization", request.getHeader("Authorization"));
+
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+
+                ResponseEntity<Boolean> response= restTemplate.exchange(
+                        "http://user-service/user-api/follower/" + accessUsername+"?username="+ownerUsername,
+                        HttpMethod.GET,
+                        entity,
+                        boolean.class
+                );
+
+                if(response.getStatusCode()== HttpStatus.OK && response.getBody()) {
+                    return getWishProd(wishlistDTO);
+                }
+            }
             return null;
         }
+    }
 
-        List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlistDTO);
+    @Override
+    public boolean addProductIntoWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
+
+        WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO, true);
+
+
+        if(wishListProductDTO==null)
+            return false;
+
+        return wishlistProductService.addOrUpdateWishlistProduct(wishListProductDTO);
+    }
+
+    @Override
+    public boolean deleteProductFromWishList(String username, UUID wishId, UUID productId) {
+        SendWishlistProductDTO sendWishlistProductDTO = new SendWishlistProductDTO();
+        sendWishlistProductDTO.setProductID(productId);
+        sendWishlistProductDTO.setWishlistID(wishId);
+
+        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO, false);
+
+        System.out.println("Nome wishlist: "+wishListProductDTO.getWishlistDTO().getName()+"\nNome prodotto: "+wishListProductDTO.getProductDTO().getName());
+        if(wishListProductDTO==null)
+            return false;
+
+        return wishlistProductService.deleteProductFromWishlist(wishListProductDTO);
+    }
+
+    @Override
+    public boolean deleteProductsFromWishList(String username, UUID wishlistId) {
+        WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistId, username);
+
+        if(wishlistDTO==null)
+            return false;
+
+        return wishlistProductService.deleteAllProductsFromWishlist(wishlistDTO);
+    }
+
+    @Override // Elimina l'intera wishlist dell'utente assieme a tutti i prodotti in essa contenuti
+    public boolean deleteWishlist(String username, UUID wishlistID){
+        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
+
+        if(wishlistDTO==null)
+            return false;
+
+        return wishlistProductService.deleteAllProductsFromWishlist(wishlistDTO) && wishlistService.deleteWishlist(wishlistID);
+    }
+
+
+
+    //Metodi di servizio
+
+    private WishProductDTO getWishProd(WishlistDTO wishlist) {
+        List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlist);
 
         if(wishListProductDTOS == null || wishListProductDTOS.isEmpty())
             return null;
@@ -638,64 +711,10 @@ public class GeneralServiceImpl implements GeneralService {
         }
 
         wishProductDTO.setSingleWishListProductDTOS(singleWishListProductDTOS);
-        wishProductDTO.setVisibility(wishlistDTO.getVisibility());
+        wishProductDTO.setVisibility(wishlist.getVisibility());
 
         return wishProductDTO;
     }
-
-    @Override
-    @Transactional
-    public boolean addProductIntoWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
-
-        WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO);
-
-
-        if(wishListProductDTO==null)
-            return false;
-
-        return wishlistProductService.addOrUpdateWishlistProduct(wishListProductDTO);
-    }
-
-    @Override
-    @Transactional
-    public boolean deleteProductFromWishList(String username, UUID wishId, UUID productId) {
-        SendWishlistProductDTO sendWishlistProductDTO = new SendWishlistProductDTO();
-        sendWishlistProductDTO.setProductID(productId);
-        sendWishlistProductDTO.setWishlistID(wishId);
-
-        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO);
-
-        if(wishListProductDTO==null)
-            return false;
-
-        return wishlistProductService.deleteProductFromWishlist(wishListProductDTO);
-    }
-
-    @Override
-    @Transactional
-    public boolean deleteProductsFromWishList(String username, UUID wishlistId) {
-        WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistId, username);
-
-        if(wishlistDTO==null)
-            return false;
-
-        return wishlistProductService.deleteAllProductsFromWishlist(wishlistDTO);
-    }
-
-    @Transactional
-    @Override // Elimina l'intera wishlist dell'utente assieme a tutti i prodotti in essa contenuti
-    public boolean deleteWishlist(String username, UUID wishlistID){
-        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
-
-        if(wishlistDTO==null)
-            return false;
-
-        return wishlistProductService.deleteAllProductsFromWishlist(wishlistDTO) && wishlistService.deleteWishlist(wishlistID);
-    }
-
-
-
-    //Metodi di servizio
 
     // Generatore di codici per gli ordini
     public static String generaCodice(int lunghezza) {
@@ -710,7 +729,13 @@ public class GeneralServiceImpl implements GeneralService {
         return codice.toString();
     }
 
-    private WishListProductDTO getWishListProductDTO(String username, SendWishlistProductDTO wishlistProductDTO) {
+    public double approximatedSecondDecimal(double total) {
+        BigDecimal bd = new BigDecimal(total);
+        bd = bd.setScale(2, RoundingMode.HALF_UP); // Arrotonda alla seconda cifra decimale
+        return bd.doubleValue();
+    }
+
+    private WishListProductDTO getWishListProductDTO(String username, SendWishlistProductDTO wishlistProductDTO, boolean add) {
         ProductDTO productDTO= productService.getProductById(wishlistProductDTO.getProductID());
 
         if(productDTO==null)
@@ -718,12 +743,15 @@ public class GeneralServiceImpl implements GeneralService {
 
         WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistProductDTO.getWishlistID(), username);
 
+        System.out.println(wishlistDTO.getName());
         if(wishlistDTO==null)
             return null;
 
-        if(wishlistProductService.thereIsProductInWishList(wishlistDTO, productDTO))
+        System.out.println("Prima controllo");
+        if(wishlistProductService.thereIsProductInWishList(wishlistDTO, productDTO) && add)
             return null;
 
+        System.out.println("Dopo controllo");
         WishListProductDTO wishListProductDTO= new WishListProductDTO();
 
         wishListProductDTO.setWishlistDTO(wishlistDTO);
@@ -757,6 +785,7 @@ public class GeneralServiceImpl implements GeneralService {
         return result;
     }
 
+    @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackUser")
     private boolean checkAddress(UUID addressId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -809,7 +838,8 @@ public class GeneralServiceImpl implements GeneralService {
                 .toList();
     }
 
-    private boolean checkPayment(UUID cardId, double total) {
+    @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackUser")
+    private boolean checkPayment(UUID cardId, double total, boolean refund) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
@@ -817,7 +847,7 @@ public class GeneralServiceImpl implements GeneralService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Boolean> response = restTemplate.exchange(
-                "http://user-service/user-api/balance/"+cardId+"?total="+total,
+                "http://user-service/user-api/balance/"+cardId+"?total="+total+"&refund="+refund,
                 HttpMethod.POST,
                 entity,
                 Boolean.class
@@ -855,5 +885,16 @@ public class GeneralServiceImpl implements GeneralService {
             productSearchDTO.add(productSearchDTO1);
         }
         return productSearchDTO;
+    }
+
+    private boolean checkSize(String size) {
+        if(size==null)
+            return true;
+        List<String> sizes = List.of(new String[]{"XS", "S", "M", "L", "XL"});
+        return sizes.contains(size);
+    }
+
+    private boolean checkQuantity(int quantity) {
+        return quantity >= 0;
     }
 }

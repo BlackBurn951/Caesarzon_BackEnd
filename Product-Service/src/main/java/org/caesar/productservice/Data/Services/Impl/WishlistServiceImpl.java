@@ -1,8 +1,6 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +9,6 @@ import org.caesar.productservice.Data.Entities.Wishlist;
 import org.caesar.productservice.Data.Services.WishlistService;
 import org.caesar.productservice.Dto.BasicWishlistDTO;
 import org.caesar.productservice.Dto.ChangeVisibilityDTO;
-import org.caesar.productservice.Dto.ReviewDTO;
 import org.caesar.productservice.Dto.WishlistDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.*;
@@ -32,39 +29,40 @@ public class WishlistServiceImpl implements WishlistService {
     private final ModelMapper modelMapper;
     private final WishlistRepository wishlistRepository;
     private final RestTemplate restTemplate;
-    private final static String WISHLIS_SERVICE = "wishlistService";
 
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su wishlistService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
+    private final static String USER_SERVICE= "userService";
+
+    private List<BasicWishlistDTO> fallbackCircuitBreaker(Throwable e){
+        log.info("Servizio per l'invio delle notifiche non disponibile");
+        return null;
     }
 
-    //Metodo per creare una lista dei desideri per l'utente
-    @Override
-//    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=WISHLIS_SERVICE)
+
+
+    @Override  //Metodo per creare una lista dei desideri per l'utente
     public UUID addOrUpdateWishlist(WishlistDTO wishlistDTO, String username) {
         try {
             wishlistDTO.setUserUsername(username);
+
+            if(!checkName(wishlistDTO.getName()) || !checkVisibility(wishlistDTO.getVisibility()))
+                return null;
+
             Wishlist wishlistEntity = modelMapper.map(wishlistDTO, Wishlist.class);
             return wishlistRepository.save(wishlistEntity).getId();
         }
-        catch (RuntimeException | Error e) {
+        catch (Exception | Error e) {
             log.debug("Errore nella creazione lista desideri");
             return null;
         }
     }
 
 
-    //Metodo per prendere la lista dei desideri dell'utente
-    @Override
-//    @Retry(name=WISHLIS_SERVICE)
+    @Override  //Metodo per prendere la lista dei desideri dell'utente
     public WishlistDTO getWishlist(UUID id, String username) {
         return modelMapper.map(wishlistRepository.findWishlistByIdAndUserUsername(id, username), WishlistDTO.class);
     }
 
     @Override
-//    @Retry(name=WISHLIS_SERVICE)
     public List<WishlistDTO> getAllWishlist(UUID id, String username) {
         return wishlistRepository.findAllByIdAndUserUsername(id, username)
                 .stream()
@@ -73,7 +71,7 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-//    @Retry(name=WISHLIS_SERVICE)
+    @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     public List<BasicWishlistDTO> getAllWishlists(String ownerUsername, String accessUsername, int visibility) {
         String vs= "";
         switch (visibility) {
@@ -93,7 +91,7 @@ public class WishlistServiceImpl implements WishlistService {
                         .stream()
                         .map(a -> modelMapper.map(a, BasicWishlistDTO.class))
                         .toList();
-            } else if(visibility==1) { //Besties
+            } else if(visibility==1) { //Condivisa
                 //Caso in cui l'utente vuole accedere alle wishlist di un altro utente
                 HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
                 HttpHeaders headers = new HttpHeaders();
@@ -125,22 +123,18 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-//    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=WISHLIS_SERVICE)
     public boolean deleteWishlist(UUID id) {
         try {
             wishlistRepository.deleteById(id);
             log.debug("Lista desideri eliminata correttamente");
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della lista desideri");
             return false;
         }
     }
 
     @Override
-//    @CircuitBreaker(name= WISHLIS_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=WISHLIS_SERVICE)
     public boolean changeVisibility(String username, ChangeVisibilityDTO changeVisibilityDTO) {
         try{
             Wishlist wishlist = wishlistRepository.findWishlistByIdAndUserUsername(changeVisibilityDTO.getWishId(), username);
@@ -149,12 +143,28 @@ public class WishlistServiceImpl implements WishlistService {
                 case 0 -> wishlist.setVisibility("Pubblica");
                 case 1 -> wishlist.setVisibility("Condivisa");
                 case 2 -> wishlist.setVisibility("Privata");
+                default -> {
+                    return false;
+                }
             }
             wishlistRepository.save(wishlist);
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della lista desideri");
             return false;
         }
+    }
+
+
+    //METODI DI SERVIZIO
+    private boolean checkName(String name) {
+        return !name.isEmpty() && name.length()<=50;
+    }
+
+    private boolean checkVisibility(String visibility) {
+        String[] vis= {"Pubblica", "Condivisa", "Privata"};
+
+        return !visibility.isEmpty() &&
+                (visibility.equals(vis[0]) || visibility.equals(vis[1]) || visibility.equals(vis[2]));
     }
 }

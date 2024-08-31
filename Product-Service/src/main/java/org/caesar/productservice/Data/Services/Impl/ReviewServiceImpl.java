@@ -1,9 +1,7 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.caesar.productservice.Data.Dao.ProductRepository;
 import org.caesar.productservice.Data.Dao.ReviewRepository;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Entities.Review;
@@ -12,6 +10,7 @@ import org.caesar.productservice.Dto.AverageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.ReviewDTO;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -24,42 +23,42 @@ public class ReviewServiceImpl implements ReviewService {
 
     private final ModelMapper modelMapper;
     private final ReviewRepository reviewRepository;
-    private final static String REVIEW_SERVICE = "reviewService";
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e) {
-        log.debug("Circuit breaker su reviewService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
 
     @Override
-//    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= REVIEW_SERVICE)
-    public boolean addReview(ReviewDTO reviewDTO, ProductDTO productDTO) {
+    public String addReview(ReviewDTO reviewDTO, ProductDTO productDTO) {
         try {
-            Review review = reviewRepository.findById(reviewDTO.getId()).orElse(null);
+            Review review = new Review();
 
-            if(review == null)
-                review = new Review();
-
-
+            if(reviewDTO.getId()==null && reviewRepository.findReviewByUsernameAndProduct(reviewDTO.getUsername(),modelMapper.map(productDTO, Product.class))!=null)
+                return "Limite recensioni raggiunto...";
+            System.out.println("Stampa 2");
             review.setProduct(modelMapper.map(productDTO, Product.class));
             review.setDate(LocalDate.now());
-            review.setText(reviewDTO.getText());
-            review.setEvaluation(reviewDTO.getEvaluation());
-            review.setUsername(reviewDTO.getUsername());
 
+            if(checkText(reviewDTO.getText()) && checkEvaluation(reviewDTO.getEvaluation())) {  //Convalida dei dati in arrivo
+                review.setText(reviewDTO.getText());
+                review.setEvaluation(reviewDTO.getEvaluation());
+            }
+            else
+                return "Problemi nell'aggiunta della recensione...";
+
+            System.out.println("Stampa 3");
+            review.setUsername(reviewDTO.getUsername());
+            review.setOnChanges(false);
+
+
+            System.out.println("Dati della recensione inviati: "+reviewDTO.getText()+"\n"+reviewDTO.getEvaluation()+"\n"+reviewDTO.getUsername());
             reviewRepository.save(review);
 
-            return true;
-        } catch (RuntimeException | Error e) {
+            return "Recensione aggiunta con successo!";
+        } catch (Exception | Error e) {
             log.debug("Errore nell'inserimento della recensione");
-            return false;
+            return "Problemi nell'aggiunta della recensione...";
         }
     }
 
     @Override
-//    @Retry(name= REVIEW_SERVICE)
     public Review getReviewById(UUID reviewID) {
         return reviewRepository.findById(reviewID).orElse(null);
     }
@@ -81,31 +80,50 @@ public class ReviewServiceImpl implements ReviewService {
 
 
     @Override
-    //    @Retry(name= REVIEW_SERVICE)
-    public List<ReviewDTO> getReviewsByProduct(ProductDTO productDTO) {
-        return reviewRepository.findAllByproduct(modelMapper.map(productDTO, Product.class)).stream()
+    public List<ReviewDTO> getReviewsByProduct(ProductDTO productDTO, int str) {
+        return reviewRepository.findAllByproduct(modelMapper.map(productDTO, Product.class), PageRequest.of(str, 10)).stream()
                 .map(a -> modelMapper.map(a, ReviewDTO.class))
                 .toList();
     }
 
 
     @Override
-//    @CircuitBreaker(name= REVIEW_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name= REVIEW_SERVICE)
-    public boolean deleteReview(UUID id) {
+    public boolean validateDeleteReviews(String username, boolean rollback) {
         try {
-            reviewRepository.deleteById(id);
+            List<Review> reviews= reviewRepository.findAllByUsername(username);
 
+            if(reviews==null || reviews.isEmpty())
+                return false;
+
+            for(Review review : reviews) {
+                review.setOnChanges(!rollback);
+            }
+
+            reviewRepository.saveAll(reviews);
             return true;
-        } catch (Exception e) {
+        } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della recensione");
             return false;
         }
     }
 
+    @Override
+    public List<ReviewDTO> completeDeleteReviews(String username) {
+        try {
+            List<Review> reviews= reviewRepository.findAllByUsername(username);
+
+            reviewRepository.deleteAllByUsername(username);
+
+            return reviews.stream()
+                    .map(review -> modelMapper.map(review, ReviewDTO.class)).toList();
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della recensione");
+            return null;
+        }
+    }
+
 
     @Override
-//    @Retry(name= REVIEW_SERVICE)
     public AverageDTO getReviewAverage(ProductDTO productDTO) {
         List<Review> reviewDTOS = reviewRepository.findByproduct(modelMapper.map(productDTO, Product.class));
 
@@ -135,4 +153,13 @@ public class ReviewServiceImpl implements ReviewService {
         return result==null || result.isEmpty()? 0: result.size();
     }
 
+
+    //METODI DI SERVIZIO
+    private boolean checkText(String text) {
+        return !text.isEmpty() && text.length()<=256;
+    }
+
+    private boolean checkEvaluation(int evaluation) {
+        return evaluation>=1 && evaluation<=5;
+    }
 }

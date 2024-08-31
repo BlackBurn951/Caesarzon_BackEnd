@@ -16,7 +16,6 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Lob
     @Column(name= "file")
     private byte[] file;
 

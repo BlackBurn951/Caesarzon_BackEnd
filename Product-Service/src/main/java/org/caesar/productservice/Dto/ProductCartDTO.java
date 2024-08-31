@@ -9,10 +9,10 @@ import java.util.UUID;
 @Setter
 public class ProductCartDTO {
     private UUID id;
-//    private image
     private double total;
     private int quantity;
     private String name;
     private String size;
     private double discountTotal;
+    private boolean buyLater;
 }

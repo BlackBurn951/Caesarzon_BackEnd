@@ -14,7 +14,9 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -64,7 +66,7 @@ public class AdminRepositoryImpl implements AdminRepository {
 
     @Override
     @Transactional
-    public int banUser(String username, boolean ban) {  // 0 -> operazione riuscita 1 -> operazione già svolta in passato 2 -> errore
+    public int validateBanUser(String username, boolean ban, boolean rollback) {  // 0 -> operazione riuscita 1 -> operazione già svolta in passato 2 -> errore
         RealmResource realmResource = keycloak.realm("CaesarRealm");
         try {
             //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
@@ -72,14 +74,47 @@ public class AdminRepositoryImpl implements AdminRepository {
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
             UserRepresentation user = userResource.toRepresentation();
 
+            if(userKeycloak.isOnChanges()) {
+                if(rollback) {
+                    user.getAttributes().get("onChanges").set(0, "false");
+                    user.setEnabled(!ban);
+
+                    userResource.update(user);
+                }
+                return 2;
+            }
+
             if((!user.isEnabled() && ban) || (user.isEnabled() && !ban))
                 return 1;
+
             user.setEnabled(!ban);
+            user.getAttributes().get("onChanges").set(0, "true");
+
             userResource.update(user);
             return 0;
         } catch (Exception | Error e) {
             log.debug("Errore nel ban dell'user");
             return  2;
+        }
+    }
+
+    @Override
+    @Transactional
+    public boolean completeBanUser(String username) {
+        RealmResource realmResource = keycloak.realm("CaesarRealm");
+        try {
+            //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
+            User userKeycloak = findUserByUsername(username);
+            UserResource userResource = realmResource.users().get(userKeycloak.getId());
+            UserRepresentation user = userResource.toRepresentation();
+
+            user.getAttributes().get("onChanges").set(0, "false");
+
+            userResource.update(user);
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nel ban dell'user");
+            return  false;
         }
     }
 
@@ -102,7 +137,6 @@ public class AdminRepositoryImpl implements AdminRepository {
         String clientId = clientRepresentation.getId();
 
         for (UserRepresentation userRepresentation : users) {
-
             if (!userRepresentation.isEnabled()) {
                 // Ottieni i ruoli del client per l'utente
                 List<RoleRepresentation> clientRoles = realmResource.users().get(userRepresentation.getId())
@@ -115,15 +149,17 @@ public class AdminRepositoryImpl implements AdminRepository {
                         .anyMatch(role -> role.getName().equals("basic"));
 
                 if (hasBasicRole) {
+                    if(userRepresentation.getAttributes().get("onChanges").getFirst().equals("true"))
+                        continue;
+
                     User user = new User();
                     user.setId(userRepresentation.getId());
                     user.setFirstName(userRepresentation.getFirstName());
                     user.setLastName(userRepresentation.getLastName());
                     user.setUsername(userRepresentation.getUsername());
                     user.setEmail(userRepresentation.getEmail());
-                    if (userRepresentation.getAttributes() != null) {
-                        user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
-                    }
+                    user.setPhoneNumber(String.valueOf(userRepresentation.getAttributes().get("phoneNumber")));
+
                     result.add(user);
                 }
             }
@@ -145,22 +181,26 @@ public class AdminRepositoryImpl implements AdminRepository {
             //Ricerca del singolo utente attraverso username
             usersResource = realmResource.users().searchByUsername(field, true);
 
+            UserRepresentation userRepresentation = usersResource.getFirst();
+            if(userRepresentation==null)
+                return null;
+
             //Creazione dell'ggetto entity
             User user = new User();
 
-            user.setId(usersResource.getFirst().getId());
-            user.setFirstName(usersResource.getFirst().getFirstName());
-            user.setLastName(usersResource.getFirst().getLastName());
-            user.setUsername(usersResource.getFirst().getUsername());
-            user.setEmail(usersResource.getFirst().getEmail());
+            user.setId(userRepresentation.getId());
+            user.setFirstName(userRepresentation.getFirstName());
+            user.setLastName(userRepresentation.getLastName());
+            user.setUsername(userRepresentation.getUsername());
+            user.setEmail(userRepresentation.getEmail());
 
-            //Verifica ed eventuale aggiunta del campo inerente al numero di telefono
-            if (usersResource.getFirst().getAttributes() != null)
-                user.setPhoneNumber(usersResource.getFirst().getAttributes().get("phoneNumber").getFirst());
+            user.setPhoneNumber(userRepresentation.getAttributes().get("phoneNumber").getFirst());
+            user.setOtp(userRepresentation.getAttributes().get("otp").getFirst());
+            user.setOnChanges(Boolean.valueOf(userRepresentation.getAttributes().get("onChanges").getFirst()));
 
             return user;
         } catch (Exception | Error e) {
-            log.debug("Errore nella costruzione dell'user da keycloak");
+            log.debug(e.getMessage());
             return null;
         }
     }

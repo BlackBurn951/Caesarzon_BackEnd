@@ -37,7 +37,7 @@ public class SearchController {
     }
 
     @GetMapping("/users/follower")
-    public ResponseEntity<List<UserSearchDTO>> getAllUsearForFollower(@RequestParam("str") int start) {
+    public ResponseEntity<List<UserSearchDTO>> getAllUsearForFollower(@RequestParam("str") int start) {  //start indica l'inizio da dove prendere +20 (non come il pagable)
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         List<UserSearchDTO> result= generalService.getAllUserForFollower(username, start);
@@ -52,5 +52,4 @@ public class SearchController {
     public List<String> getUsersByUsernames(@PathVariable String username) {
         return userService.getUsersByUsername(username);
     }
-
 }

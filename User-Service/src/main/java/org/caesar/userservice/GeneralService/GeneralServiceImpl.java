@@ -1,22 +1,29 @@
 package org.caesar.userservice.GeneralService;
 
-
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.*;
 import org.caesar.userservice.Dto.*;
+import org.caesar.userservice.Sagas.BanOrchestrator;
 import org.caesar.userservice.Utils.Utils;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.security.SecureRandom;
-import java.util.List;
-import java.util.UUID;
-import java.util.Vector;
+import java.util.*;
 
 
 @Service
@@ -37,19 +44,22 @@ public class GeneralServiceImpl implements GeneralService {
     private final FollowerService followerService;
 
     private final Utils utils;
-    private final static String GENERAL_SERVICE= "generalService";
+    private final RestTemplate restTemplate;
+    private final BanOrchestrator banOrchestrator;
+
+    private final static String DELETE_SERVICE = "deleteService";
 
 
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su address service da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
+    private boolean fallbackCircuitBreaker(Throwable e){
+        log.info("Servizio per l'elimazione non disponibile");
+        return false;
     }
+
+
 
     //Metodo per agggiungere un utente
     @Override
     @Transactional
-//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=GENERAL_SERVICE)
     public boolean addUser(UserRegistrationDTO user) {
         if(userService.saveUser(user)) {
             try {
@@ -67,8 +77,6 @@ public class GeneralServiceImpl implements GeneralService {
     //Metodo per aggiungere un indirizzo
     @Override
     @Transactional
-//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=GENERAL_SERVICE)
     public int addAddress(String userUsername, AddressDTO addressDTO) {
         List<UserAddressDTO> addresses= userAddressService.getUserAddresses(userUsername);
 
@@ -88,8 +96,6 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional
-//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=GENERAL_SERVICE)
     public int addCard(String userUsername, CardDTO cardDTO) {
         List<UserCardDTO> cards= userCardService.getUserCards(userUsername);
 
@@ -124,7 +130,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         for (UserDTO userDTO : users) {
             userFindDTO= new UserFindDTO();
-
+            userFindDTO.setProfilePic(profilePicService.getUserImage(userDTO.getUsername()));
             userFindDTO.setUsername(userDTO.getUsername());
             userFindDTOs.add(userFindDTO);
         }
@@ -146,6 +152,10 @@ public class GeneralServiceImpl implements GeneralService {
         for(FollowerDTO followerDTO: followers) {
             userSearchDTO= new UserSearchDTO();
             userSearchDTO.setUsername(followerDTO.getUserUsername2());
+            if(followerDTO.isFriend())
+                userSearchDTO.setFriend(true);
+            userSearchDTO.setFollower(true);
+
             userSearch.add(userSearchDTO);
         }
 
@@ -170,7 +180,7 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public List<UserSearchDTO> getAllUserForFollower(String username, int start) {
+    public List<UserSearchDTO> getAllUserForFollower(String username, int start) {  //Metodo per scaricare tutti gli utenti e sapere se sono amici o follower
         List<UserDTO> user= userService.getUsers(start);
 
         if(user == null || user.isEmpty())
@@ -180,6 +190,8 @@ public class GeneralServiceImpl implements GeneralService {
         UserSearchDTO userSearchDTO;
 
         for(UserDTO userDTO: user) {
+            if(userDTO.getUsername().equals(username))
+                continue;
             userSearchDTO= new UserSearchDTO();
 
             FollowerDTO followerDTO= followerService.getFollower(username, userDTO.getUsername());
@@ -201,43 +213,46 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public boolean checkAddress(String username, UUID addressId) {
-        AddressDTO addressDTO= addressService.getAddress(addressId);
-
-        return addressDTO!=null && userAddressService.checkAddress(username, addressDTO);
+        return userAddressService.checkAddress(username, addressId);
     }
 
     @Override
-    @Transactional
-//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=GENERAL_SERVICE)
-    public boolean pay(String username, UUID cardId, double total) {
-        CardDTO cardDTO= cardService.getCard(cardId);
+    public boolean pay(String username, UUID cardId, double total, boolean refund) {
+        if(userCardService.checkCard(username, cardId)) {
+            CardDTO cardDTO= cardService.getCard(userCardService.getUserCard(cardId).getCardId());
 
-        if(userCardService.checkCard(username, cardDTO)) {
             double balance= cardDTO.getBalance();
 
-            if(balance<total)
-                return false;
+            if(refund)
+                balance+= total;
+            else {
+                if(balance<total)
+                    return false;
+                balance-=total;
+            }
+            cardDTO.setBalance(balance);
 
-            cardDTO.setBalance(balance-total);
             return cardService.addCard(cardDTO)!=null;
         }
         return false;
     }
 
     @Override
-    public boolean recoveryPassword(String username) {
+    public String recoveryPassword(String username) {
         UserDTO user= userService.getUser(username);
 
         if(user==null)
-            return false;
+            return "Utente non trovato...";
 
         String otp= generateOTP();
         if(utils.emailSender(username, user.getEmail(), otp)) {
             user.setOtp(otp);
-            return userService.updateUser(user);
+
+            if(userService.updateUser(user))
+                return "Inserisci l'otp ricevuto all'email "+user.getEmail();
+            return "Problemi nell'invio dell'otp...";
         }
-        return false;
+        return "Problemi nell'invio dell'otp...";
     }
 
 
@@ -281,87 +296,87 @@ public class GeneralServiceImpl implements GeneralService {
     //Metodi di cancellazione
     @Override
     @Transactional
-//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=GENERAL_SERVICE)
-    public boolean deleteUser(String username) {  //FIXME DA CONTROLLARE COSA TORNA IN CASO DI LISTA VUOTA SE NULL O EMPTY
-        try {
-            //Chiamate per prendere le tuple di relazione con gli indirizzi e le carte
-            List<UserAddressDTO> userAddresses = userAddressService.getUserAddresses(username);
-            List<UserCardDTO> userCards = userCardService.getUserCards(username);
+    @CircuitBreaker(name= DELETE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
+    public boolean deleteUser(String username) {
+        //Chiamate per prendere le tuple di relazione con gli indirizzi e le carte
+        List<UserAddressDTO> userAddresses = userAddressService.getUserAddresses(username);
+        List<UserCardDTO> userCards = userCardService.getUserCards(username);
 
 
-            boolean userDeleted = userService.deleteUser(username);
+        boolean userDeleted = userService.deleteUser(username);
 
-            //Controllo dei casi in cui l'utente non abbia indirizzi e/o carte
-            if(userAddresses!=null && !userAddresses.isEmpty() && userCards!=null && !userCards.isEmpty()) {
-                boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
-                boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
+        //Controllo dei casi in cui l'utente non abbia indirizzi e/o carte
+        if(userAddresses!=null && !userAddresses.isEmpty() && userCards!=null && !userCards.isEmpty()) {
+            boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
+            boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
 
-                boolean userCardsDeleted = userCardService.deleteUserCards(username);
-                boolean cardDeleted = cardService.deleteUserCards(userCards);
+            boolean userCardsDeleted = userCardService.deleteUserCards(username);
+            boolean cardDeleted = cardService.deleteUserCards(userCards);
 
-                return userDeleted && addressesDeleted && userAddressesDeleted && cardDeleted && userCardsDeleted;
-            } else if(userAddresses!=null && !userAddresses.isEmpty() && (userCards==null || userCards.isEmpty())) {
-                boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
-                boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
+            return userDeleted && addressesDeleted && userAddressesDeleted && cardDeleted && userCardsDeleted;
+        } else if(userAddresses!=null && !userAddresses.isEmpty() && (userCards==null || userCards.isEmpty())) {
+            boolean userAddressesDeleted = userAddressService.deleteUserAddresses(username);
+            boolean addressesDeleted = addressService.deleteAllUserAddresses(userAddresses);
 
-                return userDeleted && userAddressesDeleted && addressesDeleted;
-            } else if((userAddresses==null || userAddresses.isEmpty()) && (userCards==null || userCards.isEmpty())) {
-                boolean userCardsDeleted = userCardService.deleteUserCards(username);
-                boolean cardDeleted = cardService.deleteUserCards(userCards);
+            return userDeleted && userAddressesDeleted && addressesDeleted;
+        } else if((userAddresses==null || userAddresses.isEmpty()) && (userCards==null || userCards.isEmpty())) {
+            boolean userCardsDeleted = userCardService.deleteUserCards(username);
+            boolean cardDeleted = cardService.deleteUserCards(userCards);
 
-                return userDeleted && userCardsDeleted && cardDeleted;
-            }
-
-            return userDeleted;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione dell'utente e dei suoi dati");
-            return false;
+            return userDeleted && userCardsDeleted && cardDeleted;
         }
+
+        return userDeleted;
     }
 
     @Override
     @Transactional
-//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=GENERAL_SERVICE)
     public boolean deleteUserAddress(UUID id) {
-        try {
-            //Presa della tupla di relazione dell'indirizzo richiesto
-            UserAddressDTO userAddressDTO= userAddressService.getUserAddress(id);
+        //Presa della tupla di relazione dell'indirizzo richiesto
+        UserAddressDTO userAddressDTO= userAddressService.getUserAddress(id);
 
-            //Controllo che la tupla di relazione esista e eliminazione dell'indirizzo associato più controllo della riuscita dell'operazione
-            if(userAddressDTO!=null && userAddressService.deleteUserAddress(userAddressDTO))
-                return addressService.deleteAddress(userAddressDTO.getAddressId());
+        //Controllo che la tupla di relazione esista e eliminazione dell'indirizzo associato più controllo della riuscita dell'operazione
+        if(userAddressDTO!=null && userAddressService.deleteUserAddress(userAddressDTO))
+            return addressService.deleteAddress(userAddressDTO.getAddressId());
 
-            return false;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione dell'indirizzo dell'utente");
-            return false;
-        }
+        return false;
     }
 
     @Override
     @Transactional
-//    @CircuitBreaker(name=GENERAL_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=GENERAL_SERVICE)
     public boolean deleteUserCard(UUID id) {
+        //Presa della tupla di relazione della carta richiesta
+        UserCardDTO userCardDTO= userCardService.getUserCard(id);
 
-        try {
-            //Presa della tupla di relazione della carta richiesta
-            UserCardDTO userCardDTO= userCardService.getUserCard(id);
+        //Controllo che la tupla di relazione esista e eliminazione della carta associata più controllo della riuscita dell'operazione
+        if(userCardDTO!=null && userCardService.deleteUserCard(userCardDTO))
+            return cardService.deleteCard(userCardDTO.getCardId());
 
-            //Controllo che la tupla di relazione esista e eliminazione della carta associata più controllo della riuscita dell'operazione
-            if(userCardDTO!=null && userCardService.deleteUserCard(userCardDTO))
-                return cardService.deleteCard(userCardDTO.getCardId());
-
-            return false;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della carta dell'utente");
-            return false;
-        }
+        return false;
     }
 
 
+    @Override
+    public int banUser(BanDTO banDTO) {
+        int result= adminService.validateBan(banDTO);
+        if(result==0) {
+            if(banOrchestrator.processBan(banDTO))
+                return 0;
+            return 2;
+        }
+        return result;
+    }
+
+    @Override
+    public int sbanUser(SbanDTO sbanDTO) {
+        int result= adminService.validateSbanUser(sbanDTO.getUsername());
+        if(result==0) {
+            if(banOrchestrator.processSban(sbanDTO.getUsername()))
+                return 0;
+            return 2;
+        }
+        return result;
+    }
 
     //Metodi di servizio
 

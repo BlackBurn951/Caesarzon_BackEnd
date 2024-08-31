@@ -17,6 +17,6 @@ public interface UserAddressRepository extends JpaRepository<UserAddress, UUID> 
 
     List<UserAddress> findAllByUserUsername(String userUsername);
 
-    UserAddress findByUserUsernameAndAddress(String username, Address address);
+    UserAddress findByUserUsernameAndId(String username, UUID id);
 
 }

@@ -17,5 +17,5 @@ public interface UserCardRepository extends JpaRepository<UserCard, UUID> {
 
     List<UserCard> findAllByUserUsername(String userId);
 
-    UserCard findByUserUsernameAndCard(String userId, Card card);
+    UserCard findByUserUsernameAndId(String userId, UUID id);
 }

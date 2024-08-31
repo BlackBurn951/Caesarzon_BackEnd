@@ -1,9 +1,5 @@
 package org.caesar.productservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ImageRepository;
@@ -12,6 +8,7 @@ import org.caesar.productservice.Data.Entities.Image;
 import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.ImageService;
 import org.caesar.productservice.Dto.ImageDTO;
+import org.caesar.productservice.Dto.ProductDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,84 +26,85 @@ public class ImageServiceImpl implements ImageService {
 
     private final ModelMapper modelMapper;
     private final ImageRepository imageRepository;
-    private final ProductRepository productRepository;
-    private final static String IMAGE_SERVICE = "imageService";
 
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su imageService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
-    //fare modifica dell'immagine con eventuale eliminazione delle singole immagini
-    @Override
-//    @CircuitBreaker(name=IMAGE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=IMAGE_SERVICE)
-    public boolean addOrUpdateImage(UUID productID, MultipartFile file) {
-
-        if(file == null){
-            return false;
-        }
-
-        try {
-                Product product = productRepository.getReferenceById(productID);
-                Image imageEntity = new Image();
-
-                imageEntity.setFile(file.getBytes());
-                imageEntity.setProduct(product);
-
-                imageRepository.save(imageEntity);
-
-            return true;
-
-        }catch (RuntimeException | Error | IOException e) {
-            log.debug("Errore nell'inserimento dell'immagine");
-            return false;
-        }
-    }
 
     @Override
-//    @Retry(name=IMAGE_SERVICE)
-    public ImageDTO getImage(Product product) {
+    public byte[] getImage(ProductDTO prod) {
+        try{
+            Image img= imageRepository.findByProduct(modelMapper.map(prod, Product.class));
 
-        Image image = imageRepository.findImageByProduct(product);
-        if(image == null){
+            if(img==null)
+                return null;
+
+            return img.getFile();
+        } catch (Exception | Error e) {
             return null;
         }
-        return modelMapper.map(image, ImageDTO.class);
     }
 
     @Override
-//    @Retry(name=IMAGE_SERVICE)
-    public List<Image> getAllProductImages(Product product) {
-        List<Image> productImages = new ArrayList<>();
-        for(Image image : imageRepository.findAll())
-            if(image.getProduct().equals(product))
-                productImages.add(image);
-        return productImages;
+    public ImageDTO findImage(ProductDTO product){
+        try{
+            Image img= imageRepository.findByProduct(modelMapper.map(product, Product.class));
+
+            if(img==null)
+                return null;
+
+            return modelMapper.map(img, ImageDTO.class);
+        } catch (Exception | Error e) {
+            return null;
+        }
     }
 
+    @Override
+    public boolean createImage(ProductDTO prod) {
+        try{
+//            if(prod==null)
+//                return false;
+//
+//
+//
+//            imageRepository.save(img);
+
+            return true;
+        } catch (Exception | Error e) {
+            return false;
+        }
+    }
 
     @Override
-    @Transactional
-//    @CircuitBreaker(name=IMAGE_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=IMAGE_SERVICE)
-    public boolean deleteImage(Product product) {
-        try {
-            List<Image> imagesToDelete = new ArrayList<>();
-            for(Image image : imageRepository.findAll()){
-                if(image.getProduct().equals(product)) {
-                    imagesToDelete.add(image);
-
-                }
-            }
-            if(!imagesToDelete.isEmpty()){
-                imageRepository.deleteAll(imagesToDelete);
+    public boolean updateImage(ImageDTO image, boolean isNew) {
+        try{
+            if(isNew) {
+                imageRepository.save(modelMapper.map(image, Image.class));
                 return true;
-            }else
+            }
+
+            Product prod= modelMapper.map(image.getProduct(), Product.class);
+            System.out.println(prod.getId()+" "+prod.getName());
+            Image img = imageRepository.findByProduct(prod);
+
+            System.out.println(img.getProduct().getName());
+            if(img==null)
                 return false;
 
-        } catch (Exception e) {
-            log.debug("Errore nella cancellazione della carta");
+            img.setFile(image.getFile());
+            imageRepository.save(img);
+
+            return true;
+        } catch (Exception | Error e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean deleteImage(ProductDTO product) {
+        try{
+            imageRepository.deleteByProduct(modelMapper.map(product, Product.class));
+
+            return true;
+        } catch (Exception | Error e) {
             return false;
         }
     }

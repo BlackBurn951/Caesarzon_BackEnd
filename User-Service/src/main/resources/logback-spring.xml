@@ -32,9 +32,6 @@
     <logger name="org.caesar.userservice.GeneralService" level="debug">
         <appender-ref ref="debugLog"/>
     </logger>   <!-- LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI DEBUG-->
-<!--    <logger name="org.caesar.userservice" level="warn">-->
-<!--        <appender-ref ref="infoLog"/>-->
-<!--    </logger>   &lt;!&ndash; LOGGER PER GESTIRE IL LOGGING DEL MICROSERVIZIO A LIVELLO DI INFO&ndash;&gt;-->
 
 
     <!-- APPENDERS-->
@@ -49,20 +46,4 @@
             <Pattern>%d{dd:MM:yyyy ss:mm:hh} %yellow(%-5level) %blue(%logger{36}) - %msg %n</Pattern>
         </encoder>
     </appender>     <!-- APPENDER PER LIVELLO DEBUG DEL MICROSERVIZIO -->
-
-    <appender name="infoLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>src/main/resources/log-files/info-log.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <!-- rollover daily -->
-            <fileNamePattern>User-Service/src/main/resources/log-files/info-log-num-%i-%d{dd-MM-yy}.log</fileNamePattern>
-            <!-- each file should be at most 100MB, keep 60 days worth of history, but at most 20GB -->
-            <maxFileSize>50MB</maxFileSize>
-            <maxHistory>60</maxHistory>
-            <totalSizeCap>20GB</totalSizeCap>
-        </rollingPolicy>
-        <append>true</append>
-        <encoder>
-            <Pattern>%d{dd:MM:yyyy ss:mm:hh} %blue(%-5level) %yellow(%logger{36}) - %msg %n</Pattern>
-        </encoder>
-    </appender>     <!-- APPENDER PER LIVELLO INFO DEL MICROSERVIZIO -->
 </configuration>

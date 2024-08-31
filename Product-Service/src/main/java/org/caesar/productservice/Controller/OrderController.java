@@ -1,18 +1,16 @@
 package org.caesar.productservice.Controller;
 
-import com.paypal.api.payments.Payment;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Services.OrderService;
 import org.caesar.productservice.Data.Services.PayPalService;
 import org.caesar.productservice.Data.Services.ProductOrderService;
-import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
-import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
-import org.caesar.productservice.Dto.DTOOrder.PayPalPurchaseDTO;
-import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
+import org.caesar.productservice.Dto.ChangeCartDTO;
+import org.caesar.productservice.Dto.DTOOrder.*;
 import org.caesar.productservice.Dto.ProductCartDTO;
 import org.caesar.productservice.Dto.SendProductOrderDTO;
+import org.caesar.productservice.Dto.RefundDTO;
 import org.caesar.productservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +31,6 @@ public class OrderController {
     private final ProductOrderService productOrderService;
     private final OrderService orderService;
     private final PayPalService payPalService;
-
 
     //Metodi per la gestione del carrello
     @GetMapping("/cart")
@@ -59,10 +56,10 @@ public class OrderController {
     }
 
     @PutMapping("/cart/product/{id}")  //Metodo per il salva più tardi e la modifica della quantità del singolo prodotto
-    public ResponseEntity<String> changeCart(@PathVariable UUID id, @RequestParam(value= "quantity", required = false) Integer quantity, @RequestParam(value= "size", required = false) String size, @RequestParam("action") int action) {
+    public ResponseEntity<String> changeCart(@PathVariable UUID id , @RequestParam("action") int action, @RequestBody ChangeCartDTO changeCartDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        boolean result= action==0? generalService.saveLater(username, id): generalService.changeQuantity(username, id, Objects.requireNonNullElse(quantity, -1), size);
+        boolean result= action==0? generalService.saveLater(username, id): generalService.changeQuantity(username, id, changeCartDTO);
         if(result)
             return new ResponseEntity<>("Ordine modificato con successo!", HttpStatus.OK);
         else
@@ -91,7 +88,8 @@ public class OrderController {
     }
 
 
-    @GetMapping("/purchases") // Metodo per ottenere tutti gli ordini di un utente
+
+    @GetMapping("/orders") // Metodo per ottenere tutti gli ordini di un utente
     public ResponseEntity<List<OrderDTO>> getOrders(){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
@@ -102,17 +100,40 @@ public class OrderController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/purchase/{id}/products")
+    @GetMapping("/orders/{username}") // Metodo per ottenere tutti gli ordini di un utente
+    public ResponseEntity<List<OrderDTO>> getUserOrders(@PathVariable String username){
+
+        List<OrderDTO> orders = orderService.getOrders(username);
+        if(!orders.isEmpty())
+            return new ResponseEntity<>(orders, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
+    @GetMapping("/order/products/{id}/{username}")
+    public ResponseEntity<List<ProductCartDTO>> getUserProductsInCart(@PathVariable UUID id, @PathVariable String username) {
+        List<ProductCartDTO> result= generalService.getOrder(username, id);
+
+        if(result!=null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
+
+    @GetMapping("/order/products/{id}")
     public ResponseEntity<List<ProductCartDTO>> getProductsInCart(@PathVariable UUID id) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         List<ProductCartDTO> result= generalService.getOrder(username, id);
 
-        if(result==null)
+        if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
+
+
 
     @PostMapping("/pre-order")  //Controllo ed eventuale messa da parte della disponibilità
     public ResponseEntity<List<UnavailableDTO>> checkAvailability(@RequestBody List<UUID> productIds) {
@@ -138,7 +159,7 @@ public class OrderController {
             return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @GetMapping("/success")
+    @PostMapping("/success")
     public ResponseEntity<String> successPay(@RequestBody PayPalPurchaseDTO payPalPurchaseDTO) {
 
         if(!payPalService.executePayment(payPalPurchaseDTO.getPaymentId(), payPalPurchaseDTO.getPayerId()).getState().equals("approved"))
@@ -153,22 +174,28 @@ public class OrderController {
             return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @PutMapping("/purchase/{purchaseId}")  //Metodo per effettuare il reso
-    public ResponseEntity<String> updateOrder(@PathVariable UUID purchaseId) {
+    @PutMapping("/refund")  //Metodo per effettuare il reso
+    public ResponseEntity<String> updateUserOrder(@RequestBody RefundDTO refundDTO) {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
-        if(generalService.updateOrder(username, purchaseId))
-            return new ResponseEntity<>("Ordine creato con successo!", HttpStatus.OK);
+        if(generalService.updateOrder(username, refundDTO.getPurchaseId()))
+            return new ResponseEntity<>("Reso inviato con successo!", HttpStatus.OK);
         else
-            return new ResponseEntity<>("Errore nella creazione dell'ordine...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Errore nell'invio del reso'...", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+
+    @PutMapping("/refund/{username}")  //Metodo per effettuare il reso
+    public ResponseEntity<String> updateOrder(@PathVariable String username, @RequestBody RefundDTO refundDTO) {
+        if(generalService.updateOrder(username, refundDTO.getPurchaseId()))
+            return new ResponseEntity<>("Reso inviato con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nell'invio del reso'...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     @PutMapping("/orders/notify")
     public ResponseEntity<String> updateOrderNotify(){
-        if(generalService.updateNotifyOrder())
+        if(orderService.updateNotifyOrder())
             return new ResponseEntity<>("Notifiche aggiornate con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nell'aggiornamento delle notifiche'...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-
 }

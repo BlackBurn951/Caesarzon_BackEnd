@@ -9,7 +9,8 @@ import java.util.UUID;
 @Setter
 public class WishListProductDTO {
 
-    private UUID Id;
+    private UUID id;
     private WishlistDTO wishlistDTO;
     private ProductDTO productDTO;
+    private boolean onDeleting;
 }

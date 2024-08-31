@@ -28,7 +28,6 @@ public class UserDataController {
     private final ProfilePicService profilePicService;
     private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
-    private final Utils utils;
 
 
     //End-point per manipolare i dati anagrafici dell'utente
@@ -101,9 +100,10 @@ public class UserDataController {
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         if(recovery) {
-            if(generalService.recoveryPassword(passwordChangeDTO.getUsername()))
-                return new ResponseEntity<>("Invio otp avvenuto con successo!", HttpStatus.OK);
-            return new ResponseEntity<>("Problemi nell'invio dell'otp...", HttpStatus.INTERNAL_SERVER_ERROR);
+            String result= generalService.recoveryPassword(passwordChangeDTO.getUsername());
+            if(result.endsWith("."))
+                return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } else {
             if(userService.changePassword(passwordChangeDTO, username))
                 return new ResponseEntity<>("Password cambiata", HttpStatus.OK);
@@ -142,6 +142,15 @@ public class UserDataController {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
+        if(profilePicService.saveImage(username, file, false))
+            return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping(value = "/image/admin/{username}")
+    public ResponseEntity<String> uploadImageAdmin(@RequestParam("file") MultipartFile file, @PathVariable String username){
+        //Prendendo l'username dell'utente che ha fatto la chiamata
         if(profilePicService.saveImage(username, file, false))
             return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
         else

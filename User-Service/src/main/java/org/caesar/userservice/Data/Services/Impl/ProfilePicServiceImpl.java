@@ -18,41 +18,35 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProfilePicServiceImpl implements ProfilePicService {
 
     private final ProfilePicRepository profilePicRepository;
-    private final static String PROFILEPIC_SERVICE = "profilePicService";
-
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su profilePicService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
     //Salva l'immagine dell'utente
     @Override
-//    @CircuitBreaker(name=PROFILEPIC_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=PROFILEPIC_SERVICE)
     public boolean saveImage(String username, MultipartFile file, boolean save) {
         try {
-            //Ricerca sul db della vecchia foto profilo per eseguire l'aggiornamento in caso ne aggiunge una nuova
-            if(save){
+            // Converti l'username in minuscolo
+            String lowercaseUsername = username.toLowerCase();
+
+            // Ricerca sul db della vecchia foto profilo per eseguire l'aggiornamento in caso ne aggiunge una nuova
+            if (save) {
                 ProfilePic profilePic1 = new ProfilePic();
-                profilePic1.setUserUsername(username);
+                profilePic1.setUserUsername(lowercaseUsername);
                 profilePic1.setProfilePic(file.getBytes());
                 profilePicRepository.save(profilePic1);
-            }else{
-                ProfilePic profilePic = profilePicRepository.findByUserUsername(username);
+            } else {
+                ProfilePic profilePic = profilePicRepository.findByUserUsername(lowercaseUsername);
                 profilePic.setProfilePic(file.getBytes());
                 profilePicRepository.save(profilePic);
             }
             return true;
-        }catch (Exception | Error e){
-            log.debug("Errore nel caricamento dell'imaggine");
+        } catch (Exception | Error e) {
+            log.debug("Errore nel caricamento dell'immagine");
             return false;
         }
     }
 
+
     //Metodo per restituire l'immagine dell'utente
     @Override
-//    @Retry(name=PROFILEPIC_SERVICE)
     public byte[] getUserImage(String username) {
         return profilePicRepository.findByUserUsername(username).getProfilePic();
     }

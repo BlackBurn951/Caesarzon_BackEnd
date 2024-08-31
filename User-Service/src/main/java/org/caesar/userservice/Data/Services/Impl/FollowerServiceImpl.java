@@ -1,8 +1,5 @@
 package org.caesar.userservice.Data.Services.Impl;
 
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Dao.FollowerRepository;
@@ -24,17 +21,9 @@ public class FollowerServiceImpl implements FollowerService {
 
     private final FollowerRepository followerRepository;
     private final ModelMapper modelMapper;
-    private final static String FOLLOWER_SERVICE = "followerService";
-
-
-    public String fallbackCircuitBreaker(CallNotPermittedException e){
-        log.debug("Circuit breaker su followerService da: {}", e.getCausingCircuitBreakerName());
-        return e.getMessage();
-    }
 
     //Rstituisce la lista di seguiti e amici dell'utente
     @Override
-//    @Retry(name=FOLLOWER_SERVICE)
     public List<FollowerDTO> getFollowersOrFriends(String username1, int flw, boolean friend) {
         List<Follower> followers;
 
@@ -56,19 +45,20 @@ public class FollowerServiceImpl implements FollowerService {
 
     @Override
     public FollowerDTO getFollower(String username1, String username2) {
-        return modelMapper.map(followerRepository.findByUserUsername1AndUserUsername2(username1, username2), FollowerDTO.class);
+        Follower follower= followerRepository.findByUserUsername1AndUserUsername2(username1, username2);
+
+        if(follower == null)
+            return null;
+        return modelMapper.map(follower, FollowerDTO.class);
     }
+
     //Aggiunta del follower
     @Override
-//    @CircuitBreaker(name=FOLLOWER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=FOLLOWER_SERVICE)
     public boolean addFollowers(String username1, List<UserSearchDTO> followers) {
         //Controllo che venga inviato almeno un dato
         if(followers==null || followers.isEmpty())
             return false;
         List<UserSearchDTO> followz = new Vector<>();
-
-        //TODO DA IMPLEMENTARE UPDATE CERCANDO PRIMKA LA TUPLA
 
         for(UserSearchDTO f: followers) {
             Follower follower  = followerRepository.findByUserUsername1AndUserUsername2(username1, f.getUsername());
@@ -88,6 +78,7 @@ public class FollowerServiceImpl implements FollowerService {
         for(UserSearchDTO follower : followz) {
             fwl.setUserUsername1(username1);
             fwl.setUserUsername2(follower.getUsername());
+            fwl.setFriend(follower.isFriend());
 
             savingFollower.add(modelMapper.map(fwl, Follower.class));
         }
@@ -102,25 +93,20 @@ public class FollowerServiceImpl implements FollowerService {
     }
 
     @Override
-//    @Retry(name=FOLLOWER_SERVICE)
     public boolean isFriend(String username, String friendUsername) {
         return followerRepository.findByUserUsername1AndUserUsername2(username, friendUsername)!=null;
     }
+
     //Eliminazione del singolo follower
     @Override
-//    @CircuitBreaker(name=FOLLOWER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=FOLLOWER_SERVICE)
-    public boolean deleteFollowers(String username1, List<String> followers) {
-        List<Follower> savedFollowers= new Vector<>();
-
-        //Ricerca e presa di tutti gli oggetti entity per eseguire la cancellazione
-        for(String follower : followers) {
-            savedFollowers.add(followerRepository.findByUserUsername1AndUserUsername2(username1, follower));
-        }
-
+    public boolean deleteFollowers(String username1, String usernameToDelete) {
         try{
-            followerRepository.deleteAll(savedFollowers);
+            Follower flw;
+            //Ricerca e presa di tutti gli oggetti entity per eseguire la cancellazione
+            flw= followerRepository.findByUserUsername1AndUserUsername2(username1, usernameToDelete);
 
+            if(flw!=null)
+                followerRepository.delete(flw);
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nell'eliminazione dei follower");
@@ -128,15 +114,12 @@ public class FollowerServiceImpl implements FollowerService {
         }
     }
 
-    //TODO VA CHIAMATA NEL GENERAL ALL'ELIMINAZIONE DELL'UTENTE
-
     //Metodo per la cancellazione di tutti i follower da tutte e due la parti
     @Override
-//    @CircuitBreaker(name=FOLLOWER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
-//    @Retry(name=FOLLOWER_SERVICE)
     public boolean deleteFollowersByUsername(String username){
         try{
-            followerRepository.deleteAllByUserUsername1OrUserUsername2(username, username);
+            followerRepository.deleteAllByUserUsername1(username);
+            followerRepository.deleteAllByUserUsername2(username);
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nell'eliminazione dei follower");

@@ -14,7 +14,7 @@ public class WishlistProduct {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID Id;
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name= "id_lista_desideri")
@@ -23,4 +23,7 @@ public class WishlistProduct {
     @ManyToOne
     @JoinColumn(name= "id_prodotto")
     private Product product;
+
+    @Column(name= "in_cancellazione")
+    private boolean onDeleting;
 }

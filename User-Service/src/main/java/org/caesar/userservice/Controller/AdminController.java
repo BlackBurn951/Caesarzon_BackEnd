@@ -6,9 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.caesar.userservice.Data.Services.AdminService;
 import org.caesar.userservice.Data.Services.ProfilePicService;
 import org.caesar.userservice.Data.Services.UserService;
-import org.caesar.userservice.Dto.BanDTO;
-import org.caesar.userservice.Dto.UserDTO;
-import org.caesar.userservice.Dto.UserSearchDTO;
+import org.caesar.userservice.Dto.*;
 import org.caesar.userservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/user-api")
@@ -28,8 +27,6 @@ public class AdminController {
     private final GeneralService generalService;
     private final ProfilePicService profilePicService;
     private final HttpServletRequest httpServletRequest;
-//    private final SagaOrchestrator sagaOrchestrator;
-//    private final SagaConsumer sagaConsumer;
 
 
     @GetMapping("/admins")
@@ -82,23 +79,63 @@ public class AdminController {
     }
 
 
+
+    //End-point per la gestione delle carte dell'utente
+    @GetMapping("/cards/{username}")
+    public List<UUID> getCards(@PathVariable String username) {
+        return generalService.getUserCards(username);
+    }
+
+    @PostMapping("/card/{username}")
+    public ResponseEntity<String> saveUserCardData(@PathVariable String username, @RequestBody CardDTO cardDTO) {
+        int result=generalService.addCard(username, cardDTO);
+        if (result==0)
+            return new ResponseEntity<>("Carta salvata!", HttpStatus.OK);
+        else if (result==1)
+            return new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
+        else
+            return new ResponseEntity<>("Ragiunto limite massimo di carte!", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+
+    //End-point per la gestione degli indirizzi di un utente
+    @GetMapping("/addresses/{username}")
+    public List<UUID> getAddressesNames(@PathVariable String username) {
+        return generalService.getUserAddresses(username);
+    }
+
+    @PostMapping("/address/{username}")
+    public ResponseEntity<String> saveUserAddressData(@PathVariable String username, @RequestBody AddressDTO addressDTO) {
+        int result= generalService.addAddress(username, addressDTO);
+        if(result==0)
+            return new ResponseEntity<>("Indirizzo salvato!", HttpStatus.OK);
+        else if(result==1)
+            return new ResponseEntity<>("Problemi nell'inserimento...", HttpStatus.INTERNAL_SERVER_ERROR);
+        else
+            return new ResponseEntity<>("Raggiunto limite massimo di indirizzi!", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+
     //End-point per la gestione dei ban
     @GetMapping("/bans")
     public ResponseEntity<List<UserSearchDTO>> getBan(@RequestParam("str") int start) {
         List<UserSearchDTO> result= generalService.getBans(start);
 
-        if(result!=null)
+        if(!result.isEmpty())
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
+    //End-point per bannare e sbannare un utente utilizzati da un admin
     @PostMapping("/ban")
     public ResponseEntity<String> banUser(@RequestBody BanDTO banDTO){
         String username= httpServletRequest.getAttribute("preferred_username").toString();
         banDTO.setAdminUsername(username);
-//        sagaOrchestrator.orchestrateSaga(0);
-        int result= adminService.banUser(banDTO);
+
+        int result= generalService.banUser(banDTO);
         if(result==0)
             return new ResponseEntity<>("Utente bannato con successo", HttpStatus.OK);
         else if(result==1)
@@ -107,15 +144,45 @@ public class AdminController {
             return new ResponseEntity<>("Problemi nel ban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/ban/{username}")
-    public ResponseEntity<String> sbanUser(@PathVariable String username) {
+    @PutMapping("/sban")
+    public ResponseEntity<String> sbanUser(@RequestBody SbanDTO sbanDTO) {
 
-        int result= adminService.sbanUser(username);
+        int result= generalService.sbanUser(sbanDTO);
         if(result==0)
             return new ResponseEntity<>("Utente sbannato con successo", HttpStatus.OK);
         else if(result==1)
             return new ResponseEntity<>("Utente già sbannato in precedenza", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nello sban dell'utente", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    //End-point per bannare e sbannare attraverso saga
+    @PostMapping("/ban/{username}")
+    public ResponseEntity<String> validateBanUser(@PathVariable String username) {
+        BanDTO ban= new BanDTO();
+        ban.setUserUsername(username);
+
+        int result= adminService.validateBan(ban);
+        if(result==0)
+            return new ResponseEntity<>("Ban validato!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel ban dell'user", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/ban")
+    public ResponseEntity<String> completeBanUser(@RequestParam("username") String username) {
+        if(adminService.completeBan(username))
+            return new ResponseEntity<>("Ban completato!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel ban dell'user", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @DeleteMapping("/ban")
+    public ResponseEntity<String> rollbackBanUser(@RequestParam("username") String username) {
+        if(adminService.rollbackBan(username, false))
+            return new ResponseEntity<>("Rollback eseguito!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Problemi nel rollback...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

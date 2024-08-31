@@ -12,7 +12,7 @@ public interface UserCardService {
     UserCardDTO getUserCard(UUID id);
     List<UUID> getCards(String userUsername);
     List<UserCardDTO> getUserCards(String userUsername);
-    boolean checkCard(String username, CardDTO cardDTO);
+    boolean checkCard(String username, UUID cardId);
     boolean deleteUserCard(UserCardDTO userCardDTO);
     boolean deleteUserCards(String userUsername);
 

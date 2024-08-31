@@ -18,5 +18,7 @@ public class SaveAdminNotificationDTO {
     private boolean read;
     private ReportDTO report;
     private SupportDTO support;
+    private boolean confirmed;
+
 }
 
