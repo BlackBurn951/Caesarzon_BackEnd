@@ -104,46 +104,11 @@ public class AddressServiceImpl implements AddressService {
         }
     }
 
-    @Override
-    public boolean completeAddresses(List<UUID> addressId) {
-        try {
-            List<Address> addresses= addressRepository.findAllById(addressId);
-
-            List<AddressDTO> result= new Vector<>();
-            for(Address address : addresses){
-                result.add(modelMapper.map(address, AddressDTO.class));
-
-                address.setRoadName(null);
-                address.setHouseNumber(null);
-                address.setRoadType(null);
-                address.setCity(null);
-            }
-
-            addressRepository.saveAll(addresses);
-            return true;
-        } catch (Exception | Error e) {
-            System.out.println(e);
-            log.debug("Errore nella cancellazione della carta");
-            return false;
-        }
-    }
 
     @Override
     public boolean releaseLockAddresses(List<UUID> addressId) {
         try {
             addressRepository.deleteAllById(addressId);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della carta");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean rollbackAddresses(List<AddressDTO> addresses) {
-        try {
-            addressRepository.saveAll(addresses.stream().map(cd -> modelMapper.map(cd, Address.class)).toList());
 
             return true;
         } catch (Exception | Error e) {

@@ -150,23 +150,6 @@ public class FollowerServiceImpl implements FollowerService {
     }
 
     @Override
-    public boolean completeDeleteFollowers(String username) {
-        try {
-            List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
-
-            for(Follower follower : followers){
-                follower.setFriend(false);
-            }
-
-            followerRepository.saveAll(followers);
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nel completamento dell'eliminazione dei follower");
-            return false;
-        }
-    }
-
-    @Override
     public boolean releaseOrDeleteFollowers(String username) {
         try {
             followerRepository.deleteAllByUserUsername1(username);
@@ -175,18 +158,6 @@ public class FollowerServiceImpl implements FollowerService {
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nel rilascio del lock dei follower");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean rollbackDeleteFollowers(List<FollowerDTO> followers) {
-        try {
-            followerRepository.saveAll(followers.stream().map(cd -> modelMapper.map(cd, Follower.class)).toList());
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nel rollback post completamento dei follower");
             return false;
         }
     }

@@ -14,7 +14,5 @@ public interface FollowerService {
 
 
     List<FollowerDTO> validateOrRollbackDeleteFollowers(String username, boolean rollback);
-    boolean completeDeleteFollowers(String username);
     boolean releaseOrDeleteFollowers(String username);
-    boolean rollbackDeleteFollowers(List<FollowerDTO> followers);
 }
