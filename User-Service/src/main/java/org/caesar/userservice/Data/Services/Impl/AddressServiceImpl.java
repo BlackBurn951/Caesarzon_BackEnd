@@ -122,6 +122,7 @@ public class AddressServiceImpl implements AddressService {
             addressRepository.saveAll(addresses);
             return true;
         } catch (Exception | Error e) {
+            System.out.println(e);
             log.debug("Errore nella cancellazione della carta");
             return false;
         }
@@ -153,11 +154,13 @@ public class AddressServiceImpl implements AddressService {
 
     //Metodi per la convalida
     private boolean checkRoadName(String roadName) {
+        System.out.println(roadName.matches("^(?=(?:.*[a-zA-Z]){2,})[a-zA-Z0-9 ]{2,30}$"));
         return roadName!=null && (roadName.length()>=2 && roadName.length()<=30) &&
                 roadName.matches("^(?=(?:.*[a-zA-Z]){2,})[a-zA-Z0-9 ]{2,30}$");
     }
 
     private boolean checkHouseNumber(String houseNumber) {
+        System.out.println(houseNumber.matches("^[0-9a-zA-Z]{1,8}$"));
         return houseNumber!=null && (!houseNumber.isEmpty() && houseNumber.length()<=8) &&
                 houseNumber.matches("^[0-9a-zA-Z]{1,8}$");
     }
@@ -170,8 +173,11 @@ public class AddressServiceImpl implements AddressService {
             List<String> roadTypes = Files.readAllLines(Path.of("User-Service/src/main/resources/static/road-types.txt"));
 
             for(String types: roadTypes) {
-                if(roadType.equals(types))
+                if(roadType.equals(types)) {
+                    System.out.println("Va bene");
                     return true;
+                }
+
             }
 
             return false;

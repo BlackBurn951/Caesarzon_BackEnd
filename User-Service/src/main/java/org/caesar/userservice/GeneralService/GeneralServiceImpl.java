@@ -101,7 +101,7 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     public int addCard(String userUsername, CardDTO cardDTO) {
         List<UserCardDTO> cards= userCardService.getUserCards(userUsername);
-
+        System.out.println("Dati della carta: "+cardDTO.getCardNumber()+"\n"+cardDTO.getOwner()+"\n"+cardDTO.getExpiryDate()+"\n"+cardDTO.getCvv() );
         if(cards.size()<5) {
             for(UserCardDTO card: cards) {
                 CardDTO userCard= cardService.getCard(card.getCardId());

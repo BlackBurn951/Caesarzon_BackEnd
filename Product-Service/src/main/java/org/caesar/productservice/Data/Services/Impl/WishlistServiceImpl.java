@@ -162,54 +162,29 @@ public class WishlistServiceImpl implements WishlistService {
     @Override
     public List<WishlistDTO> validateOrRollbackDeleteUserWishlist(String username, boolean rollback) {
         try{
+            System.out.println("Prima della presa delle wishlist");
             List<Wishlist> wishlists= wishlistRepository.findAllByUserUsername(username);
 
+            System.out.println("Dopo la presa delle wishlist");
             if(wishlists.isEmpty())
                 return new Vector<>();
 
+            System.out.println("Ciclando le wishlist");
             for(Wishlist wishlist: wishlists) {
+                System.out.println(wishlist.getName());
                 wishlist.setOnDeleting(!rollback);
             }
 
+            System.out.println("Pre salvataggio wishlist");
             wishlistRepository.saveAll(wishlists);
 
+            System.out.println("Post salvataggio wislist");
             return wishlists.stream()
                     .map(nt -> modelMapper.map(nt, WishlistDTO.class))
                     .toList();
         }catch(Exception | Error e){
             log.debug("Errore nell'inserimento della notifica per l'utente");
             return null;
-        }
-    }
-
-    @Override
-    public boolean completeDeleteUserWishlist(String username) {
-        try{
-            List<Wishlist> wishlists= wishlistRepository.findAllByUserUsername(username);
-
-            for(Wishlist wishlist: wishlists) {
-                wishlist.setName(null);
-                wishlist.setVisibility(null);
-            }
-
-            wishlistRepository.saveAll(wishlists);
-
-            return true;
-        }catch(Exception | Error e){
-            log.debug("Errore nell'inserimento della notifica per l'utente");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean releaseLockDeleteUserWishlist(String username) {
-        try{
-            wishlistRepository.deleteAllByUserUsername(username);
-
-            return true;
-        }catch(Exception | Error e){
-            log.debug("Errore nell'inserimento della notifica per l'utente");
-            return false;
         }
     }
 

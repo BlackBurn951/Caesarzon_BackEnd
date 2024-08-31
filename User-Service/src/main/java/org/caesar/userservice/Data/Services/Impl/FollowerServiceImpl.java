@@ -121,13 +121,16 @@ public class FollowerServiceImpl implements FollowerService {
     @Override
     public List<FollowerDTO> validateOrRollbackDeleteFollowers(String username, boolean rollback) { //0 -> true 1-> false 2 -> non avente
         try {
+            System.out.println("Appena entrato nel metodo");
             List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
 
+            System.out.println("Subito dopo la presa");
             if(followers.isEmpty())
                 return new Vector<>();
 
             List<FollowerDTO> result= new Vector<>();
             for(Follower follower : followers){
+                System.out.println("User 1 "+ follower.getUserUsername1()+" "+follower.getUserUsername2());
                 result.add(modelMapper.map(follower, FollowerDTO.class));
 
                 follower.setOnDeleting(!rollback);
@@ -136,7 +139,8 @@ public class FollowerServiceImpl implements FollowerService {
             followerRepository.saveAll(followers);
             return result;
         } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della carta");
+            System.out.println(e);
+            log.debug("Errore nella validazione o nel rollback pre completamento dei follower ");
             return null;
         }
     }
@@ -153,7 +157,7 @@ public class FollowerServiceImpl implements FollowerService {
             followerRepository.saveAll(followers);
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della carta");
+            log.debug("Errore nel completamento dell'eliminazione dei follower");
             return false;
         }
     }
@@ -166,7 +170,7 @@ public class FollowerServiceImpl implements FollowerService {
 
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della carta");
+            log.debug("Errore nel rilascio del lock dei follower");
             return false;
         }
     }
@@ -178,7 +182,7 @@ public class FollowerServiceImpl implements FollowerService {
 
             return true;
         } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della carta");
+            log.debug("Errore nel rollback post completamento dei follower");
             return false;
         }
     }

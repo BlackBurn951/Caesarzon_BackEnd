@@ -13,11 +13,7 @@ public interface UserNotificationService {
     boolean completeNotification(UserNotificationDTO userNotificationDTO);
     boolean releaseNotification(UUID notificationId);
 
-    List<UserNotificationDTO> validateOrRollbackDeleteUserNotifications(String username, boolean rollback);
-    boolean completeDeleteUserNotifications(String username);
-    boolean releaseDeleteUserNotifications(String username);
-    boolean rollbackDeleteUserNotifications(List<UserNotificationDTO> notifications);
-
+    boolean validateOrRollbackDeleteUserNotifications(String username, boolean rollback);
 
     boolean updateUserNotification(List<UserNotificationDTO> notificationDTO);
     boolean deleteUserNotification(UUID id);

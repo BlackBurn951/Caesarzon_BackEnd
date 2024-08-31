@@ -192,7 +192,10 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public boolean completeDeleteReviews(String username) {
         try {
+            System.out.println("Prima della presa della recensione");
             List<Review> reviews= reviewRepository.findAllByUsername(username);
+
+            System.out.println("Dopo la presa delle recensioni");
 
             for(Review review : reviews) {
                 review.setDate(null);
@@ -214,6 +217,26 @@ public class ReviewServiceImpl implements ReviewService {
         try {
             reviewRepository.deleteAllById(reviewId);
 
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della recensione");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean validateDeleteReviewsForUserDelete(String username, boolean rollback) {
+        try {
+            List<Review> reviews= reviewRepository.findAllByUsername(username);
+
+            if(reviews.isEmpty())
+                return true;
+
+            for(Review review : reviews) {
+                review.setOnChanges(!rollback);
+            }
+
+            reviewRepository.saveAll(reviews);
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della recensione");

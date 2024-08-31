@@ -252,8 +252,8 @@ public class UserRepositoryImpl implements UserRepository {
 
 
             UserRepresentation userRp = userResource.toRepresentation();
-            userRp.setFirstName("null");
-            userRp.setLastName("null");
+//            userRp.setFirstName("null");
+//            userRp.setLastName("null");
 
             System.out.println("Pirima dei campi custom");
             //Aggiunta degli attributi personalizzati
@@ -265,6 +265,7 @@ public class UserRepositoryImpl implements UserRepository {
 
             return true;
         } catch (Exception | Error e) {
+            System.out.println(e);
             log.debug("Errore nella cancellazione dell'utente");
             return false;
         }

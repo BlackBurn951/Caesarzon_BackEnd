@@ -40,8 +40,5 @@ public interface OrderService {
     OrderDTO getOrderByIdAndUsername(UUID orderId, String username);
 
 
-    List<OrderDTO> validateDeleteUserOrders(String username, boolean rollback);
-    boolean completeDeleteUserOrders(String username);
-    boolean releaseLockDeleteUserOrders(String username);
-    boolean rollbackDeleteUserOrders(List<OrderDTO> orders);
+    boolean validateDeleteUserOrders(String username, boolean rollback);
 }

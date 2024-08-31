@@ -140,68 +140,18 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
 
     @Override
-    public List<UserNotificationDTO> validateOrRollbackDeleteUserNotifications(String username, boolean rollback) {
+    public boolean validateOrRollbackDeleteUserNotifications(String username, boolean rollback) {
         try{
             List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
 
             if(notifications.isEmpty())
-                return new Vector<>();
+                return true;
 
             for(UserNotification notify: notifications) {
-                notify.setConfirmed(!rollback);
+                notify.setConfirmed(rollback);
             }
 
             userNotificationRepository.saveAll(notifications);
-
-            return notifications.stream()
-                    .map(nt -> modelMapper.map(nt, UserNotificationDTO.class))
-                    .toList();
-        }catch(Exception | Error e){
-            log.debug("Errore nell'inserimento della notifica per l'utente");
-            return null;
-        }
-    }
-
-    @Override
-    public boolean completeDeleteUserNotifications(String username) {
-        try{
-            List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
-
-            List<UserNotification> result= new Vector<>();
-            for(UserNotification notify: notifications) {
-                result.add(notify);
-
-                notify.setDate(null);
-                notify.setRead(false);
-                notify.setSubject(null);
-                notify.setExplanation(null);
-            }
-
-            userNotificationRepository.saveAll(notifications);
-
-            return true;
-        }catch(Exception | Error e){
-            log.debug("Errore nell'inserimento della notifica per l'utente");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean releaseDeleteUserNotifications(String username) {
-        try{
-            userNotificationRepository.deleteAllByUser(username);
-
-            return true;
-        }catch(Exception | Error e){
-            log.debug("Errore nell'inserimento della notifica per l'utente");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean rollbackDeleteUserNotifications(List<UserNotificationDTO> notifications) {
-        try{
-            userNotificationRepository.deleteAll(notifications.stream().map(nt -> modelMapper.map(nt, UserNotification.class)).toList());
 
             return true;
         }catch(Exception | Error e){
@@ -239,8 +189,6 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     @Override
     public boolean deleteUserNotification(UUID id){
         try{
-
-
             userNotificationRepository.deleteById(id);
             return true;
         }catch(Exception | Error e){

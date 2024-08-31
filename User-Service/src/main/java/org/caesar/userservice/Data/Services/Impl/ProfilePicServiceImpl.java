@@ -78,9 +78,9 @@ public class ProfilePicServiceImpl implements ProfilePicService {
             if(image==null)
                 return false;
 
-            image.setProfilePic(null);
+//            image.setProfilePic(null);
 
-            profilePicRepository.save(image);
+//            profilePicRepository.save(image);
 
             return true;
         }catch (Exception | Error e){

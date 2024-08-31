@@ -128,13 +128,13 @@ public class UserCardServiceImpl implements UserCardService {
     @Override
     public boolean completeUserCardsDelete(String username) {
         try {
-            List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
+            //List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
 
-            for(UserCard userCard: cards) {
-                userCard.setCard(null);
-            }
-
-            userCardRepository.saveAll(cards);
+//            for(UserCard userCard: cards) {
+//                userCard.setCard(null);
+//            }
+//
+//            userCardRepository.saveAll(cards);
 
             return true;
         } catch (Exception | Error e) {

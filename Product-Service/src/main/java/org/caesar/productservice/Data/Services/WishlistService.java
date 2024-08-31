@@ -19,6 +19,4 @@ public interface WishlistService {
     boolean changeVisibility(String username, ChangeVisibilityDTO changeVisibilityDTO);
 
     List<WishlistDTO> validateOrRollbackDeleteUserWishlist(String username, boolean rollback);
-    boolean completeDeleteUserWishlist(String username);
-    boolean releaseLockDeleteUserWishlist(String username);
 }

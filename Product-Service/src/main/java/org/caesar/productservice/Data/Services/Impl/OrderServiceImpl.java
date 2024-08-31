@@ -275,70 +275,29 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public List<OrderDTO> validateDeleteUserOrders(String username, boolean rollback) {
+    public boolean validateDeleteUserOrders(String username, boolean rollback) {  //passare la listadi ordini per il rollback
         try {
+            System.out.println("Pre presa ordini");
             List<Order> orders= orderRepository.findAllOrdersByUsername(username);
 
+            System.out.println("Post presa ordini");
             if(orders.isEmpty())
-                return new Vector<>();
+                return true;
 
+            System.out.println("Prima ciclo ordini");
             List<OrderDTO> result= new Vector<>();
             for(Order order: orders){
+                System.out.println(order.getOrderNumber());
                 result.add(modelMapper.map(order, OrderDTO.class));
 
                 order.setOrderState("In validazione");
             }
 
-            orderRepository.saveAll(orders);
-            return result;
-        }catch(Exception | Error e) {
-            log.debug("Errore nella presa dei prodotti della lista");
-            return null;
-        }
-    }
-
-    @Override
-    public boolean completeDeleteUserOrders(String username) {
-        try {
-            List<Order> orders= orderRepository.findAllOrdersByUsername(username);
-
-            for(Order order: orders){
-                order.setOrderTotal(0.0);
-                order.setCardID(null);
-                order.setAddressID(null);
-                order.setRefundDate(null);
-                order.setPurchaseDate(null);
-                order.setExpectedDeliveryDate(null);
-            }
-
+            System.out.println("pre salvataggio ordini modificati");
             orderRepository.saveAll(orders);
             return true;
         }catch(Exception | Error e) {
             log.debug("Errore nella presa dei prodotti della lista");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean releaseLockDeleteUserOrders(String username) {
-        try {
-            orderRepository.deleteAllByUsername(username);
-
-            return true;
-        }catch(Exception | Error e) {
-            log.debug("Errore nella presa dei prodotti della lista");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean rollbackDeleteUserOrders(List<OrderDTO> orders) {
-        try {
-            orderRepository.saveAll(orders.stream().map( od -> modelMapper.map(od, Order.class)).toList());
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella creazione dell'ordine");
             return false;
         }
     }

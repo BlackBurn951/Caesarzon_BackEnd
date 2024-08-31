@@ -11,4 +11,12 @@ public class UserDeleteCompleteDTO {
     private boolean reviews;
     private boolean productOrder;
     private boolean orders;
+
+    public UserDeleteCompleteDTO() {
+        wishlists = false;
+        wishlistProduct = false;
+        reviews = false;
+        productOrder = false;
+        orders = false;
+    }
 }

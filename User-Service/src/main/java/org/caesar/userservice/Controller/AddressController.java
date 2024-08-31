@@ -48,6 +48,7 @@ public class AddressController {
     @GetMapping("/address")
     public ResponseEntity<AddressDTO> getAddressData(@RequestParam("address_id") UUID id) {
         AddressDTO addressDTO = generalService.getUserAddress(id);
+        System.out.println(addressDTO.getId()+"\n"+addressDTO.getRoadName()+"\n"+addressDTO.getRoadType()+"\n"+addressDTO.getCity().getId());
         if(addressDTO!=null)
             return new ResponseEntity<>(addressDTO, HttpStatus.OK);
         else
@@ -58,6 +59,7 @@ public class AddressController {
     public ResponseEntity<String> saveUserAddressData(@RequestBody AddressDTO addressDTO) {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
+        System.out.println("Dati arrivati: "+addressDTO.getRoadType()+"\n"+addressDTO.getRoadName()+"\n"+addressDTO.getHouseNumber()+"\n"+addressDTO.getCity().getId());
         int result= generalService.addAddress(username, addressDTO);
         if(result==0)
             return new ResponseEntity<>("Indirizzo salvato!", HttpStatus.OK);

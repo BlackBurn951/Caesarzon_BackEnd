@@ -20,6 +20,7 @@ public class CallCenter {
 
     private final RestTemplate restTemplate;
     private final static String NOTIFY_SERVICE = "notifyService";
+    private final static String PRODUCT_SERVICE = "productService";
 
     private UUID fallbackValidateBan(Throwable e){
         System.out.println("Servizio per la gestione delle notifiche non disponibile");
@@ -29,8 +30,26 @@ public class CallCenter {
         System.out.println("Servizio per la gestione delle notifiche non disponibile");
         return false;
     }
-
-
+    private boolean fallbackGeneric(Throwable e){
+        System.out.println("Circuit breaker per i metodi generici");
+        return false;
+    }
+    private ValidateUserDeleteDTO fallbackForDeleteNotifyValidate(Throwable e){
+        System.out.println("Servizio per la gestione delle notifiche non disponibile");
+        return null;
+    }
+    private CompleteUserDeleteDTO fallbackForDeleteNotifyComplete(Throwable e){
+        System.out.println("Servizio per la gestione delle notifiche non disponibile");
+        return null;
+    }
+    private UserDeleteValidationDTO fallbackForDeleteProductValidate(Throwable e){
+        System.out.println("Servizio per la gestione dei prodotti non disponibile");
+        return null;
+    }
+    private UserDeleteCompleteDTO fallbackForDeleteProductComplete(Throwable e){
+        System.out.println("Servizio per la gestione dei prodotti non disponibile");
+        return null;
+    }
 
     //Chiamate per eseguire il ban
     @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackValidateBan")
@@ -159,7 +178,8 @@ public class CallCenter {
     //SEZIONE ELIMINAZIONE UTENTE
 
     //End-point notifiche
-    public ValidateUserDeleteDTO validateNotificationService(boolean rollback) {
+    @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackGeneric")
+    public boolean validateNotificationService(boolean rollback) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 
 
@@ -168,67 +188,16 @@ public class CallCenter {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<ValidateUserDeleteDTO> response= restTemplate.exchange("http://notification-service/notify-api/user/delete?rollback="+rollback,
-                HttpMethod.POST,
-                entity,
-                ValidateUserDeleteDTO.class);
-
-        if(response.getStatusCode()==HttpStatus.OK)
-            return response.getBody();
-        return null;
-    }
-
-    public CompleteUserDeleteDTO completeNotificationService(ValidateUserDeleteDTO validation) {
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", request.getHeader("Authorization"));
-
-        HttpEntity<ValidateUserDeleteDTO> entity = new HttpEntity<>(validation, headers);
-
-        ResponseEntity<CompleteUserDeleteDTO> response= restTemplate.exchange("http://notification-service/notify-api/user/delete",
-                HttpMethod.PUT,
-                entity,
-                CompleteUserDeleteDTO.class);
-
-        if(response.getStatusCode()==HttpStatus.OK)
-            return response.getBody();
-        return null;
-    }
-
-    public boolean releaseNotificationService(ReleaseLockUserDeleteDTO release, boolean support) {
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", request.getHeader("Authorization"));
-
-        HttpEntity<ReleaseLockUserDeleteDTO> entity = new HttpEntity<>(release, headers);
-
-        return restTemplate.exchange("http://notification-service/notify-api/user/delete?support="+support,
-                HttpMethod.DELETE,
-                entity,
-                String.class).getStatusCode()==HttpStatus.OK;
-    }
-
-    public boolean rollbackNotificationService(NotifyRollbackUserDeleteDTO rollback) {
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", request.getHeader("Authorization"));
-
-        HttpEntity<NotifyRollbackUserDeleteDTO> entity = new HttpEntity<>(rollback, headers);
-
-        return restTemplate.exchange("http://notification-service/notify-api/user/delete/rollback",
+        return restTemplate.exchange("http://notification-service/notify-api/user/delete?rollback="+rollback,
                 HttpMethod.POST,
                 entity,
                 String.class).getStatusCode()==HttpStatus.OK;
     }
+
 
     //End-point prodotti
-    public UserDeleteValidationDTO validateProductService(boolean rollback) {
+    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackGeneric")
+    public boolean validateProductService(boolean rollback) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 
 
@@ -237,60 +206,7 @@ public class CallCenter {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<UserDeleteValidationDTO> response= restTemplate.exchange("http://product-service/product-api/user/delete?rollback="+rollback,
-                HttpMethod.POST,
-                entity,
-                UserDeleteValidationDTO.class);
-
-        if(response.getStatusCode()==HttpStatus.OK)
-            return response.getBody();
-        return null;
-    }
-
-    public UserDeleteCompleteDTO completeProductService(boolean review, boolean product, boolean order, boolean wishProd, List<WishlistDTO> wishlist) {
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", request.getHeader("Authorization"));
-
-        HttpEntity<List<WishlistDTO>> entity = new HttpEntity<>(wishlist, headers);
-
-        ResponseEntity<UserDeleteCompleteDTO> response= restTemplate.exchange("http://product-service/product-api/user/delete?review="+review+"&product="+product+"&order="+order+"&wish-prod="+wishProd,
-                HttpMethod.PUT,
-                entity,
-                UserDeleteCompleteDTO.class);
-
-        if(response.getStatusCode()==HttpStatus.OK)
-            return response.getBody();
-        return null;
-    }
-
-    public boolean releaseProductService(ProductRollbackUserDeleteDTO release) {
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", request.getHeader("Authorization"));
-
-        HttpEntity<ProductRollbackUserDeleteDTO> entity = new HttpEntity<>(release, headers);
-
-        return restTemplate.exchange("http://product-service/product-api/user/delete",
-                HttpMethod.DELETE,
-                entity,
-                String.class).getStatusCode()==HttpStatus.OK;
-    }
-
-    public boolean rollbackProductService(ProductRollbackUserDeleteDTO rollback) {
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", request.getHeader("Authorization"));
-
-        HttpEntity<ProductRollbackUserDeleteDTO> entity = new HttpEntity<>(rollback, headers);
-
-        return restTemplate.exchange("http://product-service/product-api/user/delete/rollback",
+        return restTemplate.exchange("http://product-service/product-api/user/delete?rollback="+rollback,
                 HttpMethod.POST,
                 entity,
                 String.class).getStatusCode()==HttpStatus.OK;

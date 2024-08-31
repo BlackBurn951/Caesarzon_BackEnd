@@ -124,13 +124,13 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public boolean completeUserAddressesDelete(String username) {
         try {
-            List<UserAddress> addresses= userAddressRepository.findAllByUserUsername(username);
+            //List<UserAddress> addresses= userAddressRepository.findAllByUserUsername(username);
 
-            for(UserAddress userAddress: addresses) {
-                userAddress.setAddress(null);
-            }
-
-            userAddressRepository.saveAll(addresses);
+//            for(UserAddress userAddress: addresses) {
+//                userAddress.setAddress(null);
+//            }
+//
+//            userAddressRepository.saveAll(addresses);
 
             return true;
         } catch (Exception | Error e) {

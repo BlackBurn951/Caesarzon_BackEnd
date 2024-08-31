@@ -105,6 +105,9 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         try{
             List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
 
+            if (notifications.isEmpty())
+                return new Vector<>();
+
             for(AdminNotification notify: notifications) {
                 notify.setConfirmed(false);
             }
@@ -191,60 +194,44 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
 
     @Override
-    public List<SaveAdminNotificationDTO> validateOrRollbackDeleteBySupports(SupportDTO support, boolean rollback) {
+    public boolean validateOrRollbackDeleteBySupports(SupportDTO support, boolean rollback) {
         try{
             List<AdminNotification> notifications= adminNotificationRepository.findAllBySupport(modelMapper.map(support, Support.class));
 
+            if (notifications.isEmpty())
+                return true;
+
             for(AdminNotification notify: notifications) {
-                notify.setConfirmed(!rollback);
+                notify.setConfirmed(rollback);
             }
 
             adminNotificationRepository.saveAll(notifications);
-            return notifications.stream()
-                    .map(notify -> {
-                        SaveAdminNotificationDTO not= new SaveAdminNotificationDTO();
-                        not.setId(notify.getId());
-                        not.setAdmin(notify.getAdmin());
-                        not.setRead(notify.isRead());
-                        not.setSubject(notify.getSubject());
-                        not.setDate(notify.getDate());
-                        not.setSupport(modelMapper.map(notify.getSupport(), SupportDTO.class));
-                        not.setReport(null);
-                        not.setConfirmed(true);
-
-                        return not;
-                    }).toList();
-        }catch(Exception | Error e){
-            log.debug("Errore nela validazione dell'eliminazione per richiesta di supporto");
-            return null;
-        }
-    }
-
-    @Override
-    public boolean completeDeleteBySupports(SupportDTO support) {
-        try{
-            List<AdminNotification> notifications= adminNotificationRepository.findAllBySupport(modelMapper.map(support, Support.class));
-
-            for(AdminNotification notify: notifications) {
-                notify.setDate(null);
-                notify.setAdmin(null);
-                notify.setRead(false);
-                notify.setConfirmed(false);
-                notify.setSubject(null);
-                notify.setReport(null);
-            }
-
-            adminNotificationRepository.saveAll(notifications);
-
             return true;
         }catch(Exception | Error e){
-            log.debug("Errore nel completamento dell'eliminazione per richiesta di supporto");
+            log.debug("Errore nela validazione dell'eliminazione per richiesta di supporto");
             return false;
         }
     }
 
+    @Override
+    public boolean validateOrRollbackDeleteByReportsOnUserDelete(ReportDTO report, boolean rollback) {
+        try{
+            List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(report, Report.class));
 
+            if (notifications.isEmpty())
+                return true;
 
+            for(AdminNotification notify: notifications) {
+                notify.setConfirmed(rollback);
+            }
+
+            adminNotificationRepository.saveAll(notifications);
+            return true;
+        }catch(Exception | Error e){
+            log.debug("Errore nella validazione dell'eliminazione per segnalazione");
+            return false;
+        }
+    }
 
     //Metodo per aggiornare lo stato di lettura delle notifiche dell'admin
     @Override

@@ -105,6 +105,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean save(ProductOrderDTO productOrderDTO) {
         if(productOrderDTO != null) {
+            productOrderDTO.setOnChanges(false);
             productOrderRepository.save(modelMapper.map(productOrderDTO, ProductOrder.class));
             return true;
         }else{
@@ -199,6 +200,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean changeQuantity(String username, ProductDTO productDTO, int quantity, String size) {
         try{
+            System.out.println(productDTO.getName()+" "+quantity+" "+size);
             ProductOrder productOrder = productOrderRepository
                     .findByUsernameAndProduct(username, modelMapper.map(productDTO, Product.class));
 
@@ -210,6 +212,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             return true;
         }catch (Exception | Error e){
+            System.out.println(e);
             log.debug("Errore nell'aggiornamento dell'ordine");
             return false;
         }
@@ -241,67 +244,26 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
 
     @Override
-    public List<ProductOrderDTO> validateOrRollbackDeleteUserCart(String username, boolean rollback) {
+    public boolean validateOrRollbackDeleteUserCart(String username, boolean rollback) {
         try {
+            System.out.println("Pre presa dei prodotti negli ordini");
             List<ProductOrder> products= productOrderRepository.findAllByUsername(username);
 
+            System.out.println("Post presa dei prodotti negli ordini");
             if(products.isEmpty())
-                return new Vector<>();
+                return true;
 
             for(ProductOrder productOrder: products){
+                System.out.println(productOrder.getUsername());
                 productOrder.setOnChanges(!rollback);
             }
 
-            return products.stream()
-                    .map(pd -> {
-                        ProductOrderDTO productOrderDTO= new ProductOrderDTO();
-
-                        productOrderDTO.setId(pd.getId());
-                        productOrderDTO.setOrderDTO(modelMapper.map(pd.getOrder(), OrderDTO.class));
-                        productOrderDTO.setProductDTO(modelMapper.map(pd.getProduct(), ProductDTO.class));
-                        productOrderDTO.setTotal(pd.getTotal());
-                        productOrderDTO.setUsername(pd.getUsername());
-                        productOrderDTO.setBuyLater(pd.isBuyLater());
-                        productOrderDTO.setSize(pd.getSize());
-                        productOrderDTO.setQuantity(pd.getQuantity());
-
-                        return productOrderDTO;
-                    }).toList();
-        }catch(Exception | Error e) {
-            log.debug("Errore nella presa dei prodotti della lista");
-            return null;
-        }
-    }
-
-    @Override
-    public boolean completeDeleteUserCart(String username) {
-        try {
-            List<ProductOrder> products= productOrderRepository.findAllByUsername(username);
-
-            for (ProductOrder productOrder: products){
-                productOrder.setOrder(null);
-                productOrder.setProduct(null);
-                productOrder.setTotal(0.0);
-                productOrder.setSize(null);
-                productOrder.setQuantity(0);
-            }
-
+            System.out.println("pre salvataggio");
             productOrderRepository.saveAll(products);
-
+            System.out.println("Post salvataggio");
             return true;
         }catch(Exception | Error e) {
-            log.debug("Errore nella presa dei prodotti della lista");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean releaseLockDeleteUserCart(String username) {
-        try {
-            productOrderRepository.deleteAllByUsername(username);
-
-            return true;
-        }catch(Exception | Error e) {
+            System.out.println(e);
             log.debug("Errore nella presa dei prodotti della lista");
             return false;
         }

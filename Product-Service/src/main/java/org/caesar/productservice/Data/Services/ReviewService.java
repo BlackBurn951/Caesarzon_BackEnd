@@ -25,6 +25,8 @@ public interface ReviewService {
     boolean completeDeleteReviews(String username);
     boolean releaseLock(List<UUID> reviewId);
 
+    boolean validateDeleteReviewsForUserDelete(String username, boolean rollback);
+
     AverageDTO getReviewAverage(ProductDTO productDTO);
     String getTextReview(UUID reviewId);
     int getNumberOfReview(ProductDTO productDTO, int star);

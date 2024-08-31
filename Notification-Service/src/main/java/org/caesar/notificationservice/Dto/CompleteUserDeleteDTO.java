@@ -12,4 +12,8 @@ public class CompleteUserDeleteDTO {
     private boolean userNotification;
     private boolean report;
     private boolean support;
+
+    public CompleteUserDeleteDTO() {
+        support= false;
+    }
 }

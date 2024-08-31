@@ -411,6 +411,7 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
     public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> false carta -> true paypal
 
+        System.out.println(buyDTO.getAddressID()+" "+buyDTO.getTotal()+" "+buyDTO.getCardID()+" "+buyDTO.getProductsIds());
         List<ProductOrderDTO> productInOrder = getProductInOrder(username, buyDTO.getProductsIds());
 
         if (productInOrder == null || productInOrder.isEmpty())
