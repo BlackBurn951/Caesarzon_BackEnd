@@ -156,8 +156,9 @@ public class GeneralServiceImpl implements GeneralService {
     //SEZIONE RECENSIONI
     @Override
     public List<ReviewDTO> getProductReviews(UUID productID, int str) {
+        System.out.println("prodotto: "+productID+" str: "+str);
         ProductDTO productDTO= productService.getProductById(productID);
-
+        System.out.println("productDTO: "+productDTO.getName());
         if(productDTO == null)
             return null;
 
@@ -189,6 +190,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public AverageDTO getReviewAverage(UUID productId) {
+        System.out.println("id prodotto: "+productId);
         ProductDTO productDTO= productService.getProductById(productId);
 
         if(productDTO==null)
@@ -214,8 +216,9 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackNotify")
     public boolean deleteReviewByUser(String username, UUID productId) {
+        System.out.println("l'utente: "+username+" elimina la recensione sul prodotto: "+productId.toString());
         ProductDTO productDTO= productService.getProductById(productId);
-
+        System.out.println("prodotto: "+productDTO.getName());
         if(productDTO==null)
             return false;
 
@@ -543,6 +546,11 @@ public class GeneralServiceImpl implements GeneralService {
     @Override // Resituisce una lista di prodotti, risultato della ricerca coi valori dei parametri passati
     public List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         List<ProductDTO> productDTO = productService.searchProducts(searchText, minPrice, maxPrice, isClothing);
+        System.out.println("Sono nella search product");
+
+        for(ProductDTO p: productDTO){
+            System.out.println("prodotto: "+p.getName());
+        }
 
         if(productDTO==null || productDTO.isEmpty())
             return null;

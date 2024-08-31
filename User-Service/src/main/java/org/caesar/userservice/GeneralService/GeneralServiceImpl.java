@@ -79,18 +79,19 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     public int addAddress(String userUsername, AddressDTO addressDTO) {
         List<UserAddressDTO> addresses= userAddressService.getUserAddresses(userUsername);
-
+        System.out.println("sono nella add addrress");
         if(addresses.size()<5) {
+            System.out.println("ho passato l'if ");
             for(UserAddressDTO address: addresses) {
                 AddressDTO userAddress = addressService.getAddress(address.getAddressId());
 
                 if (userAddress.equals(addressDTO))
-                    return 1;
+                    return 1;//limite massimo di indirizzi raggiunto
             }
 
             return createAddress(userUsername, addressDTO);
         } else if(addresses.size()==5)
-            return 2;
+            return 2;//errore generico
         return 1;
     }
 
@@ -98,13 +99,15 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     public int addCard(String userUsername, CardDTO cardDTO) {
         List<UserCardDTO> cards= userCardService.getUserCards(userUsername);
-
+        System.out.println("dimensione delle carte di: "+userUsername+" dimensione"+cards.size());
         if(cards.size()<5) {
             for(UserCardDTO card: cards) {
                 CardDTO userCard= cardService.getCard(card.getCardId());
-
-                if(userCard.equals(cardDTO) || userCard.getCardNumber().equals(cardDTO.getCardNumber()))
+                System.out.println("carta presa: "+userCard.getId()+ " "+ userCard.getCardNumber());
+                if(userCard.equals(cardDTO) || userCard.getCardNumber().equals(cardDTO.getCardNumber())) {
+                    System.out.println("sono nell'if dentro il ciclo");
                     return 1;
+                }
             }
 
             return createCard(userUsername, cardDTO);
@@ -383,7 +386,7 @@ public class GeneralServiceImpl implements GeneralService {
     private int createCard(String userUsername, CardDTO cardDTO) {
         cardDTO.setBalance(500.0);
         UUID cardId = cardService.addCard(cardDTO);
-
+        System.out.println("Sono nel create card ");
         if(cardId == null)
             return 1;
 
