@@ -3,15 +3,11 @@ package org.caesar.productservice.Data.Services.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Dao.ProductOrderRepository;
-import org.caesar.productservice.Data.Entities.Order;
-import org.caesar.productservice.Data.Entities.ProductOrder;
+import org.caesar.productservice.Data.Entities.*;
 import org.caesar.productservice.Data.Services.ProductOrderService;
+import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
-import org.caesar.productservice.Data.Entities.Product;
-import org.caesar.productservice.Dto.ProductDTO;
 
-import org.caesar.productservice.Dto.ProductOrderDTO;
-import org.caesar.productservice.Dto.SendProductOrderDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -27,19 +23,72 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     private final ProductOrderRepository productOrderRepository;
     private final ModelMapper modelMapper;
 
+
     @Override
-    public UUID addOrUpdateProductOrder(SendProductOrderDTO productOrder) {
-        return null;
+    public boolean validateAndCompleteAndReleaseProductInOrder(List<ProductOrderDTO> products, boolean release) {
+        try {
+            List<ProductOrder> productOrderList= new Vector<>();
+            ProductOrder productOrder;
+
+            System.out.println("Sono prima del for");
+            for(ProductOrderDTO productOrderDTO: products){
+                System.out.println("Sono nel for");
+                productOrder = new ProductOrder();
+
+                productOrder.setId(productOrderDTO.getId());
+                if(productOrderDTO.getOrderDTO()!=null)
+                    productOrder.setOrder(modelMapper.map(productOrderDTO.getOrderDTO(), Order.class));
+                else
+                    productOrder.setOrder(null);
+                productOrder.setProduct(modelMapper.map(productOrderDTO.getProductDTO(), Product.class));
+                productOrder.setTotal(productOrderDTO.getTotal());
+                productOrder.setUsername(productOrderDTO.getUsername());
+                productOrder.setBuyLater(productOrderDTO.isBuyLater());
+                productOrder.setSize(productOrderDTO.getSize());
+                productOrder.setQuantity(productOrderDTO.getQuantity());
+                productOrder.setOnChanges(!release);
+
+                productOrderList.add(productOrder);
+            }
+
+            productOrderRepository.saveAll(productOrderList);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella validazione, completamento o rollback dell'ordine");
+            return false;
+        }
     }
 
     @Override
-    public SendProductOrderDTO getProductOrder(UUID id) {
-        return null;
-    }
+    public boolean rollbackProductInOrder(List<ProductOrderDTO> products) {
+        try {
+            List<ProductOrder> productOrderList= new Vector<>();
+            ProductOrder productOrder;
 
-    @Override
-    public List<SendProductOrderDTO> getProductOrders() {
-        return List.of();
+            for(ProductOrderDTO productOrderDTO: products){
+                productOrder = new ProductOrder();
+
+                productOrder.setId(productOrderDTO.getId());
+                productOrder.setOrder(null);
+                productOrder.setProduct(modelMapper.map(productOrderDTO.getProductDTO(), Product.class));
+                productOrder.setTotal(productOrderDTO.getTotal());
+                productOrder.setUsername(productOrderDTO.getUsername());
+                productOrder.setBuyLater(productOrderDTO.isBuyLater());
+                productOrder.setSize(productOrderDTO.getSize());
+                productOrder.setQuantity(productOrderDTO.getQuantity());
+                productOrder.setOnChanges(false);
+
+                productOrderList.add(productOrder);
+            }
+
+            productOrderRepository.saveAll(productOrderList);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nel rollback dell'ordine");
+            return false;
+        }
     }
 
     @Override
@@ -56,6 +105,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean save(ProductOrderDTO productOrderDTO) {
         if(productOrderDTO != null) {
+            productOrderDTO.setOnChanges(false);
             productOrderRepository.save(modelMapper.map(productOrderDTO, ProductOrder.class));
             return true;
         }else{
@@ -98,36 +148,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         }
     }
 
-    @Override
-    public boolean saveAll(List<ProductOrderDTO> orderDTOS) {
-        try {
-            List<ProductOrder> productOrderList= new Vector<>();
-            ProductOrder productOrder;
-
-            for(ProductOrderDTO productOrderDTO: orderDTOS){
-                productOrder = new ProductOrder();
-
-                productOrder.setId(productOrderDTO.getId());
-                productOrder.setOrder(modelMapper.map(productOrderDTO.getOrderDTO(), Order.class));
-                productOrder.setProduct(modelMapper.map(productOrderDTO.getProductDTO(), Product.class));
-                productOrder.setTotal(productOrderDTO.getTotal());
-                productOrder.setUsername(productOrderDTO.getUsername());
-                productOrder.setBuyLater(productOrderDTO.isBuyLater());
-                productOrder.setSize(productOrderDTO.getSize());
-                productOrder.setQuantity(productOrderDTO.getQuantity());
-
-                productOrderList.add(productOrder);
-            }
-
-            productOrderRepository.saveAll(productOrderList);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nel salvataggio degli ordini");
-            return false;
-        }
-    }
-
 
     @Override
     public boolean saveLater(String username, ProductDTO productDTO) {
@@ -150,6 +170,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean changeQuantity(String username, ProductDTO productDTO, int quantity, String size) {
         try{
+            System.out.println(productDTO.getName()+" "+quantity+" "+size);
             ProductOrder productOrder = productOrderRepository
                     .findByUsernameAndProductAndOrderIsNull(username, modelMapper.map(productDTO, Product.class));
 
@@ -161,7 +182,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             return true;
         }catch (Exception | Error e){
-            System.out.println(e);
+            log.debug("Errore nell'aggiornamento dell'ordine");
             return false;
         }
     }
@@ -186,6 +207,48 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         } catch (Exception | Error e) {
                 log.debug("Errore nella presa dei prodotti nell'ordine");
             return null;
+        }
+    }
+
+
+
+    @Override
+    public boolean validateOrRollbackDeleteUserCart(String username, boolean rollback) {
+        try {
+            System.out.println("Pre presa dei prodotti negli ordini");
+            List<ProductOrder> products= productOrderRepository.findAllByUsername(username);
+
+            System.out.println("Post presa dei prodotti negli ordini");
+            if(products.isEmpty())
+                return true;
+
+            for(ProductOrder productOrder: products){
+                System.out.println(productOrder.getUsername());
+                productOrder.setOnChanges(!rollback);
+            }
+
+            System.out.println("pre salvataggio");
+            productOrderRepository.saveAll(products);
+            System.out.println("Post salvataggio");
+            return true;
+        }catch(Exception | Error e) {
+            System.out.println(e);
+            log.debug("Errore nella presa dei prodotti della lista");
+            return false;
+        }
+    }
+
+    @Override
+    public int checkIfBought(String username, ProductDTO productDTO) {  // 0 -> true 1 -> false 2 -> errore
+        try {
+            List<ProductOrder> result= productOrderRepository.findAllByUsernameAndOrderIsNotNullAndProduct(username, modelMapper.map(productDTO, Product.class));
+
+            if(result.isEmpty())
+                return 1;
+
+            return 0;
+        } catch (Exception | Error e) {
+            return 2;
         }
     }
 }

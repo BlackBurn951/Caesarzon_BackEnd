@@ -21,6 +21,107 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private final ModelMapper modelMapper;
     private final AvailabilityRepository availabilityRepository;
 
+    @Override
+    public boolean validateAvailability(List<AvailabilityDTO> availability) {
+        try{
+            List<Availability> availabilities= new Vector<>();
+
+            for (AvailabilityDTO availabilityDTO : availability) {
+                Availability ava= availabilityRepository.findById(availabilityDTO.getId()).orElse(null);
+
+                if(ava==null)
+                    return false;
+
+                ava.setOnChanges(true);
+                availabilities.add(ava);
+            }
+
+            availabilityRepository.saveAll(availabilities);
+
+            return true;
+        } catch(Exception | Error e) {
+            log.debug("Errore nella cancellazione delle disponibilità per singolo prodotto");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean completeAvailability(List<AvailabilityDTO> availability) {
+        try{
+            List<Availability> availabilities= new Vector<>();
+
+            for (AvailabilityDTO availabilityDTO : availability) {
+                Availability ava= availabilityRepository.findById(availabilityDTO.getId()).orElse(null);
+
+                if(ava==null)
+                    return false;
+
+                ava.setAmount(availabilityDTO.getAmount());
+                availabilities.add(ava);
+            }
+
+            availabilityRepository.saveAll(availabilities);
+
+            return true;
+        } catch(Exception | Error e) {
+            log.debug("Errore nella cancellazione delle disponibilità per singolo prodotto");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean releaseLockAvailability(List<AvailabilityDTO> availability) {
+        try{
+            List<Availability> availabilities= new Vector<>();
+
+            for (AvailabilityDTO availabilityDTO : availability) {
+                Availability ava= availabilityRepository.findById(availabilityDTO.getId()).orElse(null);
+
+                if(ava==null)
+                    return false;
+
+                ava.setOnChanges(false);
+                availabilities.add(ava);
+            }
+
+            availabilityRepository.saveAll(availabilities);
+
+            return true;
+        } catch(Exception | Error e) {
+            log.debug("Errore nella cancellazione delle disponibilità per singolo prodotto");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean rollbackAvailability(List<AvailabilityDTO> availability, boolean validate) {
+        try{
+            List<Availability> availabilities= new Vector<>();
+
+            for (AvailabilityDTO availabilityDTO : availability) {
+                Availability ava= availabilityRepository.findById(availabilityDTO.getId()).orElse(null);
+
+                if(ava==null)
+                    return false;
+
+                if(!validate)
+                    ava.setAmount(availabilityDTO.getAmount());
+                ava.setOnChanges(false);
+                availabilities.add(ava);
+            }
+
+            availabilityRepository.saveAll(availabilities);
+
+            return true;
+        } catch(Exception | Error e) {
+            log.debug("Errore nella cancellazione delle disponibilità per singolo prodotto");
+            return false;
+        }
+    }
+
+
+
+
     @Override // Aggiunge tuple o modifica la tabella delle disponibilità
     public boolean addOrUpdateAvailability(List<AvailabilityDTO> availabilitiesDTO, ProductDTO product) {
         if (availabilitiesDTO.isEmpty()) {

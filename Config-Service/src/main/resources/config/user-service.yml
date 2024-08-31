@@ -62,7 +62,7 @@ resilience4j.circuitbreaker:
 
 
   instances:
-    deleteService:
+    productService:
       base-config: default
     notifyService:
       base-config: default

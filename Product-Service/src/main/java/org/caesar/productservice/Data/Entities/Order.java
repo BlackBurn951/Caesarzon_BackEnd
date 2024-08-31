@@ -46,4 +46,18 @@ public class Order {
 
     @Column(name = "username")
     private String username;
+
+    public Order() {
+        id=null;
+        orderNumber=null;
+        orderState= "In elaborazione";
+        expectedDeliveryDate=null;
+        purchaseDate=null;
+        refundDate=null;
+        refund=false;
+        addressID=null;
+        cardID=null;
+        orderTotal=0;
+        username=null;
+    }
 }

@@ -34,7 +34,6 @@ public class GeneralServiceImpl implements GeneralService{
     private final ReportOrchestrator reportOrchestrator;
 
     private final static String ADMINS_SERVICE= "adminsService";
-    private final static String PRODUCT_SERVICE= "productService";
 
     private boolean fallbackAdmins(Throwable e){
         log.info("Servizio per gli admin non disponibile");
@@ -47,7 +46,10 @@ public class GeneralServiceImpl implements GeneralService{
     }
 
     @Override
+    @Transactional
+    @CircuitBreaker(name= ADMINS_SERVICE, fallbackMethod = "fallbackAdmins")
     public boolean addReportRequest(String username1, ReportDTO reportDTO) {
+
         //Aggiungo al DTO la data e l'username che ha inviato la segnalazione
         reportDTO.setReportDate(LocalDate.now());
         reportDTO.setUsernameUser1(username1);
@@ -61,22 +63,19 @@ public class GeneralServiceImpl implements GeneralService{
         ReportDTO newReportDTO = reportService.addReport(reportDTO);
 
         //Controllo se il DTO non è nullo e se il numero di segnalazioni ricevute da un utente è minore di 5 (Su diversi prodotti)
-        if(newReportDTO != null && reportService.countReportForUser(newReportDTO.getUsernameUser2(), newReportDTO.getReviewId())>=5 && banService.checkIfBanned(newReportDTO.getUsernameUser2())) {
-            //passo 1 validare il ban qui V
-            //passo 2 validare le notifiche degli admin da cancellare qui V
-            //passo 3 validare la cancellazione delle segnalazioni qui V
-            //passo 4 validare la cancellazione delle recensioni sul product service
-            //passo 5 validare il ban sul user service
-            BanDTO banDTO= new BanDTO();
+        if(newReportDTO != null && reportService.countReportForUser(newReportDTO.getUsernameUser2())>=5 && !banService.checkIfBanned(newReportDTO.getUsernameUser2())) {
+            System.out.println("Entrato nel saga");
+            //Avvio del saga per il ban automatico
+            UUID banId= banService.validateBan();
+            List<ReportDTO> reports= reportService.getReportsByUsername2(newReportDTO.getUsernameUser2());
+            if(banId!=null && reports!=null) {
+                if(reportOrchestrator.processAutomaticBan(banId, newReportDTO.getUsernameUser2(), reports))
+                    return true;
 
-            banDTO.setAdminUsername("System");
-            banDTO.setReason("Limite di segnalazioni raggiunto");
-            banDTO.setStartDate(LocalDate.now());
-            banDTO.setEndDate(null);
-            banDTO.setUserUsername(newReportDTO.getUsernameUser2());
-            UUID banId= banService.validateBan(banDTO);
-            if(banId!=null)
-                return reportOrchestrator.processAutomaticBan(banId, newReportDTO);
+                reportService.deleteReport(newReportDTO);
+
+                return false;
+            }
 
         } else if(newReportDTO != null) {
             HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
@@ -106,6 +105,7 @@ public class GeneralServiceImpl implements GeneralService{
                 notify.setAdmin(ad);
                 notify.setReport(newReportDTO);
                 notify.setRead(false);
+                notify.setConfirmed(true);
 
                 notifications.add(notify);
             }
@@ -150,6 +150,7 @@ public class GeneralServiceImpl implements GeneralService{
                 notify.setAdmin(ad);
                 notify.setRead(false);
                 notify.setSupport(newSupportDTO);
+                notify.setConfirmed(true);
 
                 notifications.add(notify);
             }
@@ -192,19 +193,17 @@ public class GeneralServiceImpl implements GeneralService{
 
     @Override
     @Transactional
-    public boolean manageReport(String username, UUID reviewId, boolean product, boolean accept) {
+    public boolean manageReport(UUID reportId, boolean accept) {
 
-        ReportDTO reportDTO = reportService.getReportByReviewId(reviewId);
-
-        reportService.validateDeleteReport(reviewId);
-
-        adminNotificationService.validateDeleteByReport(reportDTO);
-
-        if(!product && accept){
-            return deleteReview(reviewId);
-
+        ReportDTO reportDTO = reportService.getReport(reportId);
+        if(accept) {
+            List<ReportDTO> reports= reportService.getReportsByReviewId(reportDTO.getReviewId());
+            if(reports!=null)
+                return reportOrchestrator.processManageReport(reports);
+            return false;
         }
-        return false;
+
+        return reportService.deleteReport(reportDTO) && adminNotificationService.deleteByReport(reportDTO);
     }
 
     @Override
@@ -235,18 +234,45 @@ public class GeneralServiceImpl implements GeneralService{
     }
 
 
-    //Metodi di servizio
-    @CircuitBreaker(name= PRODUCT_SERVICE, fallbackMethod = "fallbackProduct")
-    private boolean deleteReview(UUID reviewId) {
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", request.getHeader("Authorization"));
+    @Override
+    public DeleteReviewDTO validateReportAndNotifications(String username, UUID reviewId, boolean rollback) {
+        DeleteReviewDTO response= new DeleteReviewDTO();
+        List<ReportDTO> reports= reportService.getReportsByReviewId(reviewId);
 
-        HttpEntity<String> entity = new HttpEntity<>(headers);
+        if(reports==null)
+            return null;
+        if(reports.isEmpty())
+            return response;
 
-        return restTemplate.exchange("http://product-service/product-api/admin/review?review_id="+reviewId,
-                HttpMethod.DELETE,
-                entity,
-                String.class).getStatusCode() == HttpStatus.OK;
+        response.setReports(reportService.validateDeleteReportByReview(reviewId, rollback));
+
+        List<SaveAdminNotificationDTO> adminNotify;
+        for(ReportDTO report: reports){
+            adminNotify= adminNotificationService.validateDeleteByReport(report, rollback);
+            if(adminNotify==null)
+                return null;
+
+            response.getAdminNotify().addAll(adminNotify);
+        }
+
+        return response;
+    }
+
+    @Override
+    public boolean completeDeleteAdminNotifications(UUID reviewId) {
+        List<ReportDTO> reports= reportService.getReportsByReviewId(reviewId);
+
+        if(reports==null)
+            return false;
+
+        boolean result= true;
+        for(ReportDTO report: reports){
+            if(!adminNotificationService.completeDeleteByReport(report)) {
+                result = false;
+                break;
+            }
+        }
+
+        return result;
     }
 }

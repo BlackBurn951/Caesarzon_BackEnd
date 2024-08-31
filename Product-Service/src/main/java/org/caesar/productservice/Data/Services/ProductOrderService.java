@@ -3,18 +3,15 @@ package org.caesar.productservice.Data.Services;
 import org.caesar.productservice.Dto.DTOOrder.OrderDTO;
 import org.caesar.productservice.Dto.ProductDTO;
 import org.caesar.productservice.Dto.ProductOrderDTO;
-import org.caesar.productservice.Dto.SendProductOrderDTO;
+import org.caesar.productservice.Dto.WishlistDTO;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface ProductOrderService {
 
-    UUID addOrUpdateProductOrder(SendProductOrderDTO productOrder);
+    boolean validateAndCompleteAndReleaseProductInOrder(List<ProductOrderDTO> products, boolean release);
 
-    SendProductOrderDTO getProductOrder(UUID id);
-
-    List<SendProductOrderDTO> getProductOrders();
+    boolean rollbackProductInOrder(List<ProductOrderDTO> products);
 
     boolean deleteProductCarts(String username);
 
@@ -24,11 +21,13 @@ public interface ProductOrderService {
 
     boolean deleteProductCart(String username, ProductDTO productDTO);
 
-    boolean saveAll(List<ProductOrderDTO> orderDTOS);
-
     boolean saveLater(String username, ProductDTO productDTO);
 
     boolean changeQuantity(String username, ProductDTO productDTO, int quantity, String size);
 
     List<ProductOrderDTO> getProductInOrder(String username, OrderDTO orderDTO);
+
+    boolean validateOrRollbackDeleteUserCart(String username, boolean rollback);
+
+    int checkIfBought(String username, ProductDTO productDTO);
 }

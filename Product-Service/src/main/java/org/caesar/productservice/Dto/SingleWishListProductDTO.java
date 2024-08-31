@@ -9,7 +9,6 @@ import java.util.UUID;
 @Setter
 public class SingleWishListProductDTO {
 
-//    private image;
     private UUID productId;
     private String productName;
     private double price;

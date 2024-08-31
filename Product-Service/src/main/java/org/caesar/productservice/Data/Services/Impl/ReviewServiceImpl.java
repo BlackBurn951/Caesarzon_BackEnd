@@ -86,14 +86,151 @@ public class ReviewServiceImpl implements ReviewService {
                 .toList();
     }
 
+    @Override
+    public ReviewDTO validateDeleteReviewById(UUID reviewId, boolean rollback) {
+        try {
+            Review review= reviewRepository.findById(reviewId).orElse(null);
+
+            if(review==null)
+                return null;
+
+            review.setOnChanges(!rollback);
+
+            reviewRepository.save(review);
+            return modelMapper.map(review, ReviewDTO.class);
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della recensione");
+            return null;
+        }
+    }
 
     @Override
-    public boolean validateDeleteReviews(String username, boolean rollback) {
+    public boolean completeDeleteReviewById(UUID reviewId) {
+        try {
+            Review review= reviewRepository.findById(reviewId).orElse(null);
+
+            if(review==null)
+                return false;
+
+            review.setDate(null);
+            review.setText(null);
+            review.setEvaluation(0);
+            review.setUsername(null);
+
+            reviewRepository.save(review);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della recensione");
+            return false;
+        }
+    }
+
+
+    @Override
+    public boolean validateDeleteReview(ReviewDTO reviewDTO, boolean rollback) {
+        try {
+            Review review= reviewRepository.findById(reviewDTO.getId()).orElse(null);
+
+            if(review==null)
+                return false;
+
+            review.setOnChanges(!rollback);
+
+            reviewRepository.save(review);
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della recensione");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean completeDeleteReview(ReviewDTO reviewDTO) {
+        try {
+            Review review= reviewRepository.findById(reviewDTO.getId()).orElse(null);
+
+            if(review==null)
+                return false;
+
+            review.setDate(null);
+            review.setText(null);
+            review.setEvaluation(0);
+            review.setUsername(null);
+
+            reviewRepository.save(review);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della recensione");
+            return false;
+        }
+    }
+
+
+    @Override
+    public List<ReviewDTO> validateDeleteReviews(String username, boolean rollback) {
         try {
             List<Review> reviews= reviewRepository.findAllByUsername(username);
 
-            if(reviews==null || reviews.isEmpty())
-                return false;
+            if(reviews.isEmpty())
+                return new Vector<>();
+
+            for(Review review : reviews) {
+                review.setOnChanges(!rollback);
+            }
+
+            reviewRepository.saveAll(reviews);
+            return reviews.stream()
+                    .map(review -> modelMapper.map(review, ReviewDTO.class)).toList();
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della recensione");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean completeDeleteReviews(String username) {
+        try {
+            System.out.println("Prima della presa della recensione");
+            List<Review> reviews= reviewRepository.findAllByUsername(username);
+
+            System.out.println("Dopo la presa delle recensioni");
+
+            for(Review review : reviews) {
+                review.setDate(null);
+                review.setText(null);
+                review.setEvaluation(0);
+                review.setUsername(null);
+            }
+            reviewRepository.saveAll(reviews);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della recensione");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean releaseLock(List<UUID> reviewId) {
+        try {
+            reviewRepository.deleteAllById(reviewId);
+
+            return true;
+        } catch (Exception | Error e) {
+            log.debug("Errore nella cancellazione della recensione");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean validateDeleteReviewsForUserDelete(String username, boolean rollback) {
+        try {
+            List<Review> reviews= reviewRepository.findAllByUsername(username);
+
+            if(reviews.isEmpty())
+                return true;
 
             for(Review review : reviews) {
                 review.setOnChanges(!rollback);
@@ -104,21 +241,6 @@ public class ReviewServiceImpl implements ReviewService {
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della recensione");
             return false;
-        }
-    }
-
-    @Override
-    public List<ReviewDTO> completeDeleteReviews(String username) {
-        try {
-            List<Review> reviews= reviewRepository.findAllByUsername(username);
-
-            reviewRepository.deleteAllByUsername(username);
-
-            return reviews.stream()
-                    .map(review -> modelMapper.map(review, ReviewDTO.class)).toList();
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della recensione");
-            return null;
         }
     }
 

@@ -52,9 +52,9 @@ public class ProductController {
     }
 
     @PutMapping("/image/{productId}")
-    public ResponseEntity<String> putProductImages(@RequestParam("file") MultipartFile file, @PathVariable UUID productId) {
+    public ResponseEntity<String> putProductImages(@RequestParam("file") MultipartFile file, @PathVariable UUID productId, @RequestParam("new") boolean isNew) {
 
-        if(generalService.saveImage(productId, file, false))
+        if(generalService.saveImage(productId, file, isNew))
             return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);

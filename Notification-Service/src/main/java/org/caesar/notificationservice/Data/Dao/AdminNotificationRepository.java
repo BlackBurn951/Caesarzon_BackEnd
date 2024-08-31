@@ -15,6 +15,7 @@ public interface AdminNotificationRepository extends JpaRepository<AdminNotifica
     List<AdminNotification> findAllByAdmin(String admin);
 
     List<AdminNotification> findAllByReport(Report report);
+    List<AdminNotification> findAllBySupport(Support support);
 
     void deleteByReport(Report report);
 

@@ -18,4 +18,6 @@ public interface UserCardRepository extends JpaRepository<UserCard, UUID> {
     List<UserCard> findAllByUserUsername(String userId);
 
     UserCard findByUserUsernameAndId(String userId, UUID id);
+
+    void deleteAllByUserUsername(String username);
 }

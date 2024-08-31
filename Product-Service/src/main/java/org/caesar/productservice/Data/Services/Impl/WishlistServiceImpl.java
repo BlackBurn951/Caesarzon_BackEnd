@@ -20,6 +20,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.Vector;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +49,7 @@ public class WishlistServiceImpl implements WishlistService {
                 return null;
 
             Wishlist wishlistEntity = modelMapper.map(wishlistDTO, Wishlist.class);
+            wishlistEntity.setOnDeleting(false);
             return wishlistRepository.save(wishlistEntity).getId();
         }
         catch (Exception | Error e) {
@@ -155,6 +157,38 @@ public class WishlistServiceImpl implements WishlistService {
             return false;
         }
     }
+
+
+
+    @Override
+    public List<WishlistDTO> validateOrRollbackDeleteUserWishlist(String username, boolean rollback) {
+        try{
+            System.out.println("Prima della presa delle wishlist");
+            List<Wishlist> wishlists= wishlistRepository.findAllByUserUsername(username);
+
+            System.out.println("Dopo la presa delle wishlist");
+            if(wishlists.isEmpty())
+                return new Vector<>();
+
+            System.out.println("Ciclando le wishlist");
+            for(Wishlist wishlist: wishlists) {
+                System.out.println(wishlist.getName());
+                wishlist.setOnDeleting(!rollback);
+            }
+
+            System.out.println("Pre salvataggio wishlist");
+            wishlistRepository.saveAll(wishlists);
+
+            System.out.println("Post salvataggio wislist");
+            return wishlists.stream()
+                    .map(nt -> modelMapper.map(nt, WishlistDTO.class))
+                    .toList();
+        }catch(Exception | Error e){
+            log.debug("Errore nell'inserimento della notifica per l'utente");
+            return null;
+        }
+    }
+
 
 
     //METODI DI SERVIZIO

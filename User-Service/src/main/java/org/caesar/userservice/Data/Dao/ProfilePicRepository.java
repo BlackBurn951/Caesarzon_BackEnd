@@ -10,4 +10,5 @@ import java.util.UUID;
 public interface ProfilePicRepository extends JpaRepository<ProfilePic, UUID> {
 
         ProfilePic findByUserUsername(String userUsername);
+        void deleteByUserUsername(String userUsername);
 }

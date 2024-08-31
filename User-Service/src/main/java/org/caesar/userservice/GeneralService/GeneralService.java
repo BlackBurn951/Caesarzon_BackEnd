@@ -21,7 +21,19 @@ public interface GeneralService {
     List<UserSearchDTO> getAllUserForFollower(String username, int start);
 
     boolean checkAddress(String username, UUID addressId);
-    boolean pay(String username, UUID cardId, double total, boolean refund);
+
+    //2PC per il pagamento con carta
+    int validatePayment(String username, UUID cardId, double total, boolean rollback);
+    boolean completePayment(String username, UUID cardId, double total);
+    boolean releaseLockPayment(String username, UUID cardId);
+    boolean rollbackPayment(String username, UUID cardId, double total);
+
+
+    //2PC per il reso
+    boolean validateAndReleasePaymentForReturn(String username, UUID cardId, boolean rollback);
+    boolean completeOrRollbackPaymentForReturn(String username, UUID cardId, double total, boolean rollback);
+
+
     String recoveryPassword(String username);
     int banUser(BanDTO banDTO);
     int sbanUser(SbanDTO sbanDTO);

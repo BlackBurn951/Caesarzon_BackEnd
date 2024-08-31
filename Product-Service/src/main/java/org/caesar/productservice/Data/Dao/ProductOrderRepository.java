@@ -17,8 +17,6 @@ public interface ProductOrderRepository extends JpaRepository<ProductOrder, UUID
 
     ProductOrder findByUsernameAndProductAndOrderIsNull(String username, Product productID);
 
-    List<ProductOrder> findAllByUsernameAndOrderIsNullAndProduct(String username, Product productID);
-
     @Transactional
     void deleteByUsernameAndOrderNullAndProduct(String username, Product productId);
 
@@ -27,4 +25,7 @@ public interface ProductOrderRepository extends JpaRepository<ProductOrder, UUID
 
     List<ProductOrder> findAllByUsernameAndOrder(String username, Order order);
 
+    List<ProductOrder> findAllByUsername(String username);
+
+    List<ProductOrder> findAllByUsernameAndOrderIsNotNullAndProduct(String username, Product product);
 }

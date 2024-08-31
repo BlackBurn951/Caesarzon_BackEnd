@@ -26,4 +26,6 @@ public class Availability {
     @JoinColumn(name = "id_prodotto")
     private Product product;
 
+    @Column(name= "in_modifica")
+    private boolean onChanges;
 }
