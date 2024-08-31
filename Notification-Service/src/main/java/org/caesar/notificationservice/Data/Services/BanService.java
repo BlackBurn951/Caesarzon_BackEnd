@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface BanService {
-    List<BanDTO> getAllBans();
+    List<BanDTO> getAllBans(int num);
     boolean checkIfBanned(String username);
     UUID validateBan(BanDTO banDTO);
     boolean confirmBan(UUID banId);
