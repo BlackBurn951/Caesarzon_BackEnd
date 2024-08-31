@@ -8,6 +8,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.caesar.productservice.Data.Dao.ImageRepository;
+import org.caesar.productservice.Data.Entities.Image;
+import org.caesar.productservice.Data.Entities.Product;
 import org.caesar.productservice.Data.Services.*;
 import org.caesar.productservice.Dto.*;
 import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
@@ -28,6 +31,7 @@ import org.caesar.productservice.Dto.ProductDTO;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -50,6 +54,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     private final WishlistService wishlistService;
     private final WishlistProductService wishlistProductService;
+    private final ImageService imageService;
 
     private final Utils utils;
     private final RestTemplate restTemplate;
@@ -60,6 +65,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     private final static String USER_SERVICE= "userService";
     private final static String NOTIFY_SERVICE= "notifyService";
+    private final ImageRepository imageRepository;
 
     private boolean fallbackUser(Throwable e){
         log.info("Servizio utenti non disponibile");
@@ -75,8 +81,13 @@ public class GeneralServiceImpl implements GeneralService {
 
     //SEZIONE DEI PRODOTTI E STRETTAMENTE CORRELATI
     @Override
-    public List<ImageDTO> getProductImage(UUID id) {
-        return List.of();
+    public byte[] getProductImage(UUID id) {
+        ProductDTO prod= productService.getProductById(id);
+
+        if(prod==null)
+            return null;
+
+        return imageService.getImage(prod);
     }
 
     @Override
@@ -95,8 +106,6 @@ public class GeneralServiceImpl implements GeneralService {
                 availabilityDTO.setProduct(null);
             productDTO.setAvailabilities(availabilities);
 
-//            if(!username.equals("guest"))
-            //lastViewService.save(username, productDTO);   TODO da tornare anche le immagini
             return productDTO;
         }
         return null;
@@ -104,37 +113,62 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional // Aggiunge il prodotto ricevuto da front al db dei prodotti
-    public boolean addProduct(ProductDTO sendProductDTO) {
+    public UUID addProduct(ProductDTO sendProductDTO, boolean isNew) {
 
         // Aggiorna l'ID del productDTO dopo averlo salvato
         sendProductDTO.setId(productService.addOrUpdateProduct(sendProductDTO).getId());
 
         if(sendProductDTO.getId()==null)
-            return false;
+            return null;
 
-        //TODO DA FARE AGGIUNTA FOTO
+        if(availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO)) {
+            if(isNew) {
+                ImageDTO img = new ImageDTO(null, sendProductDTO);
+                if (!imageService.updateImage(img, true))
+                    return null;
+            }
+                return sendProductDTO.getId();
+        }
 
-        return availabilityService.addOrUpdateAvailability(sendProductDTO.getAvailabilities(), sendProductDTO);
+        return null;
     }
 
     @Override
-    @Transactional //TODO AGGIUNGERE ELIMINAZIONE IMMAGINI
+    @Transactional //TODO AGGIUNGERE ELIMINAZIONE CORRELATI
     public boolean deleteProduct(UUID id) {
         ProductDTO product = productService.getProductById(id);
 
         if(product != null)
-            return availabilityService.deleteAvailabilityByProduct(product) && productService.deleteProductById(id);
+            return availabilityService.deleteAvailabilityByProduct(product) && productService.deleteProductById(id)
+                    && imageService.deleteImage(product);
 
         return false;
     }
 
+    @Override
+    public boolean saveImage(UUID productId, MultipartFile file, boolean isNew) {
+        try {
+            ProductDTO product = productService.getProductById(productId);
+
+            if(product==null)
+                return false;
+
+            ImageDTO image= new ImageDTO(file.getBytes(), product);
+
+            return imageService.updateImage(image, isNew);
+        } catch (Exception | Error e) {
+            log.debug("Errore nel caricamento dell'immagine");
+            return false;
+        }
+    }
 
 
     //SEZIONE RECENSIONI
     @Override
     public List<ReviewDTO> getProductReviews(UUID productID, int str) {
+        System.out.println("prodotto: "+productID+" str: "+str);
         ProductDTO productDTO= productService.getProductById(productID);
-
+        System.out.println("productDTO: "+productDTO.getName());
         if(productDTO == null)
             return null;
 
@@ -166,6 +200,7 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public AverageDTO getReviewAverage(UUID productId) {
+        System.out.println("id prodotto: "+productId);
         ProductDTO productDTO= productService.getProductById(productId);
 
         if(productDTO==null)
@@ -191,8 +226,9 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackNotify")
     public boolean deleteReviewByUser(String username, UUID productId) {
+        System.out.println("l'utente: "+username+" elimina la recensione sul prodotto: "+productId.toString());
         ProductDTO productDTO= productService.getProductById(productId);
-
+        System.out.println("prodotto: "+productDTO.getName());
         if(productDTO==null)
             return false;
 
@@ -429,7 +465,6 @@ public class GeneralServiceImpl implements GeneralService {
             return "Errore";
         }
 
-
         double total = productInOrder.stream()
                 .mapToDouble(prod -> {
                     if (prod.getProductDTO().getDiscount() == 0)
@@ -470,6 +505,11 @@ public class GeneralServiceImpl implements GeneralService {
     @Override // Resituisce una lista di prodotti, risultato della ricerca coi valori dei parametri passati
     public List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         List<ProductDTO> productDTO = productService.searchProducts(searchText, minPrice, maxPrice, isClothing);
+        System.out.println("Sono nella search product");
+
+        for(ProductDTO p: productDTO){
+            System.out.println("prodotto: "+p.getName());
+        }
 
         if(productDTO==null || productDTO.isEmpty())
             return null;
@@ -523,46 +563,45 @@ public class GeneralServiceImpl implements GeneralService {
 
     //SEZIONE DELLE WISHLIST
     @Override
-    public WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String username) {
+    public WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String ownerUsername, String accessUsername) {
+        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, ownerUsername);
 
-        WishlistDTO wishlistDTO = wishlistService.getWishlist(wishlistID, username);
-
-        if(wishlistDTO==null){
-            return null;
-        }
-
-        List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlistDTO);
-
-        if(wishListProductDTOS == null || wishListProductDTOS.isEmpty())
+        if(wishlistDTO==null)
             return null;
 
-        WishProductDTO wishProductDTO = new WishProductDTO();
+        //Caso in cui l'utente vuole accedere alle sue liste desideri
+        if(ownerUsername.equals(accessUsername))
+            return getWishProd(wishlistDTO);
+        else {
+            if(wishlistDTO.getVisibility().equals("Pubblica")) //Pubbliche
+                return getWishProd(wishlistDTO);
+            else if(wishlistDTO.getVisibility().equals("Condivisa")) { //Condivisa
+                //Caso in cui l'utente vuole accedere alle wishlist di un altro utente
+                HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Authorization", request.getHeader("Authorization"));
 
-        SingleWishListProductDTO singleWishListProductDTO;
+                HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        List<SingleWishListProductDTO> singleWishListProductDTOS = new Vector<>();
+                ResponseEntity<Boolean> response= restTemplate.exchange(
+                        "http://user-service/user-api/follower/" + accessUsername+"?username="+ownerUsername,
+                        HttpMethod.GET,
+                        entity,
+                        boolean.class
+                );
 
-        for(WishListProductDTO wishListProductDTO: wishListProductDTOS){
-            singleWishListProductDTO = new SingleWishListProductDTO();
-
-            singleWishListProductDTO.setProductName(wishListProductDTO.getProductDTO().getName());
-            singleWishListProductDTO.setPrice(wishListProductDTO.getProductDTO().getPrice());
-            singleWishListProductDTO.setProductId(wishListProductDTO.getProductDTO().getId());
-
-            singleWishListProductDTOS.add(singleWishListProductDTO);
-
+                if(response.getStatusCode()== HttpStatus.OK && response.getBody()) {
+                    return getWishProd(wishlistDTO);
+                }
+            }
+            return null;
         }
-
-        wishProductDTO.setSingleWishListProductDTOS(singleWishListProductDTOS);
-        wishProductDTO.setVisibility(wishlistDTO.getVisibility());
-
-        return wishProductDTO;
     }
 
     @Override
     public boolean addProductIntoWishList(String username, SendWishlistProductDTO wishlistProductDTO) {
 
-        WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO);
+        WishListProductDTO wishListProductDTO = getWishListProductDTO(username, wishlistProductDTO, true);
 
 
         if(wishListProductDTO==null)
@@ -577,8 +616,9 @@ public class GeneralServiceImpl implements GeneralService {
         sendWishlistProductDTO.setProductID(productId);
         sendWishlistProductDTO.setWishlistID(wishId);
 
-        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO);
+        WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO, false);
 
+        System.out.println("Nome wishlist: "+wishListProductDTO.getWishlistDTO().getName()+"\nNome prodotto: "+wishListProductDTO.getProductDTO().getName());
         if(wishListProductDTO==null)
             return false;
 
@@ -609,6 +649,35 @@ public class GeneralServiceImpl implements GeneralService {
 
     //Metodi di servizio
 
+    private WishProductDTO getWishProd(WishlistDTO wishlist) {
+        List<WishListProductDTO> wishListProductDTOS = wishlistProductService.getWishlistProductsByWishlistID(wishlist);
+
+        if(wishListProductDTOS == null || wishListProductDTOS.isEmpty())
+            return null;
+
+        WishProductDTO wishProductDTO = new WishProductDTO();
+
+        SingleWishListProductDTO singleWishListProductDTO;
+
+        List<SingleWishListProductDTO> singleWishListProductDTOS = new Vector<>();
+
+        for(WishListProductDTO wishListProductDTO: wishListProductDTOS){
+            singleWishListProductDTO = new SingleWishListProductDTO();
+
+            singleWishListProductDTO.setProductName(wishListProductDTO.getProductDTO().getName());
+            singleWishListProductDTO.setPrice(wishListProductDTO.getProductDTO().getPrice());
+            singleWishListProductDTO.setProductId(wishListProductDTO.getProductDTO().getId());
+
+            singleWishListProductDTOS.add(singleWishListProductDTO);
+
+        }
+
+        wishProductDTO.setSingleWishListProductDTOS(singleWishListProductDTOS);
+        wishProductDTO.setVisibility(wishlist.getVisibility());
+
+        return wishProductDTO;
+    }
+
     // Generatore di codici per gli ordini
     public static String generaCodice(int lunghezza) {
         String CHARACTERS = "5LDG8OKXCSV4EZ1YU9IR0HT7WMAJB2FN3P6Q";
@@ -628,7 +697,7 @@ public class GeneralServiceImpl implements GeneralService {
         return bd.doubleValue();
     }
 
-    private WishListProductDTO getWishListProductDTO(String username, SendWishlistProductDTO wishlistProductDTO) {
+    private WishListProductDTO getWishListProductDTO(String username, SendWishlistProductDTO wishlistProductDTO, boolean add) {
         ProductDTO productDTO= productService.getProductById(wishlistProductDTO.getProductID());
 
         if(productDTO==null)
@@ -636,12 +705,15 @@ public class GeneralServiceImpl implements GeneralService {
 
         WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistProductDTO.getWishlistID(), username);
 
+        System.out.println(wishlistDTO.getName());
         if(wishlistDTO==null)
             return null;
 
-        if(wishlistProductService.thereIsProductInWishList(wishlistDTO, productDTO))
+        System.out.println("Prima controllo");
+        if(wishlistProductService.thereIsProductInWishList(wishlistDTO, productDTO) && add)
             return null;
 
+        System.out.println("Dopo controllo");
         WishListProductDTO wishListProductDTO= new WishListProductDTO();
 
         wishListProductDTO.setWishlistDTO(wishlistDTO);

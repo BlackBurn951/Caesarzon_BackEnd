@@ -98,13 +98,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean checkOtp(OtpDTO otp) {
-        User user= userRepository.findUserByUsername(otp.getUsername());
+    public boolean checkOtp(PasswordChangeDTO passwordChangeDTO, String otp) {
+        User user= userRepository.findUserByUsername(passwordChangeDTO.getUsername());
 
         if(user==null)
             return false;
 
-        if(user.getOtp().equals(otp.getOtp())) {
+        if(user.getOtp().equals(otp)) {
+            changePassword(passwordChangeDTO, user.getUsername());
             user.setOtp(null);
             return userRepository.updateUser(modelMapper.map(user, UserDTO.class));
         }
@@ -173,7 +174,7 @@ public class UserServiceImpl implements UserService {
     private boolean checkFirstName(String firstName) {
         //Controllo che il nome non nullo, sia meno lungo di 2 caratteri e non più lungo di 30 contenente solo caratteri e numeri
         return firstName!=null && (firstName.length()>=2 && firstName.length()<=30) &&
-                (firstName.matches("^[a-zA-Z]{2,}([a-zA-Z]{2,30})?$"));
+                (firstName.matches("^[a-zA-Z]{2,}( [a-zA-Z]{2,30})?$"));
     }
 
     private boolean checkLastName(String lastName) {

@@ -82,18 +82,19 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     public int addAddress(String userUsername, AddressDTO addressDTO) {
         List<UserAddressDTO> addresses= userAddressService.getUserAddresses(userUsername);
-
+        System.out.println("sono nella add addrress");
         if(addresses.size()<5) {
+            System.out.println("ho passato l'if ");
             for(UserAddressDTO address: addresses) {
                 AddressDTO userAddress = addressService.getAddress(address.getAddressId());
 
                 if (userAddress.equals(addressDTO))
-                    return 1;
+                    return 1;//limite massimo di indirizzi raggiunto
             }
 
             return createAddress(userUsername, addressDTO);
         } else if(addresses.size()==5)
-            return 2;
+            return 2;//errore generico
         return 1;
     }
 
@@ -105,9 +106,11 @@ public class GeneralServiceImpl implements GeneralService {
         if(cards.size()<5) {
             for(UserCardDTO card: cards) {
                 CardDTO userCard= cardService.getCard(card.getCardId());
-
-                if(userCard.equals(cardDTO) || userCard.getCardNumber().equals(cardDTO.getCardNumber()))
+                System.out.println("carta presa: "+userCard.getId()+ " "+ userCard.getCardNumber());
+                if(userCard.equals(cardDTO) || userCard.getCardNumber().equals(cardDTO.getCardNumber())) {
+                    System.out.println("sono nell'if dentro il ciclo");
                     return 1;
+                }
             }
 
             return createCard(userUsername, cardDTO);
@@ -133,7 +136,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         for (UserDTO userDTO : users) {
             userFindDTO= new UserFindDTO();
-
+            userFindDTO.setProfilePic(profilePicService.getUserImage(userDTO.getUsername()));
             userFindDTO.setUsername(userDTO.getUsername());
             userFindDTOs.add(userFindDTO);
         }
@@ -155,7 +158,6 @@ public class GeneralServiceImpl implements GeneralService {
         for(FollowerDTO followerDTO: followers) {
             userSearchDTO= new UserSearchDTO();
             userSearchDTO.setUsername(followerDTO.getUserUsername2());
-            //TODO AGGIUNGERE LA FOTO PROFILO
             if(followerDTO.isFriend())
                 userSearchDTO.setFriend(true);
             userSearchDTO.setFollower(true);
@@ -200,7 +202,6 @@ public class GeneralServiceImpl implements GeneralService {
 
             FollowerDTO followerDTO= followerService.getFollower(username, userDTO.getUsername());
 
-            //TODO AGGIUNGERE FOTO PROFILO
             userSearchDTO.setUsername(userDTO.getUsername());
             if(followerDTO != null) {
                 userSearchDTO.setFollower(true);
@@ -335,7 +336,7 @@ public class GeneralServiceImpl implements GeneralService {
             user.setOtp(otp);
 
             if(userService.updateUser(user))
-                return "Inserisci il codice otp inviato all'email "+user.getEmail();
+                return "Inserisci l'otp ricevuto all'email "+user.getEmail();
             return "Problemi nell'invio dell'otp...";
         }
         return "Problemi nell'invio dell'otp...";
@@ -430,10 +431,10 @@ public class GeneralServiceImpl implements GeneralService {
     }
 
     @Override
-    public int sbanUser(String username) {
-        int result= adminService.validateSbanUser(username);
+    public int sbanUser(SbanDTO sbanDTO) {
+        int result= adminService.validateSbanUser(sbanDTO.getUsername());
         if(result==0) {
-            if(banOrchestrator.processSban(username))
+            if(banOrchestrator.processSban(sbanDTO.getUsername()))
                 return 0;
             return 2;
         }
@@ -445,7 +446,7 @@ public class GeneralServiceImpl implements GeneralService {
     private int createCard(String userUsername, CardDTO cardDTO) {
         cardDTO.setBalance(500.0);
         UUID cardId = cardService.addCard(cardDTO);
-
+        System.out.println("Sono nel create card ");
         if(cardId == null)
             return 1;
 

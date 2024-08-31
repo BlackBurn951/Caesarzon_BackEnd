@@ -28,14 +28,11 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public String addReview(ReviewDTO reviewDTO, ProductDTO productDTO) {
         try {
-            Review review = reviewRepository.findById(reviewDTO.getId()).orElse(null);
-
-            if(review == null)  //Controllo per l'update
-                review = new Review();
+            Review review = new Review();
 
             if(reviewDTO.getId()==null && reviewRepository.findReviewByUsernameAndProduct(reviewDTO.getUsername(),modelMapper.map(productDTO, Product.class))!=null)
                 return "Limite recensioni raggiunto...";
-
+            System.out.println("Stampa 2");
             review.setProduct(modelMapper.map(productDTO, Product.class));
             review.setDate(LocalDate.now());
 
@@ -46,9 +43,12 @@ public class ReviewServiceImpl implements ReviewService {
             else
                 return "Problemi nell'aggiunta della recensione...";
 
+            System.out.println("Stampa 3");
             review.setUsername(reviewDTO.getUsername());
             review.setOnChanges(false);
 
+
+            System.out.println("Dati della recensione inviati: "+reviewDTO.getText()+"\n"+reviewDTO.getEvaluation()+"\n"+reviewDTO.getUsername());
             reviewRepository.save(review);
 
             return "Recensione aggiunta con successo!";

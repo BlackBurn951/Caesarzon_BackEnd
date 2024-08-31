@@ -58,6 +58,7 @@ public class AddressController {
     @PostMapping("/address")
     public ResponseEntity<String> saveUserAddressData(@RequestBody AddressDTO addressDTO) {
         //Prendendo l'username dell'utente che ha fatto la chiamata
+        System.out.println("indirizzo arrivato: "+addressDTO.toString());
         String username= httpServletRequest.getAttribute("preferred_username").toString();
         System.out.println("Dati arrivati: "+addressDTO.getRoadType()+"\n"+addressDTO.getRoadName()+"\n"+addressDTO.getHouseNumber()+"\n"+addressDTO.getCity().getId());
         int result= generalService.addAddress(username, addressDTO);

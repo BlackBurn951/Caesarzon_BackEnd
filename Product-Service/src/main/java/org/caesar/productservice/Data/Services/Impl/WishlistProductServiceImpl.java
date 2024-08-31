@@ -14,7 +14,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.Vector;
 
 @Service
@@ -47,13 +46,15 @@ public class WishlistProductServiceImpl implements WishlistProductService {
     @Override
     public boolean deleteProductFromWishlist(WishListProductDTO wishListProductDTO){
         try{
-            wishlistProductRepository.deleteWishlistProductByProductAndWishlist(
-                    modelMapper.map(wishListProductDTO.getProductDTO(), Product.class),
-                    modelMapper.map(wishListProductDTO.getWishlistDTO(), Wishlist.class));
+            System.out.println("Sono nella delete");
+            Product prod= modelMapper.map(wishListProductDTO.getProductDTO(), Product.class);
+            Wishlist wish= modelMapper.map(wishListProductDTO.getWishlistDTO(), Wishlist.class);
+            wishlistProductRepository.deleteByProductAndWishlist(prod, wish);
+
+            System.out.println("dopo la delete");
             return true;
         }catch(Exception | Error e) {
-            log.debug("Errore nella rimozione del prodotto dalla lista desideri");
-            return false;
+            throw e;
         }
     }
 
@@ -64,7 +65,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
         try {
             List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlistDTO, Wishlist.class));
             List<WishListProductDTO> wishListProductDTOS1 =  new Vector<>();
-
+            
             WishListProductDTO wishListProductDTO;
 
             for(WishlistProduct wishlistProduct: wishListProductDTOS){
@@ -77,7 +78,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
 
 
         }catch(Exception | Error e) {
-            log.debug("Errore nella presa dei prodotti della lista");
+            log.debug("Problemi nella presa degli oggetti della lista dei desideri");
             return null;
         }
     }
@@ -86,7 +87,6 @@ public class WishlistProductServiceImpl implements WishlistProductService {
     public boolean thereIsProductInWishList(WishlistDTO wishlistDTO, ProductDTO productDTO) {
         Product product= modelMapper.map(productDTO, Product.class);
         Wishlist wishlist= modelMapper.map(wishlistDTO, Wishlist.class);
-
         WishlistProduct wishlistProduct= wishlistProductRepository.findByProductAndWishlist(product, wishlist);
 
         return wishlistProduct != null;

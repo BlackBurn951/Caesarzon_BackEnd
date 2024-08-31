@@ -115,7 +115,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
     @Override
     public List<ProductOrderDTO> getProductOrdersByUsername(String username){
-        List<ProductOrder> result= productOrderRepository.findAllByUsernameAndOrderIsNullAndBuyLaterIsFalse(username);
+        List<ProductOrder> result= productOrderRepository.findAllByUsernameAndOrderIsNull(username);
 
         List<ProductOrderDTO> productOrderDTOList= new Vector<>();
         ProductOrderDTO productOrderDTO;
@@ -182,7 +182,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean saveLater(String username, ProductDTO productDTO) {
         try{
-            ProductOrder productOrder= productOrderRepository.findByUsernameAndProduct(username, modelMapper.map(productDTO, Product.class));
+            ProductOrder productOrder= productOrderRepository.findByUsernameAndProductAndOrderIsNull(username, modelMapper.map(productDTO, Product.class));
 
             if(productOrder == null)
                 return false;
@@ -192,7 +192,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             return true;
         }catch (Exception | Error e){
-            log.debug("Errore nel salvataggio dell'ordine");
+            System.out.println(e);
             return false;
         }
     }
@@ -202,7 +202,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         try{
             System.out.println(productDTO.getName()+" "+quantity+" "+size);
             ProductOrder productOrder = productOrderRepository
-                    .findByUsernameAndProduct(username, modelMapper.map(productDTO, Product.class));
+                    .findByUsernameAndProductAndOrderIsNull(username, modelMapper.map(productDTO, Product.class));
 
             if(productOrder == null)
                 return false;
@@ -212,7 +212,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             return true;
         }catch (Exception | Error e){
-            System.out.println(e);
             log.debug("Errore nell'aggiornamento dell'ordine");
             return false;
         }

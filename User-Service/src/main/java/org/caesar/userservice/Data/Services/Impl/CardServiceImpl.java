@@ -40,11 +40,12 @@ public class CardServiceImpl implements CardService {
         System.out.println("Aggiornamento della carta");
         //Controllo che i campi mandati rispettino i criteri
         if(!checkCardNumber(cardDTO.getCardNumber()) || !checkOwner(cardDTO.getOwner()) ||
-            !checkCvv(cardDTO.getCvv()) || !checkExpiryDate(cardDTO.getExpiryDate()))
+            !checkCvv(cardDTO.getCvv()) || !checkExpiryDate(cardDTO.getExpiryDate())) {
+            System.out.println("sono nel check di tutti i controlli");
             return null;
-        System.out.println("Superata validazione");
+
         try{
-            System.out.println("Salvataggio");
+            System.out.println("ho passato i controlli");
             Card card = modelMapper.map(cardDTO, Card.class);
 
             return cardRepository.save(card).getId();
@@ -139,7 +140,7 @@ public class CardServiceImpl implements CardService {
 
     //Metodi per la convalida
     private boolean checkCardNumber(String cardNumber) {
-        System.out.println("check numero carta: "+ cardNumber.matches("[0-9]{16}"));
+        System.out.println("checkCardNumber: " + cardNumber);
         return cardNumber!=null && cardNumber.matches("[0-9]{16}");
     }
 
@@ -150,6 +151,7 @@ public class CardServiceImpl implements CardService {
     }
 
     private boolean checkCvv(String cvv) {
+        System.out.println("cvv: "+cvv);
         return cvv!=null && cvv.matches("[0-9]{3}$");
     }
 
@@ -165,10 +167,12 @@ public class CardServiceImpl implements CardService {
 
         System.out.println("check data: prima regex");
         int month=0, year=0;
+        System.out.println("sono prima del match: "+expiryDate);
         if(matcher.matches()) {
             System.out.println("check data: dopo regex "+"\n"+month+"\n"+year);
             month = Integer.parseInt(matcher.group(2));
             year = Integer.parseInt(matcher.group(1));
+            System.out.println("Month: "+month+ " Year: "+year);
         }
 
         System.out.println("check data: ");

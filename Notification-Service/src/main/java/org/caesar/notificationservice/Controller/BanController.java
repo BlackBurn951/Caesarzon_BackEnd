@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -72,5 +73,15 @@ public class BanController {
             return new ResponseEntity<>("Sban completato con successo!", HttpStatus.OK);
         else
             return new ResponseEntity<>("Problemi nel completamento dello sban", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @GetMapping("/bans")
+    public ResponseEntity<List<BanDTO>> getBans(@RequestParam("num") int num) {
+        List<BanDTO> result = banService.getAllBans(num);
+        if(result!=null)
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+
     }
 }

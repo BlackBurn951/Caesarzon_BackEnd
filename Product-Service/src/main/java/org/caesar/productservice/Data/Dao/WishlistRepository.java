@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface WishlistRepository extends JpaRepository<Wishlist, UUID> {
+public interface    WishlistRepository extends JpaRepository<Wishlist, UUID> {
 
     List<Wishlist> findAllByUserUsername(String userUsername);
 

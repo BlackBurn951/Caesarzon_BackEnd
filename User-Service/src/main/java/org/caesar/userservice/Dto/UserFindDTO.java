@@ -8,5 +8,5 @@ import org.bouncycastle.oer.its.etsi102941.Url;
 @Setter
 public class UserFindDTO {
     private String username;
-    private Url safeImageUrl;
+    private byte[] profilePic;
 }

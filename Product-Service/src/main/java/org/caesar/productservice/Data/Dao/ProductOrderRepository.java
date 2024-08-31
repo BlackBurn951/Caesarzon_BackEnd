@@ -13,9 +13,9 @@ import java.util.UUID;
 @Repository
 public interface ProductOrderRepository extends JpaRepository<ProductOrder, UUID> {
 
-    List<ProductOrder> findAllByUsernameAndOrderIsNullAndBuyLaterIsFalse(String username);
+    List<ProductOrder> findAllByUsernameAndOrderIsNull(String username);
 
-    ProductOrder findByUsernameAndProduct(String username, Product productID);
+    ProductOrder findByUsernameAndProductAndOrderIsNull(String username, Product productID);
 
     List<ProductOrder> findAllByUsernameAndOrderIsNullAndProduct(String username, Product productID);
 

@@ -5,6 +5,7 @@ import org.caesar.productservice.Dto.DTOOrder.BuyDTO;
 import org.caesar.productservice.Dto.DTOOrder.UnavailableDTO;
 import org.caesar.productservice.Dto.ImageDTO;
 import org.caesar.productservice.Dto.ProductDTO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,11 +13,12 @@ import java.util.UUID;
 public interface GeneralService {
 
     //SEZIONE DEI PRODOTTI E STRETTAMENTE CORRELATI
-    List<ImageDTO> getProductImage(UUID id);
+    byte[] getProductImage(UUID id);
     List<ImageDTO> getAllProductImages(UUID productID);
     ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id);
-    boolean addProduct(ProductDTO ProductDTO);
+    UUID addProduct(ProductDTO ProductDTO, boolean isNew);
     boolean deleteProduct(UUID id);
+    boolean saveImage(UUID productId, MultipartFile file, boolean isNew);
 
     //SEZIONE RECENSIONI
     List<ReviewDTO> getProductReviews(UUID productID, int str);
@@ -51,7 +53,7 @@ public interface GeneralService {
 
 
     //SEZIONE DELLE WISHLIST
-    WishProductDTO getWishlistProductsByWishlistID(UUID wishlistId, String username);
+    WishProductDTO getWishlistProductsByWishlistID(UUID wishlistID, String ownerUsername, String accessUsername);
     boolean addProductIntoWishList(String username, SendWishlistProductDTO sendWishlistProductDTO);
     boolean deleteProductFromWishList(String username, UUID wishId, UUID productId);
     boolean deleteProductsFromWishList(String username, UUID wishlistId);

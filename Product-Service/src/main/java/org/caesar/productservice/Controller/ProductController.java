@@ -1,6 +1,7 @@
 package org.caesar.productservice.Controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Path;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.caesar.productservice.Data.Services.SearchService;
@@ -11,6 +12,7 @@ import org.caesar.productservice.GeneralService.GeneralService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -38,27 +40,38 @@ public class ProductController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/image")
-    public ResponseEntity<List<ImageDTO>> getProductImages(@RequestParam UUID productID) {
-        List<ImageDTO> images = generalService.getProductImage(productID);
+    @GetMapping("/image/{productId}")
+    public ResponseEntity<byte[]> getProductImages(@PathVariable UUID productId) {
+        byte[] image = generalService.getProductImage(productId);
 
-        if(!images.isEmpty()){
-            return new ResponseEntity<>(images, HttpStatus.OK);
+        if(image != null){
+            return new ResponseEntity<>(image, HttpStatus.OK);
         }else{
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    @PostMapping("/product") //Aggiunge il prodotto inviato con le sue disponibilità al db
-    public ResponseEntity<String> addProductAndAvailabilities(@RequestBody ProductDTO sendProductDTO) {
-        if(generalService.addProduct(sendProductDTO))
-            return new ResponseEntity<>("Product aggiunto", HttpStatus.OK);
+    @PutMapping("/image/{productId}")
+    public ResponseEntity<String> putProductImages(@RequestParam("file") MultipartFile file, @PathVariable UUID productId) {
+
+        if(generalService.saveImage(productId, file, false))
+            return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
         else
-            return new ResponseEntity<>("Prodotto non aggiunto", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @DeleteMapping("/product")
-    public ResponseEntity<String> deleteProductAndAvailabilities(@RequestParam UUID productID) {
+    @PostMapping("/product") //Aggiunge il prodotto inviato con le sue disponibilità al db
+    public ResponseEntity<UUID> addProductAndAvailabilities(@RequestBody ProductDTO sendProductDTO, @RequestParam("new") boolean isNew) {
+        UUID prodId= generalService.addProduct(sendProductDTO, isNew);
+
+        if(prodId!=null)
+            return new ResponseEntity<>(prodId, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @DeleteMapping("/product/{productID}")
+    public ResponseEntity<String> deleteProductAndAvailabilities(@PathVariable UUID productID) {
         if (generalService.deleteProduct(productID))
             return new ResponseEntity<>("Prodotto eliminato", HttpStatus.OK);
         else
@@ -75,7 +88,12 @@ public class ProductController {
             @RequestParam(value = "max-price", required = false) Double maxPrice,
             @RequestParam(value = "is-clothing", required = false) Boolean isClothing) {
 
+        System.out.println("cosa mi arriva, query: " + query+" prezzo min: "+minPrice+" prezzo max: "+maxPrice+" è abbigliamento: "+isClothing);
         List<ProductSearchDTO> searchProduct = generalService.searchProducts(query, minPrice, maxPrice, isClothing);
+        System.out.println("Prodotti trovati");
+        for(ProductSearchDTO productSearchDTO : searchProduct){
+            System.out.println("nome prodotto: "+productSearchDTO.getProductName());
+        }
         if(searchProduct.isEmpty())
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         else

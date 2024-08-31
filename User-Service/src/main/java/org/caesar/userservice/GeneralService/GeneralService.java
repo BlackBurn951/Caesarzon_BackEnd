@@ -36,7 +36,7 @@ public interface GeneralService {
 
     String recoveryPassword(String username);
     int banUser(BanDTO banDTO);
-    int sbanUser(String username);
+    int sbanUser(SbanDTO sbanDTO);
 
     boolean deleteUser(String username);
     boolean deleteUserAddress(UUID id);

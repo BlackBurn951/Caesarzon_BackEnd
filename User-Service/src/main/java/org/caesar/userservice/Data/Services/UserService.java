@@ -13,7 +13,7 @@ public interface UserService {
     boolean saveUser(UserRegistrationDTO userData);
     boolean updateUser(UserDTO userData);
     boolean changePassword(PasswordChangeDTO passwordChangeDTO, String username);
-    boolean checkOtp(OtpDTO otp);
+    boolean checkOtp(PasswordChangeDTO passwordChangeDTO, String otp);
     boolean logout(String usermame, LogoutDTO logoutDTO);
 
     UserDTO validateOrRollbackDeleteUser(String username, boolean rollback);

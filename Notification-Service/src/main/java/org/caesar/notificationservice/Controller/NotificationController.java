@@ -28,6 +28,7 @@ public class NotificationController {
     //End-point per la gestione delle notifiche
     @GetMapping("/user/notifications")
     public ResponseEntity<List<UserNotificationDTO>> getAllUserNotifications() {
+        System.out.println("chiamata nel controller delle notifiche");
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
         List<UserNotificationDTO> result= userNotificationService.getUserNotification(username);
@@ -111,6 +112,7 @@ public class NotificationController {
 
     @DeleteMapping("/notification")
     public ResponseEntity<String> deleteNotification(@RequestParam("notify-id") UUID id, @RequestParam("isUser") boolean isUser) {
+        System.out.println("notifiche id:"+id.toString()+" isUser:"+isUser);
         boolean result;
         if(isUser) {
             result = userNotificationService.deleteUserNotification(id);

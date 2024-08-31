@@ -28,7 +28,6 @@ public class UserDataController {
     private final ProfilePicService profilePicService;
     private final GeneralService generalService;
     private final HttpServletRequest httpServletRequest;
-    private final Utils utils;
 
 
     //End-point per manipolare i dati anagrafici dell'utente
@@ -88,27 +87,22 @@ public class UserDataController {
 
 
     //End-point per il cambio password (da loggato e con il recupero password)
-    @PutMapping("/otp")
-    public ResponseEntity<String> forgottenPassword(@RequestBody OtpDTO otp){
-        if(userService.checkOtp(otp))
-            return new ResponseEntity<>("Otp valido!", HttpStatus.OK);
+    @PutMapping("/otp/{otp}")
+    public ResponseEntity<String> forgottenPassword(@PathVariable String otp, @RequestBody PasswordChangeDTO passwordChangeDTO){
+        if(userService.checkOtp(passwordChangeDTO, otp))
+            return new ResponseEntity<>("Password cambiata", HttpStatus.OK);
         else
-            return new ResponseEntity<>("Otp non corretto...", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Errore cambio password...", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @PutMapping("/password")
-    public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDTO passwordChangeDTO, @RequestParam("recovery") int recovery){  //recovery= 0 invio otp, 1 cambio da log, 2 cambio post otp
-        String username= "";
-        if(recovery==1)
-            username= httpServletRequest.getAttribute("preferred_username").toString();
-        else if(recovery==2)
-            username= passwordChangeDTO.getUsername();
+    public ResponseEntity<String> changePassword(@RequestBody PasswordChangeDTO passwordChangeDTO, @RequestParam("recovery") boolean recovery){
+        String username= httpServletRequest.getAttribute("preferred_username").toString();
 
-        if(recovery==0) {
+        if(recovery) {
             String result= generalService.recoveryPassword(passwordChangeDTO.getUsername());
-
-            if(result.contains("@"))
-                return new ResponseEntity<>(result, HttpStatus.OK);
+            if(result.endsWith("."))
+                return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
             return new ResponseEntity<>(result, HttpStatus.OK);
         } else {
             if(userService.changePassword(passwordChangeDTO, username))
@@ -148,6 +142,15 @@ public class UserDataController {
         //Prendendo l'username dell'utente che ha fatto la chiamata
         String username= httpServletRequest.getAttribute("preferred_username").toString();
 
+        if(profilePicService.saveImage(username, file, false))
+            return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
+        else
+            return new ResponseEntity<>("Errore nel caricamento dell'immagine...", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping(value = "/image/admin/{username}")
+    public ResponseEntity<String> uploadImageAdmin(@RequestParam("file") MultipartFile file, @PathVariable String username){
+        //Prendendo l'username dell'utente che ha fatto la chiamata
         if(profilePicService.saveImage(username, file, false))
             return new ResponseEntity<>("Immagine caricata con successo!", HttpStatus.OK);
         else
