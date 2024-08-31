@@ -83,6 +83,7 @@ public class ReviewController {
     // Endpoint per l'eliminazione di una recensione e delle eventuali segnalazioni ad essa collegate
     @DeleteMapping("/review")
     public ResponseEntity<String> deleteReviewByUser(@RequestParam("product-id") UUID productID){
+        System.out.println("id del prodotto che mi arriva: "+productID.toString());
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
         if(generalService.deleteReviewByUser(username, productID))
