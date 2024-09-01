@@ -120,8 +120,8 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.PUT, "/user-api/balance/*").hasRole(BASIC)
                         .pathMatchers(HttpMethod.PUT, "/user-api/balance/release/*").hasRole(BASIC)
                         .pathMatchers(HttpMethod.POST, "/user-api/balance/*/refund").hasRole(BASIC)
-                        .pathMatchers(HttpMethod.POST, "/user-api/balance/*").hasRole(BASIC)
-                        .pathMatchers(HttpMethod.PUT, "/user-api/balance").hasRole(BASIC)
+                        .pathMatchers(HttpMethod.POST, "/user-api/balance/*").hasAnyRole(BASIC, ADMIN)
+                        .pathMatchers(HttpMethod.PUT, "/user-api/balance").hasAnyRole(BASIC, ADMIN)
 
 
                         //Admin Controller
