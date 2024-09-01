@@ -39,8 +39,6 @@ public class FollowerServiceImpl implements FollowerService {
         List<FollowerDTO> followerDTOs= new Vector<>();
 
         for(Follower f: followers) {
-            if(f.isOnDeleting())
-                continue;
             followerDTOs.add(modelMapper.map(f, FollowerDTO.class));
         }
 
@@ -51,7 +49,7 @@ public class FollowerServiceImpl implements FollowerService {
     public FollowerDTO getFollower(String username1, String username2) {
         Follower follower= followerRepository.findByUserUsername1AndUserUsername2(username1, username2);
 
-        if(follower == null || follower.isOnDeleting())
+        if(follower == null)
             return null;
         return modelMapper.map(follower, FollowerDTO.class);
     }
@@ -68,27 +66,27 @@ public class FollowerServiceImpl implements FollowerService {
 
         for(UserSearchDTO f: followers) {
             Follower follower  = followerRepository.findByUserUsername1AndUserUsername2(username1, f.getUsername());
-            if(follower!=null && !follower.isOnDeleting()){
+            if(follower!=null){
                 System.out.println("Follower trovato: "+f.getUsername()+" stato: "+f.isFriend());
                 follower.setFriend(f.isFriend());
                 System.out.println("Follower trovato: "+follower.getUserUsername2()+" nuovo stato: "+follower.isFriend());
                 followerRepository.save(follower);
-            }else if(follower==null){
+            }else{
                 followz.add(f);
             }
+
         }
 
         List<Follower> savingFollower= new Vector<>();
 
-        Follower fwl= new Follower();
+        FollowerDTO fwl= new FollowerDTO();
 
         for(UserSearchDTO follower : followz) {
             fwl.setUserUsername1(username1);
             fwl.setUserUsername2(follower.getUsername());
             fwl.setFriend(follower.isFriend());
-            fwl.setOnDeleting(false);
 
-            savingFollower.add(fwl);
+            savingFollower.add(modelMapper.map(fwl, Follower.class));
         }
 
         try {
@@ -102,9 +100,7 @@ public class FollowerServiceImpl implements FollowerService {
 
     @Override
     public boolean isFriend(String username, String friendUsername) {
-        Follower fwl= followerRepository.findByUserUsername1AndUserUsername2AndFriendIsTrue(username, friendUsername);
-
-        return fwl!=null && !fwl.isOnDeleting();
+        return followerRepository.findByUserUsername1AndUserUsername2(username, friendUsername)!=null;
     }
 
     //Eliminazione del singolo follower
@@ -115,12 +111,9 @@ public class FollowerServiceImpl implements FollowerService {
             //Ricerca e presa di tutti gli oggetti entity per eseguire la cancellazione
             flw= followerRepository.findByUserUsername1AndUserUsername2(username1, usernameToDelete);
 
-            if(flw!=null && !flw.isOnDeleting()) {
+            if(flw!=null)
                 followerRepository.delete(flw);
-
-                return true;
-            }
-            return false;
+            return true;
         } catch (Exception | Error e) {
             log.debug("Errore nell'eliminazione dei follower");
             return false;
@@ -138,9 +131,6 @@ public class FollowerServiceImpl implements FollowerService {
             System.out.println("Subito dopo la presa");
             if(followers.isEmpty())
                 return new Vector<>();
-
-            if(followers.getFirst().isOnDeleting() && !rollback)
-                return null;
 
             List<FollowerDTO> result= new Vector<>();
             for(Follower follower : followers){

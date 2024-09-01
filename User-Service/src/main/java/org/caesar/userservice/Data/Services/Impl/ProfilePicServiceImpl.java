@@ -31,14 +31,9 @@ public class ProfilePicServiceImpl implements ProfilePicService {
                 ProfilePic profilePic1 = new ProfilePic();
                 profilePic1.setUserUsername(lowercaseUsername);
                 profilePic1.setProfilePic(file.getBytes());
-                profilePic1.setOnDeleting(false);
                 profilePicRepository.save(profilePic1);
             } else {
                 ProfilePic profilePic = profilePicRepository.findByUserUsername(lowercaseUsername);
-
-                if(profilePic==null || profilePic.isOnDeleting())
-                    return false;
-
                 profilePic.setProfilePic(file.getBytes());
                 profilePicRepository.save(profilePic);
             }
@@ -53,12 +48,7 @@ public class ProfilePicServiceImpl implements ProfilePicService {
     //Metodo per restituire l'immagine dell'utente
     @Override
     public byte[] getUserImage(String username) {
-        ProfilePic profilePic = profilePicRepository.findByUserUsername(username);
-
-        if(profilePic==null || profilePic.isOnDeleting())
-            return null;
-
-        return profilePic.getProfilePic();
+        return profilePicRepository.findByUserUsername(username).getProfilePic();
     }
 
 
@@ -69,9 +59,6 @@ public class ProfilePicServiceImpl implements ProfilePicService {
             ProfilePic image= profilePicRepository.findByUserUsername(username);
 
             if(image==null)
-                return null;
-
-            if(image.isOnDeleting() && !rollback)
                 return null;
 
             image.setOnDeleting(!rollback);
