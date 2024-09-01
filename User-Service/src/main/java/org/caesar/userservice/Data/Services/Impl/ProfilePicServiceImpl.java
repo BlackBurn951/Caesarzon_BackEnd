@@ -31,6 +31,7 @@ public class ProfilePicServiceImpl implements ProfilePicService {
                 ProfilePic profilePic1 = new ProfilePic();
                 profilePic1.setUserUsername(lowercaseUsername);
                 profilePic1.setProfilePic(file.getBytes());
+                profilePic1.setOnDeleting(false);
                 profilePicRepository.save(profilePic1);
             } else {
                 ProfilePic profilePic = profilePicRepository.findByUserUsername(lowercaseUsername);

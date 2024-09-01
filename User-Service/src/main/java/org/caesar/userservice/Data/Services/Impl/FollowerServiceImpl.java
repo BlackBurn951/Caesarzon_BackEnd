@@ -79,14 +79,15 @@ public class FollowerServiceImpl implements FollowerService {
 
         List<Follower> savingFollower= new Vector<>();
 
-        FollowerDTO fwl= new FollowerDTO();
+        Follower fwl= new Follower();
 
         for(UserSearchDTO follower : followz) {
             fwl.setUserUsername1(username1);
             fwl.setUserUsername2(follower.getUsername());
             fwl.setFriend(follower.isFriend());
+            fwl.setOnDeleting(false);
 
-            savingFollower.add(modelMapper.map(fwl, Follower.class));
+            savingFollower.add(fwl);
         }
 
         try {

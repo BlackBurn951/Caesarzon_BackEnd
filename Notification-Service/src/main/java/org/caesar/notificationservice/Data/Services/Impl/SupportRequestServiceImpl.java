@@ -48,6 +48,7 @@ public class SupportRequestServiceImpl implements SupportRequestService {
     public SupportDTO addSupportRequest(SupportDTO supportDTO) {
         try {
             Support support = supportRequestRepository.save(modelMapper.map(supportDTO, Support.class));
+            support.setOnDeleting(false);
             return modelMapper.map(support, SupportDTO.class);
         } catch (Exception | Error e) {
             log.debug("Errore nell'inserimento della richiesta");
@@ -74,9 +75,11 @@ public class SupportRequestServiceImpl implements SupportRequestService {
         try{
             List<Support> supports= supportRequestRepository.findAllByUsername(username);
 
+            System.out.println("Dopo la presa");
             if(supports.isEmpty())
                 return new Vector<>();
 
+            System.out.println("Nella presa");
             for(Support support: supports) {
                 support.setOnDeleting(!rollback);
             }

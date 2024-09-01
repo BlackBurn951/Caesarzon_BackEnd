@@ -75,6 +75,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
             UserAddress userAddressEntity = modelMapper.map(userAddress, UserAddress.class);
+            userAddressEntity.setOnDeleting(false);
             userAddressRepository.save(userAddressEntity);
 
             return true;

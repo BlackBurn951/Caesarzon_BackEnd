@@ -64,7 +64,10 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     @Override
     public boolean sendNotificationAllAdmin(List<SaveAdminNotificationDTO> notification) {
         try {
-            adminNotificationRepository.saveAll(notification.stream().map(a -> modelMapper.map(a, AdminNotification.class)).toList());
+            List<AdminNotification> notifications= notification.stream().map(a -> modelMapper.map(a, AdminNotification.class)).toList();
+
+            notifications.forEach(nt -> nt.setConfirmed(true));
+            adminNotificationRepository.saveAll(notifications);
 
             return true;
         } catch (Exception | Error e) {
@@ -198,9 +201,11 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         try{
             List<AdminNotification> notifications= adminNotificationRepository.findAllBySupport(modelMapper.map(support, Support.class));
 
+            System.out.println("Pre notifiche admin per richiesta");
             if (notifications.isEmpty())
                 return true;
 
+            System.out.println("Post notifiche admin per richiesta");
             for(AdminNotification notify: notifications) {
                 notify.setConfirmed(rollback);
             }
@@ -218,9 +223,11 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         try{
             List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(report, Report.class));
 
+            System.out.println("Pre notifiche admin per report");
             if (notifications.isEmpty())
                 return true;
 
+            System.out.println("Post notifiche admin per report");
             for(AdminNotification notify: notifications) {
                 notify.setConfirmed(rollback);
             }

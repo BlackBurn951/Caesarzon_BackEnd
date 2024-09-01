@@ -161,6 +161,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                 if(!insert) {
                     Availability myAvailability = modelMapper.map(availabilityDTO, Availability.class);
                     myAvailability.setProduct(modelMapper.map(product, Product.class));
+                    myAvailability.setOnChanges(false);
                     availabilityRepository.save(myAvailability);
                 } else
                     insert= false;

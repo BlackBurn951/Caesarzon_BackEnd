@@ -78,6 +78,7 @@ public class UserCardServiceImpl implements UserCardService {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
             UserCard userCardEntity = modelMapper.map(userCard, UserCard.class);
+            userCardEntity.setOnDeleting(false);
             userCardRepository.save(userCardEntity);
 
             return true;
@@ -107,9 +108,11 @@ public class UserCardServiceImpl implements UserCardService {
         try {
             List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
 
+            System.out.println("Carte prese");
             if(cards.isEmpty())
                 return new Vector<>();
 
+            System.out.println("Superato carte");
             List<CardDTO> result= new Vector<>();
             for(UserCard userCard: cards) {
                 result.add(modelMapper.map(userCard.getCard(), CardDTO.class));

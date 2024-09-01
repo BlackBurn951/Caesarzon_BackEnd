@@ -47,6 +47,7 @@ public class AddressServiceImpl implements AddressService {
             return null;
         try{
             Address address = modelMapper.map(addressDTO, Address.class);
+            address.setOnUse(false);
             // Save ritorna l'entità appena creata con l'ID (Che è autogenerato alla creazione), in caso serva è possibile salvare l'entità in una variabile
             return addressRepository.save(address).getId();
         }catch(Exception | Error e){
@@ -90,6 +91,7 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public boolean validateOrRollbackAddresses(List<UUID> addressId, boolean rollback) {
         try {
+            System.out.println("duro");
             List<Address> addresses= addressRepository.findAllById(addressId);
 
             for(Address address : addresses){

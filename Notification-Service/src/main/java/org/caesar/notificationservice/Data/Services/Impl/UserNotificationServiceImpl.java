@@ -67,6 +67,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
             notification.setSubject(notificationDTO.getSubject());
             notification.setExplanation(notificationDTO.getExplanation());
             notification.setRead(notificationDTO.isRead());
+            notification.setConfirmed(true);
             userNotificationRepository.save(notification);
 
             return true;
@@ -145,9 +146,11 @@ public class UserNotificationServiceImpl implements UserNotificationService {
         try{
             List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
 
+            System.out.println("Pre presa notifiche utente");
             if(notifications.isEmpty())
                 return true;
 
+            System.out.println("Post presa notifiche utente");
             for(UserNotification notify: notifications) {
                 notify.setConfirmed(rollback);
             }

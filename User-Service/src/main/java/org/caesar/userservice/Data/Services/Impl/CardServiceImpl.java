@@ -46,7 +46,7 @@ public class CardServiceImpl implements CardService {
         try{
             System.out.println("ho passato i controlli");
             Card card = modelMapper.map(cardDTO, Card.class);
-
+            card.setOnChanges(false);
             return cardRepository.save(card).getId();
         }catch(Exception | Error e){
             log.debug("Errore nel salvataggio della carta dell'utente");
@@ -71,6 +71,7 @@ public class CardServiceImpl implements CardService {
     @Override
     public boolean validateOrRollbackCards(List<UUID> cardsId, boolean rollback) {
         try {
+            System.out.println("Sesso");
             List<Card> cards= cardRepository.findAllById(cardsId);
 
             for(Card card : cards){

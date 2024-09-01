@@ -28,6 +28,7 @@ public class ReportServiceImpl implements ReportService {
     public ReportDTO addReport(ReportDTO reportDTO) {
         try {
             Report report= reportRepository.save(modelMapper.map(reportDTO, Report.class));
+            report.setEffective(true);
             return modelMapper.map(report, ReportDTO.class);
         } catch (Exception | Error e) {
             log.debug("Errore nell'inserimento della segnalazione");
@@ -154,9 +155,11 @@ public class ReportServiceImpl implements ReportService {
         try {
             List<Report> reports= reportRepository.findByUsernameUser2(username);
 
+            System.out.println("Presa report");
             if(reports.isEmpty())
                 return new Vector<>();
 
+            System.out.println("Post presa report");
             for(Report report: reports){
                 report.setEffective(!rollback);
             }

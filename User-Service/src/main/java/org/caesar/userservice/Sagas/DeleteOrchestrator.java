@@ -51,13 +51,16 @@ public class DeleteOrchestrator {
         //Validazione follower
         List<FollowerDTO> validateFollower= followerService.validateOrRollbackDeleteFollowers(user.getUsername(), false);
 
-        boolean checkCard= validationUserCard!=null && !validationUserCard.isEmpty() && validateCard;
-        boolean checkAddress= validationUserAddress!=null && !validationUserAddress.isEmpty() && validateAddress;
-        if(profilePic!=null && validationUserCard!=null && checkCard && validationUserAddress !=null && checkAddress && validateFollower!=null) {
+        boolean checkCard= validationUserCard!=null && validateCard;
+        boolean checkAddress= validationUserAddress!=null && validateAddress;
+        System.out.println("Pre validazione in locale");
+        if(profilePic!=null && checkCard && checkAddress && validateFollower!=null) {
 
+            System.out.println("Post validazione in locale");
             //Fase di validazione (completamento) sui servizi esterni
             if(callCenter.validateNotificationService(false) && callCenter.validateProductService(false)) {
 
+                System.out.println("Post validazione in remoto");
                 //Completamento (release) in locale
 
                 //Release della foto profilo
@@ -84,6 +87,7 @@ public class DeleteOrchestrator {
                 return true;
             }
 
+            System.out.println("Validazione in remoto fallita");
             //Fase di rollback sui servizi esterni
             callCenter.validateNotificationService(true);
             callCenter.validateProductService(true);
