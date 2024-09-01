@@ -234,7 +234,7 @@ public class GeneralServiceImpl implements GeneralService {
 
         int bought= productOrderService.checkIfBought(username, productDTO);
         if(bought==1)
-            return "Non puoi aggiungere una recensione ad un prodotto che non hai ancora acquistato, acquistalo e lasciaci la tua opinione";
+            return "Non puoi aggiungere una recensione ad un prodotto che non hai ancora acquistato, acquistalo e lasciaci la tua opinione!";
         else if(bought==2)
             return "Problemi nell'aggiunta della recensione...";
 
