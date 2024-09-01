@@ -27,10 +27,8 @@ public class UserAddressServiceImpl implements UserAddressService {
     //Prende l'indirizzo dell'utente tramite id
     @Override
     public UserAddressDTO getUserAddress(UUID id) {
-        UserAddress userAddress = userAddressRepository.findById(id).orElse(null);
 
-        if(userAddress == null || userAddress.isOnDeleting())
-            return null;
+        UserAddress userAddress = userAddressRepository.findById(id).orElse(null);
 
         return modelMapper.map(userAddress, UserAddressDTO.class);
     }
@@ -38,13 +36,12 @@ public class UserAddressServiceImpl implements UserAddressService {
     //Prende gli id di tutti gli indirizzi dell'utente
     @Override
     public List<UUID> getAddresses(String userUsername) {
+
         List<UserAddress> userAddresses = userAddressRepository.findAllByUserUsername(userUsername);
 
         List<UUID> result = new Vector<>();
 
         for (UserAddress userAddress : userAddresses) {
-            if(userAddress.isOnDeleting())
-                return null;
             result.add(userAddress.getId());
         }
 
@@ -58,8 +55,6 @@ public class UserAddressServiceImpl implements UserAddressService {
         List<UserAddress> userAddresses = userAddressRepository.findByUserUsername(userUsername);
 
         for(UserAddress ut: userAddresses) {
-            if(ut.isOnDeleting())
-                return null;
             result.add(modelMapper.map(ut, UserAddressDTO.class));
         }
 
@@ -71,7 +66,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         System.out.println(username+" "+addressId);
         UserAddress userAddress= userAddressRepository.findByUserUsernameAndId(username, addressId);
 
-        return userAddress != null && !userAddress.isOnDeleting();
+        return userAddress != null;
     }
 
     //Aggiunta della relazione indirizzo utente
@@ -80,7 +75,6 @@ public class UserAddressServiceImpl implements UserAddressService {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
             UserAddress userAddressEntity = modelMapper.map(userAddress, UserAddress.class);
-            userAddressEntity.setOnDeleting(false);
             userAddressRepository.save(userAddressEntity);
 
             return true;
@@ -94,11 +88,6 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public boolean deleteUserAddress(UserAddressDTO userAddressDTO) {
         try {
-            UserAddress userAddress= userAddressRepository.findById(userAddressDTO.getId()).orElse(null);
-
-            if(userAddress == null || userAddress.isOnDeleting())
-                return false;
-
             userAddressRepository.deleteById(userAddressDTO.getId());
             return true;
         } catch (Exception | Error e) {
@@ -116,9 +105,6 @@ public class UserAddressServiceImpl implements UserAddressService {
 
             if(addresses.isEmpty())
                 return new Vector<>();
-
-            if(addresses.getFirst().isOnDeleting() && !rollback)
-                return null;
 
             List<AddressDTO> result= new Vector<>();
             for(UserAddress userAddress: addresses) {

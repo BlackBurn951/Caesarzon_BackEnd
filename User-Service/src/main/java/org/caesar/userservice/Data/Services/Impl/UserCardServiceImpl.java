@@ -34,10 +34,6 @@ public class UserCardServiceImpl implements UserCardService {
 
         //Presa della lista delle carte associate all'utente
         UserCard userCard = userCardRepository.findById(id).orElse(null);
-
-        if(userCard == null || userCard.isOnDeleting())
-            return null;
-
         return modelMapper.map(userCard, UserCardDTO.class);
     }
 
@@ -50,9 +46,6 @@ public class UserCardServiceImpl implements UserCardService {
         List<UUID> result = new Vector<>();
 
         for (UserCard userCard: userCards) {
-            if(userCard.isOnDeleting())
-                return null;
-
             result.add(userCard.getId());
         }
 
@@ -66,8 +59,6 @@ public class UserCardServiceImpl implements UserCardService {
         List<UserCard> userCards = userCardRepository.findAllByUserUsername(userUsername);
 
         for(UserCard ut: userCards) {
-            if(ut.isOnDeleting())
-                return null;
             result.add(modelMapper.map(ut, UserCardDTO.class));
         }
 
@@ -78,7 +69,7 @@ public class UserCardServiceImpl implements UserCardService {
     public boolean checkCard(String username, UUID cardId) {
         UserCard userCard= userCardRepository.findByUserUsernameAndId(username, cardId);
 
-        return userCard != null && !userCard.isOnDeleting();
+        return userCard != null;
     }
 
     //Aggiunta della relazione carta utente
@@ -87,7 +78,6 @@ public class UserCardServiceImpl implements UserCardService {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
             UserCard userCardEntity = modelMapper.map(userCard, UserCard.class);
-            userCardEntity.setOnDeleting(false);
             userCardRepository.save(userCardEntity);
 
             return true;
@@ -101,11 +91,6 @@ public class UserCardServiceImpl implements UserCardService {
     @Override
     public boolean deleteUserCard(UserCardDTO userCardDTO) {
         try {
-            UserCard userCard= userCardRepository.findById(userCardDTO.getId()).orElse(null);
-
-            if(userCard == null || userCard.isOnDeleting())
-                return false;
-
             userCardRepository.deleteById(userCardDTO.getId());
             return true;
         } catch (Exception | Error e) {
@@ -124,9 +109,6 @@ public class UserCardServiceImpl implements UserCardService {
 
             if(cards.isEmpty())
                 return new Vector<>();
-
-            if(cards.getFirst().isOnDeleting() && !rollback)
-                return null;
 
             List<CardDTO> result= new Vector<>();
             for(UserCard userCard: cards) {

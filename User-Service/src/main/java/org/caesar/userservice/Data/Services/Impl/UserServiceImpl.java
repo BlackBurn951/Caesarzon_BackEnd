@@ -27,12 +27,7 @@ public class UserServiceImpl implements UserService {
     public UserDTO getUser(String username) {
         try {
             // Conversione dell'oggetto entity in un oggetto DTO per poi privarlo dell'id per non farlo girare sulla rete
-            User user = userRepository.findUserByUsername(username);
-
-            if(user.isOnChanges())
-                return null;
-
-            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            UserDTO userDTO = modelMapper.map(userRepository.findUserByUsername(username), UserDTO.class);
             userDTO.setId("");
 
             return userDTO;
@@ -106,7 +101,7 @@ public class UserServiceImpl implements UserService {
     public boolean checkOtp(PasswordChangeDTO passwordChangeDTO, String otp) {
         User user= userRepository.findUserByUsername(passwordChangeDTO.getUsername());
 
-        if(user==null || user.isOnChanges())
+        if(user==null)
             return false;
 
         if(user.getOtp().equals(otp)) {
