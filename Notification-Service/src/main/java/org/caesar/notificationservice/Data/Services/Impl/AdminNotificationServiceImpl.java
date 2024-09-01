@@ -38,9 +38,6 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
             AdminNotificationDTO notificationDTO;
 
             for(AdminNotification notify: notifications) {
-                if(!notify.isConfirmed())
-                    continue;
-
                 notificationDTO= new AdminNotificationDTO();
 
                 notificationDTO.setId(notify.getId());
@@ -67,13 +64,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     @Override
     public boolean sendNotificationAllAdmin(List<SaveAdminNotificationDTO> notification) {
         try {
-            adminNotificationRepository.saveAll(notification.stream()
-                                                            .map(a -> {
-                                                                AdminNotification not= modelMapper.map(a, AdminNotification.class);
-                                                                not.setConfirmed(true);
-
-                                                                return not;
-                                                            }).toList());
+            adminNotificationRepository.saveAll(notification.stream().map(a -> modelMapper.map(a, AdminNotification.class)).toList());
 
             return true;
         } catch (Exception | Error e) {
@@ -86,11 +77,6 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     @Override
     public boolean deleteAdminNotification(UUID id){
         try{
-            AdminNotification notification= adminNotificationRepository.findById(id).orElse(null);
-
-            if(notification==null || !notification.isConfirmed())
-                return false;
-
             adminNotificationRepository.deleteById(id);
             return true;
         }catch(Exception | Error e){
@@ -103,19 +89,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     @Override
     public boolean deleteBySupport(SupportDTO supportDTO) {
         try{
-            List<AdminNotification> notification= adminNotificationRepository.findAllBySupport(modelMapper.map(supportDTO, Support.class));
-
-            if(notification==null)
-                return false;
-
-            if(notification.isEmpty())
-                return true;
-
-            for(AdminNotification notify: notification) {
-                if (!notify.isConfirmed())
-                    continue;
-                adminNotificationRepository.deleteById(notify.getId());
-            }
+            adminNotificationRepository.deleteBySupport(modelMapper.map(supportDTO, Support.class));
 
             return true;
         } catch (Exception | Error e) {
@@ -131,20 +105,15 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         try{
             List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
 
-            List<AdminNotification> result= new Vector<>();
-            for(AdminNotification notify: notifications) {
-                if(!notify.isConfirmed() && !rollback)
-                    continue;
-
-                notify.setConfirmed(rollback);
-                result.add(notify);
-            }
-
-            if (result.isEmpty())
+            if (notifications.isEmpty())
                 return new Vector<>();
 
-            adminNotificationRepository.saveAll(result);
-            return result.stream()
+            for(AdminNotification notify: notifications) {
+                notify.setConfirmed(false);
+            }
+
+            adminNotificationRepository.saveAll(notifications);
+            return notifications.stream()
                     .map(notify -> {
                         SaveAdminNotificationDTO not= new SaveAdminNotificationDTO();
                         not.setId(notify.getId());
@@ -229,19 +198,14 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         try{
             List<AdminNotification> notifications= adminNotificationRepository.findAllBySupport(modelMapper.map(support, Support.class));
 
-            List<AdminNotification> result= new Vector<>();
-            for(AdminNotification notify: notifications) {
-                if(!notify.isConfirmed() && !rollback)
-                    continue;
-
-                notify.setConfirmed(rollback);
-                result.add(notify);
-            }
-
-            if (result.isEmpty())
+            if (notifications.isEmpty())
                 return true;
 
-            adminNotificationRepository.saveAll(result);
+            for(AdminNotification notify: notifications) {
+                notify.setConfirmed(rollback);
+            }
+
+            adminNotificationRepository.saveAll(notifications);
             return true;
         }catch(Exception | Error e){
             log.debug("Errore nela validazione dell'eliminazione per richiesta di supporto");
@@ -254,19 +218,14 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
         try{
             List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(report, Report.class));
 
-            List<AdminNotification> result= new Vector<>();
-            for(AdminNotification notify: notifications) {
-                if(!notify.isConfirmed() && !rollback)
-                    continue;
-
-                notify.setConfirmed(rollback);
-                result.add(notify);
-            }
-
-            if (result.isEmpty())
+            if (notifications.isEmpty())
                 return true;
 
-            adminNotificationRepository.saveAll(result);
+            for(AdminNotification notify: notifications) {
+                notify.setConfirmed(rollback);
+            }
+
+            adminNotificationRepository.saveAll(notifications);
             return true;
         }catch(Exception | Error e){
             log.debug("Errore nella validazione dell'eliminazione per segnalazione");
@@ -278,13 +237,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     @Override
     public boolean updateAdminNotification(List<SaveAdminNotificationDTO> notificationDTO) {
         try{
-            adminNotificationRepository.saveAll(notificationDTO.stream()
-                                                                .map(a -> {
-                                                                    AdminNotification not= modelMapper.map(a, AdminNotification.class);
-                                                                    not.setConfirmed(true);
-
-                                                                    return not;
-                                                                }).toList());
+            adminNotificationRepository.saveAll(notificationDTO.stream().map(a -> modelMapper.map(a, AdminNotification.class)).toList());
 
             return true;
         }catch(Exception | Error e){
@@ -296,19 +249,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     @Override
     public boolean deleteByReport(ReportDTO reportDTO) {
         try{
-            List<AdminNotification> notification= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
-
-            if(notification==null)
-                return false;
-
-            if(notification.isEmpty())
-                return true;
-
-            for(AdminNotification notify: notification) {
-                if (!notify.isConfirmed())
-                    continue;
-                adminNotificationRepository.deleteById(notify.getId());
-            }
+            adminNotificationRepository.deleteByReport(modelMapper.map(reportDTO, Report.class));
 
             return true;
         }catch (Exception | Error e){

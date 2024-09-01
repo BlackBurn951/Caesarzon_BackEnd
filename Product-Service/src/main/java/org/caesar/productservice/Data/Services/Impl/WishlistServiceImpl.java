@@ -61,11 +61,7 @@ public class WishlistServiceImpl implements WishlistService {
 
     @Override  //Metodo per prendere la lista dei desideri dell'utente
     public WishlistDTO getWishlist(UUID id, String username) {
-        Wishlist wish= wishlistRepository.findWishlistByIdAndUserUsername(id, username);
-
-        if(wish==null || wish.isOnDeleting())
-            return null;
-        return modelMapper.map(wish, WishlistDTO.class);
+        return modelMapper.map(wishlistRepository.findWishlistByIdAndUserUsername(id, username), WishlistDTO.class);
     }
 
     @Override
@@ -88,30 +84,14 @@ public class WishlistServiceImpl implements WishlistService {
         }
         //Caso in cui l'utente vuole accedere alle sue liste desideri
         if(ownerUsername.equals(accessUsername)) {
-            List<Wishlist> wishlists= wishlistRepository.findAllByUserUsernameAndVisibility(ownerUsername, vs);
-
-            List<Wishlist> result= new Vector<>();
-            for(Wishlist wishlist: wishlists) {
-                if(wishlist.isOnDeleting())
-                    continue;
-
-                result.add(wishlist);
-            }
-            return result.stream()
+            return wishlistRepository.findAllByUserUsernameAndVisibility(ownerUsername, vs)
+                    .stream()
                     .map(a -> modelMapper.map(a, BasicWishlistDTO.class))
                     .toList();
         } else {
             if(visibility==0) { //Pubbliche
-                List<Wishlist> wishlists= wishlistRepository.findAllByUserUsernameAndVisibility(ownerUsername, vs);
-
-                List<Wishlist> result= new Vector<>();
-                for(Wishlist wishlist: wishlists) {
-                    if(wishlist.isOnDeleting())
-                        continue;
-
-                    result.add(wishlist);
-                }
-                return result.stream()
+                return wishlistRepository.findAllByUserUsernameAndVisibility(ownerUsername, vs)
+                        .stream()
                         .map(a -> modelMapper.map(a, BasicWishlistDTO.class))
                         .toList();
             } else if(visibility==1) { //Condivisa
@@ -130,16 +110,8 @@ public class WishlistServiceImpl implements WishlistService {
                 );
 
                 if(response.getStatusCode()== HttpStatus.OK && response.getBody()) {
-                    List<Wishlist> wishlists= wishlistRepository.findAllByUserUsernameAndVisibility(ownerUsername, vs);
-
-                    List<Wishlist> result= new Vector<>();
-                    for(Wishlist wishlist: wishlists) {
-                        if(wishlist.isOnDeleting())
-                            continue;
-
-                        result.add(wishlist);
-                    }
-                    return result.stream()
+                    return wishlistRepository.findAllByUserUsernameAndVisibility(ownerUsername, vs)
+                            .stream()
                             .map(a -> modelMapper.map(a, BasicWishlistDTO.class))
                             .toList();
                 }
@@ -150,25 +122,12 @@ public class WishlistServiceImpl implements WishlistService {
 
     @Override
     public List<BasicWishlistDTO> getAllUserWishlists(String accessUsername) {
-        List<Wishlist> wishlists= wishlistRepository.findAllByUserUsername(accessUsername);
-
-        List<Wishlist> result= new Vector<>();
-        for(Wishlist wishlist: wishlists) {
-            if(wishlist.isOnDeleting())
-                continue;
-            result.add(wishlist);
-        }
-        return result.stream().map(a -> modelMapper.map(a, BasicWishlistDTO.class)).toList();
+        return wishlistRepository.findAllByUserUsername(accessUsername).stream().map(a -> modelMapper.map(a, BasicWishlistDTO.class)).toList();
     }
 
     @Override
     public boolean deleteWishlist(UUID id) {
         try {
-            Wishlist wishlist= wishlistRepository.findById(id).orElse(null);
-
-            if(wishlist==null || wishlist.isOnDeleting())
-                return false;
-
             wishlistRepository.deleteById(id);
             log.debug("Lista desideri eliminata correttamente");
             return true;
@@ -182,9 +141,6 @@ public class WishlistServiceImpl implements WishlistService {
     public boolean changeVisibility(String username, ChangeVisibilityDTO changeVisibilityDTO) {
         try{
             Wishlist wishlist = wishlistRepository.findWishlistByIdAndUserUsername(changeVisibilityDTO.getWishId(), username);
-
-            if(wishlist==null || wishlist.isOnDeleting())
-                return false;
 
             switch (changeVisibilityDTO.getVisibility()) {
                 case 0 -> wishlist.setVisibility("Pubblica");
@@ -216,8 +172,7 @@ public class WishlistServiceImpl implements WishlistService {
 
             System.out.println("Ciclando le wishlist");
             for(Wishlist wishlist: wishlists) {
-                if(wishlist.isOnDeleting() && !rollback)
-                    continue;
+                System.out.println(wishlist.getName());
                 wishlist.setOnDeleting(!rollback);
             }
 

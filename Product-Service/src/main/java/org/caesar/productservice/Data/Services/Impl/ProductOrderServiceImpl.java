@@ -94,23 +94,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean deleteProductCarts(String username) {
         try {
-            List<ProductOrder> productOrderList= productOrderRepository.findAllByUsernameAndOrderIsNull(username);
-
-            if(productOrderList==null || productOrderList.isEmpty())
-                return false;
-
-            List<ProductOrder> result= new Vector<>();
-            for(ProductOrder productOrder: productOrderList){
-                if(productOrder.isOnChanges())
-                    continue;
-                result.add(productOrder);
-            }
-
-            if(result.isEmpty())
-                return false;
-
-            productOrderRepository.deleteAll(result);
-
+            productOrderRepository.deleteAllByUsernameAndOrderIsNull(username);
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nell'eliminazione dei prodotti dalla lista desideri");
@@ -136,9 +120,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         List<ProductOrderDTO> productOrderDTOList= new Vector<>();
         ProductOrderDTO productOrderDTO;
         for(ProductOrder productOrder: result){
-            if(productOrder.isOnChanges())
-                continue;
-
             productOrderDTO= new ProductOrderDTO();
 
             productOrderDTO.setId(productOrder.getId());
@@ -158,12 +139,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean deleteProductCart(String username, ProductDTO productDTO) {
         try {
-            ProductOrder productOrders= productOrderRepository.findAllByUsernameAndOrderNullAndProduct(username, modelMapper.map(productDTO, Product.class));
-
-            if(productOrders==null || productOrders.isOnChanges())
-                return false;
-
-            productOrderRepository.delete(productOrders);
+            productOrderRepository.deleteByUsernameAndOrderNullAndProduct(username, modelMapper.map(productDTO, Product.class));
 
             return true;
         } catch (Exception | Error e) {
@@ -178,7 +154,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         try{
             ProductOrder productOrder= productOrderRepository.findByUsernameAndProductAndOrderIsNull(username, modelMapper.map(productDTO, Product.class));
 
-            if(productOrder == null || productOrder.isOnChanges())
+            if(productOrder == null)
                 return false;
 
             productOrder.setBuyLater(!productOrder.isBuyLater());
@@ -198,7 +174,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             ProductOrder productOrder = productOrderRepository
                     .findByUsernameAndProductAndOrderIsNull(username, modelMapper.map(productDTO, Product.class));
 
-            if(productOrder == null || productOrder.isOnChanges())
+            if(productOrder == null)
                 return false;
             productOrder.setQuantity(quantity);
             productOrder.setSize(size);
@@ -216,17 +192,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         try {
             List<ProductOrder> productOrders= productOrderRepository.findAllByUsernameAndOrder(username, modelMapper.map(orderDTO, Order.class));
 
-            List<ProductOrder> result= new Vector<>();
-            for(ProductOrder productOrder: productOrders){
-                if(productOrder.isOnChanges())
-                    continue;
-                result.add(productOrder);
-            }
-
-            if(result.isEmpty())
-                return new Vector<>();
-
-            return result.stream()
+            return productOrders.stream()
                     .map(prod -> {
                         ProductOrderDTO productOrderDTO= new ProductOrderDTO();
                         productOrderDTO.setId(prod.getId());
@@ -258,8 +224,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             for(ProductOrder productOrder: products){
                 System.out.println(productOrder.getUsername());
-                if(productOrder.isOnChanges() && !rollback)
-                    continue;
                 productOrder.setOnChanges(!rollback);
             }
 
@@ -277,14 +241,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public int checkIfBought(String username, ProductDTO productDTO) {  // 0 -> true 1 -> false 2 -> errore
         try {
-            List<ProductOrder> products= productOrderRepository.findAllByUsernameAndOrderIsNotNullAndProduct(username, modelMapper.map(productDTO, Product.class));
-
-            List<ProductOrder> result= new Vector<>();
-            for(ProductOrder productOrder: products){
-                if(productOrder.isOnChanges())
-                    continue;
-                result.add(productOrder);
-            }
+            List<ProductOrder> result= productOrderRepository.findAllByUsernameAndOrderIsNotNullAndProduct(username, modelMapper.map(productDTO, Product.class));
 
             if(result.isEmpty())
                 return 1;

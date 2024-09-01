@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, UUID> {
 
-    @Query("SELECT COUNT(*) FROM segnala where username_utente2= :username and effettiva is true GROUP BY username_utente2 HAVING COUNT(DISTINCT id_recensione) > 1")
+    @Query("SELECT COUNT(*) FROM segnala where username_utente2= :username GROUP BY username_utente2 HAVING COUNT(DISTINCT id_recensione) > 1")
     int countByUsernameUser2(@Param("username") String username);
 
     void deleteByReviewId(UUID id);
@@ -21,5 +21,5 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
 
     List<Report> findByUsernameUser2(String username);
 
-    Report findByUsernameUser1AndReviewIdAndEffectiveIsTrue(String usernameUser1, UUID reviewId);
+    Report findByUsernameUser1AndReviewId(String usernameUser1, UUID reviewId);
 }

@@ -7,5 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SbanDTO {
+
     private String username;
 }

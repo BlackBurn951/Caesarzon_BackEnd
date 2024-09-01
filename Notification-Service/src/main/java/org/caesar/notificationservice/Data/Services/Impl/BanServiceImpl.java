@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-import java.util.Vector;
 
 @Service
 @RequiredArgsConstructor
@@ -31,24 +30,14 @@ public class BanServiceImpl implements BanService {
     //Metodo per restituire tutti gli utenti bannati
     public List<BanDTO> getAllBans(@RequestParam("num") int num) {
         Page<Ban> bans = banRepository.findAllByEndDateIsNull(PageRequest.of(num, 20));
-
-        List<BanDTO> result= new Vector<>();
-        for(Ban ban : bans) {
-            if(!ban.isConfirmed())
-                continue;
-            result.add(modelMapper.map(ban, BanDTO.class));
-        }
-
-        return result;
+        return bans.stream().map(a -> modelMapper.map(a, BanDTO.class)).toList();
     }
 
 
     @Override
     public boolean checkIfBanned(String username) {
         try{
-            Ban result= banRepository.findByUserUsernameAndEndDateIsNull(username);
-
-            return result!=null && result.isConfirmed();
+            return banRepository.findByUserUsernameAndEndDateIsNull(username)!=null;
         }catch (Exception | Error e){
             return false;
         }
