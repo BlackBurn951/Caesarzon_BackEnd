@@ -44,36 +44,6 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public ImageDTO findImage(ProductDTO product){
-        try{
-            Image img= imageRepository.findByProduct(modelMapper.map(product, Product.class));
-
-            if(img==null)
-                return null;
-
-            return modelMapper.map(img, ImageDTO.class);
-        } catch (Exception | Error e) {
-            return null;
-        }
-    }
-
-    @Override
-    public boolean createImage(ProductDTO prod) {
-        try{
-//            if(prod==null)
-//                return false;
-//
-//
-//
-//            imageRepository.save(img);
-
-            return true;
-        } catch (Exception | Error e) {
-            return false;
-        }
-    }
-
-    @Override
     public boolean updateImage(ImageDTO image, boolean isNew) {
         try{
             if(isNew) {
@@ -82,10 +52,8 @@ public class ImageServiceImpl implements ImageService {
             }
 
             Product prod= modelMapper.map(image.getProduct(), Product.class);
-            System.out.println(prod.getId()+" "+prod.getName());
             Image img = imageRepository.findByProduct(prod);
 
-            System.out.println(img.getProduct().getName());
             if(img==null)
                 return false;
 

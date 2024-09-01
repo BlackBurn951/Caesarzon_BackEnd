@@ -13,7 +13,6 @@ public interface AddressService {
     UUID addAddress(AddressDTO addressDTO);
     AddressDTO getAddress(UUID addressId);
     boolean deleteAddress(UUID addressId);
-    boolean deleteAllUserAddresses(List<UserAddressDTO> userAddresses);
 
     boolean validateOrRollbackAddresses(List<UUID> addressId, boolean rollback);
     boolean releaseLockAddresses(List<UUID> addressId);

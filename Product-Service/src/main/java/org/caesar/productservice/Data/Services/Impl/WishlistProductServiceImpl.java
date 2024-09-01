@@ -46,12 +46,10 @@ public class WishlistProductServiceImpl implements WishlistProductService {
     @Override
     public boolean deleteProductFromWishlist(WishListProductDTO wishListProductDTO){
         try{
-            System.out.println("Sono nella delete");
             Product prod= modelMapper.map(wishListProductDTO.getProductDTO(), Product.class);
             Wishlist wish= modelMapper.map(wishListProductDTO.getWishlistDTO(), Wishlist.class);
             wishlistProductRepository.deleteByProductAndWishlist(prod, wish);
 
-            System.out.println("dopo la delete");
             return true;
         }catch(Exception | Error e) {
             throw e;

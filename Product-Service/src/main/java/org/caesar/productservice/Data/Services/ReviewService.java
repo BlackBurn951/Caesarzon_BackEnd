@@ -11,7 +11,6 @@ import java.util.UUID;
 public interface ReviewService {
 
     String addReview(ReviewDTO review, ProductDTO productDTO);
-    Review getReviewById(UUID reviewID);
     ReviewDTO getReviewByUsernameAndProduct(String username, ProductDTO productDTO);
     List<ReviewDTO> getReviewsByProduct(ProductDTO productDTO, int str);
 

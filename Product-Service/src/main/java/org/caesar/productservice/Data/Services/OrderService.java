@@ -30,8 +30,6 @@ public interface OrderService {
 
     boolean completeOrderForUpdate(List<UUID> orderIds);
 
-    boolean rollbackOrderForUpdate(List<UUID> orderIds);
-
 
     List<OrderDTO> getOrders(String username);
 

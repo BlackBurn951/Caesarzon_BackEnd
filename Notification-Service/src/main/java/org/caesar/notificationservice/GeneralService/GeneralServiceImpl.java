@@ -64,7 +64,6 @@ public class GeneralServiceImpl implements GeneralService{
 
         //Controllo se il DTO non è nullo e se il numero di segnalazioni ricevute da un utente è minore di 5 (Su diversi prodotti)
         if(newReportDTO != null && reportService.countReportForUser(newReportDTO.getUsernameUser2())>=5 && !banService.checkIfBanned(newReportDTO.getUsernameUser2())) {
-            System.out.println("Entrato nel saga");
             //Avvio del saga per il ban automatico
             UUID banId= banService.validateBan();
             List<ReportDTO> reports= reportService.getReportsByUsername2(newReportDTO.getUsernameUser2());

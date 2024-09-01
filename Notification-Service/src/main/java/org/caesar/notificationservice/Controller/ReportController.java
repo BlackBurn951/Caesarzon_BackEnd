@@ -70,7 +70,6 @@ public class ReportController {
 
     @DeleteMapping("/user/report")
     public ResponseEntity<String> releaseLock(@RequestBody List<UUID> reportIds) {
-        System.out.println("Sono nell'end-point per il release");
         if(reportService.releaseLock(reportIds))
             return new ResponseEntity<>("Lock rilasciato con successo!", HttpStatus.OK);
         else

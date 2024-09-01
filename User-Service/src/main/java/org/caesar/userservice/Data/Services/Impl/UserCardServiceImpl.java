@@ -108,11 +108,10 @@ public class UserCardServiceImpl implements UserCardService {
         try {
             List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
 
-            System.out.println("Carte prese");
             if(cards.isEmpty())
                 return new Vector<>();
 
-            System.out.println("Superato carte");
+
             List<CardDTO> result= new Vector<>();
             for(UserCard userCard: cards) {
                 result.add(modelMapper.map(userCard.getCard(), CardDTO.class));

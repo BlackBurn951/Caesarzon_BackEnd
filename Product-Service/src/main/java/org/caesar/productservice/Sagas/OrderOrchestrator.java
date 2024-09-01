@@ -52,7 +52,6 @@ public class OrderOrchestrator {
 
                 for(ProductOrderDTO productOrderDTO: productInOrder){
                     productOrderDTO.setOrderDTO(order);
-                    System.out.println(productOrderDTO.getTotal()+" "+order.getId());
                 }
 
                 completeProduct= productOrderService.validateAndCompleteAndReleaseProductInOrder(productInOrder, false);

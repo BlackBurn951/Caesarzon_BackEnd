@@ -75,11 +75,9 @@ public class SupportRequestServiceImpl implements SupportRequestService {
         try{
             List<Support> supports= supportRequestRepository.findAllByUsername(username);
 
-            System.out.println("Dopo la presa");
             if(supports.isEmpty())
                 return new Vector<>();
 
-            System.out.println("Nella presa");
             for(Support support: supports) {
                 support.setOnDeleting(!rollback);
             }
@@ -94,51 +92,4 @@ public class SupportRequestServiceImpl implements SupportRequestService {
             return null;
         }
     }
-
-    @Override
-    public boolean completeDeleteUserSupport(String username) {
-        try{
-            List<Support> supports= supportRequestRepository.findAllByUsername(username);
-
-            for(Support support: supports) {
-                support.setDateRequest(null);
-                support.setType(null);
-                support.setSubject(null);
-                support.setType(null);
-            }
-
-            supportRequestRepository.saveAll(supports);
-
-            return true;
-        }catch(Exception | Error e){
-            log.debug("Errore nell'inserimento della notifica per l'utente");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean releaseDeleteUserSupport(String username) {
-        try{
-            supportRequestRepository.deleteAllByUsername(username);
-
-            return true;
-        }catch(Exception | Error e){
-            log.debug("Errore nell'inserimento della notifica per l'utente");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean rollbackDeleteUserSupport(List<SupportDTO> supports) {
-        try{
-            supportRequestRepository.saveAll(supports.stream().map(nt -> modelMapper.map(nt, Support.class)).toList());
-
-            return true;
-        }catch(Exception | Error e){
-            log.debug("Errore nell'inserimento della notifica per l'utente");
-            return false;
-        }
-    }
-
-
 }

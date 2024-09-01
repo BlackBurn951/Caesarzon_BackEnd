@@ -75,9 +75,7 @@ public class WishlistController {
         String username = httpServletRequest.getAttribute("preferred_username").toString();
 
         List<BasicWishlistDTO> result = wishlistService.getAllWishlists(ownerUsername, username, visibility);
-        for(BasicWishlistDTO wishlistDTO : result){
-            System.out.println("wishlistDTO: " + wishlistDTO.getName());
-        }
+
         if(result!=null)
             return new ResponseEntity<>(result, HttpStatus.OK);
         else
@@ -121,7 +119,6 @@ public class WishlistController {
     @DeleteMapping("/wishlist/product")
     public ResponseEntity<String> deleteWishlistProductByProductID(@RequestParam("wish-id") UUID wishId, @RequestParam("product-id") UUID productId){
         String username = httpServletRequest.getAttribute("preferred_username").toString();
-        System.out.println("wishId: "+wishId+"\n prodId: "+productId);
         if(generalService.deleteProductFromWishList(username, wishId, productId))
             return new ResponseEntity<>("Prodotto eliminato correttamente dalla lista desideri", HttpStatus.OK);
         else

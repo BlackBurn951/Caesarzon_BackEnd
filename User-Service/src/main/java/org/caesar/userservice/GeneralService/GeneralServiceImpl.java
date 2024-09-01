@@ -82,9 +82,7 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     public int addAddress(String userUsername, AddressDTO addressDTO) {
         List<UserAddressDTO> addresses= userAddressService.getUserAddresses(userUsername);
-        System.out.println("sono nella add addrress");
         if(addresses.size()<5) {
-            System.out.println("ho passato l'if ");
             for(UserAddressDTO address: addresses) {
                 AddressDTO userAddress = addressService.getAddress(address.getAddressId());
 
@@ -102,13 +100,10 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     public int addCard(String userUsername, CardDTO cardDTO) {
         List<UserCardDTO> cards= userCardService.getUserCards(userUsername);
-        System.out.println("Dati della carta: "+cardDTO.getCardNumber()+"\n"+cardDTO.getOwner()+"\n"+cardDTO.getExpiryDate()+"\n"+cardDTO.getCvv() );
         if(cards.size()<5) {
             for(UserCardDTO card: cards) {
                 CardDTO userCard= cardService.getCard(card.getCardId());
-                System.out.println("carta presa: "+userCard.getId()+ " "+ userCard.getCardNumber());
                 if(userCard.equals(cardDTO) || userCard.getCardNumber().equals(cardDTO.getCardNumber())) {
-                    System.out.println("sono nell'if dentro il ciclo");
                     return 1;
                 }
             }
@@ -448,7 +443,6 @@ public class GeneralServiceImpl implements GeneralService {
     private int createCard(String userUsername, CardDTO cardDTO) {
         cardDTO.setBalance(500.0);
         UUID cardId = cardService.addCard(cardDTO);
-        System.out.println("Sono nel create card ");
         if(cardId == null)
             return 1;
 

@@ -50,7 +50,6 @@ public class SearchController {
 
     @GetMapping("/users/{username}")
     public List<String> getUsersByUsernames(@PathVariable String username) {
-        System.out.println("Mi ha chimata e vuoi cercare l'utente "+username);
         return userService.getUsersByUsername(username);
     }
 }

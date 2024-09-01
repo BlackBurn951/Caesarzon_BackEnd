@@ -234,7 +234,7 @@ public class AdminRepositoryImpl implements AdminRepository {
 
             return user;
         } catch (Exception | Error e) {
-            log.debug(e.getMessage());
+            log.debug("Errore nella ricostruzione dell'utente");
             return null;
         }
     }

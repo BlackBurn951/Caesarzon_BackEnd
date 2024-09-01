@@ -43,12 +43,6 @@ public class ReportServiceImpl implements ReportService {
     }
 
 
-    //Metodo per aggiungere una segnalazione tramite l'id della recensione segnalata
-    @Override
-    public ReportDTO getReportByReviewId(UUID id) {
-        return modelMapper.map(reportRepository.findAllByReviewId(id), ReportDTO.class);
-    }
-
     @Override
     public List<ReportDTO> getReportsByReviewId(UUID id) {
         try{
@@ -61,7 +55,7 @@ public class ReportServiceImpl implements ReportService {
                     .map(rev -> modelMapper.map(rev, ReportDTO.class))
                     .toList();
         }catch (Exception | Error e) {
-            log.debug("Sesso3");
+            log.debug("Errore nella presa delle segnalazioni");
             return null;
         }
     }
@@ -78,7 +72,7 @@ public class ReportServiceImpl implements ReportService {
                     .map(rev -> modelMapper.map(rev, ReportDTO.class))
                     .toList();
         }catch (Exception | Error e) {
-            log.debug("Sesso3");
+            log.debug("Errore nella presa delle segnalazioni");
             return null;
         }
     }
@@ -155,11 +149,9 @@ public class ReportServiceImpl implements ReportService {
         try {
             List<Report> reports= reportRepository.findByUsernameUser2(username);
 
-            System.out.println("Presa report");
             if(reports.isEmpty())
                 return new Vector<>();
 
-            System.out.println("Post presa report");
             for(Report report: reports){
                 report.setEffective(!rollback);
             }
@@ -218,7 +210,7 @@ public class ReportServiceImpl implements ReportService {
 
             return true;
         } catch (Exception | Error e) {
-            log.debug("Sesso");
+            log.debug("Errore nell'eliminazione della segnalazione");
             return false;
         }
     }

@@ -23,6 +23,7 @@ public class CallCenter {
     private final RestTemplate restTemplate;
 
     private final String NOTIFICATION_SERVICE= "notifyService";
+    private final String USER_SERVICE= "userService";
 
     private DeleteReviewDTO fallbackValidate(Throwable e) {
         System.out.println("Circuit breaker partito");
@@ -36,6 +37,12 @@ public class CallCenter {
     }
     private boolean fallbackGeneric(Throwable e) {
         return false;
+    }
+    private int fallbackValidatePayment(Throwable e) {
+        return 2;
+    }
+    private UUID fallbackValidateNotification(Throwable e) {
+        return null;
     }
 
 
@@ -159,6 +166,7 @@ public class CallCenter {
 
 
     //CHIAMATE PER IL PAGAMENTO
+    @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackValidatePayment")
     public int validatePayment(UUID cardId, double total, boolean rollback) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -177,6 +185,7 @@ public class CallCenter {
         return 2;
     }
 
+    @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean completePayment(UUID cardId, double total) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -190,6 +199,7 @@ public class CallCenter {
                 String.class).getStatusCode()==HttpStatus.OK;
     }
 
+    @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean releaseLockPayment(UUID cardId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -203,6 +213,7 @@ public class CallCenter {
                 String.class).getStatusCode()==HttpStatus.OK;
     }
 
+    @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean rollbackPayment(UUID cardId, double total) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -219,6 +230,7 @@ public class CallCenter {
 
 
     //CHIAMATE PER CREARE LA NOTIFICA DELL'UTENTE
+    @CircuitBreaker(name= NOTIFICATION_SERVICE, fallbackMethod = "fallbackValidateNotification")
     public UUID validateNotification() {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -237,6 +249,7 @@ public class CallCenter {
         return null;
     }
 
+    @CircuitBreaker(name= NOTIFICATION_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean completeNotification(UUID notifyId, String username, String subject, String explanation) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -259,6 +272,7 @@ public class CallCenter {
         ).getStatusCode()== HttpStatus.OK;
     }
 
+    @CircuitBreaker(name= NOTIFICATION_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean releaseNotification(UUID notifyId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -273,6 +287,7 @@ public class CallCenter {
         ).getStatusCode()== HttpStatus.OK;
     }
 
+    @CircuitBreaker(name= NOTIFICATION_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean rollbackNotification(UUID notifyId) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -290,6 +305,7 @@ public class CallCenter {
 
 
     //CHIAMATE PER IL RESO
+    @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean validateAndReleasePaymentForReturn(UUID cardId, boolean rollback) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();
@@ -303,6 +319,7 @@ public class CallCenter {
                 String.class).getStatusCode()==HttpStatus.OK;
     }
 
+    @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackGeneric")
     public boolean completeOrRollbackPaymentForReturn(UUID cardId, double total, boolean rollback) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpHeaders headers = new HttpHeaders();

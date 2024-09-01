@@ -41,7 +41,6 @@ public class UserNotificationServiceImpl implements UserNotificationService {
                     .map(a -> modelMapper.map(a, UserNotificationDTO.class))
                     .toList();
             for(UserNotificationDTO notify: notificationDTO) {
-                System.out.println(notify.getDate());
                 String date= String.valueOf(notify.getDate());
                 notify.setDate(date);
             }
@@ -93,7 +92,6 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
             return notifyId;
         }catch(Exception | Error e){
-            System.out.println(e);
             log.debug("Errore nell'inserimento della notifica per l'utente");
             return null;
         }
@@ -146,11 +144,9 @@ public class UserNotificationServiceImpl implements UserNotificationService {
         try{
             List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
 
-            System.out.println("Pre presa notifiche utente");
             if(notifications.isEmpty())
                 return true;
 
-            System.out.println("Post presa notifiche utente");
             for(UserNotification notify: notifications) {
                 notify.setConfirmed(rollback);
             }

@@ -233,27 +233,6 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    @Override
-    public boolean rollbackOrderForUpdate(List<UUID> orderIds) {
-        try {
-            List<Order> orders= orderRepository.findAllById(orderIds);
-
-            if(orders==null || orders.isEmpty())
-                return false;
-
-            for(Order order:orders) {
-                order.setOrderState("Ricevuto");
-            }
-
-            orderRepository.saveAll(orders);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella creazione dell'ordine");
-            return false;
-        }
-    }
-
 
     @Override  // Restituisce tutti gli ordini di un determinato utente
     public List<OrderDTO> getOrders(String username) {
@@ -277,23 +256,18 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean validateDeleteUserOrders(String username, boolean rollback) {  //passare la listadi ordini per il rollback
         try {
-            System.out.println("Pre presa ordini");
             List<Order> orders= orderRepository.findAllOrdersByUsername(username);
 
-            System.out.println("Post presa ordini");
             if(orders.isEmpty())
                 return true;
 
-            System.out.println("Prima ciclo ordini");
             List<OrderDTO> result= new Vector<>();
             for(Order order: orders){
-                System.out.println(order.getOrderNumber());
                 result.add(modelMapper.map(order, OrderDTO.class));
 
                 order.setOrderState("In validazione");
             }
 
-            System.out.println("pre salvataggio ordini modificati");
             orderRepository.saveAll(orders);
             return true;
         }catch(Exception | Error e) {

@@ -37,14 +37,12 @@ public class CardServiceImpl implements CardService {
     //Metodo per aggiungere una carta
     @Override
     public UUID addCard(CardDTO cardDTO) {
-        System.out.println("Aggiornamento della carta");
         //Controllo che i campi mandati rispettino i criteri
         if(!checkCardNumber(cardDTO.getCardNumber()) || !checkOwner(cardDTO.getOwner()) ||
             !checkCvv(cardDTO.getCvv()) || !checkExpiryDate(cardDTO.getExpiryDate()))
             return null;
 
         try{
-            System.out.println("ho passato i controlli");
             Card card = modelMapper.map(cardDTO, Card.class);
             card.setOnChanges(false);
             return cardRepository.save(card).getId();
@@ -71,7 +69,6 @@ public class CardServiceImpl implements CardService {
     @Override
     public boolean validateOrRollbackCards(List<UUID> cardsId, boolean rollback) {
         try {
-            System.out.println("Sesso");
             List<Card> cards= cardRepository.findAllById(cardsId);
 
             for(Card card : cards){
@@ -103,18 +100,15 @@ public class CardServiceImpl implements CardService {
 
     //Metodi per la convalida
     private boolean checkCardNumber(String cardNumber) {
-        System.out.println("checkCardNumber: " + cardNumber);
         return cardNumber!=null && cardNumber.matches("[0-9]{16}");
     }
 
     private boolean checkOwner(String owner) {
-        System.out.println("check owner carta: "+ owner.matches("^(?=.{5,40}$)[a-zA-Z]+( [a-zA-Z]+){0,3}$"));
         return owner!= null && owner.length()>5 && owner.length()<=40 &&
                 owner.matches("^(?=.{5,40}$)[a-zA-Z]+( [a-zA-Z]+){0,3}$");
     }
 
     private boolean checkCvv(String cvv) {
-        System.out.println("cvv: "+cvv);
         return cvv!=null && cvv.matches("[0-9]{3}$");
     }
 
@@ -128,17 +122,12 @@ public class CardServiceImpl implements CardService {
         Pattern pattern = Pattern.compile("([0-9]+)-([0-9]+)");
         Matcher matcher = pattern.matcher(expiryDate);
 
-        System.out.println("check data: prima regex");
         int month=0, year=0;
-        System.out.println("sono prima del match: "+expiryDate);
         if(matcher.matches()) {
-            System.out.println("check data: dopo regex "+"\n"+month+"\n"+year);
             month = Integer.parseInt(matcher.group(2));
             year = Integer.parseInt(matcher.group(1));
-            System.out.println("Month: "+month+ " Year: "+year);
         }
 
-        System.out.println("check data: ");
         //Presa della data attuale e separazione tra mese e anno
         LocalDate date = LocalDate.now();
 

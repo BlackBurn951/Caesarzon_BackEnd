@@ -11,11 +11,7 @@ public interface ProductService {
 
     Product addOrUpdateProduct(ProductDTO product);
 
-    UUID getProductIDByName(String name);
-
     ProductDTO getProductById(UUID id);
-
-    List<ProductDTO> getAllProductsById(List<UUID> ids);
 
     boolean deleteProductById(UUID id);
 

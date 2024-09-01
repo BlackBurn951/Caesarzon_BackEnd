@@ -105,7 +105,7 @@ public class BanServiceImpl implements BanService {
             banRepository.deleteById(banId);
             return true;
         } catch (Exception | Error e) {
-            log.debug(e.getMessage());
+            log.debug("Errore nel rollback");
             return false;
         }
     }
@@ -126,7 +126,7 @@ public class BanServiceImpl implements BanService {
 
             return ban.getId();
         } catch (Exception | Error e) {
-            log.debug(e.getMessage());
+            log.debug("Errore nella validazione del sban");
             return null;
         }
     }
@@ -144,7 +144,7 @@ public class BanServiceImpl implements BanService {
 
             return true;
         } catch (Exception | Error e) {
-            log.debug(e.getMessage());
+            log.debug("Errore nel completamento dello sban");
             return false;
         }
     }

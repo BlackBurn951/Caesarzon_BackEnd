@@ -15,7 +15,4 @@ public interface SupportRequestService {
 
 
     List<SupportDTO> validateOrRollbackDeleteUserSupport(String username, boolean rollback);
-    boolean completeDeleteUserSupport(String username);
-    boolean releaseDeleteUserSupport(String username);
-    boolean rollbackDeleteUserSupport(List<SupportDTO> supports);
 }

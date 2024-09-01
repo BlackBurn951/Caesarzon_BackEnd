@@ -31,32 +31,19 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public List<String> findAllUsersByUsername(String username) {
-        System.out.println("username: " + username);
         List<String> usernames = new ArrayList<>();
         try{
-            System.out.println("sono nel try");
             RealmResource realmResource = keycloak.realm("CaesarRealm");
             List<UserRepresentation> users = realmResource.users().searchByUsername(username, false);
-            System.out.println("lunghezza della lista: "+users.size());
             for (UserRepresentation user : users) {
-                System.out.println("Inserisco gli utenti");
-                //if(user.getAttributes().get("onChanges").getFirst().equals("true"))
-                //    continue;
-                System.out.println("aggiunta: "+user.getUsername());
+                if(user.getAttributes().get("onChanges").getFirst().equals("true"))
+                    continue;
                 usernames.add(user.getUsername());
-                System.out.println("Sono ancora nel for");
             }
-            System.out.println("sono uscito dal for");
-            for(String name: usernames)
-                System.out.println("username: "+name);
-            if(usernames.size() > 0)
-                System.out.println("lista piena");
-            else
-                System.out.println("lista piena nulla");
+
             return usernames;
         }catch (Exception e) {
             log.debug("Errore nella presa di tutti gli utenti");
-            System.out.println("dimensione lista: "+usernames.size());
             return null;
         }
     }
@@ -133,7 +120,6 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     @Transactional
     public boolean saveUser(UserRegistrationDTO userData) {
-        System.out.println("Sono nel save user");
         // Presa del real associato all'applicazione
         RealmResource realmResource = keycloak.realm("CaesarRealm");
 
@@ -172,7 +158,6 @@ public class UserRepositoryImpl implements UserRepository {
 
         // Controllo che l'user sia stato inserito
         if (response.getStatus() == 201) {
-            System.out.println("L'user è stato inserito");
             // Presa dell'id dell'utente mandata come risposta della chiamata
             String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
 
@@ -197,18 +182,12 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     @Transactional
     public boolean updateUser(UserDTO userData) {
-        System.out.println("sono nella funziione per la modifica");
         try {
-            System.out.println("sono nel try");
             //Presa del realm da keycloak per effettuare le operazioni in esso
             RealmResource realmResource = keycloak.realm("CaesarRealm");
-            System.out.println("realm: "+realmResource);
             //Presa dell'id dell'utente e dell'utente stesso sull'interfaccia keycloak
             User userKeycloak = findUserByUsername(userData.getUsername());
-            System.out.println("user: " + userData.getUsername()+ "firstname: " + userData.getFirstName());
             UserResource userResource = realmResource.users().get(userKeycloak.getId());
-            System.out.println("resource: " + userResource.toRepresentation());
-            System.out.println("sono piombato");
             //Aggiornamento dei dati dell'utente ad eccezione dell'username (attributo unique e non modificabiledisponibilita)
             UserRepresentation user = userResource.toRepresentation();
             user.setFirstName(userData.getFirstName());
@@ -217,16 +196,13 @@ public class UserRepositoryImpl implements UserRepository {
 
             //Aggiunta degli attributi personalizzati
 
-            System.out.println("prima di getAttributes");
             user.getAttributes().get("phoneNumber").set(0, userData.getPhoneNumber());
             user.getAttributes().get("onChanges").set(0, String.valueOf(userData.isOnChanges()));
-            System.out.println("dopo get Attributes");
             boolean vb= userData.getOtp()!=null;
             if(userData.getOtp()!=null)
                 user.getAttributes().get("otp").set(0, userData.getOtp());
 
             userResource.update(user);
-            System.out.println("updatefatto");
             return true;
         } catch (Exception | Error e) {
             return false;
@@ -327,16 +303,14 @@ public class UserRepositoryImpl implements UserRepository {
             user.setLastName(userRepresentation.getLastName());
             user.setUsername(userRepresentation.getUsername());
             user.setEmail(userRepresentation.getEmail());
-            System.out.println("user: "+user.getUsername()+"firstname: "+user.getFirstName()+"lastname: "+user.getLastName());
             //Presa dei campi custom
             user.setPhoneNumber(userRepresentation.getAttributes().get("phoneNumber").getFirst());
             user.setOtp(userRepresentation.getAttributes().get("otp").getFirst());
             user.setOnChanges(Boolean.valueOf(userRepresentation.getAttributes().get("onChanges").getFirst()));
-            System.out.println("problema non qui");
 
             return user;
         } catch (Exception | Error e) {
-            log.debug(e.toString());
+            log.debug("Errore nella ricostruzione dell'utente");
             return null;
         }
     }

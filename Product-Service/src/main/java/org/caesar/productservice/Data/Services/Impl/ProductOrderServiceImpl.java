@@ -30,9 +30,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             List<ProductOrder> productOrderList= new Vector<>();
             ProductOrder productOrder;
 
-            System.out.println("Sono prima del for");
             for(ProductOrderDTO productOrderDTO: products){
-                System.out.println("Sono nel for");
                 productOrder = new ProductOrder();
 
                 productOrder.setId(productOrderDTO.getId());
@@ -162,7 +160,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             return true;
         }catch (Exception | Error e){
-            System.out.println(e);
+            log.debug("Nel salvataggio per dopo");
             return false;
         }
     }
@@ -170,7 +168,6 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean changeQuantity(String username, ProductDTO productDTO, int quantity, String size) {
         try{
-            System.out.println(productDTO.getName()+" "+quantity+" "+size);
             ProductOrder productOrder = productOrderRepository
                     .findByUsernameAndProductAndOrderIsNull(username, modelMapper.map(productDTO, Product.class));
 
@@ -215,24 +212,18 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public boolean validateOrRollbackDeleteUserCart(String username, boolean rollback) {
         try {
-            System.out.println("Pre presa dei prodotti negli ordini");
             List<ProductOrder> products= productOrderRepository.findAllByUsername(username);
 
-            System.out.println("Post presa dei prodotti negli ordini");
             if(products.isEmpty())
                 return true;
 
             for(ProductOrder productOrder: products){
-                System.out.println(productOrder.getUsername());
                 productOrder.setOnChanges(!rollback);
             }
 
-            System.out.println("pre salvataggio");
             productOrderRepository.saveAll(products);
-            System.out.println("Post salvataggio");
             return true;
         }catch(Exception | Error e) {
-            System.out.println(e);
             log.debug("Errore nella presa dei prodotti della lista");
             return false;
         }

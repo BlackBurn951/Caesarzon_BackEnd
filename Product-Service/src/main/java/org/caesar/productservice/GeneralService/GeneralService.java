@@ -14,7 +14,6 @@ public interface GeneralService {
 
     //SEZIONE DEI PRODOTTI E STRETTAMENTE CORRELATI
     byte[] getProductImage(UUID id);
-    List<ImageDTO> getAllProductImages(UUID productID);
     ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id);
     UUID addProduct(ProductDTO ProductDTO, boolean isNew);
     boolean deleteProduct(UUID id);
