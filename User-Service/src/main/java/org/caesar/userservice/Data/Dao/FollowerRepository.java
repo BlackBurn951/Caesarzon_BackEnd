@@ -15,7 +15,6 @@ import java.util.UUID;
 public interface FollowerRepository extends JpaRepository<Follower, UUID> {
 
     Follower findByUserUsername1AndUserUsername2(String username1, String username2);
-    Follower findByUserUsername1AndUserUsername2AndFriendIsTrue(String username1, String username2);
     List<Follower> findAllByUserUsername1(String username1, Pageable pageable);
     List<Follower> findAllByUserUsername1AndFriend(String username1, boolean friend, Pageable pageable);
 
