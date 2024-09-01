@@ -31,7 +31,15 @@ public class SupportRequestServiceImpl implements SupportRequestService {
     //Metodo per prendere tutte le richieste di supporto
     @Override
     public List<SupportDTO> getAllSupportRequest(int num) {
-        Page<Support> result = supportRequestRepository.findAll(PageRequest.of(num, 20));
+        Page<Support> supports = supportRequestRepository.findAll(PageRequest.of(num, 20));
+
+        List<Support> result= new Vector<>();
+        for (Support support: supports) {
+            if(support.isOnDeleting())
+                continue;
+
+            result.add(support);
+        }
         return result.stream().map(a -> modelMapper.map(a, SupportDTO.class)).toList();
     }
 
@@ -39,15 +47,21 @@ public class SupportRequestServiceImpl implements SupportRequestService {
     @Override
     public SupportDTO getSupport(UUID id) {
         Support support = supportRequestRepository.findById(id).orElse(null);
-        assert support != null;
-        return modelMapper.map(supportRequestRepository.findById(id), SupportDTO.class);
+
+        if(support == null || support.isOnDeleting())
+            return null;
+
+        return modelMapper.map(support, SupportDTO.class);
     }
 
     //Metodo per aggiungere una richiesta di supporto
     @Override
     public SupportDTO addSupportRequest(SupportDTO supportDTO) {
         try {
-            Support support = supportRequestRepository.save(modelMapper.map(supportDTO, Support.class));
+            Support support= modelMapper.map(supportDTO, Support.class);
+            support.setOnDeleting(false);
+
+            supportRequestRepository.save(support);
             return modelMapper.map(support, SupportDTO.class);
         } catch (Exception | Error e) {
             log.debug("Errore nell'inserimento della richiesta");
@@ -59,6 +73,11 @@ public class SupportRequestServiceImpl implements SupportRequestService {
     @Override
     public boolean deleteSupportRequest(SupportDTO supportDTO) {
         try {
+            Support support= supportRequestRepository.findById(supportDTO.getId()).orElse(null);
+
+            if(support == null || support.isOnDeleting())
+                return false;
+
             supportRequestRepository.deleteById(supportDTO.getId());
             return true;
         } catch (Exception | Error e) {
@@ -77,13 +96,17 @@ public class SupportRequestServiceImpl implements SupportRequestService {
             if(supports.isEmpty())
                 return new Vector<>();
 
+            List<Support> result= new Vector<>();
             for(Support support: supports) {
+                if(support.isOnDeleting() && !rollback)
+                    continue;
                 support.setOnDeleting(!rollback);
+                result.add(support);
             }
 
-            supportRequestRepository.saveAll(supports);
+            supportRequestRepository.saveAll(result);
 
-            return supports.stream()
+            return result.stream()
                     .map(nt -> modelMapper.map(nt, SupportDTO.class))
                     .toList();
         }catch(Exception | Error e){

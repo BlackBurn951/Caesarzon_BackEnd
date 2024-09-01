@@ -37,9 +37,18 @@ public class UserNotificationServiceImpl implements UserNotificationService {
                 return null;
             }
 
-            List<UserNotificationDTO> notificationDTO= notifications.stream()
+            List<UserNotification> result= new Vector<>();
+            for(UserNotification notification: notifications) {
+                if(!notification.isConfirmed())
+                    continue;
+                result.add(notification);
+            }
+
+            List<UserNotificationDTO> notificationDTO= result.stream()
                     .map(a -> modelMapper.map(a, UserNotificationDTO.class))
                     .toList();
+
+
             for(UserNotificationDTO notify: notificationDTO) {
                 System.out.println(notify.getDate());
                 String date= String.valueOf(notify.getDate());
@@ -67,6 +76,7 @@ public class UserNotificationServiceImpl implements UserNotificationService {
             notification.setSubject(notificationDTO.getSubject());
             notification.setExplanation(notificationDTO.getExplanation());
             notification.setRead(notificationDTO.isRead());
+            notification.setConfirmed(true);
             userNotificationRepository.save(notification);
 
             return true;
@@ -148,11 +158,19 @@ public class UserNotificationServiceImpl implements UserNotificationService {
             if(notifications.isEmpty())
                 return true;
 
+            List<UserNotification> result= new Vector<>();
             for(UserNotification notify: notifications) {
+                if(!notify.isConfirmed() && !rollback)
+                    continue;
+
                 notify.setConfirmed(rollback);
+                result.add(notify);
             }
 
-            userNotificationRepository.saveAll(notifications);
+            if(result.isEmpty())
+                return true;
+
+            userNotificationRepository.saveAll(result);
 
             return true;
         }catch(Exception | Error e){
@@ -171,12 +189,17 @@ public class UserNotificationServiceImpl implements UserNotificationService {
 
             for(UserNotificationDTO user: notificationDTO){
                 UserNotification userNot = userNotificationRepository.findById(user.getId()).orElse(null);
-                assert userNot != null;
+                if(userNot == null && !userNot.isConfirmed())
+                    continue;
                 userNot.setRead(true);
 
 
                 notification.add(userNot);
             }
+
+            if(notification.isEmpty())
+                return false;
+
             userNotificationRepository.saveAll(notification);
 
             return true;
@@ -190,6 +213,11 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     @Override
     public boolean deleteUserNotification(UUID id){
         try{
+            UserNotification notification= userNotificationRepository.findById(id).orElse(null);
+
+            if(notification==null || !notification.isConfirmed())
+                return false;
+
             userNotificationRepository.deleteById(id);
             return true;
         }catch(Exception | Error e){
@@ -202,7 +230,18 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     @Override
     public boolean deleteAllUserNotification(String username){
         try{
-            userNotificationRepository.deleteAllByUser(username);
+            List<UserNotification> notifications= userNotificationRepository.findAllByUser(username);
+
+            List<UserNotification> result= new Vector<>();
+            for(UserNotification notification: notifications){
+                if(!notification.isConfirmed())
+                    continue;
+                result.add(notification);
+            }
+
+            if(result.isEmpty())
+                return false;
+            userNotificationRepository.deleteAll(result);
             return true;
         }catch(Exception | Error e){
             log.debug("Errore nell'eliminazione");

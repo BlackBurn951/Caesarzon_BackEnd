@@ -28,6 +28,8 @@ public class ReportServiceImpl implements ReportService {
     public ReportDTO addReport(ReportDTO reportDTO) {
         try {
             Report report= reportRepository.save(modelMapper.map(reportDTO, Report.class));
+            report.setEffective(true);
+
             return modelMapper.map(report, ReportDTO.class);
         } catch (Exception | Error e) {
             log.debug("Errore nell'inserimento della segnalazione");
@@ -38,7 +40,12 @@ public class ReportServiceImpl implements ReportService {
     //Metodo per prendere una segnalazione
     @Override
     public ReportDTO getReport(UUID id) {
-        return modelMapper.map(reportRepository.findById(id), ReportDTO.class);
+        Report report= reportRepository.findById(id).orElse(null);
+
+        if(report==null || !report.isEffective())
+            return null;
+
+        return modelMapper.map(report, ReportDTO.class);
     }
 
 
@@ -51,12 +58,22 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public List<ReportDTO> getReportsByReviewId(UUID id) {
         try{
-            List<Report> reviews= reportRepository.findAllByReviewId(id);
+            List<Report> reports= reportRepository.findAllByReviewId(id);
 
-            if(reviews.isEmpty())
+            if(reports==null)
+                return null;
+
+            if(reports.isEmpty())
                 return new Vector<>();
 
-            return reviews.stream()
+            List<Report> result= new Vector<>();
+            for(Report report:reports) {
+                if(!report.isEffective())
+                    continue;
+
+                result.add(report);
+            }
+            return result.stream()
                     .map(rev -> modelMapper.map(rev, ReportDTO.class))
                     .toList();
         }catch (Exception | Error e) {
@@ -68,12 +85,22 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public List<ReportDTO> getReportsByUsername2(String username) {
         try{
-            List<Report> reviews= reportRepository.findByUsernameUser2(username);
+            List<Report> reports= reportRepository.findByUsernameUser2(username);
 
-            if(reviews.isEmpty())
+            if(reports==null)
                 return null;
 
-            return reviews.stream()
+            if(reports.isEmpty())
+                return null;
+
+            List<Report> result= new Vector<>();
+            for(Report report:reports) {
+                if(!report.isEffective())
+                    continue;
+
+                result.add(report);
+            }
+            return result.stream()
                     .map(rev -> modelMapper.map(rev, ReportDTO.class))
                     .toList();
         }catch (Exception | Error e) {
@@ -85,7 +112,21 @@ public class ReportServiceImpl implements ReportService {
     //Metodo per prendere tutte le segnalazioni
     @Override
     public List<ReportDTO> getAllReports(int num) {
-        Page<Report> result = reportRepository.findAll(PageRequest.of(num, 20));
+        Page<Report> reports = reportRepository.findAll(PageRequest.of(num, 20));
+
+        if(reports==null)
+            return null;
+
+        if(reports.get().toList().isEmpty())
+            return new Vector<>();
+
+        List<Report> result= new Vector<>();
+        for(Report report:reports) {
+            if(!report.isEffective())
+                continue;
+
+            result.add(report);
+        }
         return result.stream().map(a -> modelMapper.map(a, ReportDTO.class)).toList();
     }
 
@@ -157,12 +198,17 @@ public class ReportServiceImpl implements ReportService {
             if(reports.isEmpty())
                 return new Vector<>();
 
+            List<Report> result= new Vector<>();
             for(Report report: reports){
+                if(!report.isEffective() && !rollback)
+                    continue;
                 report.setEffective(!rollback);
-            }
-            reportRepository.saveAll(reports);
 
-            return reports.stream()
+                result.add(report);
+            }
+            reportRepository.saveAll(result);
+
+            return result.stream()
                     .map(a -> modelMapper.map(a, ReportDTO.class)).toList();
         } catch (Exception | Error e) {
             log.debug("Errore nella validazione della cancellazione delle segnalazioni per username utente segnalato");
@@ -205,12 +251,17 @@ public class ReportServiceImpl implements ReportService {
     //Metodo prendere un utente tramite username e id recensione
     @Override
     public boolean findByUsername1AndReviewId(String username, UUID reviewId) {
-        return reportRepository.findByUsernameUser1AndReviewId(username, reviewId) != null;
+        return reportRepository.findByUsernameUser1AndReviewIdAndEffectiveIsTrue(username, reviewId) != null;
     }
 
     @Override
     public boolean deleteReport(ReportDTO reportDTO) {
         try {
+            Report report= reportRepository.findById(reportDTO.getId()).orElse(null);
+
+            if(report==null || !report.isEffective())
+                return false;
+
             reportRepository.delete(modelMapper.map(reportDTO, Report.class));
 
             return true;

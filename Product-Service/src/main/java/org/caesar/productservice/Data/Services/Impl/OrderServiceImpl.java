@@ -111,7 +111,7 @@ public class OrderServiceImpl implements OrderService {
         try {
             Order order= orderRepository.findById(orderId).orElse(null);
 
-            if(order==null)
+            if(order==null || order.getOrderState().equals("In validazione"))
                 return false;
 
             order.setOrderState("In validazione");
@@ -257,19 +257,44 @@ public class OrderServiceImpl implements OrderService {
 
     @Override  // Restituisce tutti gli ordini di un determinato utente
     public List<OrderDTO> getOrders(String username) {
-        return orderRepository.findAllOrdersByUsername(username).stream().map(a -> modelMapper.map(a, OrderDTO.class)).toList();
+        List<Order> orders= orderRepository.findAllOrdersByUsername(username);
+
+        if(orders==null)
+            return null;
+
+        List<Order> result= new Vector<>();
+        for(Order order:orders) {
+            if(order.getOrderState().equals("In validazione"))
+                continue;
+            result.add(order);
+        }
+
+        if(result.isEmpty())
+            return new Vector<>();
+
+        return result.stream().map(a -> modelMapper.map(a, OrderDTO.class)).toList();
     }
 
 
 
     @Override  // Restituisce un determinato ordine di un utente
     public OrderDTO getOrder(String username, UUID id) {
-        return modelMapper.map(orderRepository.findOrderByIdAndUsername(id, username), OrderDTO.class);
+        Order order= orderRepository.findOrderByIdAndUsername(id, username);
+
+        if(order==null || order.getOrderState().equals("In validazione"))
+            return null;
+
+        return modelMapper.map(order, OrderDTO.class);
     }
 
     @Override
     public OrderDTO getOrderByIdAndUsername(UUID orderId, String username) {
-        return modelMapper.map(orderRepository.findOrderByIdAndUsername(orderId, username), OrderDTO.class);
+        Order order= orderRepository.findOrderByIdAndUsername(orderId, username);
+
+        if(order==null || order.getOrderState().equals("In validazione"))
+            return null;
+
+        return modelMapper.map(order, OrderDTO.class);
     }
 
 
@@ -288,6 +313,8 @@ public class OrderServiceImpl implements OrderService {
             List<OrderDTO> result= new Vector<>();
             for(Order order: orders){
                 System.out.println(order.getOrderNumber());
+                if(order.getOrderState().equals("In validazione") && !rollback)
+                    continue;
                 result.add(modelMapper.map(order, OrderDTO.class));
 
                 order.setOrderState("In validazione");

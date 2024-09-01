@@ -29,7 +29,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             for (AvailabilityDTO availabilityDTO : availability) {
                 Availability ava= availabilityRepository.findById(availabilityDTO.getId()).orElse(null);
 
-                if(ava==null)
+                if(ava==null || ava.isOnChanges())
                     return false;
 
                 ava.setOnChanges(true);
@@ -161,6 +161,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                 if(!insert) {
                     Availability myAvailability = modelMapper.map(availabilityDTO, Availability.class);
                     myAvailability.setProduct(modelMapper.map(product, Product.class));
+                    myAvailability.setOnChanges(false);
                     availabilityRepository.save(myAvailability);
                 } else
                     insert= false;
@@ -172,6 +173,11 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     @Override //Elimina una disponibilità dal db tramite il suo id
     public boolean deleteAvailability(UUID availabilityId) {
         try {
+            Availability availability = availabilityRepository.findById(availabilityId).orElse(null);
+
+            if(availability==null || availability.isOnChanges())
+                return false;
+
             availabilityRepository.deleteById(availabilityId);
             return true;
         } catch (Exception | Error e) {
@@ -183,7 +189,14 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     @Override //Elimina tutte le disponibilità di un determinato prodotto
     public boolean deleteAvailabilityByProduct(ProductDTO product) {
         try{
-            availabilityRepository.deleteAllByProduct(modelMapper.map(product, Product.class));
+            List<Availability> availabilities= availabilityRepository.findAllByProduct(modelMapper.map(product, Product.class));
+
+            for(Availability availability : availabilities){
+                if(availability.isOnChanges())
+                    return false;
+            }
+
+            availabilityRepository.deleteAll(availabilities);
 
             return true;
         } catch(Exception | Error e) {
