@@ -119,11 +119,8 @@ public class ReportOrchestrator {
                         break;
                     }
                 }
-                System.out.println("Completamento in locale delle notifiche terminato");
                 boolean rollbackReports= reportService.completeDeleteReportByReview(reports.getFirst().getReviewId());
-                System.out.println(completeAdminNotification+" "+rollbackReports);
                 if(completeAdminNotification && rollbackReports) {
-                    System.out.println("Completamento in locale terminato");
                     //Fase di completamento sul servizio esterno
                     boolean completeReviews= callCenter.completeReviewDeleteById(reports.getFirst().getReviewId());
                     if(completeReviews) {

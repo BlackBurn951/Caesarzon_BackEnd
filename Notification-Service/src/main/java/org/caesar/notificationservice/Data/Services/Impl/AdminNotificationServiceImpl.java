@@ -64,7 +64,10 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     @Override
     public boolean sendNotificationAllAdmin(List<SaveAdminNotificationDTO> notification) {
         try {
-            adminNotificationRepository.saveAll(notification.stream().map(a -> modelMapper.map(a, AdminNotification.class)).toList());
+            List<AdminNotification> notifications= notification.stream().map(a -> modelMapper.map(a, AdminNotification.class)).toList();
+
+            notifications.forEach(nt -> nt.setConfirmed(true));
+            adminNotificationRepository.saveAll(notifications);
 
             return true;
         } catch (Exception | Error e) {
@@ -137,12 +140,9 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     @Override
     public boolean completeDeleteByReport(ReportDTO reportDTO) {
         try{
-            System.out.println("Segnalazione arrivata per eliminare: "+reportDTO.getReason());
             List<AdminNotification> notifications= adminNotificationRepository.findAllByReport(modelMapper.map(reportDTO, Report.class));
 
-            System.out.println("Post presa lista notifiche");
             for(AdminNotification notify: notifications) {
-                System.out.println("Admin a cui è indirizzata la notifica: "+notify.getAdmin());
                 notify.setDate(null);
                 notify.setAdmin(null);
                 notify.setRead(false);
@@ -155,7 +155,6 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
             return true;
         }catch(Exception | Error e){
-            System.out.println(e);
             log.debug("Errore nel completamento dell'eliminazione per segnalazione");
             return false;
         }
@@ -253,7 +252,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
 
             return true;
         }catch (Exception | Error e){
-            log.debug("sesso2");
+            log.debug("Errore nell'eliminazione delle segnalazioni");
             return false;
         }
     }

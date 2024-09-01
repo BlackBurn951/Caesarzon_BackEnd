@@ -4,10 +4,8 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.caesar.userservice.Dto.BanDTO;
-import org.caesar.userservice.Dto.DeleteDTO.*;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -33,22 +31,6 @@ public class CallCenter {
     private boolean fallbackGeneric(Throwable e){
         System.out.println("Circuit breaker per i metodi generici");
         return false;
-    }
-    private ValidateUserDeleteDTO fallbackForDeleteNotifyValidate(Throwable e){
-        System.out.println("Servizio per la gestione delle notifiche non disponibile");
-        return null;
-    }
-    private CompleteUserDeleteDTO fallbackForDeleteNotifyComplete(Throwable e){
-        System.out.println("Servizio per la gestione delle notifiche non disponibile");
-        return null;
-    }
-    private UserDeleteValidationDTO fallbackForDeleteProductValidate(Throwable e){
-        System.out.println("Servizio per la gestione dei prodotti non disponibile");
-        return null;
-    }
-    private UserDeleteCompleteDTO fallbackForDeleteProductComplete(Throwable e){
-        System.out.println("Servizio per la gestione dei prodotti non disponibile");
-        return null;
     }
 
     //Chiamate per eseguire il ban

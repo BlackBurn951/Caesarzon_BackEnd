@@ -32,7 +32,7 @@ public class ReviewServiceImpl implements ReviewService {
 
             if(reviewDTO.getId()==null && reviewRepository.findReviewByUsernameAndProduct(reviewDTO.getUsername(),modelMapper.map(productDTO, Product.class))!=null)
                 return "Limite recensioni raggiunto...";
-            System.out.println("Stampa 2");
+
             review.setProduct(modelMapper.map(productDTO, Product.class));
             review.setDate(LocalDate.now());
 
@@ -43,12 +43,10 @@ public class ReviewServiceImpl implements ReviewService {
             else
                 return "Problemi nell'aggiunta della recensione...";
 
-            System.out.println("Stampa 3");
             review.setUsername(reviewDTO.getUsername());
             review.setOnChanges(false);
 
 
-            System.out.println("Dati della recensione inviati: "+reviewDTO.getText()+"\n"+reviewDTO.getEvaluation()+"\n"+reviewDTO.getUsername());
             reviewRepository.save(review);
 
             return "Recensione aggiunta con successo!";
@@ -56,11 +54,6 @@ public class ReviewServiceImpl implements ReviewService {
             log.debug("Errore nell'inserimento della recensione");
             return "Problemi nell'aggiunta della recensione...";
         }
-    }
-
-    @Override
-    public Review getReviewById(UUID reviewID) {
-        return reviewRepository.findById(reviewID).orElse(null);
     }
 
     @Override
@@ -192,10 +185,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public boolean completeDeleteReviews(String username) {
         try {
-            System.out.println("Prima della presa della recensione");
             List<Review> reviews= reviewRepository.findAllByUsername(username);
-
-            System.out.println("Dopo la presa delle recensioni");
 
             for(Review review : reviews) {
                 review.setDate(null);

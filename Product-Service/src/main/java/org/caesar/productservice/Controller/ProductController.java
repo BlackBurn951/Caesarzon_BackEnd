@@ -88,12 +88,8 @@ public class ProductController {
             @RequestParam(value = "max-price", required = false) Double maxPrice,
             @RequestParam(value = "is-clothing", required = false) Boolean isClothing) {
 
-        System.out.println("cosa mi arriva, query: " + query+" prezzo min: "+minPrice+" prezzo max: "+maxPrice+" è abbigliamento: "+isClothing);
         List<ProductSearchDTO> searchProduct = generalService.searchProducts(query, minPrice, maxPrice, isClothing);
-        System.out.println("Prodotti trovati");
-        for(ProductSearchDTO productSearchDTO : searchProduct){
-            System.out.println("nome prodotto: "+productSearchDTO.getProductName());
-        }
+
         if(searchProduct.isEmpty())
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         else

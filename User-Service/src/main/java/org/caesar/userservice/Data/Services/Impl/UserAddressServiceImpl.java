@@ -63,7 +63,6 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     @Override
     public boolean checkAddress(String username, UUID addressId) {
-        System.out.println(username+" "+addressId);
         UserAddress userAddress= userAddressRepository.findByUserUsernameAndId(username, addressId);
 
         return userAddress != null;
@@ -75,6 +74,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
             UserAddress userAddressEntity = modelMapper.map(userAddress, UserAddress.class);
+            userAddressEntity.setOnDeleting(false);
             userAddressRepository.save(userAddressEntity);
 
             return true;
@@ -122,47 +122,9 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
-    public boolean completeUserAddressesDelete(String username) {
-        try {
-            //List<UserAddress> addresses= userAddressRepository.findAllByUserUsername(username);
-
-//            for(UserAddress userAddress: addresses) {
-//                userAddress.setAddress(null);
-//            }
-//
-//            userAddressRepository.saveAll(addresses);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
-            return false;
-        }
-    }
-
-    @Override
     public boolean releaseLockUserAddresses(String username) {
         try {
             userAddressRepository.deleteAllByUserUsername(username);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean rollbackUserAddresses(String username, List<AddressDTO> addresses) {
-        try {
-            List<UserAddress> addr= userAddressRepository.findAllByUserUsername(username);
-
-            for(UserAddress userAddress: addr) {
-                for(AddressDTO addressDTO: addresses) {
-                    userAddress.setAddress(modelMapper.map(addressDTO, Address.class));
-                }
-            }
-
-            userAddressRepository.saveAll(addr);
 
             return true;
         } catch (Exception | Error e) {

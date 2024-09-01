@@ -14,7 +14,6 @@ public interface GeneralService {
 
     //SEZIONE DEI PRODOTTI E STRETTAMENTE CORRELATI
     byte[] getProductImage(UUID id);
-    List<ImageDTO> getAllProductImages(UUID productID);
     ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id);
     UUID addProduct(ProductDTO ProductDTO, boolean isNew);
     boolean deleteProduct(UUID id);
@@ -43,7 +42,7 @@ public interface GeneralService {
     boolean updateOrder(String username, UUID orderId);
     List<UnavailableDTO> checkAvailability(String username, List<UUID> productIds);
     boolean rollbackCheckAvailability(String username, List<UUID> productIds);
-    String checkOrder(String username, BuyDTO buyDTO, boolean payMethod);
+    String checkOrder(String username, BuyDTO buyDTO, boolean payMethod, boolean platform);
 
 
     //SEZIONE RICERCA DEI PRODOTTI

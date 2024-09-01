@@ -64,18 +64,10 @@ public class WishlistServiceImpl implements WishlistService {
         return modelMapper.map(wishlistRepository.findWishlistByIdAndUserUsername(id, username), WishlistDTO.class);
     }
 
-    @Override
-    public List<WishlistDTO> getAllWishlist(UUID id, String username) {
-        return wishlistRepository.findAllByIdAndUserUsername(id, username)
-                .stream()
-                .map(a -> modelMapper.map(a, WishlistDTO.class))
-                .toList();
-    }
 
     @Override
     @CircuitBreaker(name= USER_SERVICE, fallbackMethod = "fallbackCircuitBreaker")
     public List<BasicWishlistDTO> getAllWishlists(String ownerUsername, String accessUsername, int visibility) {
-        System.out.println("username dell'utente: "+ownerUsername+"visibilità: "+visibility);
         String vs= "";
         switch (visibility) {
             case 0 -> vs= "Pubblica";
@@ -163,23 +155,17 @@ public class WishlistServiceImpl implements WishlistService {
     @Override
     public List<WishlistDTO> validateOrRollbackDeleteUserWishlist(String username, boolean rollback) {
         try{
-            System.out.println("Prima della presa delle wishlist");
             List<Wishlist> wishlists= wishlistRepository.findAllByUserUsername(username);
 
-            System.out.println("Dopo la presa delle wishlist");
             if(wishlists.isEmpty())
                 return new Vector<>();
 
-            System.out.println("Ciclando le wishlist");
             for(Wishlist wishlist: wishlists) {
-                System.out.println(wishlist.getName());
                 wishlist.setOnDeleting(!rollback);
             }
 
-            System.out.println("Pre salvataggio wishlist");
             wishlistRepository.saveAll(wishlists);
 
-            System.out.println("Post salvataggio wislist");
             return wishlists.stream()
                     .map(nt -> modelMapper.map(nt, WishlistDTO.class))
                     .toList();

@@ -28,6 +28,7 @@ public class ReportServiceImpl implements ReportService {
     public ReportDTO addReport(ReportDTO reportDTO) {
         try {
             Report report= reportRepository.save(modelMapper.map(reportDTO, Report.class));
+            report.setEffective(true);
             return modelMapper.map(report, ReportDTO.class);
         } catch (Exception | Error e) {
             log.debug("Errore nell'inserimento della segnalazione");
@@ -42,12 +43,6 @@ public class ReportServiceImpl implements ReportService {
     }
 
 
-    //Metodo per aggiungere una segnalazione tramite l'id della recensione segnalata
-    @Override
-    public ReportDTO getReportByReviewId(UUID id) {
-        return modelMapper.map(reportRepository.findAllByReviewId(id), ReportDTO.class);
-    }
-
     @Override
     public List<ReportDTO> getReportsByReviewId(UUID id) {
         try{
@@ -60,7 +55,7 @@ public class ReportServiceImpl implements ReportService {
                     .map(rev -> modelMapper.map(rev, ReportDTO.class))
                     .toList();
         }catch (Exception | Error e) {
-            log.debug("Sesso3");
+            log.debug("Errore nella presa delle segnalazioni");
             return null;
         }
     }
@@ -77,7 +72,7 @@ public class ReportServiceImpl implements ReportService {
                     .map(rev -> modelMapper.map(rev, ReportDTO.class))
                     .toList();
         }catch (Exception | Error e) {
-            log.debug("Sesso3");
+            log.debug("Errore nella presa delle segnalazioni");
             return null;
         }
     }
@@ -215,7 +210,7 @@ public class ReportServiceImpl implements ReportService {
 
             return true;
         } catch (Exception | Error e) {
-            log.debug("Sesso");
+            log.debug("Errore nell'eliminazione della segnalazione");
             return false;
         }
     }

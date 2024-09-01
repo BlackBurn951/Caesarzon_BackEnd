@@ -90,11 +90,6 @@ public class GeneralServiceImpl implements GeneralService {
         return imageService.getImage(prod);
     }
 
-    @Override
-    public List<ImageDTO> getAllProductImages(UUID productID) {
-        return List.of();
-    }
-
     @Override // Restituisce il prodotto con le sue disponibilità e immagini, in più se l'utente non è guest salva la ricerca
     public ProductDTO getProductAndAvailabilitiesAndImages(String username, UUID id){
         ProductDTO productDTO = productService.getProductById(id);
@@ -181,9 +176,7 @@ public class GeneralServiceImpl implements GeneralService {
     //SEZIONE RECENSIONI
     @Override
     public List<ReviewDTO> getProductReviews(UUID productID, int str) {
-        System.out.println("prodotto: "+productID+" str: "+str);
         ProductDTO productDTO= productService.getProductById(productID);
-        System.out.println("productDTO: "+productDTO.getName());
         if(productDTO == null)
             return null;
 
@@ -215,7 +208,6 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     public AverageDTO getReviewAverage(UUID productId) {
-        System.out.println("id prodotto: "+productId);
         ProductDTO productDTO= productService.getProductById(productId);
 
         if(productDTO==null)
@@ -247,9 +239,7 @@ public class GeneralServiceImpl implements GeneralService {
     @Transactional
     @CircuitBreaker(name= NOTIFY_SERVICE, fallbackMethod = "fallbackNotify")
     public boolean deleteReviewByUser(String username, UUID productId) {
-        System.out.println("l'utente: "+username+" elimina la recensione sul prodotto: "+productId.toString());
         ProductDTO productDTO= productService.getProductById(productId);
-        System.out.println("prodotto: "+productDTO.getName());
         if(productDTO==null)
             return false;
 
@@ -287,7 +277,6 @@ public class GeneralServiceImpl implements GeneralService {
 
             prod.setQuantity(p.getQuantity());
             prod.setSize(p.getSize());
-            System.out.println("VARIABILE: " + p.isBuyLater());
             prod.setBuyLater(p.isBuyLater());
 
             double discountPrice = (p.getProductDTO().getPrice() * p.getProductDTO().getDiscount())/100;
@@ -477,9 +466,8 @@ public class GeneralServiceImpl implements GeneralService {
 
     @Override
     @Transactional   // Genera un ordine contenente gli articoli acquistati dall'utente e la notifica corrispondente
-    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod) {  //PayMethod -> false carta -> true paypal
+    public String checkOrder(String username, BuyDTO buyDTO, boolean payMethod, boolean platform) {  //PayMethod -> false carta -> true paypal  Platform -> true angular -> false android
 
-        System.out.println(buyDTO.getAddressID()+" "+buyDTO.getTotal()+" "+buyDTO.getCardID()+" "+buyDTO.getProductsIds());
         List<ProductOrderDTO> productInOrder = getProductInOrder(username, buyDTO.getProductsIds());
 
         if (productInOrder == null || productInOrder.isEmpty())
@@ -517,11 +505,17 @@ public class GeneralServiceImpl implements GeneralService {
             return response;
         } else {
             try {
+                String redirect= "";
+
+                if(platform)
+                    redirect= "http://localhost:4200/order-final";
+                else
+                    redirect= "caesarzon://payment";
                 Payment payment = payPalService.createPayment(
                         total, "EUR", "paypal",
                         "sale", "Pagamento ordine",
-                        "http://localhost:4200/order-final",
-                        "http://localhost:4200/order-final");
+                        redirect,
+                        redirect);
                 for (Links link : payment.getLinks()) {
                     if (link.getRel().equals("approval_url")) {
                         return link.getHref();
@@ -540,11 +534,6 @@ public class GeneralServiceImpl implements GeneralService {
     @Override // Resituisce una lista di prodotti, risultato della ricerca coi valori dei parametri passati
     public List<ProductSearchDTO> searchProducts(String searchText, Double minPrice, Double maxPrice, Boolean isClothing) {
         List<ProductDTO> productDTO = productService.searchProducts(searchText, minPrice, maxPrice, isClothing);
-        System.out.println("Sono nella search product");
-
-        for(ProductDTO p: productDTO){
-            System.out.println("prodotto: "+p.getName());
-        }
 
         if(productDTO==null || productDTO.isEmpty())
             return null;
@@ -653,7 +642,6 @@ public class GeneralServiceImpl implements GeneralService {
 
         WishListProductDTO wishListProductDTO= getWishListProductDTO(username, sendWishlistProductDTO, false);
 
-        System.out.println("Nome wishlist: "+wishListProductDTO.getWishlistDTO().getName()+"\nNome prodotto: "+wishListProductDTO.getProductDTO().getName());
         if(wishListProductDTO==null)
             return false;
 
@@ -740,15 +728,12 @@ public class GeneralServiceImpl implements GeneralService {
 
         WishlistDTO wishlistDTO= wishlistService.getWishlist(wishlistProductDTO.getWishlistID(), username);
 
-        System.out.println(wishlistDTO.getName());
         if(wishlistDTO==null)
             return null;
 
-        System.out.println("Prima controllo");
         if(wishlistProductService.thereIsProductInWishList(wishlistDTO, productDTO) && add)
             return null;
 
-        System.out.println("Dopo controllo");
         WishListProductDTO wishListProductDTO= new WishListProductDTO();
 
         wishListProductDTO.setWishlistDTO(wishlistDTO);

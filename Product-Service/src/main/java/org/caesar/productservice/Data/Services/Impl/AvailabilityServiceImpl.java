@@ -161,23 +161,13 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                 if(!insert) {
                     Availability myAvailability = modelMapper.map(availabilityDTO, Availability.class);
                     myAvailability.setProduct(modelMapper.map(product, Product.class));
+                    myAvailability.setOnChanges(false);
                     availabilityRepository.save(myAvailability);
                 } else
                     insert= false;
             }
         }
         return true;
-    }
-
-    @Override //Elimina una disponibilità dal db tramite il suo id
-    public boolean deleteAvailability(UUID availabilityId) {
-        try {
-            availabilityRepository.deleteById(availabilityId);
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nella cancellazione della disponibilità");
-            return false;
-        }
     }
 
     @Override //Elimina tutte le disponibilità di un determinato prodotto
@@ -192,10 +182,6 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         }
     }
 
-    @Override
-    public List<Availability> getAll() {
-        return availabilityRepository.findAll();
-    }
 
     @Override //Resituisce tutte le disponibilità di un determinato prodotto
     public List<AvailabilityDTO> getAvailabilitiesByProduct(ProductDTO productDTO) {

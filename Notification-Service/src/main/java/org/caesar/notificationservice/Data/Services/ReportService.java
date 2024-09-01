@@ -19,7 +19,6 @@ public interface ReportService {
     boolean completeDeleteReportByUsername2(String username);
 
 
-    ReportDTO getReportByReviewId(UUID reviewId);
     int countReportForUser(String username);
     boolean findByUsername1AndReviewId(String username1, UUID reviewId);
     boolean deleteReport(ReportDTO reportDTO);

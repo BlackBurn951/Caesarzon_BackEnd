@@ -51,9 +51,9 @@ public class DeleteOrchestrator {
         //Validazione follower
         List<FollowerDTO> validateFollower= followerService.validateOrRollbackDeleteFollowers(user.getUsername(), false);
 
-        boolean checkCard= validationUserCard!=null && !validationUserCard.isEmpty() && validateCard;
-        boolean checkAddress= validationUserAddress!=null && !validationUserAddress.isEmpty() && validateAddress;
-        if(profilePic!=null && validationUserCard!=null && checkCard && validationUserAddress !=null && checkAddress && validateFollower!=null) {
+        boolean checkCard= validationUserCard!=null && validateCard;
+        boolean checkAddress= validationUserAddress!=null && validateAddress;
+        if(profilePic!=null && checkCard && checkAddress && validateFollower!=null) {
 
             //Fase di validazione (completamento) sui servizi esterni
             if(callCenter.validateNotificationService(false) && callCenter.validateProductService(false)) {

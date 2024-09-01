@@ -78,6 +78,7 @@ public class UserCardServiceImpl implements UserCardService {
         //Try per gestire l'errore nell'inserimento della tupla (l'eventuale rollback sarà gestito dal @Transactional del save()
         try{
             UserCard userCardEntity = modelMapper.map(userCard, UserCard.class);
+            userCardEntity.setOnDeleting(false);
             userCardRepository.save(userCardEntity);
 
             return true;
@@ -110,6 +111,7 @@ public class UserCardServiceImpl implements UserCardService {
             if(cards.isEmpty())
                 return new Vector<>();
 
+
             List<CardDTO> result= new Vector<>();
             for(UserCard userCard: cards) {
                 result.add(modelMapper.map(userCard.getCard(), CardDTO.class));
@@ -126,47 +128,9 @@ public class UserCardServiceImpl implements UserCardService {
     }
 
     @Override
-    public boolean completeUserCardsDelete(String username) {
-        try {
-            //List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
-
-//            for(UserCard userCard: cards) {
-//                userCard.setCard(null);
-//            }
-//
-//            userCardRepository.saveAll(cards);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
-            return false;
-        }
-    }
-
-    @Override
     public boolean releaseLockUserCards(String username) {
         try {
             userCardRepository.deleteAllByUserUsername(username);
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Problemi nella cancellazione della tupla  di relazione carta utente");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean rollbackUserCards(String username, List<CardDTO> userCards) {
-        try {
-            List<UserCard> cards= userCardRepository.findAllByUserUsername(username);
-
-            for(UserCard userCard: cards) {
-                for(CardDTO card: userCards) {
-                    userCard.setCard(modelMapper.map(card, Card.class));
-                }
-            }
-
-            userCardRepository.saveAll(cards);
 
             return true;
         } catch (Exception | Error e) {

@@ -57,7 +57,6 @@ public class FollowerServiceImpl implements FollowerService {
     //Aggiunta del follower
     @Override
     public boolean addFollowers(String username1, List<UserSearchDTO> followers) {
-        System.out.println("Follower cher arriva: "+followers.getFirst().getUsername()+" "+followers.getFirst().isFriend());
         //Controllo che venga inviato almeno un dato
         if(followers==null || followers.isEmpty()) {
             return false;
@@ -67,9 +66,7 @@ public class FollowerServiceImpl implements FollowerService {
         for(UserSearchDTO f: followers) {
             Follower follower  = followerRepository.findByUserUsername1AndUserUsername2(username1, f.getUsername());
             if(follower!=null){
-                System.out.println("Follower trovato: "+f.getUsername()+" stato: "+f.isFriend());
                 follower.setFriend(f.isFriend());
-                System.out.println("Follower trovato: "+follower.getUserUsername2()+" nuovo stato: "+follower.isFriend());
                 followerRepository.save(follower);
             }else{
                 followz.add(f);
@@ -79,14 +76,15 @@ public class FollowerServiceImpl implements FollowerService {
 
         List<Follower> savingFollower= new Vector<>();
 
-        FollowerDTO fwl= new FollowerDTO();
+        Follower fwl= new Follower();
 
         for(UserSearchDTO follower : followz) {
             fwl.setUserUsername1(username1);
             fwl.setUserUsername2(follower.getUsername());
             fwl.setFriend(follower.isFriend());
+            fwl.setOnDeleting(false);
 
-            savingFollower.add(modelMapper.map(fwl, Follower.class));
+            savingFollower.add(fwl);
         }
 
         try {
@@ -125,16 +123,13 @@ public class FollowerServiceImpl implements FollowerService {
     @Override
     public List<FollowerDTO> validateOrRollbackDeleteFollowers(String username, boolean rollback) { //0 -> true 1-> false 2 -> non avente
         try {
-            System.out.println("Appena entrato nel metodo");
             List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
 
-            System.out.println("Subito dopo la presa");
             if(followers.isEmpty())
                 return new Vector<>();
 
             List<FollowerDTO> result= new Vector<>();
             for(Follower follower : followers){
-                System.out.println("User 1 "+ follower.getUserUsername1()+" "+follower.getUserUsername2());
                 result.add(modelMapper.map(follower, FollowerDTO.class));
 
                 follower.setOnDeleting(!rollback);
@@ -143,26 +138,8 @@ public class FollowerServiceImpl implements FollowerService {
             followerRepository.saveAll(followers);
             return result;
         } catch (Exception | Error e) {
-            System.out.println(e);
             log.debug("Errore nella validazione o nel rollback pre completamento dei follower ");
             return null;
-        }
-    }
-
-    @Override
-    public boolean completeDeleteFollowers(String username) {
-        try {
-            List<Follower> followers= followerRepository.findAllByUserUsername1OrUserUsername2(username);
-
-            for(Follower follower : followers){
-                follower.setFriend(false);
-            }
-
-            followerRepository.saveAll(followers);
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nel completamento dell'eliminazione dei follower");
-            return false;
         }
     }
 
@@ -175,18 +152,6 @@ public class FollowerServiceImpl implements FollowerService {
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nel rilascio del lock dei follower");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean rollbackDeleteFollowers(List<FollowerDTO> followers) {
-        try {
-            followerRepository.saveAll(followers.stream().map(cd -> modelMapper.map(cd, Follower.class)).toList());
-
-            return true;
-        } catch (Exception | Error e) {
-            log.debug("Errore nel rollback post completamento dei follower");
             return false;
         }
     }

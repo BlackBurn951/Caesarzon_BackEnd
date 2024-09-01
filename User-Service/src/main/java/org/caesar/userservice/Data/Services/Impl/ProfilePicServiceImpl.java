@@ -31,6 +31,7 @@ public class ProfilePicServiceImpl implements ProfilePicService {
                 ProfilePic profilePic1 = new ProfilePic();
                 profilePic1.setUserUsername(lowercaseUsername);
                 profilePic1.setProfilePic(file.getBytes());
+                profilePic1.setOnDeleting(false);
                 profilePicRepository.save(profilePic1);
             } else {
                 ProfilePic profilePic = profilePicRepository.findByUserUsername(lowercaseUsername);
@@ -73,40 +74,9 @@ public class ProfilePicServiceImpl implements ProfilePicService {
     }
 
     @Override
-    public boolean completeDeleteUser(String username) {
-        try {
-            ProfilePic image= profilePicRepository.findByUserUsername(username);
-
-            if(image==null)
-                return false;
-
-//            image.setProfilePic(null);
-
-//            profilePicRepository.save(image);
-
-            return true;
-        }catch (Exception | Error e){
-            log.debug("Errore nel caricamento dell'imaggine");
-            return false;
-        }
-    }
-
-    @Override
     public boolean releaseDeleteUser(String username) {
         try {
             profilePicRepository.deleteByUserUsername(username);
-
-            return true;
-        }catch (Exception | Error e){
-            log.debug("Errore nel caricamento dell'imaggine");
-            return false;
-        }
-    }
-
-    @Override
-    public boolean rollbackDeleteUser(String username, ProfilePicDTO image) {
-        try {
-            profilePicRepository.save(modelMapper.map(image, ProfilePic.class));
 
             return true;
         }catch (Exception | Error e){

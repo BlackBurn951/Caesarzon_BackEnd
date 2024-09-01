@@ -34,7 +34,6 @@ public class JwtConverter implements Converter<Jwt, Mono<AbstractAuthenticationT
                 jwtGrantedAuthoritiesConverter.convert(jwt).stream(),
                 extractResourceRoles(jwt).stream()).collect(Collectors.toSet());
         AbstractAuthenticationToken token = new JwtAuthenticationToken(jwt, authorities, getPrincipalClaimName(jwt));
-        System.out.println("LA MAMMA DI ALDO FA POMPINI");
         return Mono.just(token);
     }
 
