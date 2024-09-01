@@ -68,7 +68,7 @@ public class ReviewServiceImpl implements ReviewService {
         try {
             Review review= reviewRepository.findReviewByUsernameAndProduct(username, modelMapper.map(productDTO, Product.class));
 
-            if(review==null || review.isOnChanges())
+            if(review==null)
                 return null;
 
             return modelMapper.map(review, ReviewDTO.class);
@@ -81,19 +81,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public List<ReviewDTO> getReviewsByProduct(ProductDTO productDTO, int str) {
-        List<Review> reviews= reviewRepository.findAllByproduct(modelMapper.map(productDTO, Product.class), PageRequest.of(str, 10));
-
-        List<Review> result= new Vector<>();
-        for(Review review : reviews) {
-            if(review.isOnChanges())
-                continue;
-            result.add(review);
-        }
-
-        if(result.isEmpty())
-            return new Vector<>();
-
-        return result.stream()
+        return reviewRepository.findAllByproduct(modelMapper.map(productDTO, Product.class), PageRequest.of(str, 10)).stream()
                 .map(a -> modelMapper.map(a, ReviewDTO.class))
                 .toList();
     }
@@ -103,7 +91,7 @@ public class ReviewServiceImpl implements ReviewService {
         try {
             Review review= reviewRepository.findById(reviewId).orElse(null);
 
-            if(review==null || (review.isOnChanges() && !rollback))
+            if(review==null)
                 return null;
 
             review.setOnChanges(!rollback);
@@ -144,7 +132,7 @@ public class ReviewServiceImpl implements ReviewService {
         try {
             Review review= reviewRepository.findById(reviewDTO.getId()).orElse(null);
 
-            if(review==null || (review.isOnChanges() && !rollback))
+            if(review==null)
                 return false;
 
             review.setOnChanges(!rollback);
@@ -188,20 +176,12 @@ public class ReviewServiceImpl implements ReviewService {
             if(reviews.isEmpty())
                 return new Vector<>();
 
-            List<Review> result= new Vector<>();
             for(Review review : reviews) {
-                if(review.isOnChanges() && !rollback)
-                    continue;
-
                 review.setOnChanges(!rollback);
-                result.add(review);
             }
 
-            if(result.isEmpty())
-                return new Vector<>();
-
-            reviewRepository.saveAll(result);
-            return result.stream()
+            reviewRepository.saveAll(reviews);
+            return reviews.stream()
                     .map(review -> modelMapper.map(review, ReviewDTO.class)).toList();
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della recensione");
@@ -252,20 +232,11 @@ public class ReviewServiceImpl implements ReviewService {
             if(reviews.isEmpty())
                 return true;
 
-
-            List<Review> result= new Vector<>();
             for(Review review : reviews) {
-                if(review.isOnChanges() && !rollback)
-                    continue;
-
                 review.setOnChanges(!rollback);
-                result.add(review);
             }
 
-            if(result.isEmpty())
-                return true;
-
-            reviewRepository.saveAll(result);
+            reviewRepository.saveAll(reviews);
             return true;
         } catch (Exception | Error e) {
             log.debug("Errore nella cancellazione della recensione");
@@ -283,8 +254,6 @@ public class ReviewServiceImpl implements ReviewService {
 
         double average = 0;
         for (Review review : reviewDTOS) {
-            if(review.isOnChanges())
-                continue;
             average += review.getEvaluation();
         }
         AverageDTO averageDTO = new AverageDTO();
@@ -296,26 +265,14 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public String getTextReview(UUID reviewId) {
-        Review review= reviewRepository.findById(reviewId).orElse(null);
-
-        if(review==null || review.isOnChanges())
-            return "";
-
-        return review.getText();
+        return Objects.requireNonNull(reviewRepository.findById(reviewId).orElse(null)).getText();
     }
 
     @Override
     public int getNumberOfReview(ProductDTO productDTO, int star) {
-        List<Review> reviews= reviewRepository.findAllByProductAndEvaluation(modelMapper.map(productDTO, Product.class), star);
+        List<Review> result= reviewRepository.findAllByProductAndEvaluation(modelMapper.map(productDTO, Product.class), star);
 
-        List<Review> result= new Vector<>();
-        for(Review review : reviews) {
-            if(review.isOnChanges())
-                continue;
-            result.add(review);
-        }
-
-        return result.isEmpty()? 0: result.size();
+        return result==null || result.isEmpty()? 0: result.size();
     }
 
 

@@ -49,12 +49,6 @@ public class WishlistProductServiceImpl implements WishlistProductService {
             System.out.println("Sono nella delete");
             Product prod= modelMapper.map(wishListProductDTO.getProductDTO(), Product.class);
             Wishlist wish= modelMapper.map(wishListProductDTO.getWishlistDTO(), Wishlist.class);
-
-            WishlistProduct wishProd= wishlistProductRepository.findByProductAndWishlist(prod, wish);
-
-            if(wishProd == null || wishProd.isOnDeleting())
-                return false;
-
             wishlistProductRepository.deleteByProductAndWishlist(prod, wish);
 
             System.out.println("dopo la delete");
@@ -75,9 +69,6 @@ public class WishlistProductServiceImpl implements WishlistProductService {
             WishListProductDTO wishListProductDTO;
 
             for(WishlistProduct wishlistProduct: wishListProductDTOS){
-                if(wishlistProduct.isOnDeleting())
-                    continue;
-
                 wishListProductDTO = new WishListProductDTO();
                 wishListProductDTO.setWishlistDTO(modelMapper.map(wishlistProduct.getWishlist(), WishlistDTO.class));
                 wishListProductDTO.setProductDTO(modelMapper.map(wishlistProduct.getProduct(), ProductDTO.class));
@@ -98,7 +89,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
         Wishlist wishlist= modelMapper.map(wishlistDTO, Wishlist.class);
         WishlistProduct wishlistProduct= wishlistProductRepository.findByProductAndWishlist(product, wishlist);
 
-        return wishlistProduct != null && !wishlistProduct.isOnDeleting();
+        return wishlistProduct != null;
     }
 
 
@@ -111,11 +102,10 @@ public class WishlistProductServiceImpl implements WishlistProductService {
             for (WishlistDTO wishlist: wishlists){
                 List<WishlistProduct> wishListProductDTOS = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlist, Wishlist.class));
 
-                for(WishlistProduct wishlistProduct: wishListProductDTOS){
-                    if(wishlistProduct.isOnDeleting() && !rollback)
-                        continue;
-                    wishListsProduct.add(wishlistProduct);
-                }
+                if(wishListProductDTOS.isEmpty())
+                    continue;
+
+                wishListsProduct.addAll(wishListProductDTOS);
             }
 
             if(wishListsProduct.isEmpty())
@@ -138,19 +128,7 @@ public class WishlistProductServiceImpl implements WishlistProductService {
     @Override  //Rimuove tutti i prodotti della lista desideri passando l'id della stessa
     public boolean deleteAllProductsFromWishlist(WishlistDTO wishlistDTO) {
         try {
-            List<WishlistProduct> wishListProducts = wishlistProductRepository.findAllByWishlist(modelMapper.map(wishlistDTO, Wishlist.class));
-
-            List<WishlistProduct> result= new Vector<>();
-            for(WishlistProduct wishlistProduct: wishListProducts){
-                if(wishlistProduct.isOnDeleting())
-                    continue;
-                result.add(wishlistProduct);
-            }
-
-            if(result.isEmpty())
-                return false;
-
-            wishlistProductRepository.deleteAll(result);
+            wishlistProductRepository.deleteAllByWishlist(modelMapper.map(wishlistDTO, Wishlist.class));
             return true;
         }catch(Exception | Error e) {
             log.debug("Errore nella rimozione dei prodotti dalla lista desideri");
